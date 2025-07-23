@@ -2,11 +2,8 @@
 
 namespace Adidas.Models.Main;
 
-public class ProductAttribute
+public class ProductAttribute : BaseEntity
 {
-    [Key]
-    public int AttributeId { get; set; }
-
     [Required, MaxLength(100)]
     public string Name { get; set; }
 

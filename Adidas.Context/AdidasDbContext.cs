@@ -7,10 +7,11 @@ using Adidas.Models.Operation;
 using Adidas.Models.Separator;
 using Adidas.Models.Tracker;
 using Models.People;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Adidas.Context
 {
-    public class AdidasDbContext : DbContext
+    public class AdidasDbContext : IdentityDbContext<User>
     {
         public AdidasDbContext(DbContextOptions<AdidasDbContext> options) : base(options) { }
 
@@ -83,7 +84,7 @@ namespace Adidas.Context
             // Product Configuration
             modelBuilder.Entity<Product>(entity =>
             {
-                entity.HasKey(e => e.ProductId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.Sku).IsUnique();
                 entity.HasIndex(e => new { e.CategoryId, e.IsActive });
                 entity.HasIndex(e => new { e.BrandId, e.IsActive });
@@ -107,7 +108,7 @@ namespace Adidas.Context
             // Product Variant Configuration
             modelBuilder.Entity<ProductVariant>(entity =>
             {
-                entity.HasKey(e => e.VariantId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.Sku).IsUnique();
                 entity.HasIndex(e => new { e.ProductId, e.Size, e.Color }).IsUnique();
                 entity.HasIndex(e => new { e.ProductId, e.IsActive });
@@ -124,7 +125,7 @@ namespace Adidas.Context
             // Category Configuration
             modelBuilder.Entity<Category>(entity =>
             {
-                entity.HasKey(e => e.CategoryId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.Slug).IsUnique();
                 entity.HasIndex(e => new { e.ParentCategoryId, e.IsActive });
                 entity.HasIndex(e => e.SortOrder);
@@ -138,7 +139,7 @@ namespace Adidas.Context
             // Product Images Configuration
             modelBuilder.Entity<ProductImage>(entity =>
             {
-                entity.HasKey(e => e.ImageId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => new { e.ProductId, e.IsPrimary });
                 entity.HasIndex(e => new { e.VariantId, e.SortOrder });
 
@@ -167,7 +168,7 @@ namespace Adidas.Context
             // Address Configuration
             modelBuilder.Entity<Address>(entity =>
             {
-                entity.HasKey(e => e.AddressId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => new { e.UserId, e.IsDefault });
                 entity.HasIndex(e => new { e.Country, e.StateProvince, e.City });
 
@@ -177,50 +178,14 @@ namespace Adidas.Context
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            //// User Session Configuration
-            //modelBuilder.Entity<UserSession>(entity =>
-            //{
-            //    entity.HasKey(e => e.SessionId);
-            //    entity.HasIndex(e => e.UserId);
-            //    entity.HasIndex(e => e.ExpiresAt);
-            //    entity.HasIndex(e => e.IsActive);
 
-            //    entity.HasOne(us => us.User)
-            //        .WithMany()
-            //        .HasForeignKey(us => us.UserId)
-            //        .OnDelete(DeleteBehavior.Cascade);
-            //});
-
-            // User Preferences Configuration
-            //modelBuilder.Entity<UserPreference>(entity =>
-            //{
-            //    entity.HasKey(e => e.PreferenceId);
-            //    entity.HasIndex(e => new { e.UserId, e.PreferenceKey }).IsUnique();
-
-            //    entity.HasOne(up => up.User)
-            //        .WithMany()
-            //        .HasForeignKey(up => up.UserId)
-            //        .OnDelete(DeleteBehavior.Cascade);
-            //});
-
-            //// Saved Payment Methods Configuration
-            //modelBuilder.Entity<SavedPaymentMethod>(entity =>
-            //{
-            //    entity.HasKey(e => e.PaymentMethodId);
-            //    entity.HasIndex(e => new { e.UserId, e.IsDefault });
-
-            //    entity.HasOne(spm => spm.User)
-            //        .WithMany()
-            //        .HasForeignKey(spm => spm.UserId)
-            //        .OnDelete(DeleteBehavior.Cascade);
-            //});
             #endregion
 
             #region Order Management Configuration
             // Order Configuration
             modelBuilder.Entity<Order>(entity =>
             {
-                entity.HasKey(e => e.OrderId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.OrderNumber).IsUnique();
                 entity.HasIndex(e => new { e.UserId, e.OrderDate });
                 entity.HasIndex(e => e.OrderStatus);
@@ -241,7 +206,7 @@ namespace Adidas.Context
             // Order Item Configuration
             modelBuilder.Entity<OrderItem>(entity =>
             {
-                entity.HasKey(e => e.OrderItemId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.OrderId);
                 entity.HasIndex(e => e.VariantId);
 
@@ -262,7 +227,7 @@ namespace Adidas.Context
             // Shopping Cart Configuration
             modelBuilder.Entity<ShoppingCart>(entity =>
             {
-                entity.HasKey(e => e.CartId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => new { e.UserId, e.VariantId }).IsUnique();
                 entity.HasIndex(e => e.AddedAt);
 
@@ -280,7 +245,7 @@ namespace Adidas.Context
             // Payment Configuration
             modelBuilder.Entity<Payment>(entity =>
             {
-                entity.HasKey(e => e.PaymentId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.OrderId);
                 entity.HasIndex(e => e.TransactionId);
                 entity.HasIndex(e => e.PaymentStatus);
@@ -294,77 +259,14 @@ namespace Adidas.Context
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Discount Configuration
-            //modelBuilder.Entity<Discount>(entity =>
-            //{
-            //    entity.HasKey(e => e.CouponId);
-            //    entity.HasIndex(e => e.Code).IsUnique();
-            //    entity.HasIndex(e => new { e.ValidFrom, e.ValidTo, e.IsActive });
-            //    entity.HasIndex(e => e.DiscountType);
 
-            //    entity.Property(e => e.DiscountValue).HasPrecision(18, 2);
-            //    entity.Property(e => e.MinimumAmount).HasPrecision(18, 2);
-            //});
-
-            //// Shipping Method Configuration
-            //modelBuilder.Entity<ShippingMethod>(entity =>
-            //{
-            //    entity.HasKey(e => e.ShippingMethodId);
-            //    entity.HasIndex(e => new { e.IsActive, e.SortOrder });
-
-            //    entity.Property(e => e.Cost).HasPrecision(18, 2);
-            //    entity.Property(e => e.FreeShippingThreshold).HasPrecision(18, 2);
-            //});
-
-            //// Tax Rate Configuration
-            //modelBuilder.Entity<TaxRate>(entity =>
-            //{
-            //    entity.HasKey(e => e.TaxRateId);
-            //    entity.HasIndex(e => new { e.Country, e.StateProvince, e.IsActive });
-
-            //    entity.Property(e => e.Rate).HasPrecision(5, 4);
-            //});
-            //#endregion
-
-            //#region Content & Marketing Configuration
-            //// Banner Configuration
-            //modelBuilder.Entity<Banner>(entity =>
-            //{
-            //    entity.HasKey(e => e.BannerId);
-            //    entity.HasIndex(e => new { e.Position, e.IsActive, e.SortOrder });
-            //    entity.HasIndex(e => new { e.ValidFrom, e.ValidTo });
-            //});
-
-            //// Promotion Configuration
-            //modelBuilder.Entity<Promotion>(entity =>
-            //{
-            //    entity.HasKey(e => e.PromotionId);
-            //    entity.HasIndex(e => new { e.IsActive, e.ValidFrom, e.ValidTo });
-            //    entity.HasIndex(e => e.PromotionType);
-            //});
-
-            //// SEO Metadata Configuration
-            //modelBuilder.Entity<SeoMetadata>(entity =>
-            //{
-            //    entity.HasKey(e => e.SeoId);
-            //    entity.HasIndex(e => new { e.EntityType, e.EntityId }).IsUnique();
-            //    entity.HasIndex(e => e.UrlSlug);
-            //});
-
-            //// Localization Configuration
-            //modelBuilder.Entity<Localization>(entity =>
-            //{
-            //    entity.HasKey(e => e.LocalizationId);
-            //    entity.HasIndex(e => new { e.LanguageCode, e.ResourceKey }).IsUnique();
-            //    entity.HasIndex(e => e.LanguageCode);
-            //});
             #endregion
 
             #region Customer Engagement Configuration
             // Review Configuration
             modelBuilder.Entity<Review>(entity =>
             {
-                entity.HasKey(e => e.ReviewId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => new { e.ProductId, e.IsApproved });
                 entity.HasIndex(e => new { e.UserId, e.CreatedAt });
                 entity.HasIndex(e => e.Rating);
@@ -383,7 +285,7 @@ namespace Adidas.Context
             // Wishlist Configuration
             modelBuilder.Entity<Wishlist>(entity =>
             {
-                entity.HasKey(e => e.WishlistId);
+                entity.HasKey(e => e.Id);
                 entity.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
                 entity.HasIndex(e => e.AddedAt);
 
@@ -398,68 +300,7 @@ namespace Adidas.Context
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Recently Viewed Configuration
-            //modelBuilder.Entity<RecentlyViewed>(entity =>
-            //{
-            //    entity.HasKey(e => e.RecentlyViewedId);
-            //    entity.HasIndex(e => new { e.UserId, e.ViewedAt });
-            //    entity.HasIndex(e => new { e.ProductId, e.ViewedAt });
 
-            //    entity.HasOne(rv => rv.User)
-            //        .WithMany()
-            //        .HasForeignKey(rv => rv.UserId)
-            //        .OnDelete(DeleteBehavior.Cascade);
-
-            //    entity.HasOne(rv => rv.Product)
-            //        .WithMany()
-            //        .HasForeignKey(rv => rv.ProductId)
-            //        .OnDelete(DeleteBehavior.Cascade);
-            //});
-            //#endregion
-
-            //#region Analytics & Logging Configuration
-            //// User Behavior Log Configuration
-            //modelBuilder.Entity<UserBehaviorLog>(entity =>
-            //{
-            //    entity.HasKey(e => e.LogId);
-            //    entity.HasIndex(e => new { e.UserId, e.Timestamp });
-            //    entity.HasIndex(e => new { e.ActionType, e.Timestamp });
-            //    entity.HasIndex(e => e.SessionId);
-            //});
-
-            //// Search Log Configuration
-            //modelBuilder.Entity<SearchLog>(entity =>
-            //{
-            //    entity.HasKey(e => e.SearchLogId);
-            //    entity.HasIndex(e => new { e.SearchTerm, e.Timestamp });
-            //    entity.HasIndex(e => new { e.UserId, e.Timestamp });
-            //    entity.HasIndex(e => e.ResultCount);
-            //});
-
-            //// Product Analytics Configuration
-            //modelBuilder.Entity<ProductAnalytics>(entity =>
-            //{
-            //    entity.HasKey(e => e.AnalyticsId);
-            //    entity.HasIndex(e => new { e.ProductId, e.Date }).IsUnique();
-            //    entity.HasIndex(e => e.Date);
-            //});
-            //#endregion
-
-            //#region API & Integrations Configuration
-            //// API Key Configuration
-            //modelBuilder.Entity<ApiKey>(entity =>
-            //{
-            //    entity.HasKey(e => e.ApiKeyId);
-            //    entity.HasIndex(e => e.KeyHash).IsUnique();
-            //    entity.HasIndex(e => new { e.IsActive, e.ExpiresAt });
-            //});
-
-            //// Webhook Endpoint Configuration
-            //modelBuilder.Entity<WebhookEndpoint>(entity =>
-            //{
-            //    entity.HasKey(e => e.EndpointId);
-            //    entity.HasIndex(e => new { e.IsActive, e.EventType });
-            //});
             #endregion
 
             // Configure JSON conversions for complex properties
@@ -505,35 +346,22 @@ namespace Adidas.Context
         private void SeedData(ModelBuilder modelBuilder)
         {
             // Seed Brands
-            modelBuilder.Entity<Brand>().HasData(
-                new Brand { BrandId = 1, Name = "Adidas", Description = "Impossible is Nothing", IsActive = true },
-                new Brand { BrandId = 2, Name = "Adidas Originals", Description = "Original is Never Finished", IsActive = true },
-                new Brand { BrandId = 3, Name = "Adidas Performance", Description = "Nothing is Impossible", IsActive = true }
-            );
+            //modelBuilder.Entity<Brand>().HasData(
+            //    new Brand { Id = 1, Name = "Adidas", Description = "Impossible is Nothing", IsActive = true },
+            //    new Brand { Id = 2, Name = "Adidas Originals", Description = "Original is Never Finished", IsActive = true },
+            //    new Brand { Id = 3, Name = "Adidas Performance", Description = "Nothing is Impossible", IsActive = true }
+            //);
 
             // Seed Categories
-            modelBuilder.Entity<Category>().HasData(
-                new Category { CategoryId = 1, Name = "Footwear", Slug = "footwear", IsActive = true, SortOrder = 1 },
-                new Category { CategoryId = 2, Name = "Clothing", Slug = "clothing", IsActive = true, SortOrder = 2 },
-                new Category { CategoryId = 3, Name = "Accessories", Slug = "accessories", IsActive = true, SortOrder = 3 },
-                new Category { CategoryId = 4, Name = "Running Shoes", Slug = "running-shoes", ParentCategoryId = 1, IsActive = true, SortOrder = 1 },
-                new Category { CategoryId = 5, Name = "Lifestyle Shoes", Slug = "lifestyle-shoes", ParentCategoryId = 1, IsActive = true, SortOrder = 2 },
-                new Category { CategoryId = 6, Name = "Football Boots", Slug = "football-boots", ParentCategoryId = 1, IsActive = true, SortOrder = 3 }
-            );
-
-            // Seed Shipping Methods
-            //modelBuilder.Entity<ShippingMethod>().HasData(
-            //    new ShippingMethod { ShippingMethodId = 1, Name = "Standard Delivery", Description = "3-5 business days", Cost = 4.95m, EstimatedDays = 4, IsActive = true, SortOrder = 1 },
-            //    new ShippingMethod { ShippingMethodId = 2, Name = "Express Delivery", Description = "1-2 business days", Cost = 9.95m, EstimatedDays = 1, IsActive = true, SortOrder = 2 },
-            //    new ShippingMethod { ShippingMethodId = 3, Name = "Free Standard Delivery", Description = "Free on orders over $75", Cost = 0m, EstimatedDays = 5, FreeShippingThreshold = 75m, IsActive = true, SortOrder = 3 }
+            //modelBuilder.Entity<Category>().HasData(
+            //    new Category { Id = 1, Name = "Footwear", Slug = "footwear", IsActive = true, SortOrder = 1 },
+            //    new Category { Id = 2, Name = "Clothing", Slug = "clothing", IsActive = true, SortOrder = 2 },
+            //    new Category { Id = 3, Name = "Accessories", Slug = "accessories", IsActive = true, SortOrder = 3 },
+            //    new Category { Id = 4, Name = "Running Shoes", Slug = "running-shoes", ParentCategoryId = 1, IsActive = true, SortOrder = 1 },
+            //    new Category { Id = 5, Name = "Lifestyle Shoes", Slug = "lifestyle-shoes", ParentCategoryId = 1, IsActive = true, SortOrder = 2 },
+            //    new Category { Id = 6, Name = "Football Boots", Slug = "football-boots", ParentCategoryId = 1, IsActive = true, SortOrder = 3 }
             //);
 
-            //// Seed Tax Rates
-            //modelBuilder.Entity<TaxRate>().HasData(
-            //    new TaxRate { TaxRateId = 1, Country = "US", StateProvince = "CA", TaxType = "Sales Tax", Rate = 0.0875m, IsActive = true },
-            //    new TaxRate { TaxRateId = 2, Country = "US", StateProvince = "NY", TaxType = "Sales Tax", Rate = 0.08m, IsActive = true },
-            //    new TaxRate { TaxRateId = 3, Country = "US", StateProvince = "TX", TaxType = "Sales Tax", Rate = 0.0625m, IsActive = true }
-            //);
         }
 
         public override int SaveChanges()

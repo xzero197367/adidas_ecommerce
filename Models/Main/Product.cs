@@ -7,11 +7,8 @@ using Models.People;
 
 namespace Adidas.Models.Main;
 
-public class Product
+public class Product : BaseEntity
 {
-    [Key]
-    public int ProductId { get; set; }
-
     [Required, MaxLength(200)]
     public string Name { get; set; }
 
@@ -29,27 +26,19 @@ public class Product
     public decimal? SalePrice { get; set; }
 
     [Required]
-    public int CategoryId { get; set; }
+    public Guid CategoryId { get; set; }
 
     [ForeignKey("CategoryId")]
     public Category Category { get; set; }
 
     [Required]
-    public int BrandId { get; set; }
+    public Guid BrandId { get; set; }
 
     [ForeignKey("BrandId")]
     public Brand Brand { get; set; }
 
     [Required]
     public Gender GenderTarget { get; set; }
-
-    [Required]
-    public bool IsActive { get; set; }
-
-    [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    public DateTime? UpdatedAt { get; set; }
 
     public string MetaTitle { get; set; }
 

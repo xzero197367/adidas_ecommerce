@@ -4,19 +4,16 @@ using Adidas.Models.Main;
 
 namespace Adidas.Models.Operation;
 
-public class OrderItem
+public class OrderItem : BaseEntity
 {
-    [Key]
-    public int OrderItemId { get; set; }
-
     [Required]
-    public int OrderId { get; set; }
+    public Guid OrderId { get; set; }
 
     [ForeignKey("OrderId")]
     public Order Order { get; set; }
 
     [Required]
-    public int VariantId { get; set; }
+    public Guid VariantId { get; set; }
 
     [ForeignKey("VariantId")]
     public ProductVariant Variant { get; set; }

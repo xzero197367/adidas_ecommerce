@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Adidas.Models.Main;
 
 namespace Adidas.Models.Separator;
-public class Category
+public class Category : BaseEntity
 {
-    [Key]
-    public int CategoryId { get; set; }
-
     [Required, MaxLength(100)]
     public string Name { get; set; }
 
@@ -19,17 +16,14 @@ public class Category
     [MaxLength(500)]
     public string ImageUrl { get; set; }
 
-    public int? ParentCategoryId { get; set; }
+    public Guid? ParentCategoryId { get; set; }
 
     [ForeignKey("ParentCategoryId")]
     public Category ParentCategory { get; set; }
 
-    [Required]
-    public bool IsActive { get; set; }
-
     public int SortOrder { get; set; }
 
     // Relationships
-    public virtual ICollection<Category>? SubCategories { get; set; } = new List<Category>();
+    public virtual ICollection<Category> SubCategories { get; set; } = new List<Category>();
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

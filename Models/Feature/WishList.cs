@@ -5,19 +5,17 @@ using Models.People;
 
 namespace Adidas.Models.Feature;
 
-public class Wishlist
-{
-    [Key]
-    public int WishlistId { get; set; }
 
+public class Wishlist : BaseEntity
+{
     [Required]
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User User { get; set; }
 
     [Required]
-    public int ProductId { get; set; }
+    public Guid ProductId { get; set; }
 
     [ForeignKey("ProductId")]
     public Product Product { get; set; }

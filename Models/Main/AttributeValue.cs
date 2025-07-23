@@ -3,19 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Adidas.Models.Main;
 
-public class ProductAttributeValue
+public class ProductAttributeValue : BaseEntity
 {
-    [Key]
-    public int ValueId { get; set; }
-
     [Required]
-    public int ProductId { get; set; }
+    public Guid ProductId { get; set; }
 
     [ForeignKey("ProductId")]
     public Product Product { get; set; }
 
     [Required]
-    public int AttributeId { get; set; }
+    public Guid AttributeId { get; set; }
 
     [ForeignKey("AttributeId")]
     public ProductAttribute Attribute { get; set; }

@@ -5,13 +5,10 @@ using Models.People;
 
 namespace Adidas.Models.Tracker;
 
-public class InventoryLog
+public class InventoryLog : BaseEntity
 {
-    [Key]
-    public int LogId { get; set; }
-
     [Required]
-    public int VariantId { get; set; }
+    public Guid VariantId { get; set; }
 
     [ForeignKey("VariantId")]
     public ProductVariant Variant { get; set; }
@@ -31,10 +28,7 @@ public class InventoryLog
     [MaxLength(500)]
     public string Reason { get; set; }
 
-    [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    public int? CreatedByUserId { get; set; }
+    public Guid? CreatedByUserId { get; set; }
 
     [ForeignKey("CreatedByUserId")]
     public User CreatedBy { get; set; }

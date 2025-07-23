@@ -1,4 +1,7 @@
 
+using Adidas.Context;
+using Microsoft.EntityFrameworkCore;
+
 namespace Adidas.ClientAPI
 {
     public class Program
@@ -8,6 +11,10 @@ namespace Adidas.ClientAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            // Configure DbContext
+            builder.Services.AddDbContext<AdidasDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

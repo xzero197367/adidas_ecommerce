@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Feature;
 using Models.People;
 
 namespace Adidas.Models.Operation;
@@ -13,16 +14,13 @@ public enum OrderStatus
     Cancelled
 }
 
-public class Order
+public class Order : BaseEntity
 {
-    [Key]
-    public int OrderId { get; set; }
-
     [Required, MaxLength(50)]
     public string OrderNumber { get; set; }
 
     [Required]
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User User { get; set; }

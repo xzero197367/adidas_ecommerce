@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Feature;
 
 namespace Adidas.Models.Operation;
 
@@ -9,10 +10,9 @@ public enum DiscountType
     FixedAmount
 }
 
-public class Coupon
+public class Coupon : BaseEntity
 {
-    [Key]
-    public int CouponId { get; set; }
+  
 
     [Required, MaxLength(50)]
     public string Code { get; set; }

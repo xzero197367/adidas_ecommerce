@@ -1,13 +1,14 @@
 ﻿
 
 using System.ComponentModel.DataAnnotations;
-using Adidas.Models;
 using Adidas.Models.Feature;
 using Adidas.Models.Operation;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Models.People
-{   
-   
+{
+
 
     public enum UserRole
     {
@@ -28,7 +29,7 @@ namespace Models.People
     {
         arabic, english
     }
-    public class User
+    public class User : IdentityUser
     {
         [Key]
         public int UserId { get; set; }

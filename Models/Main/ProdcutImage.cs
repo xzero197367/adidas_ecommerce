@@ -3,18 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Adidas.Models.Main;
 
-public class ProductImage
+public class ProductImage : BaseEntity
 {
-    [Key]
-    public int ImageId { get; set; }
-
     [Required]
-    public int ProductId { get; set; }
+    public Guid ProductId { get; set; }
 
     [ForeignKey("ProductId")]
     public Product Product { get; set; }
 
-    public int? VariantId { get; set; }
+    public Guid? VariantId { get; set; }
 
     [ForeignKey("VariantId")]
     public ProductVariant Variant { get; set; }

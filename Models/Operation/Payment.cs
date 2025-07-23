@@ -3,13 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Adidas.Models.Operation;
 
-public class Payment
-{
-    [Key]
-    public int PaymentId { get; set; }
 
+public class Payment : BaseEntity
+{
     [Required]
-    public int OrderId { get; set; }
+    public Guid OrderId { get; set; }
 
     [ForeignKey("OrderId")]
     public Order Order { get; set; }
@@ -30,7 +28,4 @@ public class Payment
 
     [Required]
     public DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
-
-    [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

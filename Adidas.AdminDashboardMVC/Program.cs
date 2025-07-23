@@ -1,3 +1,6 @@
+using Adidas.Context;
+using Microsoft.EntityFrameworkCore;
+
 namespace Adidas.AdminDashboardMVC
 {
     public class Program
@@ -6,8 +9,15 @@ namespace Adidas.AdminDashboardMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Configure DbContext
+            builder.Services.AddDbContext<AdidasDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
 
             var app = builder.Build();
 

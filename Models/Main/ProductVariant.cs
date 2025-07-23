@@ -6,13 +6,11 @@ using Adidas.Models.Tracker;
 
 namespace Adidas.Models.Main;
 
-public class ProductVariant
-{
-    [Key]
-    public int VariantId { get; set; }
 
+public class ProductVariant : BaseEntity
+{
     [Required]
-    public int ProductId { get; set; }
+    public Guid ProductId { get; set; }
 
     [ForeignKey("ProductId")]
     public Product Product { get; set; }
@@ -34,9 +32,6 @@ public class ProductVariant
 
     [MaxLength(500)]
     public string ImageUrl { get; set; }
-
-    [Required]
-    public bool IsActive { get; set; }
 
     // Relationships
     public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();

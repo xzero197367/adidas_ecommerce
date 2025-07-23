@@ -5,19 +5,16 @@ using Models.People;
 
 namespace Adidas.Models.Operation;
 
-public class Review
+public class Review : BaseEntity
 {
-    [Key]
-    public int ReviewId { get; set; }
-
     [Required]
-    public int ProductId { get; set; }
+    public Guid ProductId { get; set; }
 
     [ForeignKey("ProductId")]
     public Product Product { get; set; }
 
     [Required]
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User User { get; set; }
@@ -35,9 +32,4 @@ public class Review
 
     [Required]
     public bool IsApproved { get; set; }
-
-    [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    public DateTime? UpdatedAt { get; set; }
 }
