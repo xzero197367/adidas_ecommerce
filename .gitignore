@@ -1,0 +1,67 @@
+## Build output
+[Bb]in/
+[Oo]bj/
+*.exe
+*.dll
+*.pdb
+
+## Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## VS Code files
+.vscode/
+
+## NuGet
+*.nupkg
+packages/
+project.lock.json
+*.nuget.props
+*.nuget.targets
+
+## MSBuild logs
+*.log
+*.tlog
+
+## WPF-specific
+Generated_Code/
+*.g.i.cs
+*.g.cs
+*.xaml.cs (already compiled into .g.cs, so source should stay)
+
+## Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+## Debug/Crash/Diagnostics
+*.dmp
+*.mdmp
+
+## Others
+_ReSharper*/
+*.DotSettings.user
+.idea/
+*.ncrunch*
+*.cache/
+*.dbmdl
+*.bak
+*.tmp
+*.swp
+
+## Windows/Explorer
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## Git ignore for logs and reports
+*.log
+*.report
+
+# Optional: ignore local config secrets if any
+appsettings.*.json
+secrets.json

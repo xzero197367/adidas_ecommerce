@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35004.147
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{476D3822-9FC8-42A6-BDA5-28F4675F56B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adidas.Context", "Adidas.Context\Adidas.Context.csproj", "{75178E8F-742D-415A-81D9-43D07771C08D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adidas.Infra", "Adidas.Infra\Adidas.Infra.csproj", "{FBAA5DE8-34C1-4966-8135-B1E3EAAEEA74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adidas.Application", "Adidas.Application\Adidas.Application.csproj", "{ED88B2D3-86D6-496B-95E2-7849B435F6E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adidas.DTOs", "Adidas.DTOs\Adidas.DTOs.csproj", "{D21F5594-E09D-45EC-A952-12134C9E3BF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adidas.AdminDashboardMVC", "Adidas.AdminDashboardMVC\Adidas.AdminDashboardMVC.csproj", "{95680160-FFE6-4818-9895-353382376238}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adidas.ClientAPI", "Adidas.ClientAPI\Adidas.ClientAPI.csproj", "{73181DA1-5A6D-4D79-AFF7-1004C3D91B24}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{476D3822-9FC8-42A6-BDA5-28F4675F56B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{476D3822-9FC8-42A6-BDA5-28F4675F56B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{476D3822-9FC8-42A6-BDA5-28F4675F56B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{476D3822-9FC8-42A6-BDA5-28F4675F56B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75178E8F-742D-415A-81D9-43D07771C08D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75178E8F-742D-415A-81D9-43D07771C08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75178E8F-742D-415A-81D9-43D07771C08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75178E8F-742D-415A-81D9-43D07771C08D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBAA5DE8-34C1-4966-8135-B1E3EAAEEA74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBAA5DE8-34C1-4966-8135-B1E3EAAEEA74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBAA5DE8-34C1-4966-8135-B1E3EAAEEA74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBAA5DE8-34C1-4966-8135-B1E3EAAEEA74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED88B2D3-86D6-496B-95E2-7849B435F6E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED88B2D3-86D6-496B-95E2-7849B435F6E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED88B2D3-86D6-496B-95E2-7849B435F6E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED88B2D3-86D6-496B-95E2-7849B435F6E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D21F5594-E09D-45EC-A952-12134C9E3BF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D21F5594-E09D-45EC-A952-12134C9E3BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D21F5594-E09D-45EC-A952-12134C9E3BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D21F5594-E09D-45EC-A952-12134C9E3BF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95680160-FFE6-4818-9895-353382376238}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95680160-FFE6-4818-9895-353382376238}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95680160-FFE6-4818-9895-353382376238}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95680160-FFE6-4818-9895-353382376238}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73181DA1-5A6D-4D79-AFF7-1004C3D91B24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73181DA1-5A6D-4D79-AFF7-1004C3D91B24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73181DA1-5A6D-4D79-AFF7-1004C3D91B24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73181DA1-5A6D-4D79-AFF7-1004C3D91B24}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EF7FC023-28AE-4971-B675-58601BC3E9A4}
+	EndGlobalSection
+EndGlobal

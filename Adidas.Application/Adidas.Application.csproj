@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Contracts\RepositoriesContracts\Feature\" />
+    <Folder Include="Contracts\RepositoriesContracts\Main\" />
+    <Folder Include="Contracts\RepositoriesContracts\Operation\" />
+    <Folder Include="Contracts\RepositoriesContracts\People\" />
+    <Folder Include="Contracts\RepositoriesContracts\Separator\" />
+    <Folder Include="Contracts\RepositoriesContracts\Tracker\" />
+    <Folder Include="Contracts\ServicesContracts\Feature\" />
+    <Folder Include="Contracts\ServicesContracts\Main\" />
+    <Folder Include="Contracts\ServicesContracts\Operation\" />
+    <Folder Include="Contracts\ServicesContracts\People\" />
+    <Folder Include="Contracts\ServicesContracts\Separator\" />
+    <Folder Include="Contracts\ServicesContracts\Tracker\" />
+    <Folder Include="Map\Feature\" />
+    <Folder Include="Map\Main\" />
+    <Folder Include="Map\Operation\" />
+    <Folder Include="Map\People\" />
+    <Folder Include="Map\Separator\" />
+    <Folder Include="Map\Tracker\" />
+    <Folder Include="Services\Feature\" />
+    <Folder Include="Services\Main\" />
+    <Folder Include="Services\Operation\" />
+    <Folder Include="Services\People\" />
+    <Folder Include="Services\Separator\" />
+    <Folder Include="Services\Tracker\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Adidas.DTOs\Adidas.DTOs.csproj" />
+    <ProjectReference Include="..\Models\Models.csproj" />
+  </ItemGroup>
+
+</Project>
