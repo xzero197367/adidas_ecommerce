@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using Adidas.Models.Feature;
 using Adidas.Models.Operation;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Models.People
 {

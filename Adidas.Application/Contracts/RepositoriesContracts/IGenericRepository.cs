@@ -3,8 +3,9 @@
 
 using Adidas.Models;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace Adidas.Infra
+namespace Adidas.Application.Contracts.RepositoriesContracts
 {
     public interface IGenericRepository<T> where T : BaseEntity
     {
@@ -25,27 +26,27 @@ namespace Adidas.Infra
         // Count operations
         Task<int> CountAsync();
         Task<int> CountAsync(Expression<Func<T, bool>> predicate);
-        Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
+        // Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);        /// بتعات ايه دي
 
         // Write operations
-        Task<T> AddAsync(T entity);
-        Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities);
-        Task<T> UpdateAsync(T entity);
-        Task<IEnumerable<T>> UpdateRangeAsync(IEnumerable<T> entities);
+        Task<EntityEntry<T>> AddAsync(T entity);
+        Task<IEnumerable<EntityEntry<T>>> AddRangeAsync(IEnumerable<T> entities);
+        Task<EntityEntry<T>> UpdateAsync(T entity);
+        Task<IEnumerable<EntityEntry<T>>> UpdateRangeAsync(IEnumerable<T> entities);
 
         // Soft delete operations
         Task<bool> SoftDeleteAsync(Guid id);
-        Task<bool> SoftDeleteAsync(T entity);
+        // Task<bool> SoftDeleteAsync(T entity);                    
         Task<int> SoftDeleteRangeAsync(IEnumerable<T> entities);
 
         // Hard delete operations (use with caution)
         Task<bool> HardDeleteAsync(Guid id);
-        Task<bool> HardDeleteAsync(T entity);
+        // Task<bool> HardDeleteAsync(T entity);
         Task<int> HardDeleteRangeAsync(IEnumerable<T> entities);
 
         // Active/Inactive operations
-        Task<bool> SetActiveStatusAsync(Guid id, bool isActive);
-        Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive);
+        // Task<bool> SetActiveStatusAsync(Guid id, bool isActive);         /// بتعات ايه دي
+        // Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive);   /// بتعات ايه دي
 
         // Query building
         IQueryable<T> GetQueryable();
