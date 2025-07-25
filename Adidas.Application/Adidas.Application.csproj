@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Contracts\RepositoriesContracts\Feature\" />
-    <Folder Include="Contracts\RepositoriesContracts\Main\" />
     <Folder Include="Contracts\RepositoriesContracts\Operation\" />
     <Folder Include="Contracts\RepositoriesContracts\Separator\" />
     <Folder Include="Contracts\RepositoriesContracts\Tracker\" />
