@@ -1,24 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Adidas.Models.Operation;
-using Models.Feature;
+using Coupon = Models.Feature.Coupon;
 
 namespace Adidas.Models.Feature;
 
-public class OrderCoupon : BaseEntity
+public class OrderCoupon : BaseAuditableEntity
 {
-    [Required]
+    // fields
+    public decimal DiscountApplied { get; set; }
+    
+    // foreign key
+    public Guid CouponId { get; set; }
     public Guid OrderId { get; set; }
 
-    [ForeignKey("OrderId")]
+    // navigation
+    public Coupon Coupon { get; set; }
     public Order Order { get; set; }
-
-    [Required]
-    public Guid CouponId { get; set; }
-
-    [ForeignKey("CouponId")]
-    public Discount Coupon { get; set; }
-
-    [Required, Column(TypeName = "decimal(18,2)")]
-    public decimal DiscountApplied { get; set; }
+  
 }

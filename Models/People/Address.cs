@@ -5,7 +5,7 @@ using Adidas.Models;
 namespace Models.People;
 
 
-public class Address : BaseEntity
+public class Address : BaseAuditableEntity
 {
     [Required]
     public Guid UserId { get; set; }

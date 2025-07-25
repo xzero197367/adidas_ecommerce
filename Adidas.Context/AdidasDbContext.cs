@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Text.Json;
+using Adidas.Context.Configurations.Feature;
+using Adidas.Context.Configurations.People;
 using Adidas.Models.Feature;
 using Adidas.Models.Main;
 using Adidas.Models.Operation;
@@ -82,232 +84,54 @@ namespace Adidas.Context
 
             #region Product Catalog Configuration
             // Product Configuration
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Sku).IsUnique();
-                entity.HasIndex(e => new { e.CategoryId, e.IsActive });
-                entity.HasIndex(e => new { e.BrandId, e.IsActive });
-                entity.HasIndex(e => e.GenderTarget);
-                entity.HasIndex(e => e.CreatedAt);
-
-                entity.Property(e => e.Price).HasPrecision(18, 2);
-                entity.Property(e => e.SalePrice).HasPrecision(18, 2);
-
-                entity.HasOne(p => p.Category)
-                    .WithMany(c => c.Products)
-                    .HasForeignKey(p => p.CategoryId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(p => p.Brand)
-                    .WithMany(b => b.Products)
-                    .HasForeignKey(p => p.BrandId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
-
+            modelBuilder.ApplyConfiguration(new ProductConfig());
+            
             // Product Variant Configuration
-            modelBuilder.Entity<ProductVariant>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Sku).IsUnique();
-                entity.HasIndex(e => new { e.ProductId, e.Size, e.Color }).IsUnique();
-                entity.HasIndex(e => new { e.ProductId, e.IsActive });
-                entity.HasIndex(e => e.StockQuantity);
-
-                entity.Property(e => e.PriceAdjustment).HasPrecision(18, 2);
-
-                entity.HasOne(pv => pv.Product)
-                    .WithMany(p => p.Variants)
-                    .HasForeignKey(pv => pv.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.ApplyConfiguration(new ProductVariantConfig());
+     
 
             // Category Configuration
-            modelBuilder.Entity<Category>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Slug).IsUnique();
-                entity.HasIndex(e => new { e.ParentCategoryId, e.IsActive });
-                entity.HasIndex(e => e.SortOrder);
-
-                entity.HasOne(c => c.ParentCategory)
-                    .WithMany(c => c.SubCategories)
-                    .HasForeignKey(c => c.ParentCategoryId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
+            modelBuilder.ApplyConfiguration(new CategoryConfig());
 
             // Product Images Configuration
-            modelBuilder.Entity<ProductImage>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.ProductId, e.IsPrimary });
-                entity.HasIndex(e => new { e.VariantId, e.SortOrder });
-
-                entity.HasOne(pi => pi.Product)
-                    .WithMany(p => p.Images)
-                    .HasForeignKey(pi => pi.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(pi => pi.Variant)
-                    .WithMany(pv => pv.Images)
-                    .HasForeignKey(pi => pi.VariantId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.ApplyConfiguration(new ProductImageConfig());
+         
             #endregion
 
             #region User & Authentication Configuration
             // User Configuration
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasKey(e => e.UserId);
-                entity.HasIndex(e => e.Email).IsUnique();
-                entity.HasIndex(e => new { e.IsActive, e.Role });
-                entity.HasIndex(e => e.CreatedAt);
-            });
+            modelBuilder.ApplyConfiguration(new UserConfig());
 
             // Address Configuration
-            modelBuilder.Entity<Address>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.UserId, e.IsDefault });
-                entity.HasIndex(e => new { e.Country, e.StateProvince, e.City });
-
-                entity.HasOne(a => a.User)
-                    .WithMany(u => u.Addresses)
-                    .HasForeignKey(a => a.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
-
-
+            modelBuilder.ApplyConfiguration(new AddressConfig());
+            
             #endregion
 
             #region Order Management Configuration
             // Order Configuration
-            modelBuilder.Entity<Order>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.OrderNumber).IsUnique();
-                entity.HasIndex(e => new { e.UserId, e.OrderDate });
-                entity.HasIndex(e => e.OrderStatus);
-                entity.HasIndex(e => e.OrderDate);
-
-                entity.Property(e => e.Subtotal).HasPrecision(18, 2);
-                entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
-                entity.Property(e => e.ShippingAmount).HasPrecision(18, 2);
-                entity.Property(e => e.DiscountAmount).HasPrecision(18, 2);
-                entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
-
-                entity.HasOne(o => o.User)
-                    .WithMany(u => u.Orders)
-                    .HasForeignKey(o => o.UserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
-
+            modelBuilder.ApplyConfiguration(new OrderConfig());
+            
             // Order Item Configuration
-            modelBuilder.Entity<OrderItem>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.OrderId);
-                entity.HasIndex(e => e.VariantId);
-
-                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
-                entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
-
-                entity.HasOne(oi => oi.Order)
-                    .WithMany(o => o.OrderItems)
-                    .HasForeignKey(oi => oi.OrderId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(oi => oi.Variant)
-                    .WithMany(pv => pv.OrderItems)
-                    .HasForeignKey(oi => oi.VariantId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
-
+            modelBuilder.ApplyConfiguration(new OrderItemConfig());
+            
             // Shopping Cart Configuration
-            modelBuilder.Entity<ShoppingCart>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.UserId, e.VariantId }).IsUnique();
-                entity.HasIndex(e => e.AddedAt);
-
-                entity.HasOne(sc => sc.User)
-                    .WithMany(u => u.CartItems)
-                    .HasForeignKey(sc => sc.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(sc => sc.Variant)
-                    .WithMany(pv => pv.CartItems)
-                    .HasForeignKey(sc => sc.VariantId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.ApplyConfiguration(new ShoppingCartConfig());
 
             // Payment Configuration
-            modelBuilder.Entity<Payment>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.OrderId);
-                entity.HasIndex(e => e.TransactionId);
-                entity.HasIndex(e => e.PaymentStatus);
-                entity.HasIndex(e => e.ProcessedAt);
-
-                entity.Property(e => e.Amount).HasPrecision(18, 2);
-
-                entity.HasOne(p => p.Order)
-                    .WithMany(o => o.Payments)
-                    .HasForeignKey(p => p.OrderId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
-
-
+            modelBuilder.ApplyConfiguration(new PaymentConfig());
             #endregion
 
             #region Customer Engagement Configuration
             // Review Configuration
-            modelBuilder.Entity<Review>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.ProductId, e.IsApproved });
-                entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-                entity.HasIndex(e => e.Rating);
-
-                entity.HasOne(r => r.Product)
-                    .WithMany(p => p.Reviews)
-                    .HasForeignKey(r => r.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(r => r.User)
-                    .WithMany(u => u.Reviews)
-                    .HasForeignKey(r => r.UserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
+            modelBuilder.ApplyConfiguration(new ReviewConfig());
 
             // Wishlist Configuration
-            modelBuilder.Entity<Wishlist>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
-                entity.HasIndex(e => e.AddedAt);
-
-                entity.HasOne(w => w.User)
-                    .WithMany(u => u.Wishlists)
-                    .HasForeignKey(w => w.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(w => w.Product)
-                    .WithMany(p => p.Wishlists)
-                    .HasForeignKey(w => w.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
-
-
+            modelBuilder.ApplyConfiguration(new WishlistConfig());
+            
             #endregion
 
             // Configure JSON conversions for complex properties
             ConfigureJsonProperties(modelBuilder);
-
-            // Seed initial data
-            SeedData(modelBuilder);
         }
 
         private void ConfigureJsonProperties(ModelBuilder modelBuilder)
@@ -343,27 +167,7 @@ namespace Adidas.Context
             ////    .HasConversion(jsonStringConverter);
         }
 
-        private void SeedData(ModelBuilder modelBuilder)
-        {
-            // Seed Brands
-            //modelBuilder.Entity<Brand>().HasData(
-            //    new Brand { Id = 1, Name = "Adidas", Description = "Impossible is Nothing", IsActive = true },
-            //    new Brand { Id = 2, Name = "Adidas Originals", Description = "Original is Never Finished", IsActive = true },
-            //    new Brand { Id = 3, Name = "Adidas Performance", Description = "Nothing is Impossible", IsActive = true }
-            //);
-
-            // Seed Categories
-            //modelBuilder.Entity<Category>().HasData(
-            //    new Category { Id = 1, Name = "Footwear", Slug = "footwear", IsActive = true, SortOrder = 1 },
-            //    new Category { Id = 2, Name = "Clothing", Slug = "clothing", IsActive = true, SortOrder = 2 },
-            //    new Category { Id = 3, Name = "Accessories", Slug = "accessories", IsActive = true, SortOrder = 3 },
-            //    new Category { Id = 4, Name = "Running Shoes", Slug = "running-shoes", ParentCategoryId = 1, IsActive = true, SortOrder = 1 },
-            //    new Category { Id = 5, Name = "Lifestyle Shoes", Slug = "lifestyle-shoes", ParentCategoryId = 1, IsActive = true, SortOrder = 2 },
-            //    new Category { Id = 6, Name = "Football Boots", Slug = "football-boots", ParentCategoryId = 1, IsActive = true, SortOrder = 3 }
-            //);
-
-        }
-
+    
         public override int SaveChanges()
         {
             UpdateTimestamps();

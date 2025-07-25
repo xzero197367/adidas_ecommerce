@@ -7,7 +7,7 @@ using Adidas.Application.Contracts.RepositoriesContracts;
 
 namespace Adidas.Infra;
 
-public class GenericRepository<T> : IGenericRepository<T>  where T : BaseEntity
+public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditableEntity
 {
     protected readonly AdidasDbContext _context;
     protected readonly DbSet<T> _dbSet;
