@@ -8,6 +8,7 @@ using Adidas.Models.Separator;
 using Adidas.Models.Tracker;
 using Models.People;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Models.Feature;
 
 namespace Adidas.Context
 {
@@ -39,7 +40,7 @@ namespace Adidas.Context
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<Payment> Payments { get; set; }
-        //public DbSet<Discount> Discounts { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
         public DbSet<OrderCoupon> OrderCoupons { get; set; }
         //public DbSet<ShippingMethod> ShippingMethods { get; set; }
         //public DbSet<TaxRate> TaxRates { get; set; }
