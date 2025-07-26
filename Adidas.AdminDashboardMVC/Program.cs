@@ -1,4 +1,8 @@
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
+using Adidas.Application.Contracts.RepositoriesContracts;
 using Adidas.Context;
+using Adidas.Infra.Separator;
+using Adidas.Infra;
 using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.AdminDashboardMVC
@@ -17,6 +21,9 @@ namespace Adidas.AdminDashboardMVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 
             var app = builder.Build();
