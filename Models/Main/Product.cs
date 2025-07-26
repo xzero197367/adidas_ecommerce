@@ -60,5 +60,5 @@ public class Product : BaseEntity
     public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
-    public virtual ICollection<ProductAttributeValue> AttributeValues { get; set; } = new List<ProductAttributeValue>();
+    public virtual ICollection<AttributeValue> AttributeValues { get; set; } = new List<AttributeValue>();
 }
