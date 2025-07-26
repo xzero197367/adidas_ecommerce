@@ -42,6 +42,7 @@ namespace Adidas.Context
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<OrderCoupon> OrderCoupons { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
         //public DbSet<ShippingMethod> ShippingMethods { get; set; }
         //public DbSet<TaxRate> TaxRates { get; set; }
         #endregion

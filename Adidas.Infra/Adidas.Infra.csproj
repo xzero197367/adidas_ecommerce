@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Tracker\" />
-    <Folder Include="Operation\" />
   </ItemGroup>
 
   <ItemGroup>
