@@ -9,7 +9,6 @@
   <ItemGroup>
     <Folder Include="Feature\" />
     <Folder Include="Tracker\" />
-    <Folder Include="Operation\" />
   </ItemGroup>
 
   <ItemGroup>

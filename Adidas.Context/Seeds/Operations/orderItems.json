@@ -1,0 +1,93 @@
+[
+  {
+    "id": "item1111-1111-1111-1111-111111111111",
+    "orderId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "variantId": "var11111-1111-1111-1111-111111111111",
+    "quantity": 2,
+    "unitPrice": 300.0,
+    "totalPrice": 600.0,
+    "productName": "Adidas Ultraboost 22",
+    "variantDetails": "Color: Black, Size: 42",
+    "createdAt": "2024-07-10T14:30:00Z",
+    "updatedAt": "2024-07-10T14:30:00Z",
+    "isDeleted": false
+  },
+  {
+    "id": "item2222-2222-2222-2222-222222222222",
+    "orderId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "variantId": "var22222-2222-2222-2222-222222222222",
+    "quantity": 1,
+    "unitPrice": 250.0,
+    "totalPrice": 250.0,
+    "productName": "Adidas Stan Smith",
+    "variantDetails": "Color: White/Green, Size: 43",
+    "createdAt": "2024-07-10T14:30:00Z",
+    "updatedAt": "2024-07-10T14:30:00Z",
+    "isDeleted": false
+  },
+  {
+    "id": "item3333-3333-3333-3333-333333333333",
+    "orderId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "variantId": "var33333-3333-3333-3333-333333333333",
+    "quantity": 1,
+    "unitPrice": 800.0,
+    "totalPrice": 800.0,
+    "productName": "Adidas Yeezy Boost 350",
+    "variantDetails": "Color: Cream White, Size: 41",
+    "createdAt": "2024-07-20T11:15:00Z",
+    "updatedAt": "2024-07-20T11:15:00Z",
+    "isDeleted": false
+  },
+  {
+    "id": "item4444-4444-4444-4444-444444444444",
+    "orderId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "variantId": "var44444-4444-4444-4444-444444444444",
+    "quantity": 2,
+    "unitPrice": 200.0,
+    "totalPrice": 400.0,
+    "productName": "Adidas T-Shirt Classic",
+    "variantDetails": "Color: Navy, Size: L",
+    "createdAt": "2024-07-20T11:15:00Z",
+    "updatedAt": "2024-07-20T11:15:00Z",
+    "isDeleted": false
+  },
+  {
+    "id": "item5555-5555-5555-5555-555555555555",
+    "orderId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "variantId": "var11111-1111-1111-1111-111111111111",
+    "quantity": 1,
+    "unitPrice": 350.0,
+    "totalPrice": 350.0,
+    "productName": "Adidas Ultraboost 22",
+    "variantDetails": "Color: Blue, Size: 44",
+    "createdAt": "2024-07-23T16:20:00Z",
+    "updatedAt": "2024-07-23T16:20:00Z",
+    "isDeleted": false
+  },
+  {
+    "id": "item6666-6666-6666-6666-666666666666",
+    "orderId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "variantId": "var55555-5555-5555-5555-555555555555",
+    "quantity": 1,
+    "unitPrice": 300.0,
+    "totalPrice": 300.0,
+    "productName": "Adidas NMD R1",
+    "variantDetails": "Color: Gray, Size: 42",
+    "createdAt": "2024-07-23T16:20:00Z",
+    "updatedAt": "2024-07-23T16:20:00Z",
+    "isDeleted": false
+  },
+  {
+    "id": "item7777-7777-7777-7777-777777777777",
+    "orderId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+    "variantId": "var44444-4444-4444-4444-444444444444",
+    "quantity": 2,
+    "unitPrice": 200.0,
+    "totalPrice": 400.0,
+    "productName": "Adidas T-Shirt Classic",
+    "variantDetails": "Color: Black, Size: M",
+    "createdAt": "2024-07-17T13:45:00Z",
+    "updatedAt": "2024-07-17T13:45:00Z",
+    "isDeleted": false
+  }
+]
