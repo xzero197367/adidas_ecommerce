@@ -14,3 +14,4 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<(IEnumerable<Payment> payments, int totalCount)> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null);
     }
 }
+ 

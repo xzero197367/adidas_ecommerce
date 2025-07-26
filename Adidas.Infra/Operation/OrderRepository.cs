@@ -34,7 +34,7 @@ namespace Adidas.Infra.Operation
 
         public async Task<Order?> GetOrderWithPaymentsAsync(Guid orderId)
         {
-            return await GetByIdAsync(orderId, o => o.Payments);
+            return await GetByIdAsync(orderId, o => o.Payments);  
         }
 
         public async Task<Order?> GetOrderWithCouponsAsync(Guid orderId)

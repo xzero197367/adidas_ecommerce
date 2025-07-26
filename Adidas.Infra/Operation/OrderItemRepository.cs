@@ -26,7 +26,7 @@ namespace Adidas.Infra.Operation
             return await query.SumAsync(oi => oi.TotalPrice);
         }
 
-        public async Task<IEnumerable<OrderItem>> GetBestSellingItemsAsync(int count)
+        public async Task<IEnumerable<OrderItem>> GetBestSellingItemsAsync(int count)  
         {
             var query = GetQueryable(oi => !oi.IsDeleted);
             return await query

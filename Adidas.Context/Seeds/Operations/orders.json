@@ -29,7 +29,7 @@
     "taxAmount": 180.0,
     "shippingAmount": 75.0,
     "discountAmount": 300.0,
-    "totalAmount": 1155.0,
+    "totalAmount": 1155.0,  
     "currency": "EGP",
     "orderDate": "2024-07-20T11:15:00Z",
     "shippedDate": null,

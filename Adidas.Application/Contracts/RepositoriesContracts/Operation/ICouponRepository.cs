@@ -17,3 +17,4 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<bool> ApplyCouponToOrderAsync(Guid couponId, Guid orderId);
     }
 }
+ 

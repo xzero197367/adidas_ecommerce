@@ -33,7 +33,7 @@ namespace Adidas.Infra.Operation
                                                        !c.IsDeleted);
 
             if (coupon == null) return false;
-
+               
             var now = DateTime.UtcNow;
             return coupon.ValidFrom <= now &&
                    coupon.ValidTo >= now &&

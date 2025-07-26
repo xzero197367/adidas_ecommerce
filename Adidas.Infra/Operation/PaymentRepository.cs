@@ -36,7 +36,7 @@ namespace Adidas.Infra.Operation
                 query = query.Where(p => p.ProcessedAt >= startDate.Value);
 
             if (endDate.HasValue)
-                query = query.Where(p => p.ProcessedAt <= endDate.Value);
+                query = query.Where(p => p.ProcessedAt <= endDate.Value);  
 
             return await query.SumAsync(p => p.Amount);
         }

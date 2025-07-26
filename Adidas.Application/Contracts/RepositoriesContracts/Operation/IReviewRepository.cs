@@ -13,3 +13,4 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<(IEnumerable<Review> reviews, int totalCount)> GetReviewsPagedAsync(Guid productId, int pageNumber, int pageSize, bool? isApproved = null);
     }
 }
+ 

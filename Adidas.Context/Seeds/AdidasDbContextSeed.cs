@@ -61,7 +61,7 @@ namespace Adidas.Context.Seeds
                 {
                     await context.Coupons.AddRangeAsync(coupons);
                     await context.SaveChangesAsync();
-                }
+                } 
             }
         }
             

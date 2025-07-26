@@ -33,7 +33,7 @@ namespace Adidas.Infra.Operation
                                  r => r.Product);
         }
 
-        public async Task<double> GetAverageRatingAsync(Guid productId)
+        public async Task<double> GetAverageRatingAsync(Guid productId)  
         {
             var query = GetQueryable(r => r.ProductId == productId &&
                                          r.IsApproved &&

@@ -13,3 +13,4 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<(IEnumerable<OrderItem> items, int totalCount)> GetOrderItemsPagedAsync(Guid orderId, int pageNumber, int pageSize);
     }
 }
+ 
