@@ -12,7 +12,7 @@ namespace Adidas.Infra.Operation
                                  r => r.Product);
         }
 
-        public async Task<IEnumerable<Review>> GetReviewsByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<Review>> GetReviewsByUserIdAsync(string userId)
         {
             return await FindAsync(r => r.UserId == userId && !r.IsDeleted,
                                  r => r.Product);
@@ -52,7 +52,7 @@ namespace Adidas.Infra.Operation
                                  r => r.User);
         }
 
-        public async Task<bool> HasUserReviewedProductAsync(Guid userId, Guid productId)
+        public async Task<bool> HasUserReviewedProductAsync(string userId, Guid productId)
         {
             var count = await CountAsync(r => r.UserId == userId &&
                                              r.ProductId == productId &&

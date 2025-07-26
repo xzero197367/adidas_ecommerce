@@ -12,7 +12,7 @@ public class Wishlist : BaseAuditableEntity
     public required DateTime AddedAt { get; set; } = DateTime.UtcNow;
     
     // foreign keys
-    public required Guid UserId { get; set; }
+    public required string UserId { get; set; }
     public required Guid ProductId { get; set; }
     // navigation properties
     public User User { get; set; }

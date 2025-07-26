@@ -15,7 +15,7 @@ public class Review : BaseAuditableEntity
     public required bool IsApproved { get; set; }
     // foreign keys
     public required Guid ProductId { get; set; }
-    public required Guid UserId { get; set; }
+    public required string UserId { get; set; }
     // navigations
     public Product Product { get; set; }
     public User User { get; set; }

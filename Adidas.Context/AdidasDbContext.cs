@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Text.Json;
 using Adidas.Context.Configurations.Feature;
 using Adidas.Context.Configurations.People;
+using Adidas.Context.Seeds;
 using Adidas.Models.Feature;
 using Adidas.Models.Main;
 using Adidas.Models.Operation;
@@ -25,7 +26,7 @@ namespace Adidas.Context
         public DbSet<Brand> Brands { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
-        public DbSet<AttributeValue> ProductAttributeValues { get; set; }
+        public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
         public DbSet<InventoryLog> InventoryLogs { get; set; }
         #endregion
 
@@ -42,7 +43,6 @@ namespace Adidas.Context
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<Payment> Payments { get; set; }
-        public DbSet<Discount> Discounts { get; set; }
         public DbSet<OrderCoupon> OrderCoupons { get; set; }
         public DbSet<Coupon> Coupons { get; set; }
         //public DbSet<ShippingMethod> ShippingMethods { get; set; }
@@ -134,6 +134,8 @@ namespace Adidas.Context
 
             // Configure JSON conversions for complex properties
             ConfigureJsonProperties(modelBuilder);
+            
+            // AdidasDbContextSeed.SeedAsync(modelBuilder);
         }
 
         private void ConfigureJsonProperties(ModelBuilder modelBuilder)

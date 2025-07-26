@@ -30,13 +30,13 @@ public class CategoryConfig: IEntityTypeConfiguration<Category>
         
         
         // Seed Categories
-        builder.HasData(
-            new Category { Name = "Footwear", Slug = "footwear", IsActive = true, SortOrder = 1 },
-            new Category { Name = "Clothing", Slug = "clothing", IsActive = true, SortOrder = 2 },
-            new Category { Name = "Accessories", Slug = "accessories", IsActive = true, SortOrder = 3 },
-            new Category { Name = "Running Shoes", Slug = "running-shoes",  IsActive = true, SortOrder = 1 },
-            new Category { Name = "Lifestyle Shoes", Slug = "lifestyle-shoes",  IsActive = true, SortOrder = 2 },
-            new Category { Name = "Football Boots", Slug = "football-boots",  IsActive = true, SortOrder = 3 }
-        );
+        //builder.HasData(
+        //    new Category { Name = "Footwear", Slug = "footwear", IsActive = true, SortOrder = 1 },
+        //    new Category { Name = "Clothing", Slug = "clothing", IsActive = true, SortOrder = 2 },
+        //    new Category { Name = "Accessories", Slug = "accessories", IsActive = true, SortOrder = 3 },
+        //    new Category { Name = "Running Shoes", Slug = "running-shoes",  IsActive = true, SortOrder = 1 },
+        //    new Category { Name = "Lifestyle Shoes", Slug = "lifestyle-shoes",  IsActive = true, SortOrder = 2 },
+        //    new Category { Name = "Football Boots", Slug = "football-boots",  IsActive = true, SortOrder = 3 }
+        //);
     }
 }

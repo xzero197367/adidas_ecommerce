@@ -9,7 +9,7 @@ public class AddressRepository : GenericRepository<Address>, IAddressRepository
 {
     public AddressRepository(AdidasDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Address>> GetAddressesByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<Address>> GetAddressesByUserIdAsync(string userId)
     {
         return await _dbSet
             .Where(a => !a.IsDeleted && a.UserId == userId)
@@ -18,13 +18,13 @@ public class AddressRepository : GenericRepository<Address>, IAddressRepository
             .ToListAsync();
     }
 
-    public async Task<Address?> GetDefaultAddressAsync(Guid userId)
+    public async Task<Address?> GetDefaultAddressAsync(string userId)
     {
         return await _dbSet
             .FirstOrDefaultAsync(a => !a.IsDeleted && a.UserId == userId && a.IsDefault);
     }
 
-    public async Task<bool> SetDefaultAddressAsync(Guid userId, Guid addressId)
+    public async Task<bool> SetDefaultAddressAsync(string userId, Guid addressId)
     {
         // Remove default from all user addresses
         var userAddresses = await _dbSet

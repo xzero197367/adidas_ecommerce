@@ -16,7 +16,7 @@ namespace Adidas.Infra.Repositories.Feature
         {
         }
 
-        public async Task<IEnumerable<Wishlist>> GetWishListByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<Wishlist>> GetWishListByUserIdAsync(string userId)
         {
             return await _dbSet
                 .Where(w => w.UserId == userId && !w.IsDeleted)
@@ -24,13 +24,13 @@ namespace Adidas.Infra.Repositories.Feature
                 .ToListAsync();
         }
 
-        public async Task<bool> IsProductInWishListAsync(Guid userId, Guid productId)
+        public async Task<bool> IsProductInWishListAsync(string userId, Guid productId)
         {
             return await _dbSet
                 .AnyAsync(w => w.UserId == userId && w.ProductId == productId && !w.IsDeleted);
         }
 
-        public async Task<bool> RemoveFromWishListAsync(Guid userId, Guid productId)
+        public async Task<bool> RemoveFromWishListAsync(string userId, Guid productId)
         {
             var wishItem = await _dbSet
                 .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductId == productId && !w.IsDeleted);
@@ -43,7 +43,7 @@ namespace Adidas.Infra.Repositories.Feature
             return true;
         }
 
-        public async Task<int> GetWishListCountAsync(Guid userId)
+        public async Task<int> GetWishListCountAsync(string userId)
         {
             return await _dbSet.CountAsync(w => w.UserId == userId && !w.IsDeleted);
         }

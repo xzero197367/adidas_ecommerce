@@ -7,30 +7,25 @@ namespace Models.People;
 
 public class Address : BaseAuditableEntity
 {
-    [Required]
-    public Guid UserId { get; set; }
+    // fields
+    public required string AddressType { get; set; }
+    public required string StreetAddress { get; set; }
+    public required string City { get; set; }
 
-    [ForeignKey("UserId")]
-    public User User { get; set; }
-
-    [Required, MaxLength(50)]
-    public string AddressType { get; set; }
-
-    [Required, MaxLength(200)]
-    public string StreetAddress { get; set; }
-
-    [Required, MaxLength(100)]
-    public string City { get; set; }
-
-    [MaxLength(100)]
     public string StateProvince { get; set; }
 
-    [Required, MaxLength(20)]
-    public string PostalCode { get; set; }
+    public required string PostalCode { get; set; }
+    public required string Country { get; set; }
 
-    [Required, MaxLength(100)]
-    public string Country { get; set; }
+    public required bool IsDefault { get; set; }
 
-    [Required]
-    public bool IsDefault { get; set; }
+    // foreign keys
+    public required string UserId { get; set; }
+
+    // navigations
+    public User User { get; set; }
+
+
+
+    
 }

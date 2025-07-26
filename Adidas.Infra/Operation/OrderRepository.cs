@@ -6,7 +6,7 @@ namespace Adidas.Infra.Operation
     {
         public OrderRepository(AdidasDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId)
         {
             return await FindAsync(o => o.UserId == userId && !o.IsDeleted,
                                  o => o.OrderItems,
@@ -65,7 +65,7 @@ namespace Adidas.Infra.Operation
             return await query.SumAsync(o => o.TotalAmount);
         }
 
-        public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(Guid userId, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId, int pageNumber, int pageSize)
         {
             return await GetPagedAsync(pageNumber, pageSize, o => o.UserId == userId && !o.IsDeleted);
         }

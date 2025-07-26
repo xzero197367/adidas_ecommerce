@@ -9,10 +9,10 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Feature
 {
     public interface IShoppingCartRepository : IGenericRepository<ShoppingCart>
     {
-        Task<IEnumerable<ShoppingCart>> GetCartItemsByUserIdAsync(Guid userId);
-        Task<ShoppingCart?> GetCartItemAsync(Guid userId, Guid variantId);
-        Task<bool> ClearCartAsync(Guid userId);
-        Task<decimal> CalculateTotalCostAsync(Guid userId);
-        Task<int> CountCartItemsAsync(Guid userId);
+        Task<IEnumerable<ShoppingCart>> GetCartItemsByUserIdAsync(string userId);
+        Task<ShoppingCart?> GetCartItemAsync(string userId, Guid variantId);
+        Task<bool> ClearCartAsync(string userId);
+        Task<decimal> CalculateTotalCostAsync(string userId);
+        Task<int> CountCartItemsAsync(string userId);
     }
 }

@@ -1,5 +1,6 @@
 ﻿
 using Adidas.Models.Feature;
+using Models.Feature;
 
 
 namespace Adidas.Infra.Operation

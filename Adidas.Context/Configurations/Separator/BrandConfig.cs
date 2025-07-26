@@ -21,10 +21,10 @@ public class BrandConfig: IEntityTypeConfiguration<Brand>
         
         
         // Seed Brands
-        builder.HasData(
-            new Brand {  Name = "Adidas", Description = "Impossible is Nothing", IsActive = true },
-            new Brand {  Name = "Adidas Originals", Description = "Original is Never Finished", IsActive = true },
-            new Brand {  Name = "Adidas Performance", Description = "Nothing is Impossible", IsActive = true }
-        );
+        //builder.HasData(
+        //    new Brand {  Name = "Adidas", Description = "Impossible is Nothing", IsActive = true },
+        //    new Brand {  Name = "Adidas Originals", Description = "Original is Never Finished", IsActive = true },
+        //    new Brand {  Name = "Adidas Performance", Description = "Nothing is Impossible", IsActive = true }
+        //);
     }
 }

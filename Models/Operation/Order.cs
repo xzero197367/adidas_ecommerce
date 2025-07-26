@@ -31,13 +31,15 @@ public class Order : BaseAuditableEntity
     public DateTime? ShippedDate { get; set; }
 
     public DateTime? DeliveredDate { get; set; }
-    public required string ShippingAddress { get; set; } // JSON string
-    public required string BillingAddress { get; set; } // JSON string
+    //public required string ShippingAddress { get; set; } // JSON string
+    //public required string BillingAddress { get; set; } // JSON string
+    public Dictionary<string, object> ShippingAddress { get; set; } // JSON string
+    public Dictionary<string, object> BillingAddress { get; set; } // JSON string
 
     public string Notes { get; set; }
     
     // foreign keys
-    public required Guid UserId { get; set; }
+    public required string UserId { get; set; }
 
     // navigation properties
     public User User { get; set; }

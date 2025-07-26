@@ -21,8 +21,10 @@ public class Product : BaseAuditableEntity
 
     public string MetaDescription { get; set; }
     public required string Sku { get; set; }
-    public string Specifications { get; set; } // JSON string for specs
-    
+    //public string Specifications { get; set; } // JSON string for specs
+    // This must be Dictionary<string, object> or something compatible
+    public Dictionary<string, object> Specifications { get; set; }// JSON string for specs
+
     // calculated properties
     [NotMapped]
     public double AverageRating { get => Reviews.Any() ? Reviews.Average(r => r.Rating) : 0; }
@@ -36,10 +38,10 @@ public class Product : BaseAuditableEntity
 
     #region navigation properties single
 
-    [ForeignKey("CategoryId")]
+    //[ForeignKey("CategoryId")]
     public Category Category { get; set; }
     
-    [ForeignKey("BrandId")]
+    //[ForeignKey("BrandId")]
     public Brand Brand { get; set; }
 
     #endregion
