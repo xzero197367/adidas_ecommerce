@@ -23,7 +23,7 @@ namespace Adidas.Context
         public DbSet<Brand> Brands { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
-        public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
+        public DbSet<AttributeValue> ProductAttributeValues { get; set; }
         public DbSet<InventoryLog> InventoryLogs { get; set; }
         #endregion
 

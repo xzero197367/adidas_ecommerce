@@ -7,9 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\RepositoriesContracts\Feature\" />
+
+    <Folder Include="Contracts\RepositoriesContracts\Operation\" />
+
     <Folder Include="Contracts\RepositoriesContracts\Tracker\" />
-    <Folder Include="Contracts\ServicesContracts\Feature\" />
     <Folder Include="Contracts\ServicesContracts\Main\" />
     <Folder Include="Contracts\ServicesContracts\Operation\" />
     <Folder Include="Contracts\ServicesContracts\People\" />

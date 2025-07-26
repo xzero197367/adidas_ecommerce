@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Feature\" />
     <Folder Include="Tracker\" />
   </ItemGroup>
 
