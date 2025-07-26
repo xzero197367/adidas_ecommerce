@@ -1,6 +1,0 @@
-﻿namespace Adidas.Models.Operation;
-
-public class Order
-{
-    
-}

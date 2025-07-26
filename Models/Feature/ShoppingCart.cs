@@ -5,23 +5,19 @@ using Models.People;
 
 namespace Adidas.Models.Feature;
 
-public class ShoppingCart : BaseEntity
+public class ShoppingCart : BaseAuditableEntity
 {
-    [Required]
-    public Guid UserId { get; set; }
-
-    [ForeignKey("UserId")]
-    public User User { get; set; }
-
-    [Required]
+    //fields
+    public int Quantity { get; set; }
+    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+    
+    // foreign keys
+    public string UserId { get; set; }
     public Guid VariantId { get; set; }
-
-    [ForeignKey("VariantId")]
+    
+    // navigation properties
+    public User User { get; set; }
     public ProductVariant Variant { get; set; }
 
-    [Required, Range(1, int.MaxValue)]
-    public int Quantity { get; set; }
 
-    [Required]
-    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
 }
