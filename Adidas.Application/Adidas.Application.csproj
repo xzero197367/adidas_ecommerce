@@ -11,7 +11,6 @@
     <Folder Include="Contracts\RepositoriesContracts\Operation\" />
 
     <Folder Include="Contracts\RepositoriesContracts\Tracker\" />
-    <Folder Include="Contracts\ServicesContracts\Main\" />
     <Folder Include="Contracts\ServicesContracts\Operation\" />
     <Folder Include="Contracts\ServicesContracts\People\" />
     <Folder Include="Contracts\ServicesContracts\Separator\" />
@@ -22,11 +21,19 @@
     <Folder Include="Map\People\" />
     <Folder Include="Map\Separator\" />
     <Folder Include="Map\Tracker\" />
+
     <Folder Include="Services\Main\" />
+
+    <Folder Include="Services\Feature\" />
+
     <Folder Include="Services\Operation\" />
     <Folder Include="Services\People\" />
     <Folder Include="Services\Separator\" />
     <Folder Include="Services\Tracker\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="15.0.1" />
   </ItemGroup>
 
   <ItemGroup>

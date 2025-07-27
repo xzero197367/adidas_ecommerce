@@ -7,11 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+
     <Folder Include="Main\" />
+
+    <Folder Include="Feature\" />
+
     <Folder Include="Operation\" />
     <Folder Include="People\" />
     <Folder Include="Separator\" />
     <Folder Include="Tracker\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Models\Models.csproj" />
   </ItemGroup>
 
 </Project>
