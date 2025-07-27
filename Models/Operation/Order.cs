@@ -20,7 +20,7 @@ public class Order : BaseEntity
     public string OrderNumber { get; set; }
 
     [Required]
-    public string UserId { get; set; }
+    public Guid UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User User { get; set; }
