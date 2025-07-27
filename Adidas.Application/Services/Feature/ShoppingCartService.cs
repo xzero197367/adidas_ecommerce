@@ -2,6 +2,7 @@
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Feature.ShoppingCartDTOS;
 using Adidas.Models.Feature;
+using AutoMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,16 +15,16 @@ namespace Adidas.Application.Services.Feature
     {
         private readonly IShoppingCartRepository _cartRepository;
         private readonly IWishListRepository _wishlistRepository;
-        //private readonly IMapper _mapper;
+       private readonly IMapper _mapper;
 
         public ShoppingCartService(
             IShoppingCartRepository cartRepository,
             IWishListRepository wishlistRepository,
-           // IMapper mapper)
+            IMapper mapper)
         {
             _cartRepository = cartRepository;
             _wishlistRepository = wishlistRepository;
-          //  _mapper = mapper;
+             _mapper = mapper;
         }
 
         public async Task<ShoppingCartItemDto> AddToCartAsync(AddToCartDto addDto)
@@ -47,7 +48,7 @@ namespace Adidas.Application.Services.Feature
             }
 
             var updatedItem = await _cartRepository.GetCartItemAsync(addDto.UserId, addDto.ProductVariantId);
-           // return _mapper.Map<ShoppingCartItemDto>(updatedItem);
+           return _mapper.Map<ShoppingCartItemDto>(updatedItem);
         }
 
         public async Task<bool> ClearCartAsync(string userId)
@@ -138,7 +139,7 @@ namespace Adidas.Application.Services.Feature
         public async Task<bool> ValidateCartItemsAsync(string userId)
         {
             var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            return items.All(i => i.ProductVariant.StockQuantity >= i.Quantity);
+            return items.All(i => i.Variant.StockQuantity >= i.Quantity);
         }
 
         public async Task<IEnumerable<ShoppingCartItemDto>> GetUnavailableItemsAsync(string userId)
@@ -167,5 +168,15 @@ namespace Adidas.Application.Services.Feature
             summary.TotalAmount = summary.Subtotal + summary.TaxAmount + summary.ShippingCost;
             return summary;
         }
+
+        //public Task<bool> MoveToWishlistAsync(Guid userId, Guid variantId)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public Task<bool> MoveFromWishlistAsync(Guid userId, Guid productId, Guid variantId)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 } 
