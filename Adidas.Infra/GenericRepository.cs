@@ -7,7 +7,7 @@ using Adidas.Application.Contracts.RepositoriesContracts;
 
 namespace Adidas.Infra;
 
-public class GenericRepository<T> : IGenericRepository<T>  where T : BaseEntity
+public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditableEntity
 {
     protected readonly AdidasDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -221,6 +221,41 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseEntity
         return await query.FirstOrDefaultAsync(predicate);
     }
 
+    Task<bool> IGenericRepository<T>.ExistsAsync(Expression<Func<T, bool>> predicate)
+    {
+        return  _context.Set<T>().AnyAsync(predicate);
+    }
+
+    public async Task<bool> SetActiveStatusAsync(Guid id, bool isActive)
+    {
+        var entity = await _context.Set<T>().FindAsync(id);
+        if (entity == null)
+            return false;
+
+        entity.IsActive = isActive;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive)
+    {
+        var idList = ids.ToList();
+        var entities = await _context.Set<T>()
+            .Where(e => idList.Contains(e.Id))
+            .ToListAsync();
+
+        if (!entities.Any())
+            return 0;
+
+        foreach (var entity in entities)
+        {
+            entity.IsActive = isActive;
+        }
+
+        await _context.SaveChangesAsync();
+        return entities.Count;
+    }
+
     #endregion
-    
+
 }

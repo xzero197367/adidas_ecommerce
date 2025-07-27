@@ -4,28 +4,24 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Adidas.Models.Operation;
 
 
-public class Payment : BaseEntity
+public class Payment : BaseAuditableEntity
 {
-    [Required]
-    public Guid OrderId { get; set; }
+    // fields
+    public required string PaymentMethod { get; set; }
+    public required string PaymentStatus { get; set; }
 
-    [ForeignKey("OrderId")]
-    public Order Order { get; set; }
-
-    [Required, MaxLength(50)]
-    public string PaymentMethod { get; set; }
-
-    [Required, MaxLength(50)]
-    public string PaymentStatus { get; set; }
-
-    [Required, Column(TypeName = "decimal(18,2)")]
-    public decimal Amount { get; set; }
+    public required decimal Amount { get; set; }
 
     [MaxLength(100)]
     public string TransactionId { get; set; }
 
     public string GatewayResponse { get; set; }
 
-    [Required]
-    public DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
+    public required DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
+    
+    // foreign keys
+    public required Guid OrderId { get; set; }
+    // navigations
+    public Order Order { get; set; }
+    
 }

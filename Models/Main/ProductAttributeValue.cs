@@ -1,22 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
+﻿
 namespace Adidas.Models.Main;
 
-public class ProductAttributeValue : BaseEntity
+public class ProductAttributeValue : BaseAuditableEntity
 {
-    [Required]
-    public Guid ProductId { get; set; }
-
-    [ForeignKey("ProductId")]
-    public Product Product { get; set; }
-
-    [Required]
-    public Guid AttributeId { get; set; }
-
-    [ForeignKey("AttributeId")]
+    // field
+    public required string Value { get; set; }
+    // foreign key
+    public required Guid ProductId { get; set; }
+    public required Guid AttributeId { get; set; }
+    
+    // navigation
     public ProductAttribute Attribute { get; set; }
-
-    [Required]
-    public string Value { get; set; }
+    public Product Product { get; set; }
 }

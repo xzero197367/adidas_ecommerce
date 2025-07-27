@@ -4,32 +4,20 @@ using Adidas.Models.Main;
 
 namespace Adidas.Models.Operation;
 
-public class OrderItem : BaseEntity
+public class OrderItem : BaseAuditableEntity
 {
-    [Required]
-    public Guid OrderId { get; set; }
-
-    [ForeignKey("OrderId")]
-    public Order Order { get; set; }
-
-    [Required]
-    public Guid VariantId { get; set; }
-
-    [ForeignKey("VariantId")]
-    public ProductVariant Variant { get; set; }
-
-    [Required, Range(1, int.MaxValue)]
-    public int Quantity { get; set; }
-
-    [Required, Column(TypeName = "decimal(18,2)")]
-    public decimal UnitPrice { get; set; }
-
-    [Required, Column(TypeName = "decimal(18,2)")]
-    public decimal TotalPrice { get; set; }
-
-    [Required, MaxLength(200)]
-    public string ProductName { get; set; }
-
-    [MaxLength(500)]
+    // fields
+    public required int Quantity { get; set; }
+    public required decimal UnitPrice { get; set; }
+    public required decimal TotalPrice { get; set; }
+    public required  string ProductName { get; set; }
     public string VariantDetails { get; set; }
+    
+    // foreign keys
+    public required Guid OrderId { get; set; }
+    public required Guid VariantId { get; set; }
+    
+    // navigation properties
+    public Order Order { get; set; }
+    public ProductVariant Variant { get; set; }
 }

@@ -7,32 +7,24 @@ using Adidas.Models.Tracker;
 namespace Adidas.Models.Main;
 
 
-public class ProductVariant : BaseEntity
+public class ProductVariant : BaseAuditableEntity
 {
-    [Required]
-    public Guid ProductId { get; set; }
-
-    [ForeignKey("ProductId")]
+    // fields
+    public required string Sku { get; set; }
+    public required string Size { get; set; }
+    public required string Color { get; set; }
+    public required int StockQuantity { get; set; }
+    
+    public decimal PriceAdjustment { get; set; }
+    public string ImageUrl { get; set; }
+    
+    // foriegn keys
+    public required Guid ProductId { get; set; }
+    
+    // navigation properties
     public Product Product { get; set; }
 
-    [Required, MaxLength(50)]
-    public string Sku { get; set; }
-
-    [Required, MaxLength(50)]
-    public string Size { get; set; }
-
-    [Required, MaxLength(50)]
-    public string Color { get; set; }
-
-    [Required, Range(0, int.MaxValue)]
-    public int StockQuantity { get; set; }
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal PriceAdjustment { get; set; }
-
-    [MaxLength(500)]
-    public string ImageUrl { get; set; }
-
+    
     // Relationships
     public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public virtual ICollection<ShoppingCart> CartItems { get; set; } = new List<ShoppingCart>();

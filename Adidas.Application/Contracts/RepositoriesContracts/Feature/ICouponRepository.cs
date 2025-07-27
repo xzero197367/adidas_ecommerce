@@ -1,4 +1,6 @@
 ﻿
+using Models.Feature;
+
 namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
 {
     public interface ICouponRepository : IGenericRepository<Coupon>

@@ -26,7 +26,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
         // Count operations
         Task<int> CountAsync();
         Task<int> CountAsync(Expression<Func<T, bool>> predicate);
-        // Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);        /// بتعات ايه دي
+         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);        /// بتعات ايه دي
 
         // Write operations
         Task<EntityEntry<T>> AddAsync(T entity);
@@ -45,8 +45,8 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
         Task<int> HardDeleteRangeAsync(IEnumerable<T> entities);
 
         // Active/Inactive operations
-        // Task<bool> SetActiveStatusAsync(Guid id, bool isActive);         /// بتعات ايه دي
-        // Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive);   /// بتعات ايه دي
+         Task<bool> SetActiveStatusAsync(Guid id, bool isActive);     
+         Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive);   
 
         // Query building
         IQueryable<T> GetQueryable();

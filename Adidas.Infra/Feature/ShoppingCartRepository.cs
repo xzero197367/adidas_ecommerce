@@ -13,8 +13,19 @@ namespace Adidas.Infra.Feature
     public class ShoppingCartRepository :GenericRepository<ShoppingCart>, IShoppingCartRepository
     {
         public ShoppingCartRepository(AdidasDbContext context) : base(context) { }
+        public async Task<bool> RemoveFromCartAsync(string userId, Guid variantId)
+        {
+            var cartItem = await _context.ShoppingCarts
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.VariantId == variantId);
 
-        public async Task<IEnumerable<ShoppingCart>> GetCartItemsByUserIdAsync(Guid userId)
+            if (cartItem == null)
+                return false;
+
+            _context.ShoppingCarts.Remove(cartItem);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<IEnumerable<ShoppingCart>> GetCartItemsByUserIdAsync(string userId)
         {
             return await _dbSet
                 .Include(sc => sc.Variant)
@@ -23,14 +34,14 @@ namespace Adidas.Infra.Feature
                 .ToListAsync();
         }
 
-        public async Task<ShoppingCart?> GetCartItemAsync(Guid userId, Guid variantId)
+        public async Task<ShoppingCart?> GetCartItemAsync(string userId, Guid variantId)
         {
             return await _dbSet
                 .Include(sc => sc.Variant)
                 .FirstOrDefaultAsync(sc => sc.UserId == userId && sc.VariantId == variantId);
         }
 
-        public async Task<bool> ClearCartAsync(Guid userId)
+        public async Task<bool> ClearCartAsync(string userId)
         {
             var items = await _dbSet.Where(sc => sc.UserId == userId).ToListAsync();
             if (!items.Any()) return false;
@@ -39,7 +50,7 @@ namespace Adidas.Infra.Feature
             return true;
         }
 
-        public async Task<decimal> CalculateTotalCostAsync(Guid userId)
+        public async Task<decimal> CalculateTotalCostAsync(string userId)
         {
             var items = await _dbSet
                 .Include(sc => sc.Variant)
@@ -49,7 +60,7 @@ namespace Adidas.Infra.Feature
             return items.Sum(i => i.Variant.PriceAdjustment * i.Quantity);
         }
 
-        public async Task<int> CountCartItemsAsync(Guid userId)
+        public async Task<int> CountCartItemsAsync(string userId)
         {
             return await _dbSet.Where(sc => sc.UserId == userId).SumAsync(sc => sc.Quantity);
         }

@@ -6,7 +6,7 @@ namespace Adidas.Infra.Operation
     {
         public OrderRepository(AdidasDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId)
         {
             return await FindAsync(o => o.UserId == userId && !o.IsDeleted,
                                  o => o.OrderItems,
