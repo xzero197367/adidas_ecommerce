@@ -22,7 +22,6 @@
     <Folder Include="Map\People\" />
     <Folder Include="Map\Separator\" />
     <Folder Include="Map\Tracker\" />
-    <Folder Include="Services\Feature\" />
     <Folder Include="Services\Main\" />
     <Folder Include="Services\Operation\" />
     <Folder Include="Services\People\" />

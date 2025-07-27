@@ -13,7 +13,18 @@ namespace Adidas.Infra.Feature
     public class ShoppingCartRepository :GenericRepository<ShoppingCart>, IShoppingCartRepository
     {
         public ShoppingCartRepository(AdidasDbContext context) : base(context) { }
+        public async Task<bool> RemoveFromCartAsync(string userId, Guid variantId)
+        {
+            var cartItem = await _context.ShoppingCarts
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.VariantId == variantId);
 
+            if (cartItem == null)
+                return false;
+
+            _context.ShoppingCarts.Remove(cartItem);
+            await _context.SaveChangesAsync();
+            return true;
+        }
         public async Task<IEnumerable<ShoppingCart>> GetCartItemsByUserIdAsync(string userId)
         {
             return await _dbSet
