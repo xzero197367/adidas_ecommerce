@@ -21,7 +21,11 @@
     <Folder Include="Map\People\" />
     <Folder Include="Map\Separator\" />
     <Folder Include="Map\Tracker\" />
+
+    <Folder Include="Services\Main\" />
+
     <Folder Include="Services\Feature\" />
+
     <Folder Include="Services\Operation\" />
     <Folder Include="Services\People\" />
     <Folder Include="Services\Separator\" />

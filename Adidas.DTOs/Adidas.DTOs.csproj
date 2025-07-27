@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+
+    <Folder Include="Main\" />
+
     <Folder Include="Feature\" />
+
     <Folder Include="Operation\" />
     <Folder Include="People\" />
     <Folder Include="Separator\" />
