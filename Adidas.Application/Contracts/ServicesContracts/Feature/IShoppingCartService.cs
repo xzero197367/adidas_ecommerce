@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Adidas.DTOs.Feature.ShoppingCartDTOS;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<ShoppingCartItemDto> AddToCartAsync(AddToCartDto addDto);
         Task<ShoppingCartItemDto> UpdateCartItemQuantityAsync(UpdateCartItemDto updateDto);
         Task<bool> RemoveFromCartAsync(string userId, Guid variantId);
-        Task<bool> ClearCartAsync(st userId);
+        Task<bool> ClearCartAsync(string userId);
 
         Task<CartSummaryDto> GetCartSummaryAsync(string userId);
         Task<CartSummaryDto> GetCartSummaryWithTaxAsync(string userId, string? shippingAddress = null);
