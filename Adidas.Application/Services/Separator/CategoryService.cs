@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
-using Adidas.Application.DTOs.Separator;
 using Adidas.Models.Separator;
 using Microsoft.Extensions.Logging;
 using Adidas.DTOs.Separator.Category_DTOs;
+using Adidas.DTOs.Common_DTOs;
 
 namespace Adidas.Application.Services.Separator
 {

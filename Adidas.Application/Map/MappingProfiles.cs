@@ -1,11 +1,14 @@
 ﻿
 
+using Adidas.DTOs.Separator.Brand_DTOs;
+using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Feature;
 using Adidas.Models.Main;
 using Adidas.Models.Separator;
 using Adidas.Models.Tracker;
 using AutoMapper;
 using Models.People;
+
 
 namespace Adidas.Application.Map
 {
@@ -39,7 +42,7 @@ namespace Adidas.Application.Map
 
 
 
-            //// Category <=> DTOs
+            // Category <=> DTOs
             //CreateMap<Category, CategoryDto>()
             //    .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
             //    .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count));
@@ -49,6 +52,73 @@ namespace Adidas.Application.Map
             //    .ForMember(dest => dest.Slug, opt => opt.Ignore());
             //CreateMap<Category, CategoryTreeDto>()
             //    .ForMember(dest => dest.Children, opt => opt.MapFrom(src => src.SubCategories));
+            CreateMap<CreateCategoryDto, Category>()
+               .ForMember(dest => dest.Id, opt => opt.Ignore())
+               .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+               .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+               .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+               .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
+               .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+               .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
+               .ForMember(dest => dest.ParentCategory, opt => opt.Ignore())
+               .ForMember(dest => dest.SubCategories, opt => opt.Ignore())
+               .ForMember(dest => dest.Products, opt => opt.Ignore());
+
+            CreateMap<UpdateCategoryDto, Category>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.ParentCategory, opt => opt.Ignore())
+                .ForMember(dest => dest.SubCategories, opt => opt.Ignore())
+                .ForMember(dest => dest.Products, opt => opt.Ignore());
+
+            CreateMap<Category, CategoryResponseDto>()
+                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
+                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
+                .ForMember(dest => dest.SubCategoryCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0))
+                .ForMember(dest => dest.SubCategories, opt => opt.Ignore()); // Will be set manually in service
+
+            CreateMap<Category, CategoryListDto>()
+                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
+                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
+                .ForMember(dest => dest.SubCategoryCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0));
+
+            CreateMap<Category, CategoryHierarchyDto>()
+                .ForMember(dest => dest.Level, opt => opt.Ignore()); // Will be set manually in service
+
+            // Brand <=> DTOs
+
+            CreateMap<CreateBrandDto, Brand>()
+          .ForMember(dest => dest.Id, opt => opt.Ignore())
+          .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+          .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+          .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+          .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
+          .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+          .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
+          .ForMember(dest => dest.Products, opt => opt.Ignore());
+
+            CreateMap<UpdateBrandDto, Brand>()
+          .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+          .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+          .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+          .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+          .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+          .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
+          .ForMember(dest => dest.Products, opt => opt.Ignore());
+
+            //    CreateMap<Brand, BrandDto>()
+            //.ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
+
+            CreateMap<Brand, BrandListDto>()
+                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
+
+            CreateMap<Brand, BrandResponseDto>()
+                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
+
 
 
             //// User <=> DTOs
@@ -125,11 +195,16 @@ namespace Adidas.Application.Map
             //CreateMap<OrderCoupon, OrderCouponDto>();
 
 
-            //// Brand <=> DTOs
-            //CreateMap<Brand, BrandDto>()
-            //    .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count()));
-            //CreateMap<CreateBrandDto, Brand>();
-            //CreateMap<UpdateBrandDto, Brand>();
+            // Brand <=> DTOs
+            //CreateMap<Brand, BrandDto>() .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count()));
+            // CreateMap<CreateBrandDto, Brand>();
+            // CreateMap<UpdateBrandDto, Brand>();
+
+            // Brand <=> DTOs
+
+
+
+
 
             //// ProductImage <=> DTOs
             //CreateMap<ProductImage, ProductImageDto>();
@@ -188,3 +263,4 @@ namespace Adidas.Application.Map
         }
     }
 }
+

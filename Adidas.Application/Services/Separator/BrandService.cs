@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.Separator.Brand_DTOs;
+using Adidas.Models.Separator;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 
 
 namespace Adidas.Application.Services.Separator
 {
+
     public class BrandService : GenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>, IBrandService
     {
         private readonly IBrandRepository _brandRepository;
@@ -139,5 +145,7 @@ namespace Adidas.Application.Services.Separator
 
         #endregion
     }
-
 }
+
+
+
