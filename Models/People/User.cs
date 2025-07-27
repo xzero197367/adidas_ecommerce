@@ -30,20 +30,20 @@ namespace Models.People
     }
     public class User : IdentityUser
     {
-        [Key]
-        public int UserId { get; set; }
+        //[Key]                                 // identity have it own key
+        //public int UserId { get; set; }
 
-        [Required, MaxLength(100)]
-        public string Email { get; set; }
+        //[Required, MaxLength(100)]
+        //public string Email { get; set; }
 
-        [Required, MaxLength(256)]
-        public string PasswordHash { get; set; }
+        //[Required, MaxLength(256)]
+        //public string PasswordHash { get; set; }
 
-        [Required, MaxLength(50)]
-        public string FirstName { get; set; }
+        //[Required, MaxLength(50)]
+        //public string FirstName { get; set; }
 
-        [Required, MaxLength(50)]
-        public string LastName { get; set; }
+        //[Required, MaxLength(50)]
+        //public string LastName { get; set; }
 
         public DateTime? DateOfBirth { get; set; }
 

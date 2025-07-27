@@ -1,13 +1,16 @@
 ﻿
 
+using Adidas.Models.Feature;
+using Adidas.Models.Main;
 using Adidas.Models.Separator;
+using Adidas.Models.Tracker;
+using AutoMapper;
+using Models.People;
 
 namespace Adidas.Application.Map
 {
-    public class MappingProfiles
+    public class MappingProfiles : Profile
     {
-//<<<<<<< Updated upstream
-//=======
         public MappingProfiles()
         {
             //// Product <=> DTOs
@@ -36,153 +39,97 @@ namespace Adidas.Application.Map
 
 
 
-            // Category <=> DTOs
-            CreateMap<CreateCategoryDto, Category>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-                .ForMember(dest => dest.IsActive, opt => opt.Ignore()) // Will be set in BeforeCreate
-                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
-                .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.ParentCategory, opt => opt.Ignore())
-                .ForMember(dest => dest.SubCategories, opt => opt.Ignore())
-                .ForMember(dest => dest.Products, opt => opt.Ignore());
+            //// Category <=> DTOs
+            //CreateMap<Category, CategoryDto>()
+            //    .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
+            //    .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count));
+            //CreateMap<CreateCategoryDto, Category>()
+            //    .ForMember(dest => dest.Slug, opt => opt.Ignore()); // Slug is generated
+            //CreateMap<UpdateCategoryDto, Category>()
+            //    .ForMember(dest => dest.Slug, opt => opt.Ignore());
+            //CreateMap<Category, CategoryTreeDto>()
+            //    .ForMember(dest => dest.Children, opt => opt.MapFrom(src => src.SubCategories));
 
-            CreateMap<UpdateCategoryDto, Category>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore()) // ID should not be updated
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore()) // Will be set in BeforeUpdate
-                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
-                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
-                .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.ParentCategory, opt => opt.Ignore())
-                .ForMember(dest => dest.SubCategories, opt => opt.Ignore())
-                .ForMember(dest => dest.Products, opt => opt.Ignore());
 
-            CreateMap<Category, CategoryResponseDto>()
-                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
-                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
-                .ForMember(dest => dest.SubCategoryCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0))
-                .ForMember(dest => dest.SubCategories, opt => opt.Ignore()); // Will be set manually in service
-
-            CreateMap<Category, CategoryListDto>()
-                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
-                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
-                .ForMember(dest => dest.SubCategoryCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0));
-
-            CreateMap<Category, CategoryHierarchyDto>()
-                .ForMember(dest => dest.Level, opt => opt.Ignore()); // Will be set manually in service
-
-            // Additional mapping for UpdateCategoryDto to include Id
-            CreateMap<Category, UpdateCategoryDto>();
-        }
-
-        //// User <=> DTOs
-        //CreateMap<User, UserDto>()
-        //    .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
-        //    .ForMember(dest => dest.DefaultAddress, opt => opt.MapFrom(src => src.Addresses.FirstOrDefault(a => a.IsDefault)));
-        //CreateMap<CreateUserDto, User>()
-        //    .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()); // Handled in UserService
-        //CreateMap<UpdateUserDto, User>();
-        //CreateMap<RegisterUserDto, User>()
-        //    .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) // Handled in UserService
-        //    .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRole.Customer));
+            //// User <=> DTOs
+            //CreateMap<User, UserDto>()
+            //    .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
+            //    .ForMember(dest => dest.DefaultAddress, opt => opt.MapFrom(src => src.Addresses.FirstOrDefault(a => a.IsDefault)));
+            //CreateMap<CreateUserDto, User>()
+            //    .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()); // Handled in UserService
+            //CreateMap<UpdateUserDto, User>();
+            //CreateMap<RegisterUserDto, User>()
+            //    .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) // Handled in UserService
+            //    .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRole.Customer));
 
 
 
-        //// Address <=> DTOs
-        //CreateMap<Address, AddressDto>()
-        //    .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.AddedBy.FirstName} {src.AddedBy.LastName}"))
-        //    .ForMember(dest => dest.FormattedAddress, opt => opt.MapFrom(src => $"{src.StreetAddress}, {src.City}, {src.StateProvince} {src.PostalCode}, {src.Country}"));
-        //CreateMap<CreateAddressDto, Address>();
-        //CreateMap<UpdateAddressDto, Address>();
+            //// Address <=> DTOs
+            //CreateMap<Address, AddressDto>()
+            //    .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.AddedBy.FirstName} {src.AddedBy.LastName}"))
+            //    .ForMember(dest => dest.FormattedAddress, opt => opt.MapFrom(src => $"{src.StreetAddress}, {src.City}, {src.StateProvince} {src.PostalCode}, {src.Country}"));
+            //CreateMap<CreateAddressDto, Address>();
+            //CreateMap<UpdateAddressDto, Address>();
 
 
 
-        //// Order <=> DTOs
-        //CreateMap<Order, OrderDto>()
-        //    .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.OrderItems.Sum(oi => oi.Quantity)))
-        //    .ForMember(dest => dest.CanBeCancelled, opt => opt.MapFrom(src => src.OrderStatus == OrderStatus.Pending));
-        //CreateMap<CreateOrderDto, Order>()
-        //    .ForMember(dest => dest.OrderNumber, opt => opt.Ignore()) // Generated in OrderService
-        //    .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => DateTime.UtcNow))
-        //    .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => OrderStatus.Pending));
-        //CreateMap<UpdateOrderDto, Order>();
-        //CreateMap<CreateOrderFromCartDto, Order>()
-        //    .ForMember(dest => dest.OrderNumber, opt => opt.Ignore())
-        //    .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => DateTime.UtcNow))
-        //    .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => OrderStatus.Pending));
+            //// Order <=> DTOs
+            //CreateMap<Order, OrderDto>()
+            //    .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.OrderItems.Sum(oi => oi.Quantity)))
+            //    .ForMember(dest => dest.CanBeCancelled, opt => opt.MapFrom(src => src.OrderStatus == OrderStatus.Pending));
+            //CreateMap<CreateOrderDto, Order>()
+            //    .ForMember(dest => dest.OrderNumber, opt => opt.Ignore()) // Generated in OrderService
+            //    .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+            //    .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => OrderStatus.Pending));
+            //CreateMap<UpdateOrderDto, Order>();
+            //CreateMap<CreateOrderFromCartDto, Order>()
+            //    .ForMember(dest => dest.OrderNumber, opt => opt.Ignore())
+            //    .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+            //    .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => OrderStatus.Pending));
 
-        //// OrderItem <=> DTOs
-        //CreateMap<OrderItem, OrderItemDto>();
-
-
-
-        //// ShoppingCart <=> DTOs
-        //CreateMap<ShoppingCart, ShoppingCartItemDto>()
-        //    .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => (src.Variant.Product.SalePrice ?? src.Variant.Product.Price) + src.Variant.PriceAdjustment))
-        //    .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => ((src.Variant.Product.SalePrice ?? src.Variant.Product.Price) + src.Variant.PriceAdjustment) * src.Quantity));
-        //CreateMap<AddToCartDto, ShoppingCart>()
-        //    .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
-        //CreateMap<UpdateCartItemDto, ShoppingCart>();
+            //// OrderItem <=> DTOs
+            //CreateMap<OrderItem, OrderItemDto>();
 
 
 
-        //// Review <=> DTOs
-        //CreateMap<Review, ReviewDto>()
-        //    .ForMember(dest => dest.IsPending, opt => opt.MapFrom(src => !src.IsApproved && string.IsNullOrEmpty(src.AddedById))) // Assuming AddedById as RejectionReason
-        //    .ForMember(dest => dest.IsRejected, opt => opt.MapFrom(src => !src.IsApproved && !string.IsNullOrEmpty(src.AddedById)));
-        //CreateMap<CreateReviewDto, Review>()
-        //    .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => false))
-        //    .ForMember(dest => dest.IsVerifiedPurchase, opt => opt.MapFrom(src => false)); // Needs verification logic
-        //CreateMap<UpdateReviewDto, Review>();
+            //// ShoppingCart <=> DTOs
+            //CreateMap<ShoppingCart, ShoppingCartItemDto>()
+            //    .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => (src.Variant.Product.SalePrice ?? src.Variant.Product.Price) + src.Variant.PriceAdjustment))
+            //    .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => ((src.Variant.Product.SalePrice ?? src.Variant.Product.Price) + src.Variant.PriceAdjustment) * src.Quantity));
+            //CreateMap<AddToCartDto, ShoppingCart>()
+            //    .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            //CreateMap<UpdateCartItemDto, ShoppingCart>();
 
 
-        //// Discount <=> DTOs
-        //CreateMap<Discount, DiscountDto>()
-        //    .ForMember(dest => dest.IsValid, opt => opt.MapFrom(src => DateTime.UtcNow >= src.ValidFrom && DateTime.UtcNow <= src.ValidTo))
-        //    .ForMember(dest => dest.CanBeUsed, opt => opt.MapFrom(src => src.UsageLimit == 0 || src.UsedCount < src.UsageLimit))
-        //    .ForMember(dest => dest.RemainingUses, opt => opt.MapFrom(src => src.UsageLimit == 0 ? int.MaxValue : Math.Max(0, src.UsageLimit - src.UsedCount)));
-        //CreateMap<CreateDiscountDto, Discount>();
-        //CreateMap<UpdateDiscountDto, Discount>();
+
+            //// Review <=> DTOs
+            //CreateMap<Review, ReviewDto>()
+            //    .ForMember(dest => dest.IsPending, opt => opt.MapFrom(src => !src.IsApproved && string.IsNullOrEmpty(src.AddedById))) // Assuming AddedById as RejectionReason
+            //    .ForMember(dest => dest.IsRejected, opt => opt.MapFrom(src => !src.IsApproved && !string.IsNullOrEmpty(src.AddedById)));
+            //CreateMap<CreateReviewDto, Review>()
+            //    .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => false))
+            //    .ForMember(dest => dest.IsVerifiedPurchase, opt => opt.MapFrom(src => false)); // Needs verification logic
+            //CreateMap<UpdateReviewDto, Review>();
 
 
-        //// OrderCoupon <=> DTOs
-        //CreateMap<OrderCoupon, OrderCouponDto>();
+            //// Discount <=> DTOs
+            //CreateMap<Discount, DiscountDto>()
+            //    .ForMember(dest => dest.IsValid, opt => opt.MapFrom(src => DateTime.UtcNow >= src.ValidFrom && DateTime.UtcNow <= src.ValidTo))
+            //    .ForMember(dest => dest.CanBeUsed, opt => opt.MapFrom(src => src.UsageLimit == 0 || src.UsedCount < src.UsageLimit))
+            //    .ForMember(dest => dest.RemainingUses, opt => opt.MapFrom(src => src.UsageLimit == 0 ? int.MaxValue : Math.Max(0, src.UsageLimit - src.UsedCount)));
+            //CreateMap<CreateDiscountDto, Discount>();
+            //CreateMap<UpdateDiscountDto, Discount>();
 
 
-        // Brand <=> DTOs
-        // Brand mappings
-        CreateMap<CreateBrandDto, Brand>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-                .ForMember(dest => dest.IsActive, opt => opt.Ignore()) // Will be set in BeforeCreate
-                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
-                .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.Products, opt => opt.Ignore());
+            //// OrderCoupon <=> DTOs
+            //CreateMap<OrderCoupon, OrderCouponDto>();
 
-            CreateMap<UpdateBrandDto, Brand>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore()) // ID should not be updated
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore()) // Will be set in BeforeUpdate
-                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
-                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
-                .ForMember(dest => dest.AddedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.Products, opt => opt.Ignore());
 
-            CreateMap<Brand, BrandResponseDto>()
-                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
-
-            CreateMap<Brand, BrandListDto>()
-                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
-
-            // Additional mapping for UpdateBrandDto to include Id
-            CreateMap<Brand, UpdateBrandDto>();
+            //// Brand <=> DTOs
+            //CreateMap<Brand, BrandDto>()
+            //    .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count()));
+            //CreateMap<CreateBrandDto, Brand>();
+            //CreateMap<UpdateBrandDto, Brand>();
 
             //// ProductImage <=> DTOs
             //CreateMap<ProductImage, ProductImageDto>();
@@ -239,6 +186,5 @@ namespace Adidas.Application.Map
             //    .ForMember(dest => dest.CustomerCount, opt => opt.Ignore())
             //    .ForMember(dest => dest.AverageOrderValue, opt => opt.Ignore());
         }
-//>>>>>>> Stashed changes
     }
 }

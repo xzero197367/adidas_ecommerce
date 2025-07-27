@@ -7,18 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Feature\" />
-    <Folder Include="Controllers\Main\" />
-    <Folder Include="Controllers\Operation\" />
-    <Folder Include="Controllers\People\" />
-    <Folder Include="Controllers\Separator\" />
-    <Folder Include="Controllers\Tracker\" />
-    <Folder Include="Views\Feature\" />
-    <Folder Include="Views\Main\" />
-    <Folder Include="Views\Operation\" />
-    <Folder Include="Views\People\" />
-    <Folder Include="Views\Separator\" />
-    <Folder Include="Views\Tracker\" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.18">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

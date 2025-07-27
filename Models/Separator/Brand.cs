@@ -3,14 +3,10 @@ using Adidas.Models.Main;
 
 namespace Adidas.Models.Separator;
 
-public class Brand : BaseEntity
+public class Brand : BaseAuditableEntity
 {
-    [Required, MaxLength(100)]
-    public string Name { get; set; }
-
-    [MaxLength(500)]
+    public required string Name { get; set; }
     public string LogoUrl { get; set; }
-
     public string Description { get; set; }
 
     // Relationships

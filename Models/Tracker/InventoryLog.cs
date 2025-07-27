@@ -5,31 +5,22 @@ using Models.People;
 
 namespace Adidas.Models.Tracker;
 
-public class InventoryLog : BaseEntity
+public class InventoryLog : BaseAuditableEntity
 {
+    // fields
+    public required int QuantityChange { get; set; }
+    public required int PreviousStock { get; set; }
+    public required int NewStock { get; set; }
+    public required string ChangeType { get; set; }
+    public string Reason { get; set; }
+    // foreign key
     [Required]
-    public Guid VariantId { get; set; }
-
-    [ForeignKey("VariantId")]
+    public required Guid VariantId { get; set; }
+    // public Guid? CreatedByUserId { get; set; }  // موجوده في Base Auditable Entity
+    // navigation
     public ProductVariant Variant { get; set; }
 
-    [Required]
-    public int QuantityChange { get; set; }
-
-    [Required]
-    public int PreviousStock { get; set; }
-
-    [Required]
-    public int NewStock { get; set; }
-
-    [Required, MaxLength(50)]
-    public string ChangeType { get; set; }
-
-    [MaxLength(500)]
-    public string Reason { get; set; }
-
-    public Guid? CreatedByUserId { get; set; }
-
-    [ForeignKey("CreatedByUserId")]
-    public User CreatedBy { get; set; }
+    
+    // [ForeignKey("CreatedByUserId")]
+    // public User CreatedBy { get; set; }
 }

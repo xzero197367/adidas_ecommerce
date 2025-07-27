@@ -8,10 +8,13 @@
 
   <ItemGroup>
     <Folder Include="Feature\" />
-    <Folder Include="Main\" />
     <Folder Include="Operation\" />
     <Folder Include="People\" />
     <Folder Include="Tracker\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Models\Models.csproj" />
   </ItemGroup>
 
 </Project>
