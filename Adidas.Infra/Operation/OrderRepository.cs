@@ -65,9 +65,16 @@ namespace Adidas.Infra.Operation
             return await query.SumAsync(o => o.TotalAmount);
         }
 
-        public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(Guid userId, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId, int pageNumber, int pageSize)
         {
-            return await GetPagedAsync(pageNumber, pageSize, o => o.UserId == userId && !o.IsDeleted);
+            var query = _context.Orders
+                .Where(o => o.UserId == userId && !o.IsDeleted)
+                .OrderByDescending(o => o.OrderDate);
+
+            var totalCount = await query.CountAsync();
+            var orders = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (orders, totalCount);
         }
 
 

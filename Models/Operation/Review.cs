@@ -14,7 +14,7 @@ public class Review : BaseEntity
     public Product Product { get; set; }
 
     [Required]
-    public Guid UserId { get; set; }
+    public string UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User User { get; set; }

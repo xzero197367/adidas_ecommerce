@@ -8,7 +8,7 @@ namespace Models.People;
 public class Address : BaseEntity
 {
     [Required]
-    public Guid UserId { get; set; }
+    public string UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User User { get; set; }

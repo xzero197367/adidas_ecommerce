@@ -9,7 +9,7 @@ namespace Adidas.Models.Feature;
 public class Wishlist : BaseEntity
 {
     [Required]
-    public Guid UserId { get; set; }
+    public string UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User User { get; set; }
