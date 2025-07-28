@@ -11,7 +11,6 @@
     <Folder Include="Contracts\RepositoriesContracts\Operation\" />
 
     <Folder Include="Contracts\RepositoriesContracts\Tracker\" />
-    <Folder Include="Contracts\ServicesContracts\Main\" />
     <Folder Include="Contracts\ServicesContracts\People\" />
     <Folder Include="Contracts\ServicesContracts\Separator\" />
     <Folder Include="Contracts\ServicesContracts\Tracker\" />
@@ -22,7 +21,6 @@
     <Folder Include="Map\Separator\" />
     <Folder Include="Map\Tracker\" />
     <Folder Include="Services\Feature\" />
-    <Folder Include="Services\Main\" />
     <Folder Include="Services\NewFolder\" />
     <Folder Include="Services\People\" />
     <Folder Include="Services\Separator\" />
