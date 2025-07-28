@@ -7,10 +7,15 @@ namespace Models.People;
 
 public class Address : BaseAuditableEntity
 {
+<<<<<<< HEAD
+    [Required]
+    public string UserId { get; set; }
+=======
     // fields
     public required string AddressType { get; set; }
     public required string StreetAddress { get; set; }
     public required string City { get; set; }
+>>>>>>> origin/main
 
     public string StateProvince { get; set; }
 
