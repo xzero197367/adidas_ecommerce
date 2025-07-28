@@ -9,7 +9,6 @@
   <ItemGroup>
     <Folder Include="Feature\" />
     <Folder Include="People\" />
-    <Folder Include="Separator\" />
     <Folder Include="Tracker\" />
   </ItemGroup>
 
