@@ -14,5 +14,6 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Feature
         Task<bool> ClearCartAsync(string userId);
         Task<decimal> CalculateTotalCostAsync(string userId);
         Task<int> CountCartItemsAsync(string userId);
+        Task<bool> RemoveFromCartAsync(string userId, Guid variantId);
     }
 }

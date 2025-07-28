@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.RepositoriesContracts.Main
 {
-    public interface IProductImageRepository : IGenericRepository<ProductImage>
+    public interface IProductAttrbuteRepository : IGenericRepository<ProductImage>
     {
         Task<IEnumerable<ProductImage>> GetImagesByProductIdAsync(Guid productId);
         Task<IEnumerable<ProductImage>> GetImagesByVariantIdAsync(Guid variantId);

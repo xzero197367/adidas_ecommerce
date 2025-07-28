@@ -1,20 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Adidas.Models.Main;
-using Models.People;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Adidas.Models.Feature;
-
-
-public class Wishlist : BaseAuditableEntity
+namespace Models.Feature
 {
-    // fields
-    public required DateTime AddedAt { get; set; } = DateTime.UtcNow;
-    
-    // foreign keys
-    public required string UserId { get; set; }
-    public required Guid ProductId { get; set; }
-    // navigation properties
-    public User User { get; set; }
-    public Product Product { get; set; }
+    internal class Wishlist
+    {
+    }
 }
