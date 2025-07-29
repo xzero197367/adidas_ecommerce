@@ -1,7 +1,6 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.People;
-using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Operation.Review;
 using Adidas.DTOs.Operation.ReviewDTOs.Create;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
@@ -9,11 +8,6 @@ using Adidas.DTOs.Operation.ReviewDTOs.Result;
 using Adidas.DTOs.Operation.ReviewDTOs.Update;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.Application.Services.Operation
 {

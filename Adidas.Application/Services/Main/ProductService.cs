@@ -15,19 +15,19 @@ namespace Adidas.Application.Services.Main
     {
         private readonly IProductRepository _productRepository;
         private readonly IProductVariantRepository _variantRepository;
-        private readonly IDiscountService _discountService;
+        private readonly ICouponService _couponService;
 
         public ProductService(
             IProductRepository productRepository,
             IProductVariantRepository variantRepository,
-            IDiscountService discountService,
+            ICouponService couponService,
             IMapper mapper,
             ILogger<ProductService> logger)
             : base(productRepository, mapper, logger)
         {
             _productRepository = productRepository;
             _variantRepository = variantRepository;
-            _discountService = discountService;
+            _couponService = couponService;
         }
 
         public async Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(Guid categoryId)
@@ -115,7 +115,7 @@ namespace Adidas.Application.Services.Main
             if (string.IsNullOrEmpty(discountCode))
                 return basePrice;
 
-            var discountAmount = await _discountService.CalculateDiscountAmountAsync(discountCode, basePrice);
+            var discountAmount = await _couponService.CalculateCouponAmountAsync(discountCode, basePrice);
             return Math.Max(0, basePrice - discountAmount);
         }
 

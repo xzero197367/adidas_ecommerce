@@ -1,13 +1,9 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
-using Adidas.Application.Services.Feature;
 using Adidas.DTOs.Feature.WishLIstDTOS;
-using Adidas.Models.Feature;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using AutoMapper;
+using Models.Feature;
 
 namespace Adidas.Application.Services.Feature
 {
@@ -15,19 +11,21 @@ namespace Adidas.Application.Services.Feature
     {
 
         private readonly IWishListRepository _wishlistRepository;
-        // private readonly IMapper _mapper;
+        private readonly IMapper _mapper;
 
-        public WishListService()
+        public WishListService(IWishListRepository wishListRepository, IMapper mapper)
         {
-            
+            _wishlistRepository = wishListRepository;
+            _mapper = mapper;
         }
+     
         //public WishlistService(IWishListRepository wishlistRepository)//, IMapper mapper)
         //{
         //    _wishlistRepository = wishlistRepository;
         //  //  _mapper = mapper;
         //}
 
-        public async Task<IEnumerable<WishlistItemDto>> GetWishlistByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<WishlistItemDto>> GetWishlistByUserIdAsync(string userId)
         {
             var wishlists = await _wishlistRepository.GetWishListByUserIdAsync(userId);
             return wishlists.Select(w => _mapper.Map<WishlistItemDto>(w));
@@ -49,16 +47,16 @@ namespace Adidas.Application.Services.Feature
             return _mapper.Map<WishlistItemDto>(wishlist);
         }
 
-        public Task<bool> RemoveFromWishlistAsync(Guid userId, Guid productId) =>
+        public Task<bool> RemoveFromWishlistAsync(string userId, Guid productId) =>
             _wishlistRepository.RemoveFromWishListAsync(userId, productId);
 
-        public Task<bool> IsProductInWishlistAsync(Guid userId, Guid productId) =>
+        public Task<bool> IsProductInWishlistAsync(string userId, Guid productId) =>
             _wishlistRepository.IsProductInWishListAsync(userId, productId);
 
-        public Task<int> GetWishlistCountAsync(Guid userId) =>
+        public Task<int> GetWishlistCountAsync(string userId) =>
             _wishlistRepository.GetWishListCountAsync(userId);
 
-        public async Task<IEnumerable<WishlistItemDto>> GetWishlistSummaryAsync(Guid userId)
+        public async Task<IEnumerable<WishlistItemDto>> GetWishlistSummaryAsync(string userId)
         {
             var wishlists = await _wishlistRepository.GetWishListByUserIdAsync(userId);
             return wishlists.Select(w =>
@@ -69,13 +67,13 @@ namespace Adidas.Application.Services.Feature
             });
         }
 
-        public Task<bool> MoveToCartAsync(Guid userId, Guid productId, Guid variantId)
+        public Task<bool> MoveToCartAsync(string userId, Guid productId, Guid variantId)
         {
             // You would call CartService.AddToCartAsync internally here
             throw new NotImplementedException("Integrate with CartService.");
         }
 
-        public Task<string> GenerateWishlistShareLinkAsync(Guid userId)
+        public Task<string> GenerateWishlistShareLinkAsync(string userId)
         {
             // Generate token and persist or encode the userId
             return Task.FromResult(Convert.ToBase64String(Encoding.UTF8.GetBytes(userId.ToString())));
@@ -83,17 +81,17 @@ namespace Adidas.Application.Services.Feature
 
         public Task<IEnumerable<WishlistItemDto>> GetSharedWishlistAsync(string shareToken)
         {
-            var userId = new Guid(Encoding.UTF8.GetString(Convert.FromBase64String(shareToken)));
+            var userId = new String(Encoding.UTF8.GetString(Convert.FromBase64String(shareToken)));
             return GetWishlistByUserIdAsync(userId);
         }
 
-        public Task<bool> NotifyWhenInStockAsync(Guid userId, Guid productId)
+        public Task<bool> NotifyWhenInStockAsync(string userId, Guid productId)
         {
             // This might update a flag in Wishlist table for notification
             throw new NotImplementedException("Depends on stock notification tracking.");
         }
 
-        public Task<bool> RemoveStockNotificationAsync(Guid userId, Guid productId)
+        public Task<bool> RemoveStockNotificationAsync(string userId, Guid productId)
         {
             // Update NotifyWhenInStock = false in Wishlist
             throw new NotImplementedException("Depends on stock notification tracking.");

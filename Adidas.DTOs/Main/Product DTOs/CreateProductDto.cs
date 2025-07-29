@@ -1,6 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
+using Adidas.DTOs.Main.ProductImageDTOs;
 using Models.People;
 
 namespace Adidas.DTOs.Main.Product_DTOs

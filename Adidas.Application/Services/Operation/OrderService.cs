@@ -8,14 +8,8 @@ using Adidas.DTOs.Operation.OrderDTOs.Query;
 using Adidas.DTOs.Operation.OrderDTOs.Result;
 using Adidas.DTOs.Operation.OrderDTOs.Update;
 using Adidas.Models.Feature;
-using Adidas.Models.Operation;
 using AutoMapper;
 using Models.Feature;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Transactions;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation.OrderItemServices

@@ -81,7 +81,7 @@ namespace Adidas.Application.Map
                 .ForMember(dest => dest.SubCategoryCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0))
                 .ForMember(dest => dest.SubCategories, opt => opt.Ignore()); // Will be set manually in service
 
-            CreateMap<Category, CategoryListDto>()
+            CreateMap<Category, CategoryDto>()
                 .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
                 .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
                 .ForMember(dest => dest.SubCategoryCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0));
@@ -113,7 +113,7 @@ namespace Adidas.Application.Map
             //    CreateMap<Brand, BrandDto>()
             //.ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
 
-            CreateMap<Brand, BrandListDto>()
+            CreateMap<Brand, BrandDto>()
                 .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
 
             CreateMap<Brand, BrandResponseDto>()

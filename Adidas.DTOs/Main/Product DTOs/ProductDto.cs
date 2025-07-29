@@ -6,6 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
+using Adidas.DTOs.Main.ProductImageDTOs;
+using Adidas.DTOs.Operation.ReviewDTOs.Query;
+using Adidas.DTOs.Separator.Brand_DTOs;
+using Adidas.DTOs.Separator.Category_DTOs;
 using Models.People;
 
 namespace Adidas.DTOs.Main.Product_DTOs

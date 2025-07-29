@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Adidas.Application.Services
 {
     public abstract class GenericService<TEntity, TDto, TCreateDto, TUpdateDto> : IGenericService<TEntity, TDto, TCreateDto, TUpdateDto>
-         where TEntity : BaseEntity
+         where TEntity : BaseAuditableEntity
          where TDto : class
          where TCreateDto : class
          where TUpdateDto : class

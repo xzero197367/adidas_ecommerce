@@ -10,7 +10,8 @@ namespace Models.Feature
     public enum DiscountType
     {
         Percentage,
-        Amount
+        Amount,
+        FixedAmount
     }
     public class Coupon : BaseAuditableEntity
     {

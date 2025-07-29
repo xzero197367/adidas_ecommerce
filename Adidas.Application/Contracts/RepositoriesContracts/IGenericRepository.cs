@@ -51,5 +51,9 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
         // Query building
         IQueryable<T> GetQueryable();
         IQueryable<T> GetQueryable(Expression<Func<T, bool>> predicate);
+        
+        // Save changes
+        Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

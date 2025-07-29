@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Adidas.Models.Feature;
 using Adidas.Models.Operation;
 using Adidas.Models.Separator;
+using Models.Feature;
 using Models.People;
 
 namespace Adidas.Models.Main;

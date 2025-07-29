@@ -1,12 +1,6 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
-using Adidas.Context;
-using Adidas.Models.Feature;
-using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Models.Feature;
 
 namespace Adidas.Infra.Repositories.Feature
 {
