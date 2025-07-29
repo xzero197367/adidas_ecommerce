@@ -21,7 +21,8 @@ namespace Models.People
     {
         Male,
         Female,
-        Kids
+        Kids,
+        Unisex
     }
 
 
@@ -38,7 +39,7 @@ namespace Models.People
         public Gender? Gender { get; set; }
 
         [MaxLength(20)]
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -49,7 +50,7 @@ namespace Models.People
         public bool IsActive { get; set; } = true;
 
         [MaxLength(10)]
-        public string PreferredLanguage { get; set; }
+        public string? PreferredLanguage { get; set; }
 
         [Required]
         public UserRole Role { get; set; } = UserRole.Customer;

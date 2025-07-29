@@ -18,12 +18,14 @@ public class Product : BaseAuditableEntity
     public decimal? SalePrice { get; set; }
     public required Gender GenderTarget { get; set; }
     
-    public string MetaTitle { get; set; }
+    public string? MetaTitle { get; set; }
 
-    public string MetaDescription { get; set; }
+    public string? MetaDescription { get; set; }
     public required string Sku { get; set; }
 
-    public Dictionary<string, object> Specifications { get; set; }// JSON string for specs
+    public string? Specifications { get; set; }
+
+
 
     // calculated properties
     [NotMapped]

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Adidas.Context.Migrations
 {
     [DbContext(typeof(AdidasDbContext))]
-    [Migration("20250726144122_init")]
+    [Migration("20250729123659_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -120,57 +120,6 @@ namespace Adidas.Context.Migrations
                     b.ToTable("ShoppingCarts");
                 });
 
-            modelBuilder.Entity("Adidas.Models.Feature.Wishlist", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("AddedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AddedAt");
-
-                    b.HasIndex("AddedById");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("UserId", "ProductId")
-                        .IsUnique();
-
-                    b.ToTable("Wishlists");
-                });
-
             modelBuilder.Entity("Adidas.Models.Main.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -208,11 +157,9 @@ namespace Adidas.Context.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<string>("MetaDescription")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MetaTitle")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -239,7 +186,6 @@ namespace Adidas.Context.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Specifications")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -263,6 +209,40 @@ namespace Adidas.Context.Migrations
                     b.HasIndex("CategoryId", "IsActive");
 
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            BrandId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CategoryId = new Guid("44444444-4444-4444-4444-444444444444"),
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5883),
+                            Description = "High performance running shoes",
+                            GenderTarget = 3,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Adidas Ultraboost",
+                            Price = 120m,
+                            ShortDescription = "Running Shoes",
+                            Sku = "UB-001",
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5872)
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
+                            BrandId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            CategoryId = new Guid("44444444-4444-4444-4444-444444444444"),
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5894),
+                            Description = "Iconic indoor soccer shoes",
+                            GenderTarget = 3,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Adidas Samba Classic",
+                            Price = 85m,
+                            ShortDescription = "Samba Shoes",
+                            Sku = "SB-001",
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5886)
+                        });
                 });
 
             modelBuilder.Entity("Adidas.Models.Main.ProductAttribute", b =>
@@ -410,6 +390,34 @@ namespace Adidas.Context.Migrations
                     b.HasIndex("VariantId", "SortOrder");
 
                     b.ToTable("ProductImages");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            AltText = "",
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5980),
+                            ImageUrl = "/images/products/ultraboost-black.jpg",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsPrimary = true,
+                            ProductId = new Guid("66666666-6666-6666-6666-666666666666"),
+                            SortOrder = 0,
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5980)
+                        },
+                        new
+                        {
+                            Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                            AltText = "",
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5989),
+                            ImageUrl = "/images/products/samba-white.jpg",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsPrimary = true,
+                            ProductId = new Guid("77777777-7777-7777-7777-777777777777"),
+                            SortOrder = 0,
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5989)
+                        });
                 });
 
             modelBuilder.Entity("Adidas.Models.Main.ProductVariant", b =>
@@ -484,6 +492,38 @@ namespace Adidas.Context.Migrations
                         .IsUnique();
 
                     b.ToTable("ProductVariants");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("88888888-8888-8888-8888-888888888888"),
+                            Color = "Black",
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5939),
+                            ImageUrl = "/images/products/samba-black-42.jpg",
+                            IsActive = true,
+                            IsDeleted = false,
+                            PriceAdjustment = 0m,
+                            ProductId = new Guid("66666666-6666-6666-6666-666666666666"),
+                            Size = "42",
+                            Sku = "UB-001-BLK-42",
+                            StockQuantity = 50,
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5940)
+                        },
+                        new
+                        {
+                            Id = new Guid("99999999-9999-9999-9999-999999999999"),
+                            Color = "White",
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5948),
+                            ImageUrl = "/images/products/samba-black-42.jpg",
+                            IsActive = true,
+                            IsDeleted = false,
+                            PriceAdjustment = 0m,
+                            ProductId = new Guid("77777777-7777-7777-7777-777777777777"),
+                            Size = "41",
+                            Sku = "SB-001-WHT-41",
+                            StockQuantity = 30,
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5948)
+                        });
                 });
 
             modelBuilder.Entity("Adidas.Models.Operation.Order", b =>
@@ -810,7 +850,6 @@ namespace Adidas.Context.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LogoUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -825,6 +864,41 @@ namespace Adidas.Context.Migrations
                     b.HasIndex("AddedById");
 
                     b.ToTable("Brands");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5651),
+                            Description = "Adidas Samba is one of the most iconic Adidas shoe lines.",
+                            IsActive = true,
+                            IsDeleted = false,
+                            LogoUrl = "/images/brands/adidas-samba.png",
+                            Name = "Adidas",
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5657)
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5727),
+                            Description = "Adidas Samba is one of the most iconic Adidas shoe lines.",
+                            IsActive = true,
+                            IsDeleted = false,
+                            LogoUrl = "/images/brands/adidas-samba.png",
+                            Name = "Adidas Samba",
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5727)
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5742),
+                            Description = "Adidas Samba is one of the most iconic Adidas shoe lines.",
+                            IsActive = true,
+                            IsDeleted = false,
+                            LogoUrl = "/images/brands/adidas-samba.png",
+                            Name = "Adidas Originals",
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5742)
+                        });
                 });
 
             modelBuilder.Entity("Adidas.Models.Separator.Category", b =>
@@ -846,7 +920,6 @@ namespace Adidas.Context.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -891,6 +964,34 @@ namespace Adidas.Context.Migrations
                     b.HasIndex("ParentCategoryId", "IsActive");
 
                     b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5798),
+                            Description = "All types of Adidas shoes for men and women",
+                            ImageUrl = "/images/categories/shoes.jpg",
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Shoes",
+                            Slug = "shoes",
+                            SortOrder = 0,
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5798)
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5803),
+                            Description = "Adidas clothing line including t-shirts, jackets and pants",
+                            ImageUrl = "/images/categories/clothes.jpg",
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Clothes",
+                            Slug = "clothes",
+                            SortOrder = 0,
+                            UpdatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 117, DateTimeKind.Utc).AddTicks(5804)
+                        });
                 });
 
             modelBuilder.Entity("Adidas.Models.Tracker.InventoryLog", b =>
@@ -1133,6 +1234,57 @@ namespace Adidas.Context.Migrations
                     b.ToTable("Coupons");
                 });
 
+            modelBuilder.Entity("Models.Feature.Wishlist", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AddedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddedAt");
+
+                    b.HasIndex("AddedById");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("Wishlists");
+                });
+
             modelBuilder.Entity("Models.People.Address", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1257,7 +1409,6 @@ namespace Adidas.Context.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -1268,7 +1419,6 @@ namespace Adidas.Context.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PreferredLanguage")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
@@ -1307,6 +1457,28 @@ namespace Adidas.Context.Migrations
                     b.HasIndex("IsActive", "Role");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "aaaaaaaa-1111-2222-3333-444444444444",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "ba754000-29e4-4b47-a7cb-4bd0012b729d",
+                            CreatedAt = new DateTime(2025, 7, 29, 12, 36, 58, 52, DateTimeKind.Utc).AddTicks(4939),
+                            Email = "admin@adidas.com",
+                            EmailConfirmed = true,
+                            IsActive = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@ADIDAS.COM",
+                            NormalizedUserName = "ADMIN@ADIDAS.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEMD4hvo00ky0bZXEYBkwrYiaMj4iUZRdSi61JjWSFzlp201UyL4A5IucHH0cGhXdg==",
+                            Phone = "0000000000",
+                            PhoneNumberConfirmed = false,
+                            Role = 1,
+                            SecurityStamp = "197786cc-5e55-42ea-94e5-be9f08dcf389",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@adidas.com"
+                        });
                 });
 
             modelBuilder.Entity("Adidas.Models.Feature.OrderCoupon", b =>
@@ -1358,32 +1530,6 @@ namespace Adidas.Context.Migrations
                     b.Navigation("User");
 
                     b.Navigation("Variant");
-                });
-
-            modelBuilder.Entity("Adidas.Models.Feature.Wishlist", b =>
-                {
-                    b.HasOne("Models.People.User", "AddedBy")
-                        .WithMany()
-                        .HasForeignKey("AddedById")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Adidas.Models.Main.Product", "Product")
-                        .WithMany("Wishlists")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Models.People.User", "User")
-                        .WithMany("Wishlists")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AddedBy");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Adidas.Models.Main.Product", b =>
@@ -1678,6 +1824,32 @@ namespace Adidas.Context.Migrations
                         .HasForeignKey("AddedById");
 
                     b.Navigation("AddedBy");
+                });
+
+            modelBuilder.Entity("Models.Feature.Wishlist", b =>
+                {
+                    b.HasOne("Models.People.User", "AddedBy")
+                        .WithMany()
+                        .HasForeignKey("AddedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Adidas.Models.Main.Product", "Product")
+                        .WithMany("Wishlists")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Models.People.User", "User")
+                        .WithMany("Wishlists")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AddedBy");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Models.People.Address", b =>

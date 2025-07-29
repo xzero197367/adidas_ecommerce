@@ -132,44 +132,11 @@ namespace Adidas.Context
             
             #endregion
 
-            // Configure JSON conversions for complex properties
-            ConfigureJsonProperties(modelBuilder);
-            
-            // AdidasDbContextSeed.SeedAsync(modelBuilder);
+            // ✅ Call the Seed Method
+            AdidasDbContextSeed.Seed(modelBuilder);
         }
 
-        private void ConfigureJsonProperties(ModelBuilder modelBuilder)
-        {
-            var jsonStringConverter = new ValueConverter<Dictionary<string, object>, string>(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null)
-            );
-
-            // Configure JSON properties
-            modelBuilder.Entity<Product>()
-                .Property(e => e.Specifications)
-                .HasConversion(jsonStringConverter);
-
-            modelBuilder.Entity<Order>()
-                .Property(e => e.ShippingAddress)
-                .HasConversion(jsonStringConverter);
-
-            modelBuilder.Entity<Order>()
-                .Property(e => e.BillingAddress)
-                .HasConversion(jsonStringConverter);
-
-            ////modelBuilder.Entity<UserBehaviorLog>()
-            ////    .Property(e => e.EventData)
-            ////    .HasConversion(jsonStringConverter);
-
-            ////modelBuilder.Entity<WebhookLog>()
-            ////    .Property(e => e.Payload)
-            ////    .HasConversion(jsonStringConverter);
-
-            ////modelBuilder.Entity<WebhookLog>()
-            ////    .Property(e => e.Response)
-            ////    .HasConversion(jsonStringConverter);
-        }
+        
 
     
         public override int SaveChanges()
