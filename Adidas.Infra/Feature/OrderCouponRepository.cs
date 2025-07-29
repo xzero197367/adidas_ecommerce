@@ -12,7 +12,6 @@ namespace Adidas.Infra.Feature
 {
     public class OrderCouponRepository : GenericRepository<OrderCoupon>, IOrderCouponRepository
     {
-        private readonly AdidasDbContext _context;
         public OrderCouponRepository(AdidasDbContext context) : base(context) { }
 
         public async Task<IEnumerable<OrderCoupon>> GetByOrderIdAsync(Guid orderId)
