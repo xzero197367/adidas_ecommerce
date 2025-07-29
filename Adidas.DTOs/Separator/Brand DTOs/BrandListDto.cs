@@ -2,7 +2,7 @@
 
 namespace Adidas.DTOs.Separator.Brand_DTOs
 {
-    public class BrandDto
+    public class BrandListDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

@@ -140,9 +140,9 @@ namespace Adidas.Application.Services.Separator
 
                 var categoryResponse = _mapper.Map<CategoryResponseDto>(category);
 
-                // Get subcategories
+                // Get subcategories  
                 var subCategories = await _categoryRepository.GetSubCategoriesAsync(category.Id);
-                categoryResponse.SubCategories = _mapper.Map<List<CategoryDto>>(subCategories);
+                //categoryResponse.SubCategories = _mapper.Map<List<CategoryListDto>>(subCategories);
 
                 return categoryResponse;
             }

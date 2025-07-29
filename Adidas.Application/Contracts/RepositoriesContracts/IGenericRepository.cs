@@ -35,6 +35,9 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
         Task<IEnumerable<EntityEntry<T>>> UpdateRangeAsync(IEnumerable<T> entities);
 
         // Soft delete operations
+
+
+    
         Task<bool> SoftDeleteAsync(Guid id);
         // Task<bool> SoftDeleteAsync(T entity);                    
         Task<int> SoftDeleteRangeAsync(IEnumerable<T> entities);

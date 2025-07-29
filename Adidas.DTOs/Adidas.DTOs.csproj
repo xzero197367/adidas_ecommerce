@@ -8,12 +8,7 @@
 
   <ItemGroup>
 
-    <Folder Include="Operation\" />
-    <Folder Include="Separator\" />
-
     <Folder Include="People\" />
-
-    <Folder Include="Tracker\" />
   </ItemGroup>
 
   <ItemGroup>

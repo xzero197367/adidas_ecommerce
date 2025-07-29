@@ -7,32 +7,41 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Map\Feature\**" />
+    <Compile Remove="Map\Main\**" />
+    <Compile Remove="Map\Operation\**" />
+    <Compile Remove="Map\People\**" />
+    <Compile Remove="Map\Separator\**" />
+    <Compile Remove="Map\Tracker\**" />
+    <EmbeddedResource Remove="Map\Feature\**" />
+    <EmbeddedResource Remove="Map\Main\**" />
+    <EmbeddedResource Remove="Map\Operation\**" />
+    <EmbeddedResource Remove="Map\People\**" />
+    <EmbeddedResource Remove="Map\Separator\**" />
+    <EmbeddedResource Remove="Map\Tracker\**" />
+    <None Remove="Map\Feature\**" />
+    <None Remove="Map\Main\**" />
+    <None Remove="Map\Operation\**" />
+    <None Remove="Map\People\**" />
+    <None Remove="Map\Separator\**" />
+    <None Remove="Map\Tracker\**" />
+  </ItemGroup>
+
+  <ItemGroup>
 
     <Folder Include="Contracts\RepositoriesContracts\Operation\" />
 
     <Folder Include="Contracts\RepositoriesContracts\Tracker\" />
 
-    <Folder Include="Contracts\ServicesContracts\Operation\" />
-
     <Folder Include="Contracts\ServicesContracts\People\" />
 
     <Folder Include="Contracts\ServicesContracts\Separator\" />
-    <Folder Include="Contracts\ServicesContracts\Tracker\" />
-    <Folder Include="Map\Feature\" />
-    <Folder Include="Map\Main\" />
-    <Folder Include="Map\Operation\" />
-    <Folder Include="Map\People\" />
-    <Folder Include="Map\Separator\" />
-    <Folder Include="Map\Tracker\" />
     <Folder Include="Services\Feature\" />
 
     <Folder Include="Services\Operation\" />
-
-    <Folder Include="Services\NewFolder\" />
     <Folder Include="Services\People\" />
 
     <Folder Include="Services\Separator\" />
-    <Folder Include="Services\Tracker\" />
   </ItemGroup>
 
   <ItemGroup>

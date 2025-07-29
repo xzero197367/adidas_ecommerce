@@ -10,10 +10,10 @@ namespace Adidas.Application.Services.Feature
     public class WishListService : IWishListService
     {
 
-        private readonly IWishListRepository _wishlistRepository;
+        private readonly IWishlistRepository _wishlistRepository;
         private readonly IMapper _mapper;
 
-        public WishListService(IWishListRepository wishListRepository, IMapper mapper)
+        public WishListService(IWishlistRepository wishListRepository, IMapper mapper)
         {
             _wishlistRepository = wishListRepository;
             _mapper = mapper;
@@ -27,13 +27,13 @@ namespace Adidas.Application.Services.Feature
 
         public async Task<IEnumerable<WishlistItemDto>> GetWishlistByUserIdAsync(string userId)
         {
-            var wishlists = await _wishlistRepository.GetWishListByUserIdAsync(userId);
+            var wishlists = await _wishlistRepository.GetWishlistByUserIdAsync(userId);
             return wishlists.Select(w => _mapper.Map<WishlistItemDto>(w));
         }
 
         public async Task<WishlistItemDto> AddToWishlistAsync(AddToWishlistDto addDto)
         {
-            var exists = await _wishlistRepository.IsProductInWishListAsync(addDto.UserId, addDto.ProductId);
+            var exists = await _wishlistRepository.IsProductInWishlistAsync(addDto.UserId, addDto.ProductId);
             if (exists) throw new Exception("Product already in wishlist.");
 
             var wishlist = new Wishlist
@@ -48,17 +48,17 @@ namespace Adidas.Application.Services.Feature
         }
 
         public Task<bool> RemoveFromWishlistAsync(string userId, Guid productId) =>
-            _wishlistRepository.RemoveFromWishListAsync(userId, productId);
+            _wishlistRepository.RemoveFromWishlistAsync(userId, productId);
 
         public Task<bool> IsProductInWishlistAsync(string userId, Guid productId) =>
-            _wishlistRepository.IsProductInWishListAsync(userId, productId);
+            _wishlistRepository.IsProductInWishlistAsync(userId, productId);
 
         public Task<int> GetWishlistCountAsync(string userId) =>
-            _wishlistRepository.GetWishListCountAsync(userId);
+            _wishlistRepository.GetWishlistCountAsync(userId);
 
         public async Task<IEnumerable<WishlistItemDto>> GetWishlistSummaryAsync(string userId)
         {
-            var wishlists = await _wishlistRepository.GetWishListByUserIdAsync(userId);
+            var wishlists = await _wishlistRepository.GetWishlistByUserIdAsync(userId);
             return wishlists.Select(w =>
             {
                 var dto = _mapper.Map<WishlistItemDto>(w);

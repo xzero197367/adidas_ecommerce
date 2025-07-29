@@ -1,7 +1,7 @@
 ﻿
 namespace Adidas.DTOs.Separator.Category_DTOs
 {
-    public class CategoryDto
+    public class CategoryListDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

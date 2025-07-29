@@ -11,20 +11,17 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {
-    public interface IOrderService
+    public interface IOrderService : IGenericService<Order, OrderDto, CreateOrderDto, UpdateOrderDto>
     {
-        Task<OrderDto> CreateOrderAsync(CreateOrderDto createOrderDto);
-        Task<OrderDto> GetOrderByIdAsync(Guid orderId);
-        Task<OrderDto> GetOrderByNumberAsync(string orderNumber);
-        Task<PagedOrderResultDto> GetOrdersAsync(OrderQueryDto query);
-        Task<PagedOrderResultDto> GetUserOrdersAsync(string userId, int pageNumber = 1, int pageSize = 10);
-        Task<OrderDto> UpdateOrderAsync(Guid orderId, UpdateOrderDto updateOrderDto);
-        Task<OrderDto> UpdateOrderStatusAsync(Guid orderId, UpdateOrderStatusDto updateStatusDto);
-        Task<bool> CancelOrderAsync(Guid orderId, string reason = null);
-        Task<OrderCalculationDto> CalculateOrderAsync(CreateOrderDto createOrderDto);
-        Task<decimal> GetTotalSalesAsync(DateTime? startDate = null, DateTime? endDate = null);
-        Task<List<OrderSummaryDto>> GetPendingOrdersAsync();
-        Task<bool> DeleteOrderAsync(Guid orderId);
-    }                      
- 
+        Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(string userId);
+        Task<OrderDto?> GetOrderByOrderNumberAsync(string orderNumber);
+        Task<IEnumerable<OrderDto>> GetOrdersByStatusAsync(OrderStatus status);
+        Task<OrderDto> CreateOrderFromCartAsync(string userId, CreateOrderFromCartDto orderDto);
+        Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus);
+        Task<OrderDto?> GetOrderWithItemsAsync(Guid orderId);
+        Task<decimal> CalculateOrderTotalAsync(string userId, string? discountCode = null);
+        Task<bool> CancelOrderAsync(Guid orderId, string reason);
+        Task<OrderSummaryDto> GetOrderSummaryAsync(DateTime? startDate = null, DateTime? endDate = null);
+    }
+
 }
