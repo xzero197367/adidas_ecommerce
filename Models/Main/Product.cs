@@ -22,8 +22,7 @@ public class Product : BaseAuditableEntity
 
     public string MetaDescription { get; set; }
     public required string Sku { get; set; }
-    //public string Specifications { get; set; } // JSON string for specs
-    // This must be Dictionary<string, object> or something compatible
+
     public Dictionary<string, object> Specifications { get; set; }// JSON string for specs
 
     // calculated properties
