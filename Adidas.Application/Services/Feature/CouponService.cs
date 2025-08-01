@@ -1,4 +1,5 @@
-﻿using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
+using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Feature.CouponDTOs;
 using AutoMapper;
@@ -10,15 +11,18 @@ namespace Adidas.Application.Services.Feature
     public class CouponService : GenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>, ICouponService
     {
         private readonly ICouponRepository _couponRepository;
+        // private readonly IOrderCouponRepository _orderCouponRepository;
         private readonly ILogger<CouponService> _logger;
 
         public CouponService(
+            // IOrderCouponRepository orderCouponRepository,
             ICouponRepository couponRepository,
             IMapper mapper,
             ILogger<CouponService> logger) 
             : base(couponRepository, mapper, logger)
         {
             _couponRepository = couponRepository;
+            // _orderCouponRepository = orderCouponRepository;
             _logger = logger;
         }
 
@@ -131,6 +135,8 @@ namespace Adidas.Application.Services.Feature
                 {
                     return false;
                 }
+                
+                // TODO: register order coupon and increment usage count
 
                 return await _couponRepository.IncrementUsageCountAsync(coupon.Id);
             }

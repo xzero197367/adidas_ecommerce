@@ -1,5 +1,7 @@
-﻿
 
+
+using Adidas.Application.Map.Feature;
+using Adidas.Application.Map.Operation;
 using Adidas.DTOs.Feature.ShoppingCartDTOS;
 using Adidas.DTOs.Feature.WishLIstDTOS;
 using Adidas.DTOs.Main.Product_DTOs;
@@ -33,6 +35,7 @@ namespace Adidas.Application.Map
     {
         public MappingProfiles()
         {
+            
             // Product <=> DTOs
             CreateMap<Product, ProductDto>()
                 .ForMember(dest => dest.DisplayPrice, opt => opt.MapFrom(src => src.SalePrice ?? src.Price))

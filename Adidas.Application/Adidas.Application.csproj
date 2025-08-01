@@ -7,23 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Map\Feature\**" />
-    <Compile Remove="Map\Main\**" />
-    <Compile Remove="Map\Operation\**" />
-    <Compile Remove="Map\People\**" />
-    <Compile Remove="Map\Separator\**" />
     <Compile Remove="Map\Tracker\**" />
-    <EmbeddedResource Remove="Map\Feature\**" />
-    <EmbeddedResource Remove="Map\Main\**" />
-    <EmbeddedResource Remove="Map\Operation\**" />
-    <EmbeddedResource Remove="Map\People\**" />
-    <EmbeddedResource Remove="Map\Separator\**" />
+    <Compile Include="Map\Main\ProductAttributeMappingProfile.cs" />
+    <Compile Include="Map\Main\ProductAttributeValueMappingProfile.cs" />
+    <Compile Include="Map\Main\ProductImageMappingProfile.cs" />
+    <Compile Include="Map\Main\ProductMappingProfile.cs" />
+    <Compile Include="Map\Main\ProductVariantMappingProfile.cs" />
+    <Compile Include="Map\Operation\OrderMappingProfile.cs" />
+    <Compile Include="Map\Operation\PaymentMappingProfile.cs" />
+    <Compile Include="Map\Operation\ReviewMappingProfile.cs" />
+    <Compile Include="Map\People\AddressMappingProfile.cs" />
+    <Compile Include="Map\Separator\BrandMappingProfile.cs" />
+    <Compile Include="Map\Separator\CategoryMappingProfile.cs" />
     <EmbeddedResource Remove="Map\Tracker\**" />
-    <None Remove="Map\Feature\**" />
-    <None Remove="Map\Main\**" />
-    <None Remove="Map\Operation\**" />
-    <None Remove="Map\People\**" />
-    <None Remove="Map\Separator\**" />
     <None Remove="Map\Tracker\**" />
   </ItemGroup>
 
