@@ -10,7 +10,7 @@ namespace Adidas.Models.Main;
 
 public class Product : BaseAuditableEntity
 {
-    // fields
+    // fields ad123
     public required string Name { get; set; }
     public required string Description { get; set; }
     public required string ShortDescription { get; set; }
