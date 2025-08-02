@@ -1,0 +1,126 @@
+﻿@using Adidas.DTOs.People.Customer_DTOs
+<!-- Views/Customers/Edit.cshtml -->
+@model UpdateCustomerDto
+@{
+    ViewData["Title"] = "Edit Customer";
+    var customerId = ViewBag.CustomerId as string;
+    var customerName = ViewBag.CustomerName as string;
+    var customerEmail = ViewBag.CustomerEmail as string;
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Edit Customer</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index">Customers</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@customerId">@customerName</a></li>
+                    <li class="breadcrumb-item active">Edit</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Customer Information</h3>
+                    </div>
+                    <form asp-action="Edit" asp-route-id="@customerId" method="post">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" class="form-control" value="@customerName" readonly>
+                                <small class="form-text text-muted">Name cannot be changed from admin panel.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" value="@customerEmail" readonly>
+                                <small class="form-text text-muted">Email cannot be changed from admin panel.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Phone">Phone Number</label>
+                                <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Gender">Gender</label>
+                                <select asp-for="Gender" class="form-control">
+                                    <option value="">Select Gender</option>
+                                    <option value="0">Male</option>
+                                    <option value="1">Female</option>
+                                    <option value="2">Kids</option>
+                                    <option value="3">Unisex</option>
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="DateOfBirth">Date of Birth</label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="PreferredLanguage">Preferred Language</label>
+                                <select asp-for="PreferredLanguage" class="form-control">
+                                    <option value="">Select Language</option>
+                                    <option value="english">English</option>
+                                    <option value="arabic">Arabic</option>
+                                </select>
+                                <span asp-validation-for="PreferredLanguage" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a asp-action="Details" asp-route-id="@customerId" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">Help</h3>
+                    </div>
+                    <div class="card-body">
+                        <h6>Editable Fields:</h6>
+                        <ul>
+                            <li><strong>Phone:</strong> Customer's contact number</li>
+                            <li><strong>Gender:</strong> Used for product recommendations</li>
+                            <li><strong>Date of Birth:</strong> For age-appropriate content and offers</li>
+                            <li><strong>Preferred Language:</strong> Interface language preference</li>
+                        </ul>
+
+                        <div class="alert alert-info">
+                            <i class="icon fas fa-info"></i>
+                            <strong>Note:</strong> Customer name and email cannot be modified from the admin panel for security reasons.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
