@@ -1,12 +1,162 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
+using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.ServicesContracts.Feature;
+using Adidas.DTOs.Feature.CouponDTOs;
+using AutoMapper;
+using Microsoft.Extensions.Logging;
+using Models.Feature;
 
 namespace Adidas.Application.Services.Feature
 {
-    internal class CouponService
+    public class CouponService : GenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>, ICouponService
     {
+        private readonly ICouponRepository _couponRepository;
+        // private readonly IOrderCouponRepository _orderCouponRepository;
+        private readonly ILogger<CouponService> _logger;
+
+        public CouponService(
+            // IOrderCouponRepository orderCouponRepository,
+            ICouponRepository couponRepository,
+            IMapper mapper,
+            ILogger<CouponService> logger) 
+            : base(couponRepository, mapper, logger)
+        {
+            _couponRepository = couponRepository;
+            // _orderCouponRepository = orderCouponRepository;
+            _logger = logger;
+        }
+
+        public async Task<CouponDto?> GetCouponByCodeAsync(string code)
+        {
+            try
+            {
+                var coupon = await _couponRepository.GetByCodeAsync(code);
+                return coupon != null ? _mapper.Map<CouponDto>(coupon) : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting coupon by code: {Code}", code);
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<CouponDto>> GetActiveCouponsAsync()
+        {
+            try
+            {
+                var coupons = await _couponRepository.GetActiveCouponsAsync();
+                return _mapper.Map<IEnumerable<CouponDto>>(coupons);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting active coupons");
+                return null;
+            }
+        }
+
+        public async Task<CouponValidationResultDto> ValidateCouponAsync(string code, decimal orderAmount)
+        {
+            try
+            {
+                var coupon = await _couponRepository.GetByCodeAsync(code);
+                
+                if (coupon == null || coupon.IsDeleted)
+                {
+                    return CouponValidationResultDto.Failure("Invalid coupon code");
+                }
+
+                var now = DateTime.UtcNow;
+                if (now < coupon.ValidFrom || now > coupon.ValidTo)
+                {
+                    return CouponValidationResultDto.Failure("Coupon is not valid at this time");
+                }
+
+                if (coupon.UsageLimit > 0 && coupon.UsedCount >= coupon.UsageLimit)
+                {
+                    return CouponValidationResultDto.Failure("Coupon has reached its usage limit");
+                }
+
+                if (orderAmount < coupon.MinimumAmount)
+                {
+                    return CouponValidationResultDto.Failure(
+                        $"Minimum order amount of {coupon.MinimumAmount} is required");
+                }
+
+                var discountAmount = await CalculateDiscountAmountAsync(coupon, orderAmount);
+                var finalAmount = orderAmount - discountAmount;
+
+                return CouponValidationResultDto.Success(
+                    coupon.Code,
+                    coupon.Name,
+                    coupon.DiscountValue,
+                    coupon.DiscountType.ToString(),
+                    discountAmount,
+                    orderAmount,
+                    finalAmount
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating coupon: {Code}", code);
+                return null;
+            }
+        }
+
+        public async Task<decimal> CalculateCouponAmountAsync(string code, decimal orderAmount)
+        {
+            try
+            {
+                var coupon = await _couponRepository.GetByCodeAsync(code);
+                if (coupon == null || coupon.IsDeleted)
+                {
+                    return 0;
+                }
+
+                return await CalculateDiscountAmountAsync(coupon, orderAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating coupon amount for code: {Code}", code);
+                return -1;
+            }
+        }
+
+        public async Task<bool> ApplyCouponAsync(string code)
+        {
+            try
+            {
+                var coupon = await _couponRepository.GetByCodeAsync(code);
+                if (coupon == null || coupon.IsDeleted)
+                {
+                    return false;
+                }
+
+                if (coupon.UsageLimit > 0 && coupon.UsedCount >= coupon.UsageLimit)
+                {
+                    return false;
+                }
+                
+                // TODO: register order coupon and increment usage count
+
+                return await _couponRepository.IncrementUsageCountAsync(coupon.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error applying coupon: {Code}", code);
+                return false;
+            }
+        }
+
+        private async Task<decimal> CalculateDiscountAmountAsync(Coupon coupon, decimal orderAmount)
+        {
+            if (coupon.DiscountType == DiscountType.Percentage)
+            {
+                return orderAmount * (coupon.DiscountValue / 100m);
+            }
+            else // Fixed amount
+            {
+                return Math.Min(coupon.DiscountValue, orderAmount);
+            }
+        }
     }
 }

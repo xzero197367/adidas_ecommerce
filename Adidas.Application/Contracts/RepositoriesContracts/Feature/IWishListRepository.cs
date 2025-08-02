@@ -1,18 +1,14 @@
-﻿using Adidas.Models.Feature;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+
+using Models.Feature;
 
 namespace Adidas.Application.Contracts.RepositoriesContracts.Feature
 {
-    public interface IWishListRepository : IGenericRepository<Wishlist>
+    public interface IWishlistRepository : IGenericRepository<Wishlist>
     {
-        Task<IEnumerable<Wishlist>> GetWishListByUserIdAsync(string userId);
-        Task<bool> IsProductInWishListAsync(string userId, Guid productId);
-        Task<bool> RemoveFromWishListAsync(string userId , Guid productId);
-        Task<int> GetWishListCountAsync(string userId);
-
+        Task<IEnumerable<Wishlist>> GetWishlistByUserIdAsync(string userId);
+        Task<bool> IsProductInWishlistAsync(string userId, Guid productId);
+        Task<bool> RemoveFromWishlistAsync(string userId, Guid productId);
+        Task<int> GetWishlistCountAsync(string userId);
     }
 }

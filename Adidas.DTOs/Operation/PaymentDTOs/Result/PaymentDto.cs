@@ -16,9 +16,12 @@ namespace Adidas.DTOs.Operation.PaymentDTOs.Result
         public string? GatewayResponse { get; set; }
         public DateTime ProcessedAt { get; set; }
         public Guid OrderId { get; set; }
+
+        // From BaseAuditableEntity
         public DateTime CreatedAt { get; set; }
-        public DateTime? ModifiedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public string? CreatedBy { get; set; }
-        public string? ModifiedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+        public bool IsActive { get; set; }
     }
 }

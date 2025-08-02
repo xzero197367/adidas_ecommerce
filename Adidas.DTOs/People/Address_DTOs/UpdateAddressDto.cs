@@ -13,6 +13,5 @@ public class UpdateAddressDto
     public string Country { get; set; }
     public string PhoneNumber { get; set; }
     public bool? IsDefault { get; set; }
-    public AddressType? AddressType { get; set; }
-
+    public string? AddressType { get; set; }
 }

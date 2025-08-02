@@ -8,8 +8,8 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.People;
 
 public interface IUserRepository
 {
-    Task< User?> GetByIdAsync(Guid id);
-    Task< User?> GetByIdAsync(Guid id, params Expression<Func<User, object>>[] includes);
+    Task< User?> GetByIdAsync(string id);
+    Task< User?> GetByIdAsync(string id, params Expression<Func<User, object>>[] includes);
     Task<IEnumerable<User>> GetAllAsync();
     Task<IEnumerable<User>> GetAllAsync(params Expression<Func<User, object>>[] includes);
     Task<IEnumerable<User>> FindAsync(Expression<Func<User, bool>> predicate);

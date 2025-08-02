@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Adidas.Application.Services
 {
     public abstract class GenericService<TEntity, TDto, TCreateDto, TUpdateDto> : IGenericService<TEntity, TDto, TCreateDto, TUpdateDto>
-         where TEntity : BaseEntity
+         where TEntity : BaseAuditableEntity
          where TDto : class
          where TCreateDto : class
          where TUpdateDto : class
@@ -188,8 +188,8 @@ namespace Adidas.Application.Services
 
                 var createdEntityEntry = await _repository.AddAsync(entity);
                 var createdEntity = createdEntityEntry.Entity; // Extract the entity from EntityEntry
+                await _repository.SaveChangesAsync(); // Ensure changes are saved
                 await AfterCreateAsync(createdEntity);
-
                 return _mapper.Map<TDto>(createdEntity);
             }
             catch (Exception ex)
@@ -219,10 +219,13 @@ namespace Adidas.Application.Services
 
                 var createdEntityEntries = await _repository.AddRangeAsync(entityList);
                 var createdEntityList = createdEntityEntries.Select(entry => entry.Entity).ToList(); // Extract entities from EntityEntry collection
+                await _repository.SaveChangesAsync(); // Ensure changes are saved
 
                 foreach (var createdEntity in createdEntityList)
                 {
+
                     await AfterCreateAsync(createdEntity);
+
                 }
 
                 return _mapper.Map<IEnumerable<TDto>>(createdEntityList);
@@ -249,6 +252,7 @@ namespace Adidas.Application.Services
 
                 var updatedEntityEntry = await _repository.UpdateAsync(existingEntity);
                 var updatedEntity = updatedEntityEntry.Entity; // Extract the entity from EntityEntry
+                await _repository.SaveChangesAsync(); // Ensure changes are saved
                 await AfterUpdateAsync(updatedEntity);
 
                 return _mapper.Map<TDto>(updatedEntity);
@@ -281,6 +285,7 @@ namespace Adidas.Application.Services
 
                 var updatedEntityEntries = await _repository.UpdateRangeAsync(entities);
                 var updatedEntityList = updatedEntityEntries.Select(entry => entry.Entity).ToList(); // Extract entities from EntityEntry collection
+                await _repository.SaveChangesAsync(); // Ensure changes are saved
 
                 foreach (var updatedEntity in updatedEntityList)
                 {
@@ -307,6 +312,7 @@ namespace Adidas.Application.Services
                 var result = await _repository.SoftDeleteAsync(id);
                 if (result)
                 {
+                    await _repository.SaveChangesAsync(); // Ensure changes are saved
                     await AfterDeleteAsync(entity);
                 }
 
@@ -327,6 +333,7 @@ namespace Adidas.Application.Services
                 var result = await _repository.SoftDeleteAsync(entity.Id);
                 if (result)
                 {
+                    await _repository.SaveChangesAsync(); // Ensure changes are saved
                     await AfterDeleteAsync(entity);
                 }
 
@@ -355,7 +362,7 @@ namespace Adidas.Application.Services
                 }
 
                 var result = await _repository.SoftDeleteRangeAsync(entities);
-
+                await _repository.SaveChangesAsync(); // Ensure changes are saved
                 foreach (var entity in entities)
                 {
                     await AfterDeleteAsync(entity);

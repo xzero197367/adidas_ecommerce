@@ -16,11 +16,9 @@ public class InventoryLog : BaseAuditableEntity
     // foreign key
     [Required]
     public required Guid VariantId { get; set; }
-    // public Guid? CreatedByUserId { get; set; }  // موجوده في Base Auditable Entity
     // navigation
     public ProductVariant Variant { get; set; }
 
     
-    // [ForeignKey("CreatedByUserId")]
-    // public User CreatedBy { get; set; }
+  
 }

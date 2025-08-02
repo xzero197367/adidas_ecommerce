@@ -1,4 +1,4 @@
-﻿using Adidas.Context;
+using Adidas.Context;
 using Adidas.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -23,6 +23,7 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
     public async Task<EntityEntry<T>> AddAsync(T entity)
     {
         var createdEntity = await _context.AddAsync(entity);
+        
         return createdEntity;
     }
     
@@ -33,12 +34,14 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         {
             createdEntities.Add(await _context.AddAsync(entity));
         }
+        
         return createdEntities;
     }
     
     public async Task<EntityEntry<T>> UpdateAsync(T entity)
     {
         var updatedEntity = _context.Update(entity);
+        
         return updatedEntity;
     }
 
@@ -49,6 +52,7 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         {
             updatedEntities.Add(_context.Update(entity));
         }
+        
         return updatedEntities;
     }
 
@@ -65,13 +69,13 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         }
 
         entity.IsDeleted = true;
-        var updatedEntity = await UpdateAsync(entity);
+        var updatedEntity = _context.Update(entity);
 
-        if (updatedEntity?.Entity?.IsDeleted == true)
+
+        if (updatedEntity.State == EntityState.Modified)
         {
             return true;
         }
-
         return false;
     }
 
@@ -81,8 +85,10 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         foreach (var entity in entities)
         {
             entity.IsDeleted = true;
-            updatedEntities.Add(await SoftDeleteAsync(entity.Id));
+            updatedEntities.Add(_context.Update(entity).State == EntityState.Modified);
         }
+
+        
         return updatedEntities.Count;
     }
 
@@ -98,6 +104,7 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
             throw new Exception($"Entity with id {id} not found");
         }
         _dbSet.Remove(entity);
+        
         return true;
     }
     
@@ -106,9 +113,46 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         List<bool> deletedEntities = new();
         foreach (var entity in entities)
         {
-            deletedEntities.Add(await HardDeleteAsync(entity.Id));
+            deletedEntities.Add(_dbSet.Remove(entity).State == EntityState.Deleted);
         }
+
+        
         return deletedEntities.Count;
+    }
+
+    #endregion
+
+    #region Save changes
+
+    public async Task<int> SaveChangesAsync()
+    {
+        try
+        {
+            return await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log the exception here if needed
+            throw new Exception("An error occurred while saving changes to the database. See the inner exception for details.", ex);
+        }
+    }
+
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Operation was explicitly cancelled
+            throw new OperationCanceledException("The operation was cancelled by the user.", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception here if needed
+            throw new Exception("An error occurred while saving changes to the database. See the inner exception for details.", ex);
+        }
     }
 
     #endregion
@@ -233,7 +277,6 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
             return false;
 
         entity.IsActive = isActive;
-        await _context.SaveChangesAsync();
         return true;
     }
 
@@ -252,7 +295,6 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
             entity.IsActive = isActive;
         }
 
-        await _context.SaveChangesAsync();
         return entities.Count;
     }
 

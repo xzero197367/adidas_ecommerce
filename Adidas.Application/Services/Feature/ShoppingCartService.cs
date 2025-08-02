@@ -3,23 +3,19 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Feature.ShoppingCartDTOS;
 using Adidas.Models.Feature;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Models.Feature;
 
 namespace Adidas.Application.Services.Feature
 {
     public class ShoppingCartService : IShoppingCartService
     {
         private readonly IShoppingCartRepository _cartRepository;
-        private readonly IWishListRepository _wishlistRepository;
+        private readonly IWishlistRepository _wishlistRepository;
        private readonly IMapper _mapper;
 
         public ShoppingCartService(
             IShoppingCartRepository cartRepository,
-            IWishListRepository wishlistRepository,
+            IWishlistRepository wishlistRepository,
             IMapper mapper)
         {
             _cartRepository = cartRepository;

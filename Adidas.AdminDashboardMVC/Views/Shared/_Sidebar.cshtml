@@ -1,0 +1,170 @@
+﻿<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="@Url.Action("Index", "Dashboard")" class="brand-link">
+        <img src="~/images/adidas_logo.svg" alt="Adidas Logo" class="mx-2">
+        <span class="brand-text">Adidas Admin</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column nav-child-indent" data-widget="treeview" role="menu" data-accordion="false">
+                <!-- Dashboard Section -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>Dashboard <i class="right fas fa-angle-left"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Overview</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Analytics", "Dashboard")" class="nav-link">
+                                <i class="nav-icon fas fa-analytics"></i>
+                                <p>Analytics</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Products Section -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-box"></i>
+                        <p>Products <i class="right fas fa-angle-left"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Products")" class="nav-link">
+                                <i class="nav-icon fas fa-list"></i>
+                                <p>Manage Products</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Categories")" class="nav-link">
+                                <i class="nav-icon fas fa-tags"></i>
+                                <p>Categories</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Brands")" class="nav-link">
+                                <i class="nav-icon fas fa-trademark"></i>
+                                <p>Brands</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Reviews", "Products")" class="nav-link">
+                                <i class="nav-icon fas fa-star"></i>
+                                <p>Reviews</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Orders Section -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-shopping-cart"></i>
+                        <p>Orders <i class="right fas fa-angle-left"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Orders")" class="nav-link">
+                                <i class="nav-icon fas fa-list-alt"></i>
+                                <p>All Orders</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Pending", "Orders")" class="nav-link">
+                                <i class="nav-icon fas fa-clock"></i>
+                                <p>Pending Orders</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Completed", "Orders")" class="nav-link">
+                                <i class="nav-icon fas fa-check-circle"></i>
+                                <p>Completed Orders</p>
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+
+                <!-- Customers Section -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>Customers <i class="right fas fa-angle-left"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Customers")" class="nav-link">
+                                <i class="nav-icon fas fa-user-friends"></i>
+                                <p>All Customers</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Addresses", "Customers")" class="nav-link">
+                                <i class="nav-icon fas fa-map-marker-alt"></i>
+                                <p>Addresses</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+
+
+                <!-- Discounts & Promotions Section -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-percentage"></i>
+                        <p>Discounts & Promotions <i class="right fas fa-angle-left"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Discounts")" class="nav-link">
+                                <i class="nav-icon fas fa-ticket-alt"></i>
+                                <p>Manage Discounts</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Promotions", "Discounts")" class="nav-link">
+                                <i class="nav-icon fas fa-bullhorn"></i>
+                                <p>Active Promotions</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Inventory Section -->
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Inventory")" class="nav-link">
+                        <i class="nav-icon fas fa-warehouse"></i>
+                        <p>Inventory Dashboard</p>
+                    </a>
+                </li>
+
+                <!-- Settings Section -->
+                <li class="nav-header">SYSTEM</li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Settings")" class="nav-link">
+                        <i class="nav-icon fas fa-cogs"></i>
+                        <p>Settings</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Reports")" class="nav-link">
+                        <i class="nav-icon fas fa-chart-bar"></i>
+                        <p>Reports</p>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</aside>

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Adidas.Models.Feature;
 using Adidas.Models.Operation;
 using Microsoft.AspNetCore.Identity;
+using Models.Feature;
 
 namespace Models.People
 {
@@ -20,7 +21,8 @@ namespace Models.People
     {
         Male,
         Female,
-        Kids
+        Kids,
+        Unisex
     }
 
 
@@ -30,27 +32,14 @@ namespace Models.People
     }
     public class User : IdentityUser
     {
-        //[Key]                                 // identity have it own key
-        //public int UserId { get; set; }
 
-        //[Required, MaxLength(100)]
-        //public string Email { get; set; }
-
-        //[Required, MaxLength(256)]
-        //public string PasswordHash { get; set; }
-
-        //[Required, MaxLength(50)]
-        //public string FirstName { get; set; }
-
-        //[Required, MaxLength(50)]
-        //public string LastName { get; set; }
 
         public DateTime? DateOfBirth { get; set; }
 
         public Gender? Gender { get; set; }
 
         [MaxLength(20)]
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -61,7 +50,7 @@ namespace Models.People
         public bool IsActive { get; set; } = true;
 
         [MaxLength(10)]
-        public string PreferredLanguage { get; set; }
+        public string? PreferredLanguage { get; set; }
 
         [Required]
         public UserRole Role { get; set; } = UserRole.Customer;

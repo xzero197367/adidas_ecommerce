@@ -3,13 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Adidas.Models.Feature;
 using Adidas.Models.Operation;
 using Adidas.Models.Separator;
+using Models.Feature;
 using Models.People;
 
 namespace Adidas.Models.Main;
 
 public class Product : BaseAuditableEntity
 {
-    // fields
+    // fields ad123
     public required string Name { get; set; }
     public required string Description { get; set; }
     public required string ShortDescription { get; set; }
@@ -17,13 +18,14 @@ public class Product : BaseAuditableEntity
     public decimal? SalePrice { get; set; }
     public required Gender GenderTarget { get; set; }
     
-    public string MetaTitle { get; set; }
+    public string? MetaTitle { get; set; }
 
-    public string MetaDescription { get; set; }
+    public string? MetaDescription { get; set; }
     public required string Sku { get; set; }
-    //public string Specifications { get; set; } // JSON string for specs
-    // This must be Dictionary<string, object> or something compatible
-    public Dictionary<string, object> Specifications { get; set; }// JSON string for specs
+
+    public string? Specifications { get; set; }
+
+
 
     // calculated properties
     [NotMapped]

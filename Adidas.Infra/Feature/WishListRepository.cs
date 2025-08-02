@@ -1,51 +1,46 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
-using Adidas.Context;
-using Adidas.Models.Feature;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Models.Feature;
 
 namespace Adidas.Infra.Repositories.Feature
 {
-    public class WishListRepository : GenericRepository<Wishlist>, IWishListRepository
+    public class WishlistRepository : GenericRepository<Wishlist>, IWishlistRepository
     {
-        public WishListRepository(AdidasDbContext context) : base(context)
-        {
-        }
+        public WishlistRepository(AdidasDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Wishlist>> GetWishListByUserIdAsync(string userId)
+        public async Task<IEnumerable<Wishlist>> GetWishlistByUserIdAsync(string userId)
         {
             return await _dbSet
-                .Where(w => w.UserId == userId && !w.IsDeleted)
                 .Include(w => w.Product)
+                .ThenInclude(p => p.Images)
+                .Include(w => w.Product)
+                .ThenInclude(p => p.Brand)
+                .Where(w => !w.IsDeleted && w.UserId == userId)
+                .OrderByDescending(w => w.AddedAt)
                 .ToListAsync();
         }
 
-        public async Task<bool> IsProductInWishListAsync(string userId, Guid productId)
+        public async Task<bool> IsProductInWishlistAsync(string userId, Guid productId)
         {
-            return await _dbSet
-                .AnyAsync(w => w.UserId == userId && w.ProductId == productId && !w.IsDeleted);
+            return await _dbSet.AnyAsync(w => !w.IsDeleted && w.UserId == userId && w.ProductId == productId);
         }
 
-        public async Task<bool> RemoveFromWishListAsync(string userId, Guid productId)
+        public async Task<bool> RemoveFromWishlistAsync(string userId, Guid productId)
         {
-            var wishItem = await _dbSet
-                .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductId == productId && !w.IsDeleted);
+            var wishlistItem = await _dbSet
+                .FirstOrDefaultAsync(w => !w.IsDeleted && w.UserId == userId && w.ProductId == productId);
 
-            if (wishItem == null)
-                return false;
+            if (wishlistItem == null) return false;
 
-            _dbSet.Remove(wishItem);
-            //await _context.SaveChangesAsync();
+            await SoftDeleteAsync(wishlistItem.Id);
             return true;
         }
 
-        public async Task<int> GetWishListCountAsync(string userId)
+        public async Task<int> GetWishlistCountAsync(string userId)
         {
-            return await _dbSet.CountAsync(w => w.UserId == userId && !w.IsDeleted);
+            return await _dbSet.CountAsync(w => !w.IsDeleted && w.UserId == userId);
         }
+
+       
     }
 }

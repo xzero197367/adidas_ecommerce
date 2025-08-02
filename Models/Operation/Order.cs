@@ -14,7 +14,7 @@ public enum OrderStatus
     Cancelled
 }
 
-public class Order : BaseEntity
+public class Order : BaseAuditableEntity
 {
     [Required, MaxLength(50)]
     public string OrderNumber { get; set; }

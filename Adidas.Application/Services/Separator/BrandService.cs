@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Common_DTOs;
@@ -89,13 +85,13 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<IEnumerable<BrandListDto>> GetActiveBrandsAsync()
+        public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
         {
             try
             {
                 _logger.LogInformation("Getting active brands");
                 var brands = await _brandRepository.FindAsync(b => !b.IsDeleted && b.IsActive);
-                return _mapper.Map<IEnumerable<BrandListDto>>(brands);
+                return _mapper.Map<IEnumerable<BrandDto>>(brands);
             }
             catch (Exception ex)
             {
@@ -104,13 +100,13 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<IEnumerable<BrandListDto>> GetPopularBrandsAsync()
+        public async Task<IEnumerable<BrandDto>> GetPopularBrandsAsync()
         {
             try
             {
                 _logger.LogInformation("Getting popular brands");
                 var brands = await _brandRepository.GetPopularBrandsAsync();
-                return _mapper.Map<IEnumerable<BrandListDto>>(brands);
+                return _mapper.Map<IEnumerable<BrandDto>>(brands);
             }
             catch (Exception ex)
             {
@@ -119,15 +115,15 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<PagedResultDto<BrandListDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize)
+        public async Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize)
         {
             try
             {
                 _logger.LogInformation("Getting paginated brand list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
                 var (brands, totalCount) = await _brandRepository.GetPagedAsync(pageNumber, pageSize, b => !b.IsDeleted);
-                var brandList = _mapper.Map<IEnumerable<BrandListDto>>(brands);
+                var brandList = _mapper.Map<IEnumerable<BrandDto>>(brands);
 
-                return new PagedResultDto<BrandListDto>
+                return new PagedResultDto<BrandDto>
                 {
                     Items = brandList,
                     TotalCount = totalCount,

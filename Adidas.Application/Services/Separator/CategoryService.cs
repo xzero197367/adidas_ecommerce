@@ -95,13 +95,13 @@ namespace Adidas.Application.Services.Separator
 
         #region Category-Specific Methods
 
-        public async Task<IEnumerable<CategoryListDto>> GetMainCategoriesAsync()
+        public async Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync()
         {
             try
             {
                 _logger.LogInformation("Getting main categories");
                 var categories = await _categoryRepository.GetMainCategoriesAsync();
-                return _mapper.Map<IEnumerable<CategoryListDto>>(categories);
+                return _mapper.Map<IEnumerable<CategoryDto>>(categories);
             }
             catch (Exception ex)
             {
@@ -110,13 +110,13 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<IEnumerable<CategoryListDto>> GetSubCategoriesAsync(Guid parentCategoryId)
+        public async Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId)
         {
             try
             {
                 _logger.LogInformation("Getting subcategories for parent ID: {ParentCategoryId}", parentCategoryId);
                 var categories = await _categoryRepository.GetSubCategoriesAsync(parentCategoryId);
-                return _mapper.Map<IEnumerable<CategoryListDto>>(categories);
+                return _mapper.Map<IEnumerable<CategoryDto>>(categories);
             }
             catch (Exception ex)
             {
@@ -140,9 +140,9 @@ namespace Adidas.Application.Services.Separator
 
                 var categoryResponse = _mapper.Map<CategoryResponseDto>(category);
 
-                // Get subcategories
+                // Get subcategories  
                 var subCategories = await _categoryRepository.GetSubCategoriesAsync(category.Id);
-                categoryResponse.SubCategories = _mapper.Map<List<CategoryListDto>>(subCategories);
+                //categoryResponse.SubCategories = _mapper.Map<List<CategoryListDto>>(subCategories);
 
                 return categoryResponse;
             }
@@ -202,15 +202,15 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<PagedResultDto<CategoryListDto>> GetPaginatedCategoryListAsync(int pageNumber, int pageSize)
+        public async Task<PagedResultDto<CategoryDto>> GetPaginatedCategoryListAsync(int pageNumber, int pageSize)
         {
             try
             {
                 _logger.LogInformation("Getting paginated category list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
                 var (categories, totalCount) = await _categoryRepository.GetPagedAsync(pageNumber, pageSize, c => !c.IsDeleted);
-                var categoryList = _mapper.Map<IEnumerable<CategoryListDto>>(categories);
+                var categoryList = _mapper.Map<IEnumerable<CategoryDto>>(categories);
 
-                return new PagedResultDto<CategoryListDto>
+                return new PagedResultDto<CategoryDto>
                 {
                     Items = categoryList,
                     TotalCount = totalCount,

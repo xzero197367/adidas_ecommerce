@@ -1,3 +1,5 @@
+using Adidas.Context;
+using Microsoft.EntityFrameworkCore;
 using Resto.Web.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,9 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// 1. Read connection string from configuration
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.InitializeDB(connectionString);
+builder.Services.AddDbContext<AdidasDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 var app = builder.Build();
 

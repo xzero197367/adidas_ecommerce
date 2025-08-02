@@ -9,13 +9,23 @@ namespace Adidas.DTOs.Operation.PaymentDTOs.Update
 {
     public class UpdatePaymentDto
     {
-        [Required]
-        [StringLength(50)]
-        public required string PaymentStatus { get; set; }
+        [MaxLength(50)]
+        public string? PaymentMethod { get; set; }
 
-        [StringLength(100)]
+        [MaxLength(50)]
+        public string? PaymentStatus { get; set; }
+
+        [Range(0.01, double.MaxValue)]
+        public decimal? Amount { get; set; }
+
+        [MaxLength(100)]
         public string? TransactionId { get; set; }
 
+        [MaxLength(500)]
         public string? GatewayResponse { get; set; }
+
+        public DateTime? ProcessedAt { get; set; }
+
+        public Guid? OrderId { get; set; }
     }
 }

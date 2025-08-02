@@ -35,6 +35,9 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
         Task<IEnumerable<EntityEntry<T>>> UpdateRangeAsync(IEnumerable<T> entities);
 
         // Soft delete operations
+
+
+    
         Task<bool> SoftDeleteAsync(Guid id);
         // Task<bool> SoftDeleteAsync(T entity);                    
         Task<int> SoftDeleteRangeAsync(IEnumerable<T> entities);
@@ -51,5 +54,9 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
         // Query building
         IQueryable<T> GetQueryable();
         IQueryable<T> GetQueryable(Expression<Func<T, bool>> predicate);
+        
+        // Save changes
+        Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

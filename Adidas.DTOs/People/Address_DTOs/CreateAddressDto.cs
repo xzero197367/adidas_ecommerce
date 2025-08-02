@@ -27,5 +27,5 @@ public class CreateAddressDto
     [Phone] public string PhoneNumber { get; set; }
 
     public bool IsDefault { get; set; }
-    public AddressType AddressType { get; set; } = AddressType.Both;
+    public string AddressType { get; set; } = "";
 }
