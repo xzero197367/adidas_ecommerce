@@ -1,8 +1,13 @@
+using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.People;
+using Adidas.Application.Services.Operation;
 using Adidas.Application.Services.People;
 using Adidas.Context;
+using Adidas.Infra.Operation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Models.People;
 using Resto.Web.Helpers;
 
@@ -38,6 +43,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AdidasDbContext>()
 .AddDefaultTokenProviders();
 
+
 // 3. Add Authorization
 builder.Services.AddAuthorization(options =>
 {
@@ -49,7 +55,12 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddControllersWithViews();
 
 // 5. NOW add your custom services (after Identity is configured)
-builder.Services.AddScoped<ICustomerService, CustomerService>(); ;
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+builder.Services.AddScoped<IReviewService, ReviewService>();
+//builder.Services.AddAutoMapper(Program);
 
 var app = builder.Build();
 

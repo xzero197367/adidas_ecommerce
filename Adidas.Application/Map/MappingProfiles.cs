@@ -185,12 +185,13 @@ namespace Adidas.Application.Map
 
 
 
-            // Review <=> DTOs
+            //Review <=> DTOs
             CreateMap<Review, ReviewDto>();
             CreateMap<CreateReviewDto, Review>()
                 .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.IsVerifiedPurchase, opt => opt.MapFrom(src => false)); // Needs verification logic
             CreateMap<UpdateReviewDto, Review>();
+
 
 
             //// Discount <=> DTOs
