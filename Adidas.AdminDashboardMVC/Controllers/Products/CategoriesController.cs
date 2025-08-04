@@ -75,9 +75,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             if (!success)
             {
                 ModelState.AddModelError("", "An error occurred while creating the category.");
+
+                TempData["Error"] = "Error Creating category.";
+
                 await PopulateParentCategoriesDropdown();
                 return View(model);
             }
+            TempData["Success"] = "Category created successfully!";
 
             return RedirectToAction("Index");
         }
