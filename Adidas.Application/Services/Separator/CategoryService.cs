@@ -109,7 +109,7 @@ namespace Adidas.Application.Services.Separator
             await _categoryRepository.SoftDeleteAsync(id);
             var result = await _categoryRepository.SaveChangesAsync();
 
-            return result == null ? Result.Failure("Failed to Create category.") : Result.Success();
+            return result == null ? Result.Failure("Failed to Delete category.") : Result.Success();
         }
 
         public async Task<Result> UpdateAsync(UpdateCategoryDto dto)
