@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.Product_DTOs;
+using Microsoft.Data.SqlClient;
+using System.Data.Entity.Infrastructure;
 
 namespace Adidas.Application.Services.Separator
 {
@@ -60,7 +62,42 @@ namespace Adidas.Application.Services.Separator
             return categoryDtos;
         }
 
-        
+
+        public async Task<Result> CreateAsync(CreateCategoryDto createCategoryDto)
+        {
+            try
+            {
+                var category = new Category
+                {
+                    ParentCategoryId = createCategoryDto.ParentCategoryId,
+                    Name = createCategoryDto.Name,
+                    Slug = createCategoryDto.Slug,
+                    Description = createCategoryDto.Description,
+                    ImageUrl = createCategoryDto.ImageUrl,
+                };
+
+                await _categoryRepository.AddAsync(category);
+                var result = await _categoryRepository.SaveChangesAsync();
+
+                return result == null
+                    ? Result.Failure("Could not save the category.")
+                    : Result.Success();
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException is SqlException sqlEx &&
+                    sqlEx.Message.Contains("IX_Categories_Slug"))
+                {
+                    return Result.Failure("A category with the same slug already exists.");
+                }
+
+                return Result.Failure("A database error occurred.");
+            }
+            catch (Exception)
+            {
+                return Result.Failure("An unexpected error occurred.");
+            }
+        }
 
 
         //#region Generic Service Overrides

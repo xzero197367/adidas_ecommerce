@@ -86,7 +86,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
 
 
-
         private async Task PopulateParentCategoriesDropdown()
         {
             var parentCategories = await _categoryService.GetMainCategoriesAsync(); // Use method that fetches only main/active ones if needed
