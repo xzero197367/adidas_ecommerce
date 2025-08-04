@@ -160,7 +160,56 @@ namespace Adidas.Application.Services.Separator
             return dto;
         }
 
+        public async Task<CategoryDto> GetCategoryDetailsAsync(Guid id)
+        {
+            var category = await _categoryRepository.GetByIdAsync(id,
+                c => c.SubCategories,
+                c => c.Products,
+                c => c.ParentCategory);
 
+            if (category == null)
+                return null;
+
+            var dto = new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Slug = category.Slug,
+                Description = category.Description,
+                ImageUrl = category.ImageUrl,
+                ParentCategoryId = category.ParentCategoryId,
+                SortOrder = category.SortOrder,
+                IsActive = category.IsActive,
+                ParentCategory = category.ParentCategory != null
+                    ? new CategoryDto
+                    {
+                        Id = category.ParentCategory.Id,
+                        Name = category.ParentCategory.Name,
+                        Slug = category.ParentCategory.Slug
+                    }
+                    : null,
+                SubCategories = category.SubCategories?.Select(sub => new CategoryDto
+                {
+                    Id = sub.Id,
+                    Name = sub.Name,
+                    Description = sub.Description,
+                    ImageUrl = sub.ImageUrl,
+                    SortOrder= sub.SortOrder,
+                    Slug = sub.Slug,
+                    IsActive = sub.IsActive
+                }).ToList() ?? new List<CategoryDto>(),
+                Products = category.Products?.Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    IsActive = p.IsActive
+                }).ToList() ?? new List<ProductDto>()
+            };
+
+            return dto;
+        }
 
 
         //#region Generic Service Overrides

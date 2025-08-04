@@ -177,6 +177,34 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             return RedirectToAction("Index");
         }
 
+        public async Task<IActionResult> Details(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                TempData["ErrorMessage"] = "Invalid category ID provided.";  
+                return RedirectToAction(nameof(Index));  
+            }
+
+            try
+            {
+                var categoryDto = await _categoryService.GetCategoryDetailsAsync(id);
+
+                if (categoryDto == null)
+                {
+                    TempData["ErrorMessage"] = $"Category with ID '{id}' not found."; 
+                    return RedirectToAction(nameof(Index));  
+                }
+
+                return View(categoryDto); 
+            }
+            catch (Exception ex)
+            {
+                
+                TempData["ErrorMessage"] = $"An unexpected error occurred while retrieving category details: {ex.Message}";
+                return RedirectToAction(nameof(Index));  
+            }
+        }
+
     }
 
 
