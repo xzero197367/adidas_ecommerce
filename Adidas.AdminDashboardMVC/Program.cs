@@ -19,6 +19,9 @@ builder.Services.AddDbContext<AdidasDbContext>(options =>
 builder.Services.AddScoped<ICategoryRepository,CategoryRepository>();
 builder.Services.AddScoped<ICategoryService,CategoryService>();
 
+// Register Brands 
+builder.Services.AddScoped<IBrandService,BrandService>();
+builder.Services.AddScoped<IBrandRepository,BrandRepository>();
 // 2. Add Identity services BEFORE your custom services
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {

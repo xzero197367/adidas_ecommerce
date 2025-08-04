@@ -1,12 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
     public class BrandsController : Controller
     {
-        public IActionResult Index()
+        private readonly IBrandService _brandService;
+
+        public BrandsController(IBrandService brandService)
         {
-            return View();
+            _brandService = brandService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+             var brands = await _brandService.GetActiveBrandsAsync();
+
+             return View(brands);
         }
     }
 }
