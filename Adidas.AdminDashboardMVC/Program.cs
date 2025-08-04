@@ -1,9 +1,11 @@
-﻿using Adidas.Application.Contracts.ServicesContracts.Feature;
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Map.Feature; // Make sure this points to your profile
 using Adidas.Application.Services.Feature;
 using Adidas.Application.Services.People;
 using Adidas.Context;
+using Adidas.Infra.Operation;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +52,7 @@ builder.Services.AddControllersWithViews();
 // 5. Register your services
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 
 // ✅ 6. Register AutoMapper - THIS IS THE CORRECT LINE
 builder.Services.AddAutoMapper(typeof(CouponMappingProfile).Assembly);

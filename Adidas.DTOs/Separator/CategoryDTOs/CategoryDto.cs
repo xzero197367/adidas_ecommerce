@@ -25,5 +25,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
 
         public bool HasSubCategories => SubCategories.Any();
         public int ProductCount => Products.Count;
+
+        
     }
 }
