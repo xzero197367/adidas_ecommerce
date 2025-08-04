@@ -11,135 +11,136 @@ using Microsoft.Extensions.Logging;
 namespace Adidas.Application.Services.Separator
 {
 
-    public class BrandService : GenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>, IBrandService
+    public class BrandService :IBrandService//: GenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>, IBrandService
     {
         private readonly IBrandRepository _brandRepository;
 
         public BrandService(
-            IBrandRepository brandRepository,
-            IMapper mapper,
-            ILogger<BrandService> logger)
-            : base(brandRepository, mapper, logger)
+            IBrandRepository brandRepository
+           )
         {
             _brandRepository = brandRepository;
         }
 
-        #region Generic Service Overrides
 
-        protected override async Task ValidateCreateAsync(CreateBrandDto createDto)
-        {
-            // Check if brand name already exists
-            var existingBrand = await _brandRepository.GetBrandByNameAsync(createDto.Name);
-            if (existingBrand != null)
-            {
-                throw new InvalidOperationException("Brand with this name already exists");
-            }
-        }
+        //#region Generic Service Overrides
 
-        protected override async Task ValidateUpdateAsync(Guid id, UpdateBrandDto updateDto)
-        {
-            // Check if another brand with the same name exists
-            var brandWithSameName = await _brandRepository.GetBrandByNameAsync(updateDto.Name);
-            if (brandWithSameName != null && brandWithSameName.Id != id)
-            {
-                throw new InvalidOperationException("Another brand with this name already exists");
-            }
-        }
+        //protected override async Task ValidateCreateAsync(CreateBrandDto createDto)
+        //{
+        //    // Check if brand name already exists
+        //    var existingBrand = await _brandRepository.GetBrandByNameAsync(createDto.Name);
+        //    if (existingBrand != null)
+        //    {
+        //        throw new InvalidOperationException("Brand with this name already exists");
+        //    }
+        //}
 
-        protected override async Task BeforeCreateAsync(Brand entity)
-        {
-            entity.CreatedAt = DateTime.UtcNow;
-            entity.UpdatedAt = DateTime.UtcNow;
-            entity.IsActive = true;
-            entity.IsDeleted = false;
-        }
+        //protected override async Task ValidateUpdateAsync(Guid id, UpdateBrandDto updateDto)
+        //{
+        //    // Check if another brand with the same name exists
+        //    var brandWithSameName = await _brandRepository.GetBrandByNameAsync(updateDto.Name);
+        //    if (brandWithSameName != null && brandWithSameName.Id != id)
+        //    {
+        //        throw new InvalidOperationException("Another brand with this name already exists");
+        //    }
+        //}
 
-        protected override async Task BeforeUpdateAsync(Brand entity)
-        {
-            entity.UpdatedAt = DateTime.UtcNow;
-        }
+        //protected override async Task BeforeCreateAsync(Brand entity)
+        //{
+        //    entity.CreatedAt = DateTime.UtcNow;
+        //    entity.UpdatedAt = DateTime.UtcNow;
+        //    entity.IsActive = true;
+        //    entity.IsDeleted = false;
+        //}
 
-        #endregion
+        //protected override async Task BeforeUpdateAsync(Brand entity)
+        //{
+        //    entity.UpdatedAt = DateTime.UtcNow;
+        //}
 
-        #region Brand-Specific Methods
+        //#endregion
 
-        public async Task<BrandResponseDto?> GetBrandByNameAsync(string name)
-        {
-            try
-            {
-                _logger.LogInformation("Getting brand by name: {BrandName}", name);
-                var brand = await _brandRepository.GetBrandByNameAsync(name);
+        //#region Brand-Specific Methods
 
-                if (brand == null)
-                {
-                    _logger.LogWarning("Brand not found with name: {BrandName}", name);
-                    return null;
-                }
+        //public async Task<BrandResponseDto?> GetBrandByNameAsync(string name)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Getting brand by name: {BrandName}", name);
+        //        var brand = await _brandRepository.GetBrandByNameAsync(name);
 
-                return _mapper.Map<BrandResponseDto>(brand);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving brand with name: {BrandName}", name);
-                throw;
-            }
-        }
+        //        if (brand == null)
+        //        {
+        //            _logger.LogWarning("Brand not found with name: {BrandName}", name);
+        //            return null;
+        //        }
 
-        public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
-        {
-            try
-            {
-                _logger.LogInformation("Getting active brands");
-                var brands = await _brandRepository.FindAsync(b => !b.IsDeleted && b.IsActive);
-                return _mapper.Map<IEnumerable<BrandDto>>(brands);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving active brands");
-                throw;
-            }
-        }
+        //        return _mapper.Map<BrandResponseDto>(brand);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error retrieving brand with name: {BrandName}", name);
+        //        throw;
+        //    }
+        //}
 
-        public async Task<IEnumerable<BrandDto>> GetPopularBrandsAsync()
-        {
-            try
-            {
-                _logger.LogInformation("Getting popular brands");
-                var brands = await _brandRepository.GetPopularBrandsAsync();
-                return _mapper.Map<IEnumerable<BrandDto>>(brands);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving popular brands");
-                throw;
-            }
-        }
+        //public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Getting active brands");
+        //        var brands = await _brandRepository.FindAsync(b => !b.IsDeleted && b.IsActive);
+        //        return _mapper.Map<IEnumerable<BrandDto>>(brands);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error retrieving active brands");
+        //        throw;
+        //    }
+        //}
 
-        public async Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize)
-        {
-            try
-            {
-                _logger.LogInformation("Getting paginated brand list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
-                var (brands, totalCount) = await _brandRepository.GetPagedAsync(pageNumber, pageSize, b => !b.IsDeleted);
-                var brandList = _mapper.Map<IEnumerable<BrandDto>>(brands);
+        //public async Task<IEnumerable<BrandDto>> GetPopularBrandsAsync()
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Getting popular brands");
+        //        var brands = await _brandRepository.GetPopularBrandsAsync();
+        //        return _mapper.Map<IEnumerable<BrandDto>>(brands);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error retrieving popular brands");
+        //        throw;
+        //    }
+        //}
 
-                return new PagedResultDto<BrandDto>
-                {
-                    Items = brandList,
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving paginated brand list");
-                throw;
-            }
-        }
+        //public async Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Getting paginated brand list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
+        //        var (brands, totalCount) = await _brandRepository.GetPagedAsync(pageNumber, pageSize, b => !b.IsDeleted);
+        //        var brandList = _mapper.Map<IEnumerable<BrandDto>>(brands);
 
-        #endregion
+        //        return new PagedResultDto<BrandDto>
+        //        {
+        //            Items = brandList,
+        //            TotalCount = totalCount,
+        //            PageNumber = pageNumber,
+        //            PageSize = pageSize,
+        //            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error retrieving paginated brand list");
+        //        throw;
+        //    }
+        //}
+
+        //#endregion
+  
+    
     }
 }
 

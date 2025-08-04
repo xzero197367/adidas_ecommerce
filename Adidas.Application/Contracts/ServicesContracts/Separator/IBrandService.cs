@@ -5,12 +5,12 @@ using Adidas.Models.Separator;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
-    public interface IBrandService : IGenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>
+    public interface IBrandService //: IGenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>
     {
         // Brand-specific methods
-        Task<BrandResponseDto?> GetBrandByNameAsync(string name);
+        //Task<BrandResponseDto?> GetBrandByNameAsync(string name);
         Task<IEnumerable<BrandDto>> GetActiveBrandsAsync();
-        Task<IEnumerable<BrandDto>> GetPopularBrandsAsync();
-        Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize);
+        //Task<IEnumerable<BrandDto>> GetPopularBrandsAsync();
+        //Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize);
     }
 }
