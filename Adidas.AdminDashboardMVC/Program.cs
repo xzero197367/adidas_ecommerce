@@ -1,6 +1,10 @@
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.People;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Services.People;
+using Adidas.Application.Services.Separator;
 using Adidas.Context;
+using Adidas.Infra.Separator;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models.People;
@@ -11,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AdidasDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//Register Category
+builder.Services.AddScoped<ICategoryRepository,CategoryRepository>();
+builder.Services.AddScoped<ICategoryService,CategoryService>();
 
 // 2. Add Identity services BEFORE your custom services
 builder.Services.AddIdentity<User, IdentityRole>(options =>
