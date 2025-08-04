@@ -10,6 +10,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
 {
     public class CategoryDto : BaseDto
     {
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;

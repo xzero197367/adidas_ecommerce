@@ -86,6 +86,86 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
 
 
+        // GET: /Category/Edit/{id}
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            var category = await _categoryService.GetByIdAsync(id);
+            if (category == null)
+                return NotFound();
+
+            var model = new UpdateCategoryDto
+            {
+                Name = category.Name,
+                Slug = category.Slug,
+                Description = category.Description,
+                ImageUrl = category.ImageUrl,
+                SortOrder = category.SortOrder,
+                ParentCategoryId = category.ParentCategoryId
+            };
+
+            ViewBag.CategoryId = id;
+            ViewBag.CurrentImageUrl = category.ImageUrl;
+            await PopulateParentCategoriesDropdown();
+            return View(model);
+        }
+
+        // POST: /Category/Edit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit( UpdateCategoryDto model, IFormFile ImageFile)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CategoryId = model.Id;
+                await PopulateParentCategoriesDropdown();
+                return View(model);
+            }
+
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                if (ImageFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
+                    ViewBag.CategoryId = model.Id;
+                    await PopulateParentCategoriesDropdown();
+                    return View(model);
+                }
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+                var relativePath = Path.Combine("uploads", "categories", fileName);
+                var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
+
+                if (!Directory.Exists(absolutePath))
+                {
+                    Directory.CreateDirectory(absolutePath);
+                }
+
+                var filePath = Path.Combine(absolutePath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImageFile.CopyToAsync(stream);
+                }
+
+                model.ImageUrl = "/" + relativePath.Replace("\\", "/");
+            }
+
+            var result = await _categoryService.UpdateAsync(model);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.Error);
+                TempData["Error"] = result.Error;
+                ViewBag.CategoryId = model.Id;
+                await PopulateParentCategoriesDropdown();
+                return View(model);
+            }
+
+            TempData["Success"] = "Category updated successfully!";
+            return RedirectToAction("Index");
+        }
+
+
+
         private async Task PopulateParentCategoriesDropdown()
         {
             var parentCategories = await _categoryService.GetMainCategoriesAsync(); // Use method that fetches only main/active ones if needed

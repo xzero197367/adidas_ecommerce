@@ -109,8 +109,44 @@ namespace Adidas.Application.Services.Separator
             await _categoryRepository.SoftDeleteAsync(id);
             var result = await _categoryRepository.SaveChangesAsync();
 
-            return result == null ? Result.Failure("Failed to delete category.") : Result.Success();
+            return result == null ? Result.Failure("Failed to Create category.") : Result.Success();
         }
+
+        public async Task<Result> UpdateAsync(Guid id, UpdateCategoryDto dto)
+        {
+            var category = await _categoryRepository.GetByIdAsync(id);
+            if (category == null)
+                return Result.Failure("Category not found.");
+
+            // Check for slug uniqueness
+            var slugExists = await _categoryRepository.GetCategoryBySlugAsync(dto.Slug);
+            if (slugExists!=null && dto.Id !=id)
+                return Result.Failure("Slug already exists.");
+
+            category.Name = dto.Name;
+            category.Slug = dto.Slug;
+            category.Description = dto.Description;
+            category.ImageUrl = dto.ImageUrl ?? category.ImageUrl; // retain if not changed
+            category.SortOrder = dto.SortOrder;
+            category.ParentCategoryId = dto.ParentCategoryId;
+
+            await _categoryRepository.UpdateAsync(category);
+            var result = await _categoryRepository.SaveChangesAsync();
+
+            return result == null ? Result.Failure("Failed to Create category.") : Result.Success();
+
+        }
+
+        public Task<Result> UpdateAsync(UpdateCategoryDto updateCategoryDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<UpdateCategoryDto> GetByIdAsync(Guid id)
+        {
+             
+        }
+
 
 
         //#region Generic Service Overrides
