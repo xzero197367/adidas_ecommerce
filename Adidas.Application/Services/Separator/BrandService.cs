@@ -7,7 +7,6 @@ using Adidas.Models.Separator;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 
-
 namespace Adidas.Application.Services.Separator
 {
 
@@ -22,6 +21,28 @@ namespace Adidas.Application.Services.Separator
             _brandRepository = brandRepository;
         }
 
+        public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
+        {
+            
+            var brands = await _brandRepository.GetAllAsync();
+ 
+
+            var activeBrands = brands.Where(b => b.IsActive);
+
+             var brandDtos = activeBrands.Select(b => new BrandDto
+             {
+            
+                Id = b.Id,
+                 UpdatedAt = b.UpdatedAt,
+                IsActive = b.IsActive,
+               
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+            }).ToList();
+
+            return brandDtos;
+         }
 
         //#region Generic Service Overrides
 
@@ -139,8 +160,8 @@ namespace Adidas.Application.Services.Separator
         //}
 
         //#endregion
-  
-    
+
+
     }
 }
 

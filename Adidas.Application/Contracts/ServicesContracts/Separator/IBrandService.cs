@@ -9,7 +9,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
     {
         // Brand-specific methods
         //Task<BrandResponseDto?> GetBrandByNameAsync(string name);
-        //Task<IEnumerable<BrandDto>> GetActiveBrandsAsync();
+        Task<IEnumerable<BrandDto>> GetActiveBrandsAsync();
         //Task<IEnumerable<BrandDto>> GetPopularBrandsAsync();
         //Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize);
     }
