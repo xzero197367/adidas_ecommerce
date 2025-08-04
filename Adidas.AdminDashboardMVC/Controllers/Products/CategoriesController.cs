@@ -55,7 +55,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 var relativePath = Path.Combine("uploads", "categories", fileName);
                 var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
 
-                // ✅ Create directory if it doesn't exist
                 if (!Directory.Exists(absolutePath))
                 {
                     Directory.CreateDirectory(absolutePath);
@@ -70,22 +69,21 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 model.ImageUrl = "/" + relativePath.Replace("\\", "/");
             }
 
-            var success = await _categoryService.CreateAsync(model);
+            // ✅ Get Result instead of just bool
+            var result = await _categoryService.CreateAsync(model);
 
-            if (!success)
+            if (!result.IsSuccess)
             {
-                ModelState.AddModelError("", "An error occurred while creating the category.");
-
-                TempData["Error"] = "Error Creating category.";
+                ModelState.AddModelError(string.Empty, result.Error); // Show specific error (e.g., slug exists)
+                TempData["Error"] = result.Error;
 
                 await PopulateParentCategoriesDropdown();
                 return View(model);
             }
-            TempData["Success"] = "Category created successfully!";
 
+            TempData["Success"] = "Category created successfully!";
             return RedirectToAction("Index");
         }
-
 
 
 
