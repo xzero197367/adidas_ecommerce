@@ -60,7 +60,7 @@ namespace Adidas.Application.Services.Separator
             return categoryDtos;
         }
 
-        public async Task<bool> CreateCategory(CreateCategoryDto createCategoryDto)
+        public async Task<bool> CreateAsync(CreateCategoryDto createCategoryDto)
         {
 
 
@@ -74,7 +74,8 @@ namespace Adidas.Application.Services.Separator
 
             };
 
-            var result = await _categoryRepository.AddAsync(category);
+             await _categoryRepository.AddAsync(category);
+            var result = await _categoryRepository.SaveChangesAsync();
 
             return result == null ? false : true;
 
