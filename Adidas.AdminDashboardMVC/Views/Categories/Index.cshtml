@@ -90,17 +90,14 @@
                                 @if (category.ParentCategoryId.HasValue)
                                 {
                                     <br />
-
                                     <small>Sub-category</small>
                                 }
                             </td>
                             <td>@(string.IsNullOrEmpty(category.Description) ? "N/A" : (category.Description.Length > 50 ? category.Description.Substring(0, 50) + "..." : category.Description))</td>
                             <td>@category.Slug</td>
                             <td>@category.SortOrder</td>
-                            <td>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="statusSwitch_@category.Id" @(category.IsActive ? "checked" : "")>
-                                </div>
+                            <td class="text-success fw-bold">
+                                @(category.IsActive ? "✓" : "✗")
                             </td>
                             <td>
                                 <a href="#" class="btn btn-sm btn-outline-info me-1" title="View Details">
@@ -109,11 +106,48 @@
                                 <a href="#" class="btn btn-sm btn-outline-warning me-1" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="#" class="btn btn-sm btn-outline-danger" title="Delete">
+
+                                <!-- Delete Button with Modal Trigger -->
+                                <a href="#" class="btn btn-sm btn-outline-danger"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#deleteModal-@category.Id"
+                                   title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>
                         </tr>
+
+                        <!-- Delete Confirmation Modal -->
+                        <div class="modal fade" id="deleteModal-@category.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@category.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title" id="deleteModalLabel-@category.Id">Confirm Delete</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete the category <strong>@category.Name</strong>?</p>
+                                        @if (category.SubCategories?.Count > 0)
+                                        {
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                This category has @category.SubCategories.Count subcategories that will also be deleted!
+                                            </div>
+                                        }
+                                        <p class="text-danger">This action cannot be undone.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <form asp-action="Delete" method="post">
+                                            <input type="hidden" name="id" value="@category.Id" />
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     }
                 }
                 else
@@ -150,10 +184,6 @@
 
 @section Scripts {
     <script>
-        // You might want to add JavaScript here for:
-        // 1. Search functionality (filtering the table based on search input)
-        // 2. Dropdown filtering (by category type or status)
-        // 3. Handling the status switch (e.g., making an AJAX call to update category status)
-        // 4. Pagination logic (if you implement server-side pagination)
+        // You can enhance functionality with AJAX, search filter, and pagination here
     </script>
 }

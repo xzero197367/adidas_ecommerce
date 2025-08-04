@@ -14,6 +14,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
         // Category-specific methods
         Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();
         Task<Result> CreateAsync(CreateCategoryDto createCategoryDto);
+        Task<Result>DeleteAsync(Guid id);
         //Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId);
         //Task<CategoryResponseDto?> GetCategoryBySlugAsync(string slug);
         //Task<List<CategoryHierarchyDto>> GetCategoryHierarchyAsync(Guid categoryId);

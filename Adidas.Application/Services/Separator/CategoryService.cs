@@ -72,6 +72,7 @@ namespace Adidas.Application.Services.Separator
                     ParentCategoryId = createCategoryDto.ParentCategoryId,
                     Name = createCategoryDto.Name,
                     Slug = createCategoryDto.Slug,
+                    SortOrder = createCategoryDto.SortOrder,
                     Description = createCategoryDto.Description,
                     ImageUrl = createCategoryDto.ImageUrl,
                 };
@@ -97,6 +98,18 @@ namespace Adidas.Application.Services.Separator
             {
                 return Result.Failure("An unexpected error occurred.");
             }
+        }
+
+        public async Task<Result> DeleteAsync(Guid id)
+        {
+            var category = await _categoryRepository.GetByIdAsync(id);
+            if (category == null)
+                return Result.Failure("Category not found.");
+
+            await _categoryRepository.SoftDeleteAsync(id);
+            var result = await _categoryRepository.SaveChangesAsync();
+
+            return result == null ? Result.Failure("Failed to delete category.") : Result.Success();
         }
 
 

@@ -92,7 +92,28 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
         }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _categoryService.DeleteAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Category deleted successfully!";
+            }
+
+            return RedirectToAction("Index");
+        }
+
     }
+
 
 
 }
