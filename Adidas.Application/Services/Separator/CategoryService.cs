@@ -60,6 +60,31 @@ namespace Adidas.Application.Services.Separator
             return categoryDtos;
         }
 
+        public async Task<bool> CreateCategory(CreateCategoryDto createCategoryDto)
+        {
+
+
+            var category = new Category()
+            {
+                ParentCategoryId = createCategoryDto.ParentCategoryId,
+                Name = createCategoryDto.Name,
+                Slug = createCategoryDto.Slug,
+                Description = createCategoryDto.Description,
+                ImageUrl = createCategoryDto.ImageUrl,
+
+            };
+
+            var result = await _categoryRepository.AddAsync(category);
+
+            return result == null ? false : true;
+
+
+
+
+
+        }
+
+
 
 
         //#region Generic Service Overrides

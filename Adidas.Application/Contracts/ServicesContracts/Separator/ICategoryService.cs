@@ -13,6 +13,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
     {
         // Category-specific methods
         Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();
+        Task<bool> CreateAsync(CreateCategoryDto createCategoryDto);
         //Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId);
         //Task<CategoryResponseDto?> GetCategoryBySlugAsync(string slug);
         //Task<List<CategoryHierarchyDto>> GetCategoryHierarchyAsync(Guid categoryId);
