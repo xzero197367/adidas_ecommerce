@@ -4,64 +4,93 @@
     ViewData["Title"] = "Edit Category";
 }
 
-<div class="container mt-5">
-    <h2>Edit Category</h2>
+<div class="container-fluid">
+    @* Changed from .container to .container-fluid *@
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Edit Category</h2> @* Consistent heading style *@
+        <a asp-action="Index" class="btn btn-secondary">Back to Categories List</a>
+    </div>
 
-    <form asp-action="Edit" method="post" enctype="multipart/form-data">
-        @* Hidden ID field *@
-        <input type="hidden" asp-for="Id" />
+    <div class="card p-4 shadow-sm">
+        @* Added shadow-sm for consistent card style *@
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            @* Hidden ID field - Essential for updates *@
+            <input type="hidden" asp-for="Id" />
 
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @* Displays non-field-specific errors (e.g., from ValidateUpdateAsync) *@
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div> @* Changed class for better alert style *@
 
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label">Name</label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
-        </div>
+            <div class="row">
+                @* Added row for 2-column layout *@
+                <div class="col-md-6">
+                    @* First column *@
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label> @* Removed redundant "Name" text from label *@
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
 
-        <div class="mb-3">
-            <label asp-for="Slug" class="form-label">Slug</label>
-            <input asp-for="Slug" class="form-control" />
-            <span asp-validation-for="Slug" class="text-danger"></span>
-        </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label> @* Removed redundant "Description" text from label *@
+                        <textarea asp-for="Description" class="form-control" rows="4"></textarea> @* Changed rows to 4 for consistency *@
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
 
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label">Description</label>
-            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="ImageUrl" class="form-label">Image</label>
-            <input type="file" name="ImageFile" class="form-control" />
-            <span asp-validation-for="ImageUrl" class="text-danger"></span>
-
-            @if (!string.IsNullOrEmpty(Model.ImageUrl))
-            {
-                <div class="mt-2">
-                    <label>Current Image:</label><br />
-                    <img src="@Model.ImageUrl" alt="Category Image" style="max-width: 100px;" />
+                    <div class="mb-3">
+                        <label asp-for="Slug" class="form-label"></label> @* Removed redundant "Slug" text from label *@
+                        <input asp-for="Slug" class="form-control" />
+                        <span asp-validation-for="Slug" class="text-danger"></span>
+                        <small class="form-text text-muted">A unique, URL-friendly identifier for the category (e.g., "running-shoes").</small> @* Added descriptive text *@
+                    </div>
                 </div>
-            }
-        </div>
 
-        <div class="mb-3">
-            <label asp-for="ParentCategoryId" class="form-label">Parent Category</label>
-            <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">
-                <option value="">-- No Parent --</option>
-            </select>
-            <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
-        </div>
+                <div class="col-md-6">
+                    @* Second column *@
+                    <div class="mb-3">
+                        <label asp-for="SortOrder" class="form-label"></label> @* Removed redundant "Sort Order" text from label *@
+                        <input asp-for="SortOrder" class="form-control" type="number" />
+                        <span asp-validation-for="SortOrder" class="text-danger"></span>
+                        <small class="form-text text-muted">Order in which categories will be displayed (lower numbers appear first).</small> @* Added descriptive text *@
+                    </div>
 
-        <div class="mb-3">
-            <label asp-for="SortOrder" class="form-label">Sort Order</label>
-            <input asp-for="SortOrder" class="form-control" type="number" />
-            <span asp-validation-for="SortOrder" class="text-danger"></span>
-        </div>
+                    <div class="mb-3">
+                        <label asp-for="ParentCategoryId" class="form-label">Parent Category (Optional)</label> @* Added "(Optional)" for clarity *@
+                        <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">
+                            <option value="">-- No Parent (Main Category) --</option> @* Consistent option text *@
+                        </select>
+                        <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+                        <small class="form-text text-muted">Select if this is a sub-category. A category cannot be its own parent.</small> @* Added descriptive text *@
+                    </div>
 
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-    </form>
+                    <div class="mb-3">
+                        <label class="form-label" for="ImageFile">Category Image</label>
+                        <input type="file" name="ImageFile" id="ImageFile" class="form-control" accept="image/*" /> @* Added id="ImageFile" for consistency with JS *@
+                        @* asp-validation-for="ImageUrl" here will display errors related to ImageUrl,
+                           which might be set by the controller if file upload fails or for size limits etc. *@
+                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                        <small class="form-text text-muted">Upload a new image to replace the current one. Max file size: 5MB (example).</small> @* Adjusted descriptive text *@
+
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="mt-2">
+                                <label>Current Image:</label><br />
+                                <img src="@Model.ImageUrl" alt="Current Category Image" class="img-thumbnail" style="max-width: 150px; height: auto;" /> @* Added img-thumbnail and max-width/height for better display *@
+                            </div>
+                        }
+                    </div>
+
+                  
+
+                </div>
+            </div>
+
+            <div class="mt-4 border-top pt-3">
+                @* Consistent button section style *@
+                <button type="submit" class="btn btn-primary me-2">Save Changes</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a> @* Consistent button style *@
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
@@ -73,23 +102,30 @@
             const slugInput = document.getElementById('Slug');
 
             if (nameInput && slugInput) {
+                // Determine if slug was manually edited (e.g., if a value exists on load and is different from generated)
+                // We'll use a flag, but for edit, the initial value *is* the existing slug, so we might not auto-overwrite it on name change
+                let isSlugManuallyEdited = slugInput.value.trim() !== '' && slugInput.value.trim() !== generateSlug(nameInput.value);
+                slugInput.setAttribute('data-manual-edit', isSlugManuallyEdited ? 'true' : 'false');
+
+
                 nameInput.addEventListener('input', function () {
-                    if (!slugInput.value || slugInput.getAttribute('data-manual') !== 'true') {
+                    // Only auto-generate if the slug field is currently empty or hasn't been manually edited
+                    if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
                         slugInput.value = generateSlug(this.value);
                     }
                 });
 
-                slugInput.addEventListener('change', function () {
-                    this.setAttribute('data-manual', 'true');
+                slugInput.addEventListener('change', function() {
+                    // Mark the slug field as manually edited if the user changes it
+                    this.setAttribute('data-manual-edit', 'true');
                 });
 
                 function generateSlug(text) {
-                    return text
-                        .toLowerCase()
-                        .replace(/[^a-z0-9\s-]/g, '')
-                        .trim()
-                        .replace(/\s+/g, '-')
-                        .replace(/-+/g, '-');
+                    let slug = text.toLowerCase();
+                    slug = slug.replace(/[^a-z0-9\s-]/g, ''); // Remove invalid chars
+                    slug = slug.replace(/\s+/g, '-').trim(); // Replace spaces with hyphens
+                    slug = slug.replace(/-+/g, '-'); // Replace multiple hyphens with single
+                    return slug;
                 }
             }
         });

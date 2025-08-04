@@ -90,24 +90,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
-            if (category == null)
-                return NotFound();
-
-            var model = new UpdateCategoryDto
-            {
-                Name = category.Name,
-                Slug = category.Slug,
-                Description = category.Description,
-                ImageUrl = category.ImageUrl,
-                SortOrder = category.SortOrder,
-                ParentCategoryId = category.ParentCategoryId
-            };
-
-            ViewBag.CategoryId = id;
-            ViewBag.CurrentImageUrl = category.ImageUrl;
+            var category = await _categoryService.GetCategoryToEditByIdAsync(id);
             await PopulateParentCategoriesDropdown();
-            return View(model);
+            return View(category);
         }
 
         // POST: /Category/Edit

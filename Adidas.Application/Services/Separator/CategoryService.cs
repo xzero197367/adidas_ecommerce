@@ -112,15 +112,15 @@ namespace Adidas.Application.Services.Separator
             return result == null ? Result.Failure("Failed to Create category.") : Result.Success();
         }
 
-        public async Task<Result> UpdateAsync(Guid id, UpdateCategoryDto dto)
+        public async Task<Result> UpdateAsync(UpdateCategoryDto dto)
         {
-            var category = await _categoryRepository.GetByIdAsync(id);
+            var category = await _categoryRepository.GetByIdAsync(dto.Id);
             if (category == null)
                 return Result.Failure("Category not found.");
 
             // Check for slug uniqueness
             var slugExists = await _categoryRepository.GetCategoryBySlugAsync(dto.Slug);
-            if (slugExists!=null && dto.Id !=id)
+            if (slugExists!=null && dto.Id !=category.Id)
                 return Result.Failure("Slug already exists.");
 
             category.Name = dto.Name;
@@ -137,15 +137,29 @@ namespace Adidas.Application.Services.Separator
 
         }
 
-        public Task<Result> UpdateAsync(UpdateCategoryDto updateCategoryDto)
+      
+
+        public async Task<UpdateCategoryDto> GetCategoryToEditByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var category = await _categoryRepository.GetByIdAsync(id);
+
+            if (category == null)
+                return null;
+
+            var dto = new UpdateCategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Slug = category.Slug,
+                Description = category.Description,
+                ImageUrl = category.ImageUrl,
+                ParentCategoryId = category.ParentCategoryId,
+                SortOrder = category.SortOrder
+            };
+
+            return dto;
         }
 
-        public Task<UpdateCategoryDto> GetByIdAsync(Guid id)
-        {
-             
-        }
 
 
 
