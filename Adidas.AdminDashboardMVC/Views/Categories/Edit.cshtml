@@ -1,0 +1,78 @@
+﻿@model Adidas.DTOs.Separator.Category_DTOs.UpdateCategoryDto
+
+@{
+    ViewData["Title"] = "Edit Category";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Edit Category</h2>
+        <a asp-action="Index" class="btn btn-secondary">Back to Categories List</a>
+    </div>
+
+    <div class="card p-4 shadow-sm">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            @Html.Hidden("id", ViewBag.CategoryId) <!-- or Model.Id if you add it to the DTO -->
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Slug" class="form-label"></label>
+                        <input asp-for="Slug" class="form-control" />
+                        <span asp-validation-for="Slug" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="SortOrder" class="form-label"></label>
+                        <input asp-for="SortOrder" type="number" class="form-control" />
+                        <span asp-validation-for="SortOrder" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ParentCategoryId" class="form-label">Parent Category</label>
+                        <select asp-for="ParentCategoryId" class="form-select" asp-items="@ViewBag.ParentCategories">
+                            <option value="">-- No Parent (Main Category) --</option>
+                        </select>
+                        <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Current Image</label><br />
+                        <img src="@ViewBag.CurrentImageUrl" alt="Current Image" style="max-width: 200px; max-height: 150px;" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="ImageFile">Replace Image</label>
+                        <input type="file" name="ImageFile" id="ImageFile" class="form-control" accept="image/*" />
+                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 border-top pt-3">
+                <button type="submit" class="btn btn-primary me-2">Save Changes</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+

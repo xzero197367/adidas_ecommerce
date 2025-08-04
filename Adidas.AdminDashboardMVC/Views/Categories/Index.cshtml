@@ -103,9 +103,14 @@
                                 <a href="#" class="btn btn-sm btn-outline-info me-1" title="View Details">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="#" class="btn btn-sm btn-outline-warning me-1" title="Edit">
+
+                                <a href="#" class="btn btn-sm btn-outline-warning me-1"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#editModal-@category.Id"
+                                   title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+
 
                                 <!-- Delete Button with Modal Trigger -->
                                 <a href="#" class="btn btn-sm btn-outline-danger"
@@ -148,6 +153,30 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Edit Confirmation Modal -->
+                        <div class="modal fade" id="editModal-@category.Id" tabindex="-1" aria-labelledby="editModalLabel-@category.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-warning text-dark">
+                                        <h5 class="modal-title" id="editModalLabel-@category.Id">Confirm Edit</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Do you want to edit the category <strong>@category.Name</strong>?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-warning">
+                                            <i class="bi bi-pencil-square me-1"></i> Continue to Edit
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    
+                    
                     }
                 }
                 else
