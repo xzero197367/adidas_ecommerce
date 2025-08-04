@@ -1,0 +1,69 @@
+﻿@model Adidas.DTOs.Feature.CouponDTOs.CouponCreateDto
+
+<h2>Create Coupon</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Code"></label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DiscountType"></label>
+        <select asp-for="DiscountType" asp-items="Html.GetEnumSelectList<Models.Feature.DiscountType>()" class="form-control">
+            <option value="">-- Select Type --</option>
+        </select>
+        <span asp-validation-for="DiscountType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DiscountValue"></label>
+        <input asp-for="DiscountValue" class="form-control" />
+        <span asp-validation-for="DiscountValue" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="MinimumAmount"></label>
+        <input asp-for="MinimumAmount" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ValidFrom"></label>
+        <input asp-for="ValidFrom" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ValidTo"></label>
+        <input asp-for="ValidTo" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UsageLimit"></label>
+        <input asp-for="UsageLimit" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <div class="form-check">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label"></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

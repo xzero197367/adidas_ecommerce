@@ -1,0 +1,15 @@
+﻿<h2>Validate a Coupon</h2>
+
+<form asp-action="Validate" method="post">
+    <div class="form-group">
+        <label for="code">Coupon Code</label>
+        <input name="code" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="orderAmount">Order Amount</label>
+        <input name="orderAmount" type="number" step="0.01" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Validate</button>
+</form>
