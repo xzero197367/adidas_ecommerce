@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
-    public interface ICategoryService : IGenericService<Category, CategoryResponseDto, CreateCategoryDto, UpdateCategoryDto>
+    public interface ICategoryService 
     {
         // Category-specific methods
         Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();
-        Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId);
-        Task<CategoryResponseDto?> GetCategoryBySlugAsync(string slug);
-        Task<List<CategoryHierarchyDto>> GetCategoryHierarchyAsync(Guid categoryId);
-        Task<bool> ValidateSlugUniquenessAsync(string slug, Guid? excludeId = null);
-        Task<PagedResultDto<CategoryDto>> GetPaginatedCategoryListAsync(int pageNumber, int pageSize);
+        //Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId);
+        //Task<CategoryResponseDto?> GetCategoryBySlugAsync(string slug);
+        //Task<List<CategoryHierarchyDto>> GetCategoryHierarchyAsync(Guid categoryId);
+        //Task<bool> ValidateSlugUniquenessAsync(string slug, Guid? excludeId = null);
+        //Task<PagedResultDto<CategoryDto>> GetPaginatedCategoryListAsync(int pageNumber, int pageSize);
     }
 }
