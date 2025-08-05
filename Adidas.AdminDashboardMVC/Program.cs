@@ -34,6 +34,8 @@ using Microsoft.AspNetCore.Authentication;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Services.Operation;
 using Adidas.Infrastructure.Repositories;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.Application.Services.Separator;
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
