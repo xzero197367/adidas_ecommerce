@@ -1,0 +1,308 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard Overview";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Dashboard Overview</h1>
+            </div>
+            <div class="col-sm-6">
+                <div class="float-sm-right">
+                    <select class="form-control" id="timeRange" style="width: 150px;">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+
+        <!-- Stats Cards Row -->
+        <div class="row">
+            <!-- Total Sales -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>$@Model.Stats.TotalRevenue.ToString("N0")</h3>
+                        <p>Total Sales</p>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up"></i>
+                            +@((Model.Stats.MonthlyRevenue / Math.Max(Model.Stats.TotalRevenue - Model.Stats.MonthlyRevenue, 1) * 100).ToString("F1"))% from last month
+                        </small>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-bag"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Today -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.Stats.TotalOrders</h3>
+                        <p>Total Orders</p>
+                        <small class="text-info">
+                            <i class="fas fa-clock"></i>
+                            @Model.Stats.PendingOrders pending orders
+                        </small>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-stats-bars"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Customers -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.Stats.TotalCustomers</h3>
+                        <p>Active Customers</p>
+                        <small class="text-success">
+                            <i class="fas fa-user-plus"></i>
+                            +@Model.CustomerInsights.NewCustomers new this month
+                        </small>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-person-add"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Alerts -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@Model.Stats.LowStockProducts</h3>
+                        <p>Low Stock Alerts</p>
+                        <small class="text-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Items need restocking
+                        </small>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-pie-graph"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row">
+            <!-- Revenue Trends Chart -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Revenue Trends</h3>
+                        <div class="card-tools">
+                            <span class="badge badge-info">Line Chart - Revenue Over Time</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="revenueChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Products Chart -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Top Products</h3>
+                        <div class="card-tools">
+                            <span class="badge badge-success">Bar Chart - Best Selling Products</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="productsChart" style="height: 150px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info Row -->
+        <div class="row">
+            <!-- Recent Orders -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Orders</h3>
+                        <div class="card-tools">
+                            <a asp-controller="Order" asp-action="Index" class="btn btn-sm btn-primary">
+                                View All Orders
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersTable">
+                                <!-- Orders will be loaded via AJAX -->
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="sr-only">Loading...</span>
+                                        </div>
+                                        Loading recent orders...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Notifications</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Low Stock Alert -->
+                        @if (Model.Stats.LowStockProducts > 0)
+                        {
+                            <div class="alert alert-warning alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                <h5><i class="icon fas fa-exclamation-triangle"></i> Low Stock Alert</h5>
+                                @Model.Stats.LowStockProducts products are running low on stock and need restocking.
+                                <br>
+                                <a asp-controller="Product" asp-action="LowStock" class="btn btn-sm btn-warning mt-2">
+                                    View Low Stock Items
+                                </a>
+                            </div>
+                        }
+
+                        <!-- Pending Orders Alert -->
+                        @if (Model.Stats.PendingOrders > 0)
+                        {
+                            <div class="alert alert-info alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                <h5><i class="icon fas fa-clock"></i> Pending Orders</h5>
+                                You have @Model.Stats.PendingOrders pending orders that require attention.
+                                <br>
+                                <a asp-controller="Order" asp-action="Pending" class="btn btn-sm btn-info mt-2">
+                                    View Pending Orders
+                                </a>
+                            </div>
+                        }
+
+                        <!-- New Customers Info -->
+                        @if (Model.CustomerInsights.NewCustomers > 0)
+                        {
+                            <div class="alert alert-success alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                <h5><i class="icon fas fa-user-plus"></i> New Customers</h5>
+                                @Model.CustomerInsights.NewCustomers new customers joined this month!
+                                <br>
+                                <small class="text-muted">
+                                    Average Customer Value: $@Model.CustomerInsights.AverageCustomerValue.ToString("N2")
+                                </small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Performance Row -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Category Performance</h3>
+                        <div class="card-tools">
+                            <span class="badge badge-primary">Doughnut Chart - Sales by Category</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="categoryChart" style="height: 300px;"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Products</th>
+                                            <th>Sales</th>
+                                            <th>Orders</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var category in Model.CategoryPerformance)
+                                        {
+                                            <tr>
+                                                <td>@category.CategoryName</td>
+                                                <td>@category.ProductCount</td>
+                                                <td>$@category.TotalSales.ToString("N0")</td>
+                                                <td>@category.OrderCount</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="~/js/dashboard.js"></script>
+    <script>
+        // Pass server data to JavaScript
+        window.dashboardData = {
+            popularProducts: @Html.Raw(Json.Serialize(Model.PopularProducts.Select(p => new
+            {
+                productName = p.ProductName,
+                unitsSold = p.UnitsSold,
+                revenue = p.Revenue
+            }))),
+            categoryPerformance: @Html.Raw(Json.Serialize(Model.CategoryPerformance.Select(c => new
+            {
+                categoryName = c.CategoryName,
+                totalSales = c.TotalSales,
+                orderCount = c.OrderCount
+            }))),
+            lastUpdated: '@Model.LastUpdated.ToString("yyyy-MM-dd HH:mm:ss")',
+            urls: {
+                getSalesData: '@Url.Action("GetSalesData", "Dashboard")',
+                getCategoryData: '@Url.Action("GetCategoryData", "Dashboard")',
+                getRecentOrders: '@Url.Action("GetRecentOrders", "Dashboard")',
+                getDashboardNotifications: '@Url.Action("GetDashboardNotifications", "Dashboard")'
+            }
+        };
+    </script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    @* <link rel="stylesheet" href="~/css/dashboard.css"> *@
+}
