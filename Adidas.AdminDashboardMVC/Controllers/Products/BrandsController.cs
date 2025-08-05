@@ -1,5 +1,7 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Services.Separator;
+using Adidas.DTOs.Separator.Brand_DTOs;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
@@ -7,10 +9,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
     public class BrandsController : Controller
     {
         private readonly IBrandService _brandService;
-
-        public BrandsController(IBrandService brandService)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public BrandsController(IBrandService brandService, IWebHostEnvironment webHostEnvironment)
         {
             _brandService = brandService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -39,5 +42,58 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new CreateBrandDto());
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateBrandDto createBrandDto, IFormFile? LogoImageFile)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(createBrandDto);
+            }
+
+            if (LogoImageFile != null && LogoImageFile.Length > 0)
+            {
+                if (LogoImageFile.Length > 5 * 1024 * 1024)  
+                {
+                    ModelState.AddModelError("LogoUrl", "Image size should not exceed 5MB.");
+                    return View(createBrandDto);
+                }
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(LogoImageFile.FileName);
+                var relativePath = Path.Combine("uploads", "brands", fileName);
+                var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "brands");
+
+                if (!Directory.Exists(absolutePath))
+                {
+                    Directory.CreateDirectory(absolutePath);
+                }
+
+                var filePath = Path.Combine(absolutePath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await LogoImageFile.CopyToAsync(stream);
+                }
+
+                createBrandDto.LogoUrl = "/" + relativePath.Replace("\\", "/");
+            }
+
+            var result = await _brandService.CreateAsync(createBrandDto);
+
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.Error);
+                TempData["Error"] = result.Error;
+                return View(createBrandDto);
+            }
+
+            TempData["Success"] = "Brand created successfully!";
+            return RedirectToAction("Index");
+        }
     }
+
 }
