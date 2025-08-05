@@ -166,5 +166,20 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             TempData["Success"] = "Brand updated successfully!";
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var brandDetails = await _brandService.GetDetailsByIdAsync(id);
+
+            if (brandDetails == null)
+            {
+                TempData["Error"] = "Brand not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(brandDetails);
+        }
     }
 }
+ 

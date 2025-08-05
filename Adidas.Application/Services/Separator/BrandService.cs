@@ -2,6 +2,7 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Separator;
@@ -144,11 +145,33 @@ namespace Adidas.Application.Services.Separator
 
             return updateBrandDto;
         }
+
+
+        public async Task<BrandDto?> GetDetailsByIdAsync(Guid id)
+        {
+            var brand = await _brandRepository.GetByIdAsync(id);
+
+            if (brand == null)
+            {
+                return null;
+            }
+
+          var brandDto = new BrandDto
+            {
+                Id = brand.Id,
+                IsActive = brand.IsActive,
+                Name = brand.Name,
+                Description = brand.Description,
+                LogoUrl = brand.LogoUrl,
+            };
+
+            return brandDto;
+        }
+ 
+    
     }
-
-} 
-
-    //#region Generic Service Overrides
+}
+ //#region Generic Service Overrides
 
     //protected override async Task ValidateCreateAsync(CreateBrandDto createDto)
     //{
