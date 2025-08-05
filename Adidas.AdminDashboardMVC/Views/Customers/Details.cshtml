@@ -1,0 +1,219 @@
+﻿@using Adidas.DTOs.People.Customer_DTOs
+@model CustomerDetailsDto
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Customer Details</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Customers</a></li>
+                    <li class="breadcrumb-item active">@Model.Name</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <!-- Customer Profile -->
+                <div class="card card-primary card-outline">
+                    <div class="card-body box-profile">
+
+                        <h3 class="profile-username text-center">@Model.Name</h3>
+                        <ul class="list-group list-group-unbordered mb-3">
+                            <li class="list-group-item">
+                                <b>Total Orders</b> <a class="float-right">@Model.TotalOrders</a>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Total Spent</b> <a class="float-right">@Model.TotalSpent.ToString("C")</a>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Status</b>
+                                <span class="badge badge-@(Model.IsActive ? "success" : "danger") float-right">
+                                    @(Model.IsActive ? "Active" : "Suspended")
+                                </span>
+                            </li>
+                        </ul>
+                        <div class="row">
+                            <div class="col-6">
+                                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning btn-block">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-@(Model.IsActive ? "secondary" : "success") btn-block toggle-status" data-id="@Model.Id">
+                                    <i class="fas fa-@(Model.IsActive ? "ban" : "check")"></i> @(Model.IsActive ? "Suspend" : "Activate")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <!-- Customer Information -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Customer Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-envelope mr-1"></i> Email</strong>
+                                <p class="text-muted">@Model.Email</p>
+                                <hr>
+                                <strong><i class="fas fa-phone mr-1"></i> Phone</strong>
+                                <p class="text-muted">@(Model.Phone ?? "Not provided")</p>
+                                <hr>
+                                <strong><i class="fas fa-calendar mr-1"></i> Date of Birth</strong>
+                                <p class="text-muted">@(Model.DateOfBirth?.ToString("MMMM dd, yyyy") ?? "Not provided")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-user mr-1"></i> Gender</strong>
+                                <p class="text-muted">@(Model.Gender?.ToString() ?? "Not specified")</p>
+                                <hr>
+                                <strong><i class="fas fa-language mr-1"></i> Preferred Language</strong>
+                                <p class="text-muted">@(Model.PreferredLanguage ?? "Not specified")</p>
+                                <hr>
+                                <strong><i class="fas fa-calendar-plus mr-1"></i> Member Since</strong>
+                                <p class="text-muted">@Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Addresses -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title">Addresses</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Addresses.Any())
+                        {
+                            <div class="row">
+                                @foreach (var address in Model.Addresses)
+                                {
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    @address.AddressType
+                                                    @if (address.IsDefault)
+                                                    {
+                                                        <span class="badge badge-primary">Default</span>
+                                                    }
+                                                </h6>
+                                                <p class="card-text">
+                                                    @address.StreetAddress<br>
+                                                    @address.City, @address.StateProvince @address.PostalCode<br>
+                                                    @address.Country
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No addresses on file.</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Orders -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title">Orders</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Orders.Any())
+                        {
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.Orders)
+                                    {
+                                        <tr>
+                                            <td>@order.Id</td>
+                                            <td>@order.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                                            <td>@order.OrderStatus</td>
+                                            <td>@order.TotalAmount.ToString("C")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No orders found.</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Reviews -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title">Reviews</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Reviews.Any())
+                        {
+                            @foreach (var review in Model.Reviews)
+                            {
+                                <div class="border rounded p-2 mb-2">
+                                    <strong>Product:</strong> @review.ProductId <br />
+                                    <strong>Rating:</strong> @review.Rating / 5 <br />
+                                    <strong>Comment:</strong> @review.ReviewText <br />
+                                    <small class="text-muted">Posted on @review.CreatedAt.ToString("MMMM dd, yyyy")</small>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">No reviews from this customer.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $('.toggle-status').click(function() {
+            var customerId = $(this).data('id');
+            var button = $(this);
+
+            $.post('@Url.Action("ToggleStatus")', { id: customerId })
+                .done(function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        location.reload(); // Refresh to update the UI
+                    } else {
+                        toastr.error(response.message);
+                    }
+                })
+                .fail(function() {
+                    toastr.error('An error occurred while updating the customer status.');
+                });
+        });
+    </script>
+}

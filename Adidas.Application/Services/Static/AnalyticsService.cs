@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,11 @@ using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.People;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Static;
+using Adidas.Context;
 using Adidas.DTOs.Static;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.People;
 
@@ -19,29 +23,30 @@ namespace Adidas.Application.Services.Static
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
-        private readonly IUserRepository _userRepository;
+        private readonly UserManager<User> _userManager;
+        private readonly AdidasDbContext _context;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IProductVariantRepository _variantRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<AnalyticsService> _logger;
 
         public AnalyticsService(
-            IOrderRepository orderRepository,
-            IProductRepository productRepository,
-            IUserRepository userRepository,
-            ICategoryRepository categoryRepository,
-            IProductVariantRepository variantRepository,
-            IMapper mapper,
-            ILogger<AnalyticsService> logger)
+      IOrderRepository orderRepository,
+      IProductRepository productRepository,
+      ICategoryRepository categoryRepository,
+      IProductVariantRepository variantRepository,
+      UserManager<User> userManager,
+      AdidasDbContext context,
+      ILogger<AnalyticsService> logger)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
-            _userRepository = userRepository;
             _categoryRepository = categoryRepository;
             _variantRepository = variantRepository;
-            _mapper = mapper;
+            _userManager = userManager;
+            _context = context;
             _logger = logger;
         }
+
 
         public async Task<DashboardStatsDto> GetDashboardStatsAsync()
         {
@@ -49,7 +54,7 @@ namespace Adidas.Application.Services.Static
             {
                 var totalProducts = await _productRepository.CountAsync();
                 var totalOrders = await _orderRepository.CountAsync();
-                var totalCustomers = await _userRepository.CountAsync(u => u.Role == UserRole.Customer);
+                var totalCustomers = await _context.Users.CountAsync(u => u.Role == UserRole.Customer);
                 var totalRevenue = await _orderRepository.GetTotalSalesAsync();
 
                 var currentMonth = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
@@ -147,7 +152,7 @@ namespace Adidas.Application.Services.Static
                     })
                     .OrderByDescending(p => p.UnitsSold)
                     .Take(count);
-
+                _logger.BeginScope("Getting popular products: {Count}", count);
                 return popularProducts;
             }
             catch (Exception ex)
@@ -195,7 +200,10 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var allUsers = await _userRepository.GetAllAsync();
+                var allUsers = await _context.Users
+                    .Include(u => u.Orders)
+                    .Where(u => u.Role == UserRole.Customer)
+                    .ToListAsync();
                 var customers = allUsers.Where(u => u.Role == UserRole.Customer).ToList();
 
                 var currentMonth = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
@@ -239,6 +247,87 @@ namespace Adidas.Application.Services.Static
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting customer insights");
+                throw;
+            }
+        }
+
+        // NEW METHOD: Get Recent Orders
+        public async Task<IEnumerable<RecentOrderDto>> GetRecentOrdersAsync(int count = 5)
+        {
+            try
+            {
+                var recentOrders = await _orderRepository.GetAllAsync();
+                var orderDtos = recentOrders.Select(o => new RecentOrderDto
+                {
+                    OrderId = o.Id,
+                    CustomerName = o.User?.UserName ,
+                    TotalAmount = o.TotalAmount,
+                    OrderStatus = o.OrderStatus.ToString(),
+                    OrderDate = o.OrderDate
+                }).ToList();
+
+                return orderDtos;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting recent orders");
+                throw;
+            }
+        }
+
+        // NEW METHOD: Get Dashboard Notifications
+        public async Task<IEnumerable<NotificationDto>> GetDashboardNotificationsAsync()
+        {
+            try
+            {
+                var notifications = new List<NotificationDto>();
+                var stats = await GetDashboardStatsAsync();
+
+                // Low stock notification
+                if (stats.LowStockProducts > 0)
+                {
+                    notifications.Add(new NotificationDto
+                    {
+                        Type = "warning",
+                        Title = "Low Stock Alert",
+                        Message = $"{stats.LowStockProducts} products are running low on stock and need restocking.",
+                        ActionText = "View Low Stock Items",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                // Pending orders notification
+                if (stats.PendingOrders > 0)
+                {
+                    notifications.Add(new NotificationDto
+                    {
+                        Type = "info",
+                        Title = "Pending Orders",
+                        Message = $"{stats.PendingOrders} orders are waiting for processing.",
+                        ActionText = "Process Orders",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                // New customers notification
+                var customerInsights = await GetCustomerInsightsAsync();
+                if (customerInsights.NewCustomers > 0)
+                {
+                    notifications.Add(new NotificationDto
+                    {
+                        Type = "success",
+                        Title = "New Customers",
+                        Message = $"{customerInsights.NewCustomers} new customers joined this month!",
+                        ActionText = "View Customers",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                return notifications.OrderByDescending(n => n.CreatedAt);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting dashboard notifications");
                 throw;
             }
         }

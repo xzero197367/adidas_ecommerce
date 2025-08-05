@@ -1,0 +1,20 @@
+﻿@model Adidas.DTOs.Feature.CouponDTOs.CouponValidationResultDto
+
+<h2>Validation Result</h2>
+
+@if (Model.IsValid)
+{
+    <div class="alert alert-success">
+        ✅ Valid Coupon: <strong>@Model.Code</strong><br />
+        Discount: @Model.DiscountAmount <br />
+        Final Amount: @Model.FinalAmount
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        ❌ Invalid Coupon: @Model.ErrorMessage
+    </div>
+}
+
+<a href="/Coupon/Index">Back to Coupon List</a>

@@ -98,24 +98,11 @@
 
                 <!-- Customers Section -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="@Url.Action("Index", "Customers")" class="nav-link">
                         <i class="nav-icon fas fa-users"></i>
-                        <p>Customers <i class="right fas fa-angle-left"></i></p>
+                        <p>Customers </p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="@Url.Action("Index", "Customers")" class="nav-link">
-                                <i class="nav-icon fas fa-user-friends"></i>
-                                <p>All Customers</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="@Url.Action("Addresses", "Customers")" class="nav-link">
-                                <i class="nav-icon fas fa-map-marker-alt"></i>
-                                <p>Addresses</p>
-                            </a>
-                        </li>
-                    </ul>
+
                 </li>
 
 
@@ -124,23 +111,24 @@
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-percentage"></i>
-                        <p>Discounts & Promotions <i class="right fas fa-angle-left"></i></p>
+                        <p>Discounts & Coupons <i class="right fas fa-angle-left"></i></p>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="@Url.Action("Index", "Discounts")" class="nav-link">
+                            <a href="@Url.Action("Index", "Coupon")" class="nav-link">
                                 <i class="nav-icon fas fa-ticket-alt"></i>
-                                <p>Manage Discounts</p>
+                                <p>Manage Coupons</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="@Url.Action("Promotions", "Discounts")" class="nav-link">
+                            <a href="@Url.Action("Promotions", "Coupon")" class="nav-link">
                                 <i class="nav-icon fas fa-bullhorn"></i>
                                 <p>Active Promotions</p>
                             </a>
                         </li>
                     </ul>
                 </li>
+
 
                 <!-- Inventory Section -->
                 <li class="nav-item">

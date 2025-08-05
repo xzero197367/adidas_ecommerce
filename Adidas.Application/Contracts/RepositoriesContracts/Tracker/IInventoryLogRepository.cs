@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Adidas.Models.Tracker;
 
-namespace Adidas.Application.Contracts.RepositoriesContracts
+namespace Adidas.Application.Contracts.RepositoriesContracts.Tracker
 {
     public interface IInventoryLogRepository : IGenericRepository<InventoryLog>
     {

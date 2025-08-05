@@ -1,4 +1,6 @@
-﻿using Adidas.Models.Operation;
+﻿using Adidas.DTOs.Feature.OrderCouponDTOs;
+using Adidas.DTOs.Operation.PaymentDTOs.Result;
+using Adidas.Models.Operation;
 using System;
 using System.Collections.Generic;
 using System.Linq;

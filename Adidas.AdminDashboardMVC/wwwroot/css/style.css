@@ -43,9 +43,8 @@
     }
 
     .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
-        background-color: var(--adidas-orange);
+        background-color: var(--adidas-blue);
         color: white;
-        box-shadow: 0 2px 4px rgba(255, 105, 0, 0.3);
     }
 
 /* Header Customization */

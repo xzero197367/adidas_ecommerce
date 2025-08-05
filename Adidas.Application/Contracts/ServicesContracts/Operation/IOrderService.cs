@@ -3,6 +3,7 @@ using Adidas.DTOs.Operation.OrderDTOs.Create;
 using Adidas.DTOs.Operation.OrderDTOs.Query;
 using Adidas.DTOs.Operation.OrderDTOs.Result;
 using Adidas.DTOs.Operation.OrderDTOs.Update;
+using Adidas.DTOs.Operation.PaymentDTOs.Result;
 using System;
 using System.Collections.Generic;
 using System.Linq;

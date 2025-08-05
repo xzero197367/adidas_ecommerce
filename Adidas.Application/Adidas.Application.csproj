@@ -8,17 +8,7 @@
 
   <ItemGroup>
     <Compile Remove="Map\Tracker\**" />
-    <Compile Include="Map\Main\ProductAttributeMappingProfile.cs" />
-    <Compile Include="Map\Main\ProductAttributeValueMappingProfile.cs" />
-    <Compile Include="Map\Main\ProductImageMappingProfile.cs" />
-    <Compile Include="Map\Main\ProductMappingProfile.cs" />
-    <Compile Include="Map\Main\ProductVariantMappingProfile.cs" />
-    <Compile Include="Map\Operation\OrderMappingProfile.cs" />
-    <Compile Include="Map\Operation\PaymentMappingProfile.cs" />
-    <Compile Include="Map\Operation\ReviewMappingProfile.cs" />
-    <Compile Include="Map\People\AddressMappingProfile.cs" />
-    <Compile Include="Map\Separator\BrandMappingProfile.cs" />
-    <Compile Include="Map\Separator\CategoryMappingProfile.cs" />
+  
     <EmbeddedResource Remove="Map\Tracker\**" />
     <None Remove="Map\Tracker\**" />
   </ItemGroup>
@@ -27,24 +17,21 @@
 
     <Folder Include="Contracts\RepositoriesContracts\Operation\" />
 
-    <Folder Include="Contracts\RepositoriesContracts\Tracker\" />
-
-    <Folder Include="Contracts\ServicesContracts\People\" />
-
     <Folder Include="Contracts\ServicesContracts\Separator\" />
     <Folder Include="Services\Feature\" />
 
     <Folder Include="Services\Operation\" />
-    <Folder Include="Services\People\" />
 
     <Folder Include="Services\Separator\" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="15.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="AutoMapper" Version="12.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adidas.Context\Adidas.Context.csproj" />
     <ProjectReference Include="..\Adidas.DTOs\Adidas.DTOs.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />
   </ItemGroup>

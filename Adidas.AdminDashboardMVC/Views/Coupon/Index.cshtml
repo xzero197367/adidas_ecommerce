@@ -1,0 +1,23 @@
+﻿@model IEnumerable<Adidas.DTOs.Feature.CouponDTOs.CouponDto>
+
+<h2>Available Coupons</h2>
+<a href="/Coupon/Create" class="btn btn-success">Create New</a>
+<a href="/Coupon/Validate" class="btn btn-primary">Validate Coupon</a>
+
+<table class="table mt-3">
+    <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Discount</th>
+        <th>Status</th>
+    </tr>
+    @foreach (var coupon in Model)
+    {
+        <tr>
+            <td>@coupon.Code</td>
+            <td>@coupon.Name</td>
+            <td>@coupon.DiscountDisplayText</td>
+            <td>@coupon.StatusText</td>
+        </tr>
+    }
+</table>

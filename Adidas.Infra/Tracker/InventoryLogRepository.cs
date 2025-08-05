@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Adidas.Application.Contracts.RepositoriesContracts;
+using Adidas.Application.Contracts.RepositoriesContracts.Tracker;
 using Adidas.Models.Tracker;
 using Microsoft.EntityFrameworkCore;
 

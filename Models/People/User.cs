@@ -12,9 +12,9 @@ namespace Models.People
 
     public enum UserRole
     {
-        Customer,
-        Admin,
-        Employee
+        Admin = 1,
+        Employee = 2,
+        Customer = 3
     }
     
     public enum Gender
