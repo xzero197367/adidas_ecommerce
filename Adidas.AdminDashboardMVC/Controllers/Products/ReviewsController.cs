@@ -11,7 +11,7 @@ using Adidas.DTOs.Operation.ReviewDTOs.Result;
 namespace Adidas.Web.Controllers
 {
     //[Authorize(Roles = "Admin,SuperAdmin")]
-    [Route("admin/[controller]")]
+    //[Route("admin/[controller]")]
     public class ReviewsController : Controller
     {
         private readonly IReviewService _reviewService;
@@ -258,7 +258,7 @@ namespace Adidas.Web.Controllers
             }
         }
 
-        private async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)
+        private async Task<DTOs.Common_DTOs.PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)
         {
             // This would need to be enhanced based on your actual filtering implementation
             // For now, returning basic paged results
@@ -315,3 +315,7 @@ namespace Adidas.Web.Controllers
         public DateTime? EndDate { get; set; }
     }
 }
+
+
+
+

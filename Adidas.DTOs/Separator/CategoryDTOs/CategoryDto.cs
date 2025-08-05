@@ -13,6 +13,10 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
+        //public bool HasSubCategories { get; set; }
+        public bool HasSubCategories { get; set; }
+        public int ProductsCount { get; set; }  // <-- Add this
+        
         public string? ImageUrl { get; set; }
         public Guid? ParentCategoryId { get; set; }
         public int SortOrder { get; set; }
@@ -23,7 +27,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         public ICollection<CategoryDto> SubCategories { get; set; } = new List<CategoryDto>();
         public ICollection<ProductDto> Products { get; set; } = new List<ProductDto>();
 
-        public bool HasSubCategories => SubCategories.Any();
+        
         public int ProductCount => Products.Count;
     }
 }

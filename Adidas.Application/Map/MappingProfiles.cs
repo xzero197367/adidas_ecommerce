@@ -62,10 +62,14 @@ namespace Adidas.Application.Map
 
 
 
-           // Category <=> DTOs
+            // Category <=> DTOs
+            //CreateMap<Category, CategoryDto>()
+            //    .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
+            //    .ForMember(dest => dest.Products.Count, opt => opt.MapFrom(src => src.Products.Count));
             CreateMap<Category, CategoryDto>()
-                .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
-                .ForMember(dest => dest.Products.Count, opt => opt.MapFrom(src => src.Products.Count));
+    .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
+    .ForMember(dest => dest.ProductsCount, opt => opt.MapFrom(src => src.Products.Count));
+
             CreateMap<CreateCategoryDto, Category>()
                 .ForMember(dest => dest.Slug, opt => opt.Ignore()); // Slug is generated
             CreateMap<UpdateCategoryDto, Category>()

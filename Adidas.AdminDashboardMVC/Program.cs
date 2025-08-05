@@ -1,15 +1,20 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.People;
+using Adidas.Application.Map;
 using Adidas.Application.Services.Operation;
 using Adidas.Application.Services.People;
 using Adidas.Context;
 using Adidas.Infra.Operation;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using AutoMapper;
+
+
 using Models.People;
 using Resto.Web.Helpers;
+using Adidas.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,10 +54,16 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("EmployeeOrAdmin", policy => policy.RequireRole("Admin", "Employee"));
+
 });
 
 // 4. Add MVC services
 builder.Services.AddControllersWithViews();
+builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
+//builder.Services.AddAutoMapper(typeof(MappingProfiles));
+//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
 
 // 5. NOW add your custom services (after Identity is configured)
 builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -60,6 +71,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddScoped<IReviewService, ReviewService>();
+//builder.Services.AddScoped<IOrderService, OrderService>();
 //builder.Services.AddAutoMapper(Program);
 
 var app = builder.Build();
@@ -68,6 +80,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+
 }
 app.UseStaticFiles();
 
