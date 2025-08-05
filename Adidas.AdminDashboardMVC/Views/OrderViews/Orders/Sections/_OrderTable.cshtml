@@ -1,0 +1,96 @@
+﻿@using Adidas.AdminDashboardMVC.Models.Order;
+@model OrderModel
+
+<section class="order_table">
+    <div class="table_header">
+        <h1>Orders List</h1>
+        <div>
+            showing 1 - 10 of 100 orders
+        </div>
+    </div>
+    <table >
+        <thead>
+        <tr>
+            <th><input type="checkbox"></th>
+            <th>ORDER ID</th>
+            <th>CUSTOMER</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+            <th>DATE</th>
+            <th>ACTIONS</th>
+        </tr>
+        </thead>
+        <tbody>
+        @{
+            int count = 0;
+        }
+        @{
+
+            foreach (var order in Model.Orders)
+            {
+                count = count + 1;
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>@count</td>
+                    <td>
+                        <img src="" alt="">
+                        <div>
+                            <h3>@order.</h3>
+                        </div>
+                    </td>
+                    <td>$100.00</td>
+                    <td>Shipped</td>
+                    <td>2022-01-01</td>
+                    <td>
+                        <a href="#">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="#">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="#">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        @* <tr> *@
+        @*     <td><input type="checkbox"></td> *@
+        @*     <td>1</td> *@
+        @*     <td>John Doe</td> *@
+        @*     <td>$100.00</td> *@
+        @*     <td>Shipped</td> *@
+        @*     <td>2022-01-01</td> *@
+        @*     <td> *@
+        @*         <a href="#"> *@
+        @*             <i class="fas fa-eye"></i> *@
+        @*         </a> *@
+        @*         <a href="#"> *@
+        @*             <i class="fas fa-edit"></i> *@
+        @*         </a> *@
+        @*         <a href="#"> *@
+        @*             <i class="fas fa-trash"></i> *@
+        @*         </a> *@
+        @*     </td> *@
+        @* </tr> *@
+        </tbody>
+       
+    </table>
+    
+    <div class="pagination">
+        
+        <div class="left">
+            Showing 1 to 10 of 100 entries
+        </div>
+        
+        <div class="right">
+            <a href="#">Previous</a>
+            <a href="#">1</a>
+            <a href="#">2</a>
+            <a href="#">3</a>
+            <a href="#">Next</a>
+        </div>
+        
+    </div>
+</section>

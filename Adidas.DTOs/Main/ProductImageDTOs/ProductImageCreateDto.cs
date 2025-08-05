@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.DTOs.Main.ProductImageDTOs
 {
-    public class CreateProductImageDto
+    public class ProductImageCreateDto
     {
         [Required]
         [Url(ErrorMessage = "Please provide a valid image URL")]

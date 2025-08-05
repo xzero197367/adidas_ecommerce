@@ -1,6 +1,5 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
-using Adidas.Application.Contracts.RepositoriesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Operation.ReviewDTOs.Create;

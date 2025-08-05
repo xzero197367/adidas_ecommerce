@@ -87,6 +87,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation.OrderItemServ
                     OrderStatus = OrderStatus.Pending,
                     ShippingAddress = orderDto.ShippingAddress,
                     BillingAddress = orderDto.BillingAddress,
+                    TotalAmount = orderDto.TotalAmount,
+                    Currency = orderDto.Currency
                 };
 
                 // Create order items

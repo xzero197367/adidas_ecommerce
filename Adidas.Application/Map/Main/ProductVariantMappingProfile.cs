@@ -13,7 +13,7 @@ public class ProductVariantMappingProfile : BaseMappingProfile
                 opt => opt.MapFrom(src => src.ImageUrl)); // Assuming ImageUrl might store ColorHex
         CreateMap<CreateProductVariantDto, ProductVariant>()
             .ForMember(dest => dest.Sku, opt => opt.Ignore()); // SKU may be generated
-        CreateMap<UpdateProductVariantDto, ProductVariant>()
+        CreateMap<ProductVariantUpdateDto, ProductVariant>()
             .ForMember(dest => dest.Sku, opt => opt.Ignore());
     }
 }

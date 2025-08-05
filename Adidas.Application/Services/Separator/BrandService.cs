@@ -5,6 +5,7 @@ using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.Models.Separator;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 
@@ -90,7 +91,7 @@ namespace Adidas.Application.Services.Separator
             try
             {
                 _logger.LogInformation("Getting active brands");
-                var brands = await _brandRepository.FindAsync(b => !b.IsDeleted && b.IsActive);
+                var brands = await _brandRepository.GetAll(q=>q.Where(b => !b.IsDeleted && b.IsActive)).ToListAsync();
                 return _mapper.Map<IEnumerable<BrandDto>>(brands);
             }
             catch (Exception ex)
@@ -120,7 +121,7 @@ namespace Adidas.Application.Services.Separator
             try
             {
                 _logger.LogInformation("Getting paginated brand list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
-                var (brands, totalCount) = await _brandRepository.GetPagedAsync(pageNumber, pageSize, b => !b.IsDeleted);
+                var (brands, totalCount) = await _brandRepository.GetPagedAsync(pageNumber, pageSize, q=>q.Where(b => !b.IsDeleted));
                 var brandList = _mapper.Map<IEnumerable<BrandDto>>(brands);
 
                 return new PagedResultDto<BrandDto>

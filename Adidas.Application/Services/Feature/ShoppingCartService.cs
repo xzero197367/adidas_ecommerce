@@ -23,27 +23,27 @@ namespace Adidas.Application.Services.Feature
              _mapper = mapper;
         }
 
-        public async Task<ShoppingCartItemDto> AddToCartAsync(AddToCartDto addDto)
+        public async Task<ShoppingCartItemDto> AddToCartAsync(ShoppingCartCreateDto addCreateDto)
         {
-            var existingItem = await _cartRepository.GetCartItemAsync(addDto.UserId, addDto.ProductVariantId);
+            var existingItem = await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
 
             if (existingItem != null)
             {
-                existingItem.Quantity += addDto.Quantity;
+                existingItem.Quantity += addCreateDto.Quantity;
                 await _cartRepository.UpdateAsync(existingItem);
             }
             else
             {
                 var cartItem = new ShoppingCart
                 {
-                    UserId = addDto.UserId,
-                    VariantId = addDto.ProductVariantId,
-                    Quantity = addDto.Quantity
+                    UserId = addCreateDto.UserId,
+                    VariantId = addCreateDto.ProductVariantId,
+                    Quantity = addCreateDto.Quantity
                 };
                 await _cartRepository.AddAsync(cartItem);
             }
 
-            var updatedItem = await _cartRepository.GetCartItemAsync(addDto.UserId, addDto.ProductVariantId);
+            var updatedItem = await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
            return _mapper.Map<ShoppingCartItemDto>(updatedItem);
         }
 
@@ -145,12 +145,12 @@ namespace Adidas.Application.Services.Feature
             return _mapper.Map<IEnumerable<ShoppingCartItemDto>>(unavailable);
         }
 
-        public async Task<ShoppingCartItemDto> UpdateCartItemQuantityAsync(UpdateCartItemDto updateDto)
+        public async Task<ShoppingCartItemDto> UpdateCartItemQuantityAsync(ShoppingChartUpdateDto shoppingChartUpdateDto)
         {
-            var item = await _cartRepository.GetCartItemAsync(updateDto.UserId, updateDto.ProductVariantId);
+            var item = await _cartRepository.GetCartItemAsync(shoppingChartUpdateDto.UserId, shoppingChartUpdateDto.ProductVariantId);
             if (item == null) return null;
 
-            item.Quantity = updateDto.Quantity;
+            item.Quantity = shoppingChartUpdateDto.Quantity;
             await _cartRepository.UpdateAsync(item);
 
             return _mapper.Map<ShoppingCartItemDto>(item);

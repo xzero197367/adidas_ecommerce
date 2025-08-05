@@ -1,7 +1,4 @@
-﻿
-
-
-using Adidas.Models;
+﻿using Adidas.Models;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -10,23 +7,17 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
     public interface IGenericRepository<T> where T : BaseEntity
     {
         // Read operations
-        Task<T?> GetByIdAsync(Guid id);
         Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes);
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes);
-        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
-        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
-        Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
-        Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
+        IQueryable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? queryFunc = null);
+        Task<T?> FindAsync(Func<IQueryable<T>, IQueryable<T>> queryFunc);
 
         // Pagination
-        Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize);
-        Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>>? predicate = null);
-
+        Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, Func<IQueryable<T>, IQueryable<T>>? queryFunc = null);
+        
         // Count operations
-        Task<int> CountAsync();
-        Task<int> CountAsync(Expression<Func<T, bool>> predicate);
-         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);        /// بتعات ايه دي
+        // Task<int> CountAsync(); // todo: optional where
+        Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
+        Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
 
         // Write operations
         Task<EntityEntry<T>> AddAsync(T entity);
@@ -36,25 +27,17 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
 
         // Soft delete operations
 
+        Task<EntityEntry<T>> SoftDeleteAsync(Guid id);
 
-    
-        Task<bool> SoftDeleteAsync(Guid id);
         // Task<bool> SoftDeleteAsync(T entity);                    
-        Task<int> SoftDeleteRangeAsync(IEnumerable<T> entities);
+        IEnumerable<EntityEntry<T>> SoftDeleteRange(IEnumerable<T> entities);
 
         // Hard delete operations (use with caution)
-        Task<bool> HardDeleteAsync(Guid id);
+        Task<EntityEntry<T>> HardDeleteAsync(Guid id);
+
         // Task<bool> HardDeleteAsync(T entity);
-        Task<int> HardDeleteRangeAsync(IEnumerable<T> entities);
+        Task<IEnumerable<EntityEntry<T>>> HardDeleteRangeAsync(IEnumerable<T> entities);
 
-        // Active/Inactive operations
-         Task<bool> SetActiveStatusAsync(Guid id, bool isActive);     
-         Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive);   
-
-        // Query building
-        IQueryable<T> GetQueryable();
-        IQueryable<T> GetQueryable(Expression<Func<T, bool>> predicate);
-        
         // Save changes
         Task<int> SaveChangesAsync();
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);

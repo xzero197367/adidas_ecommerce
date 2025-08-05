@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Adidas.Models.Feature;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Adidas.Models.Operation;
 using Adidas.Models.Separator;
 using Models.Feature;
@@ -39,12 +37,8 @@ public class Product : BaseAuditableEntity
     public required Guid BrandId { get; set; }
 
     #region navigation properties single
-
-    //[ForeignKey("CategoryId")]
-    public Category Category { get; set; }
-    
-    //[ForeignKey("BrandId")]
-    public Brand Brand { get; set; }
+    public virtual Category? Category { get; set; }
+    public virtual Brand? Brand { get; set; }
 
     #endregion
     

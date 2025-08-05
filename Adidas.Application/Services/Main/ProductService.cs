@@ -11,7 +11,7 @@ using Models.People;
 
 namespace Adidas.Application.Services.Main
 {
-    public class ProductService : GenericService<Product, ProductDto, CreateProductDto, UpdateProductDto>, IProductService
+    public class ProductService : GenericService<Product, ProductDto, ProductCreateDto, ProductUpdateDto>, IProductService
     {
         private readonly IProductRepository _productRepository;
         private readonly IProductVariantRepository _variantRepository;
@@ -119,12 +119,12 @@ namespace Adidas.Application.Services.Main
             return Math.Max(0, basePrice - discountAmount);
         }
 
-        protected override Task ValidateCreateAsync(CreateProductDto createDto)
+        protected override Task ValidateCreateAsync(ProductCreateDto productCreateDto)
         {
-            if (string.IsNullOrWhiteSpace(createDto.Name))
+            if (string.IsNullOrWhiteSpace(productCreateDto.Name))
                 throw new ArgumentException("Product name is required");
 
-            if (createDto.Price <= 0)
+            if (productCreateDto.Price <= 0)
                 throw new ArgumentException("Product price must be greater than 0");
 
             return Task.CompletedTask;

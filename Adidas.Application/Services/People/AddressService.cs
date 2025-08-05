@@ -2,6 +2,7 @@
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.DTOs.People.Address_DTOs;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.People;
 
@@ -17,15 +18,17 @@ public class AddressService : GenericService<Address, AddressDto, CreateAddressD
     public async Task<IEnumerable<AddressDto>> GetAddressesByUserIdAsync(string userId)
     {
         var addresses = await _repository
-            .GetAllAsync(a => a.UserId == userId && !a.IsDeleted, a => a.User);
+            .GetAll(a => a.Where(a => a.UserId == userId && !a.IsDeleted).Include(a => a.User))
+            .ToListAsync();
 
         return _mapper.Map<IEnumerable<AddressDto>>(addresses);
     }
 
     public async Task<AddressDto?> GetDefaultAddressAsync(string userId)
     {
-        var defaultAddress = await 
-            _repository.FirstOrDefaultAsync(a => a.IsDefault && a.UserId == userId && !a.IsDeleted, a => a.User);
+        var defaultAddress = await
+            _repository.FindAsync(q =>
+                q.Where(a => a.IsDefault && a.UserId == userId && !a.IsDeleted).Include(a => a.User));
         return _mapper.Map<AddressDto>(defaultAddress);
     }
 

@@ -10,7 +10,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
     public interface IWishListService
     {
         Task<IEnumerable<WishlistItemDto>> GetWishlistByUserIdAsync(string userId);
-        Task<WishlistItemDto> AddToWishlistAsync(AddToWishlistDto addDto);
+        Task<WishlistItemDto> AddToWishlistAsync(WishlistCreateDto addDto);
         Task<bool> RemoveFromWishlistAsync(string userId, Guid productId);
         Task<bool> IsProductInWishlistAsync(string userId, Guid productId);
         Task<int> GetWishlistCountAsync(string userId);

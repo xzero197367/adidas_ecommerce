@@ -10,7 +10,7 @@ using Models.People;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Main
 {
-    public interface IProductService : IGenericService<Product, ProductDto, CreateProductDto, UpdateProductDto>
+    public interface IProductService : IGenericService<Product, ProductDto, ProductCreateDto, ProductUpdateDto>
     {
         Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(Guid categoryId);
         Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(Guid brandId);

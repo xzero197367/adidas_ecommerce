@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Main
 {
-    public interface IProductAttributeService : IGenericService<ProductAttribute, ProductAttributeDto, CreateProductAttributeDto, UpdateProductAttributeDto>
+    public interface IProductAttributeService : IGenericService<ProductAttribute, ProductAttributeDto, ProductAttributeCreateDto, ProductAttributeUpdateDto>
     {
         Task<IEnumerable<ProductAttribute>> GetFilterableAttributesAsync();
         Task<IEnumerable<ProductAttribute>> GetRequiredAttributesAsync();

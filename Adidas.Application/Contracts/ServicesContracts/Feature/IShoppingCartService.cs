@@ -10,8 +10,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
     public interface IShoppingCartService 
     {
         Task<IEnumerable<ShoppingCartItemDto>> GetCartItemsByUserIdAsync(string userId);
-        Task<ShoppingCartItemDto> AddToCartAsync(AddToCartDto addDto);
-        Task<ShoppingCartItemDto> UpdateCartItemQuantityAsync(UpdateCartItemDto updateDto);
+        Task<ShoppingCartItemDto> AddToCartAsync(ShoppingCartCreateDto addCreateDto);
+        Task<ShoppingCartItemDto> UpdateCartItemQuantityAsync(ShoppingChartUpdateDto shoppingChartUpdateDto);
         Task<bool> RemoveFromCartAsync(string userId, Guid variantId);
         Task<bool> ClearCartAsync(string userId);
 

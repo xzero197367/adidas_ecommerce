@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.DTOs.Feature.ShoppingCartDTOS
 {
-    public class AddToCartDto
+    public class ShoppingCartCreateDto
     {
         [Required]
         public string UserId { get; set; }
@@ -16,7 +12,6 @@ namespace Adidas.DTOs.Feature.ShoppingCartDTOS
         public Guid ProductVariantId { get; set; }
 
         [Required]
-        [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
     }
 }
