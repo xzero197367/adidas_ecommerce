@@ -1,7 +1,6 @@
 
 using Adidas.DTOs.Feature.OrderCouponDTOs;
 using Adidas.Models.Feature;
-using OrderCouponDto = Adidas.DTOs.Operation.OrderDTOs.Result.OrderCouponDto;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {

@@ -11,6 +11,7 @@ namespace Adidas.DTOs.Operation.PaymentDTOs.Result
         public Guid Id { get; set; }
         public string OrderNumber { get; set; }
         public decimal TotalAmount { get; set; }
+        public decimal ItemCount { get; set; }
         public string Status { get; set; }
         public DateTime OrderDate { get; set; }
     }
