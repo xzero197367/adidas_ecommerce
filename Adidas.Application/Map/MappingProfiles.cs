@@ -66,6 +66,7 @@ namespace Adidas.Application.Map
             CreateMap<UpdateProductVariantDto, ProductVariant>()
                 .ForMember(dest => dest.Sku, opt => opt.Ignore());
 
+
             // Category <=> DTOs
             CreateMap<Category, CategoryDto>()
                 .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
@@ -117,6 +118,7 @@ namespace Adidas.Application.Map
             CreateMap<Payment, PaymentFilterDto>().ReverseMap();
             CreateMap<Payment, PagedPaymentDto>().ReverseMap();
             CreateMap<Payment, PaymentStatsDto>().ReverseMap();
+
 
             // Review <=> DTOs
             CreateMap<Review, ReviewDto>().ReverseMap();

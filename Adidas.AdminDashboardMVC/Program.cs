@@ -1,3 +1,10 @@
+
+
+
+
+using Resto.Web.Helpers;
+using Adidas.Infrastructure.Repositories;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
@@ -31,7 +38,6 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Microsoft.AspNetCore.Authentication;
-
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
@@ -61,6 +67,10 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AdidasDbContext>()
 .AddDefaultTokenProviders();
 
+
+
+// 3. Add Authorization
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -86,12 +96,28 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("EmployeeOrAdmin", policy => policy.RequireRole("Admin", "Employee"));
+
     options.AddPolicy("ActiveUser", policy => policy.RequireClaim("IsActive", "True"));
 });
 #endregion
 
 #region 5. MVC
 builder.Services.AddControllersWithViews();
+builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
+//builder.Services.AddAutoMapper(typeof(MappingProfiles));
+//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+
+// 5. NOW add your custom services (after Identity is configured)
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+builder.Services.AddScoped<IReviewService, ReviewService>();
+//builder.Services.AddScoped<IOrderService, OrderService>();
+//builder.Services.AddAutoMapper(Program);
+
 #endregion
 
 #region 6. AutoMapper Configuration (v12+)
@@ -115,12 +141,15 @@ builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
 #endregion
 
+
 var app = builder.Build();
 
 #region 8. Middleware Pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+
+
     app.UseStatusCodePagesWithReExecute("/Account/Error/{0}");
 }
 
