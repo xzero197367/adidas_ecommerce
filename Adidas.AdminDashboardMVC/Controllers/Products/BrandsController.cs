@@ -94,8 +94,88 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             TempData["Success"] = "Brand created successfully!";
             return RedirectToAction("Index");
         }
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            var brand = await _brandService.GetBrandToEditByIdAsync(id);
 
+            if (brand == null)
+            {
+                TempData["Error"] = "Brand not found.";
+                return RedirectToAction(nameof(Index));
+            }
 
+          
+            var updateBrandDto = new UpdateBrandDto
+            {
+                Id = brand.Id,
+                Name = brand.Name,
+                Description = brand.Description,
+                LogoUrl = brand.LogoUrl,
+                 
+            };
+
+            return View(updateBrandDto);
+        }
+
+        public async Task<IActionResult> Edit(UpdateBrandDto updateBrandDto, IFormFile? LogoImageFile)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.BrandId = updateBrandDto.Id;
+                return View(updateBrandDto);
+            }
+
+            if (LogoImageFile != null && LogoImageFile.Length > 0)
+            {
+                if (LogoImageFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("LogoUrl", "Image size should not exceed 5MB.");
+                    ViewBag.BrandId = updateBrandDto.Id;
+                    return View(updateBrandDto);
+                }
+
+                // Get the old LogoUrl before overwriting it.
+                var oldLogoUrl = updateBrandDto.LogoUrl;
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(LogoImageFile.FileName);
+                var relativePath = Path.Combine("uploads", "brands", fileName);
+                var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "brands");
+
+                if (!Directory.Exists(absolutePath))
+                {
+                    Directory.CreateDirectory(absolutePath);
+                }
+
+                var filePath = Path.Combine(absolutePath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await LogoImageFile.CopyToAsync(stream);
+                }
+                updateBrandDto.LogoUrl = "/" + relativePath.Replace("\\", "/");
+
+                // Delete old image if a new one was uploaded and an old URL existed
+                if (!string.IsNullOrEmpty(oldLogoUrl))
+                {
+                    var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, oldLogoUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+            }
+
+            var result = await _brandService.UpdateAsync(updateBrandDto);
+
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.Error);
+                TempData["Error"] = result.Error;
+                ViewBag.BrandId = updateBrandDto.Id;
+                return View(updateBrandDto);
+            }
+
+            TempData["Success"] = "Brand updated successfully!";
+            return RedirectToAction(nameof(Index));
+        }
     }
-
-}

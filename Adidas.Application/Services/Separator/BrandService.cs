@@ -126,14 +126,27 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id)
+        public async Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id)
         {
-            
+            var brand = await _brandRepository.GetByIdAsync(id);
+
+             if (brand == null)
+             {
+                return null;
+             }
+            var updateBrandDto = new UpdateBrandDto
+            {
+                Id = brand.Id,
+                Name = brand.Name,
+                Description = brand.Description,
+                LogoUrl = brand.LogoUrl
+            };
+
+            return updateBrandDto;
         }
     }
 
-}
-
+} 
 
     //#region Generic Service Overrides
 
