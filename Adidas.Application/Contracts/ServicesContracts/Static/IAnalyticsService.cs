@@ -15,5 +15,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Static
         Task<IEnumerable<PopularProductDto>> GetPopularProductsAsync(int count = 10);
         Task<IEnumerable<CategoryPerformanceDto>> GetCategoryPerformanceAsync();
         Task<CustomerInsightsDto> GetCustomerInsightsAsync();
+        // New methods for dashboard functionality
+        Task<IEnumerable<RecentOrderDto>> GetRecentOrdersAsync(int count = 5);
+        Task<IEnumerable<NotificationDto>> GetDashboardNotificationsAsync();
     }
 }

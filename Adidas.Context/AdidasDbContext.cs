@@ -159,16 +159,19 @@ namespace Adidas.Context
 
             foreach (var entry in entries)
             {
-                if (entry.Property("UpdatedAt") != null)
+                // Check and set UpdatedAt if the property exists
+                if (entry.Metadata.FindProperty("UpdatedAt") != null)
                 {
                     entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
                 }
 
-                if (entry.State == EntityState.Added && entry.Property("CreatedAt") != null)
+                // Check and set CreatedAt only for added entries
+                if (entry.State == EntityState.Added && entry.Metadata.FindProperty("CreatedAt") != null)
                 {
                     entry.Property("CreatedAt").CurrentValue = DateTime.UtcNow;
                 }
             }
         }
+
     }
 }

@@ -12,27 +12,14 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column nav-child-indent" data-widget="treeview" role="menu" data-accordion="false">
-                <!-- Dashboard Section -->
+                <!-- Dashboard Section (Single Link) -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
-                        <p>Dashboard <i class="right fas fa-angle-left"></i></p>
+                        <p>Dashboard</p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
-                                <i class="nav-icon fas fa-chart-line"></i>
-                                <p>Overview</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="@Url.Action("Analytics", "Dashboard")" class="nav-link">
-                                <i class="nav-icon fas fa-analytics"></i>
-                                <p>Analytics</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
+
 
                 <!-- Products Section -->
                 <li class="nav-item">
@@ -97,7 +84,18 @@
                     </ul>
                 </li>
 
-                <!-- Customers Section -->
+                <!-- Customers Section - Show only for Admins -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Customers")" class="nav-link">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>Customers</p>
+                        </a>
+                    </li>
+                }
+
+                <!-- Discounts & Promotions Section -->
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-users"></i>
@@ -117,31 +115,16 @@
                             </a>
                         </li>
                     </ul>
-                </li>
 
-
-
-                <!-- Discounts & Promotions Section -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-percentage"></i>
-                        <p>Discounts & Promotions <i class="right fas fa-angle-left"></i></p>
+                    <a href="@Url.Action("Index", "Coupon")" class="nav-link">
+                        <i class="nav-icon fas fa-ticket-alt"></i>
+                        <p>Discounts & Coupons </p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="@Url.Action("Index", "Discounts")" class="nav-link">
-                                <i class="nav-icon fas fa-ticket-alt"></i>
-                                <p>Manage Discounts</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="@Url.Action("Promotions", "Discounts")" class="nav-link">
-                                <i class="nav-icon fas fa-bullhorn"></i>
-                                <p>Active Promotions</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
+
+
+
+
 
                 <!-- Inventory Section -->
                 <li class="nav-item">
@@ -153,18 +136,31 @@
 
                 <!-- Settings Section -->
                 <li class="nav-header">SYSTEM</li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "Settings")" class="nav-link">
+                <!-- Settings Section (Dropdown) -->
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-cogs"></i>
-                        <p>Settings</p>
+                        <p>
+                            Settings
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Users", "Settings")" class="nav-link">
+                                <i class="nav-icon fas fa-users-cog"></i>
+                                <p>Users & Role Management</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Site", "Settings")" class="nav-link">
+                                <i class="nav-icon fas fa-sliders-h"></i>
+                                <p>Site Settings</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "Reports")" class="nav-link">
-                        <i class="nav-icon fas fa-chart-bar"></i>
-                        <p>Reports</p>
-                    </a>
-                </li>
+
             </ul>
         </nav>
     </div>
