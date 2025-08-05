@@ -3,7 +3,6 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Feature.OrderCouponDTOs;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using OrderCouponDto = Adidas.DTOs.Operation.OrderDTOs.Result.OrderCouponDto;
 
 namespace Adidas.Application.Services.Feature
 {

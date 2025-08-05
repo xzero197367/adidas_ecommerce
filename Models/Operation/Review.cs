@@ -7,10 +7,10 @@ namespace Adidas.Models.Operation;
 
 public class Review : BaseAuditableEntity
 {
-    // fields
+    //fields
     public required int Rating { get; set; }
     public string Title { get; set; }
-    public string ReviewText { get; set; }
+    public string? ReviewText { get; set; }
     public required bool IsVerifiedPurchase { get; set; }
     public required bool IsApproved { get; set; }
     // foreign keys
@@ -19,4 +19,9 @@ public class Review : BaseAuditableEntity
     // navigations
     public Product Product { get; set; }
     public User User { get; set; }
+
+
+
+
+
 }

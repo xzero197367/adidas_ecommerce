@@ -44,6 +44,7 @@ namespace Adidas.Context
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<OrderCoupon> OrderCoupons { get; set; }
+        public DbSet<Review> Reviews { get; set; }
         public DbSet<Coupon> Coupons { get; set; }
         //public DbSet<ShippingMethod> ShippingMethods { get; set; }
         //public DbSet<TaxRate> TaxRates { get; set; }
@@ -59,7 +60,7 @@ namespace Adidas.Context
         #endregion
 
         #region Customer Engagement
-        public DbSet<Review> Reviews { get; set; }
+       
         public DbSet<Wishlist> Wishlists { get; set; }
         //public DbSet<RecentlyViewed> RecentlyViewed { get; set; }
         //public DbSet<ProductRecommendation> ProductRecommendations { get; set; }
@@ -158,16 +159,19 @@ namespace Adidas.Context
 
             foreach (var entry in entries)
             {
-                if (entry.Property("UpdatedAt") != null)
+                // Check and set UpdatedAt if the property exists
+                if (entry.Metadata.FindProperty("UpdatedAt") != null)
                 {
                     entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
                 }
 
-                if (entry.State == EntityState.Added && entry.Property("CreatedAt") != null)
+                // Check and set CreatedAt only for added entries
+                if (entry.State == EntityState.Added && entry.Metadata.FindProperty("CreatedAt") != null)
                 {
                     entry.Property("CreatedAt").CurrentValue = DateTime.UtcNow;
                 }
             }
         }
+
     }
 }
