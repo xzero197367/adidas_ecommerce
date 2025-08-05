@@ -71,8 +71,14 @@
                 </li>
                 <li class="user-footer">
                     <a href="@Url.Action("Profile", "Account")" class="btn btn-default btn-flat">Profile</a>
-                    <a href="@Url.Action("Logout", "Account")" class="btn btn-default btn-flat float-right">Sign out</a>
                 </li>
+                <li class="user-footer">
+                    <form asp-controller="Account" asp-action="Logout" method="post" class=" ">
+                        <button type="submit" class="btn btn-outline-danger btn-flat" style="border: none; background: none;">
+                            Logout
+                        </button>
+                    </form>
+              </li>
             </ul>
         </li>
     </ul>

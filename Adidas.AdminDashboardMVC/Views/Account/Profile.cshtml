@@ -1,0 +1,38 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Account.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "Your Profile";
+}
+
+<div class="container ">
+ 
+
+    <h2 class="mb-3">Account Details</h2>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <strong>@Model.Email</strong>
+        </div>
+        <div class="card-body">
+            <p><strong>Role:</strong> <span class="badge bg-info">@Model.Role</span></p>
+            <p><strong>Created At:</strong> @Model.CreatedAt?.ToString("yyyy-MM-dd hh:mm tt")</p>
+            <p>
+                <strong>Status:</strong>
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Inactive</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="ChangePassword" class="btn btn-warning">Change Password</a>
+        <a asp-action="Index" asp-controller="Dashboard" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+</div>

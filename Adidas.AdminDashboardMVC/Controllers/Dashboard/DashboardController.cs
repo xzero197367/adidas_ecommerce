@@ -2,10 +2,12 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.DTOs.Static;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
     public class DashboardController : Controller
     {
         private readonly IAnalyticsService _analyticsService;
