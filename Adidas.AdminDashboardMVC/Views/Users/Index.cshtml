@@ -1,0 +1,343 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Users.UsersIndexViewModel
+@{
+    ViewData["Title"] = "Users & Roles Management";
+    var roles = ViewBag.Roles as List<SelectListItem>;
+
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Users & Roles Management</h1>
+                <p class="text-muted">Manage user accounts and role permissions</p>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">System Management</a></li>
+                    <li class="breadcrumb-item active">Users & Roles</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@Model.TotalUsers</h3>
+                        <p>Total Users</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.TotalActiveUsers</h3>
+                        <p>Active Users</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.AdminRolesCount</h3>
+                        <p>Admin Roles</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@Model.PendingApproval</h3>
+                        <p>Pending Approval</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users List Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Users List</h3>
+
+            </div>
+            <div class="card-body">
+                <!-- Filters -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" id="searchForm">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search users..." 
+                                       name="searchTerm" value="@Model.SearchTerm" id="searchInput">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    @{
+                         roles = new List<SelectListItem>
+                    {
+                    new SelectListItem { Value = "All", Text = "All Roles" },
+                    new SelectListItem { Value = "Admin", Text = "Admin" },
+                    new SelectListItem { Value = "Employee", Text = "Employee" }
+                    };
+                    }
+                    <div class="col-md-3">
+                        <select class="form-control" name="roleFilter" id="roleFilter">
+                            @foreach (var role in roles)
+                            {
+                                var selected = role.Value == Model.RoleFilter ? "selected" : "";
+                                <option value="@role.Value" selected="@selected">@role.Text</option>
+                            }
+                        </select>
+                    </div>
+
+
+                </div>
+
+                <!-- Users Table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>USER</th>
+                                <th>EMAIL</th>
+                                <th>ROLE</th>
+                                <th>STATUS</th>
+                                <th>LAST LOGIN</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.Users)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                       
+                                            <div>
+                                                <strong>@user.UserName</strong>
+                                                <br>
+                                                <small class="text-muted">ID: @user.Id.Substring(0, 8)...</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@user.Email</td>
+                                    <td>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                             roles = new List<SelectListItem>
+                                    {
+                                    new SelectListItem { Value = "Admin", Text = "Admin" },
+                                    new SelectListItem { Value = "Employee", Text = "Employee" }
+                                    };
+
+                                            <select class="form-control form-control-sm role-select" data-user-id="@user.Id">
+                                                @foreach (var role in roles)
+                                                {
+                                                    var selected = role.Value == user.Role ? "selected" : "";
+                                                    <option value="@role.Value" selected="@selected">@role.Text</option>
+                                                }
+                                            </select>
+                                        }
+
+
+                                        else
+                                        {
+                                            <span class="badge badge-@(user.Role == "Admin" ? "danger" : "info")">@user.Role</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <button class="btn btn-sm toggle-status @(user.IsActive ? "btn-success" : "btn-secondary")" 
+                                                    data-user-id="@user.Id" data-status="@user.IsActive">
+                                                @(user.IsActive ? "Active" : "Inactive")
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-@(user.IsActive ? "success" : "secondary")">
+                                                @(user.IsActive ? "Active" : "Inactive")
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>@user.LastLogin.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Details", new { id = user.Id })" 
+                                               class="btn btn-sm btn-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (User.IsInRole("Admin"))
+                                            {
+                                                <button class="btn btn-sm btn-danger delete-user" 
+                                                        data-user-id="@user.Id" title="Delete User">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Users pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter })">
+                                    Previous
+                                </a>
+                            </li>
+                            
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = i, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter })">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                            
+                            <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter })">
+                                    Next
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Showing @((Model.CurrentPage - 1) * Model.PageSize + 1) to @(Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalUsers)) of @Model.TotalUsers results
+                        </small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Role filter change
+            $('#roleFilter').on('change', function() {
+                var form = $('#searchForm');
+                form.append('<input type="hidden" name="roleFilter" value="' + $(this).val() + '">');
+                form.submit();
+            });
+
+            // Toggle user status
+            $('.toggle-status').on('click', function() {
+                var userId = $(this).data('user-id');
+                var button = $(this);
+                
+                $.ajax({
+                    url: '@Url.Action("ToggleUserStatus")',
+                    type: 'POST',
+                    data: { userId: userId },
+                    success: function(response) {
+                        if (response.success) {
+                            if (response.isActive) {
+                                button.removeClass('btn-secondary').addClass('btn-success');
+                                button.text('Active');
+                            } else {
+                                button.removeClass('btn-success').addClass('btn-secondary');
+                                button.text('Inactive');
+                            }
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while updating user status.');
+                    }
+                });
+            });
+
+            // Change user role
+            $('.role-select').on('change', function() {
+                var userId = $(this).data('user-id');
+                var newRole = $(this).val();
+                var select = $(this);
+                
+                $.ajax({
+                    url: '@Url.Action("ChangeUserRole")',
+                    type: 'POST',
+                    data: { userId: userId, newRole: newRole },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            toastr.success('User role updated successfully');
+                        } else {
+                            alert('Error: ' + response.message);
+                            // Revert selection
+                            select.val(select.data('original-role'));
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while updating user role.');
+                        // Revert selection
+                        select.val(select.data('original-role'));
+                    }
+                });
+            });
+
+            // Store original role values
+            $('.role-select').each(function() {
+                $(this).data('original-role', $(this).val());
+            });
+
+            // Delete user
+            $('.delete-user').on('click', function() {
+                var userId = $(this).data('user-id');
+                
+                if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteUser")',
+                        type: 'POST',
+                        data: { userId: userId },
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('An error occurred while deleting the user.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
