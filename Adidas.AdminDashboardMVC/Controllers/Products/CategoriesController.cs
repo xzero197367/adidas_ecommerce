@@ -205,6 +205,44 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
         }
 
+
+        [HttpGet]
+        public IActionResult FilterCategories(string search, string categoryType, string status)
+        {
+            // 1. Get all categories from your database
+            var categories = _categoryService.GetMainCategoriesAsync(); // Assuming you have a service
+
+            // 2. Apply filtering logic
+            //if (!string.IsNullOrEmpty(search))
+            //{
+            //    categories = categories.(c => c.Name.Contains(search) || c.Description.Contains(search));
+            //}
+
+            //if (categoryType != "all")
+            //{
+            //    switch (categoryType)
+            //    {
+            //        case "main":
+            //            categories = categories.Where(c => !c.ParentCategoryId.HasValue);
+            //            break;
+            //        case "sub":
+            //            categories = categories.Where(c => c.ParentCategoryId.HasValue);
+            //            break;
+            //        case "uncategorized":
+            //            // Assuming you have a way to identify uncategorized products
+            //            break;
+            //    }
+            //}
+
+            //if (status != "all")
+            //{
+            //    bool isActive = (status == "active");
+            //    categories = categories.Where(c => c.IsActive == isActive);
+            //}
+
+            // 3. Return a partial view with the filtered data
+            return Json(categories);
+        }
     }
 
 
