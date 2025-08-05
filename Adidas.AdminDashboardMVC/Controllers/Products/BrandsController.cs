@@ -94,6 +94,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             TempData["Success"] = "Brand created successfully!";
             return RedirectToAction("Index");
         }
+
+
     }
 
 }

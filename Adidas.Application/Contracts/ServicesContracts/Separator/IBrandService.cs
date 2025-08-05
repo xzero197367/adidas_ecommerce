@@ -9,6 +9,9 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
     {
         Task<Result> DeleteAsync(Guid id);
         Task<Result> CreateAsync(CreateBrandDto createBrandDto);
+        Task<Result> UpdateAsync(UpdateBrandDto dto);
+        Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id);
+
         // Brand-specific methods
         //Task<BrandResponseDto?> GetBrandByNameAsync(string name);
         Task<IEnumerable<BrandDto>> GetActiveBrandsAsync();
