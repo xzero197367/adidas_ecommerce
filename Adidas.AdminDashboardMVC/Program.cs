@@ -1,9 +1,3 @@
-
-
-
-
-using Resto.Web.Helpers;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
@@ -47,7 +41,9 @@ builder.Services.AddDbContext<AdidasDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 #endregion
 
+
 #region 2. Identity Configuration
+
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -139,7 +135,13 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+//Register Category
+builder.Services.AddScoped<ICategoryRepository,CategoryRepository>();
+builder.Services.AddScoped<ICategoryService,CategoryService>();
 
+// Register Brands 
+builder.Services.AddScoped<IBrandService,BrandService>();
+builder.Services.AddScoped<IBrandRepository,BrandRepository>();
 builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
 #endregion
 
