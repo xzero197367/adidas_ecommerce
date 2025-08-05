@@ -19,9 +19,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-             var brands = await _brandService.GetActiveBrandsAsync();
+            var brands = await _brandService.GetActiveBrandsAsync();
 
-             return View(brands);
+            return View(brands);
         }
 
         [HttpPost]
@@ -58,7 +58,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (LogoImageFile != null && LogoImageFile.Length > 0)
             {
-                if (LogoImageFile.Length > 5 * 1024 * 1024)  
+                if (LogoImageFile.Length > 5 * 1024 * 1024)
                 {
                     ModelState.AddModelError("LogoUrl", "Image size should not exceed 5MB.");
                     return View(createBrandDto);
@@ -105,19 +105,21 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return RedirectToAction(nameof(Index));
             }
 
-          
+
             var updateBrandDto = new UpdateBrandDto
             {
                 Id = brand.Id,
                 Name = brand.Name,
                 Description = brand.Description,
                 LogoUrl = brand.LogoUrl,
-                 
+
             };
 
             return View(updateBrandDto);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UpdateBrandDto updateBrandDto, IFormFile? LogoImageFile)
         {
             if (!ModelState.IsValid)
@@ -135,9 +137,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     return View(updateBrandDto);
                 }
 
-                // Get the old LogoUrl before overwriting it.
-                var oldLogoUrl = updateBrandDto.LogoUrl;
-
                 var fileName = Guid.NewGuid() + Path.GetExtension(LogoImageFile.FileName);
                 var relativePath = Path.Combine("uploads", "brands", fileName);
                 var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "brands");
@@ -153,20 +152,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     await LogoImageFile.CopyToAsync(stream);
                 }
                 updateBrandDto.LogoUrl = "/" + relativePath.Replace("\\", "/");
-
-                // Delete old image if a new one was uploaded and an old URL existed
-                if (!string.IsNullOrEmpty(oldLogoUrl))
-                {
-                    var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, oldLogoUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldImagePath))
-                    {
-                        System.IO.File.Delete(oldImagePath);
-                    }
-                }
             }
 
             var result = await _brandService.UpdateAsync(updateBrandDto);
-
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError(string.Empty, result.Error);
@@ -176,6 +164,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
 
             TempData["Success"] = "Brand updated successfully!";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
     }
+}
