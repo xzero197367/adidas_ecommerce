@@ -7,11 +7,12 @@ public class CategoryMappingProfile: BaseMappingProfile
 {
     public CategoryMappingProfile()
     {
-         // Category <=> DTOs
-            CreateMap<Category, CategoryDto>()
-                .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
-                .ForMember(dest => dest.Products.Count, opt => opt.MapFrom(src => src.Products.Count));
-            CreateMap<CreateCategoryDto, Category>()
+        // Category <=> DTOs
+        CreateMap<Category, CategoryDto>()
+  .ForMember(dest => dest.HasSubCategories, opt => opt.MapFrom(src => src.SubCategories.Any()))
+  .ForMember(dest => dest.ProductsCount, opt => opt.MapFrom(src => src.Products.Count));
+
+        CreateMap<CreateCategoryDto, Category>()
                 .ForMember(dest => dest.Slug, opt => opt.Ignore()); // Slug is generated
             CreateMap<UpdateCategoryDto, Category>()
                 .ForMember(dest => dest.Slug, opt => opt.Ignore());
