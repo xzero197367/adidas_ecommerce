@@ -3,7 +3,6 @@
 
 
 using Resto.Web.Helpers;
-using Adidas.Infrastructure.Repositories;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +37,9 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Microsoft.AspNetCore.Authentication;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
+using Adidas.Application.Services.Operation;
+using Adidas.Infrastructure.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
