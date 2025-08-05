@@ -1,0 +1,100 @@
+﻿@using Adidas.AdminDashboardMVC.ViewModels.Account
+<!-- Views/Account/ExternalLogin.cshtml -->
+@model ExternalLoginViewModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Adidas Admin | Complete Registration</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- icheck bootstrap -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/icheck-bootstrap/3.0.1/icheck-bootstrap.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
+
+    <style>
+        .register-logo {
+            font-size: 35px;
+            font-weight: 300;
+            margin-bottom: 25px;
+        }
+
+            .register-logo a {
+                color: #495057;
+                text-decoration: none;
+            }
+
+        .adidas-orange {
+            color: #ff6900;
+        }
+
+        .btn-adidas {
+            background-color: #000;
+            border-color: #000;
+            color: white;
+        }
+
+            .btn-adidas:hover {
+                background-color: #333;
+                border-color: #333;
+                color: white;
+            }
+
+        .card-outline.card-primary {
+            border-top: 3px solid #ff6900;
+        }
+    </style>
+</head>
+<body class="hold-transition register-page">
+    <div class="register-box">
+        <div class="register-logo">
+            <a href="#"><b>Adidas</b> <span class="adidas-orange">Admin</span></a>
+        </div>
+
+        <div class="card card-outline card-primary">
+            <div class="card-header text-center">
+                <h1 class="h4">Complete your registration</h1>
+                <p class="login-box-msg">You've successfully authenticated with <strong>@ViewData["LoginProvider"]</strong>. Please enter your email address for this site below and click the Register button to finish logging in.</p>
+            </div>
+            <div class="card-body">
+                <form asp-action="ExternalLoginConfirmation" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="input-group mb-3">
+                        <input asp-for="Email" class="form-control" placeholder="Email" />
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-adidas btn-block">Register</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+</body>
+</html>

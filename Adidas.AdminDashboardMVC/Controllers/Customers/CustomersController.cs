@@ -5,7 +5,7 @@ using Adidas.DTOs.People.Customer_DTOs;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Customers
 {
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminOnly")]
     public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;

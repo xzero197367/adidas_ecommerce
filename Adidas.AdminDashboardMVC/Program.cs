@@ -1,36 +1,45 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+//using AutoMapper.Extensions.Microsoft.DependencyInjection;
+using Adidas.Context;
+using Adidas.AdminDashboardMVC.Middleware;
+using Adidas.AdminDashboardMVC.Services;
 
-using Adidas.Application.Contracts.ServicesContracts.Feature;
-using Adidas.Application.Map.Feature; // Make sure this points to your profile
+using Models.People;
+
+// Mapping Profiles
+using Adidas.Application.Map;
+using Adidas.Application.Map.Feature;
+
+// Services
 using Adidas.Application.Services.Feature;
+using Adidas.Application.Services.People;
+using Adidas.Application.Services.Static;
 
+// Repositories
+using Adidas.Infra.Main;
+using Adidas.Infra.Operation;
+using Adidas.Infra.Separator;
+
+// Contracts
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.People;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
+using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Static;
-using Adidas.Application.Map;
-
-using Adidas.Application.Services.People;
-using Adidas.Application.Services.Static;
-using Adidas.Context;
-
-using Adidas.Infra.Main;
-using Adidas.Infra.Operation;
-using Adidas.Infra.Separator;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Models.People;
-
-
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configure EF Core
+#region 1. EF Core
 builder.Services.AddDbContext<AdidasDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+#endregion
 
-// 2. Configure Identity
+#region 2. Identity Configuration
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -52,25 +61,49 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AdidasDbContext>()
 .AddDefaultTokenProviders();
 
-// 3. Configure Authorization
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.SlidingExpiration = true;
+});
+#endregion
+
+#region 3. Authentication - Google
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+        Console.WriteLine("Redirect URI: " + options.CallbackPath);
+    });
+#endregion
+
+#region 4. Authorization Policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("EmployeeOrAdmin", policy => policy.RequireRole("Admin", "Employee"));
+    options.AddPolicy("ActiveUser", policy => policy.RequireClaim("IsActive", "True"));
 });
+#endregion
 
-// 4. Register MVC
+#region 5. MVC
 builder.Services.AddControllersWithViews();
+#endregion
 
+#region 6. AutoMapper Configuration (v12+)
+builder.Services.AddAutoMapper(
+    typeof(MappingProfiles).Assembly,
+    typeof(CouponMappingProfile).Assembly
+);
 
-// 5. Register your services
+#endregion
 
-
-// ✅ 6. Register AutoMapper - THIS IS THE CORRECT LINE
-builder.Services.AddAutoMapper(typeof(CouponMappingProfile).Assembly);
-builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
-// 5. NOW add your custom services (after Identity is configured)
-builder.Services.AddScoped<ICustomerService, CustomerService>(); 
+#region 7. Application Services & Repositories
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
@@ -79,23 +112,45 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 
+builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
+#endregion
 
-
-// 7. Build the app
 var app = builder.Build();
 
-// 8. Middleware pipeline
+#region 8. Middleware Pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseStatusCodePagesWithReExecute("/Account/Error/{0}");
 }
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseActiveUserMiddleware(); // Custom middleware
+#endregion
 
+#region 9. Routing
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+#endregion
+
+#region 10. Seed Roles & Admin
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await DatabaseSeeder.SeedRolesAndAdminAsync(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+#endregion
 
 app.Run();
