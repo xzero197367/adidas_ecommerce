@@ -27,6 +27,27 @@ namespace Adidas.Application.Services.Feature
             _logger = logger;
             _mapper = mapper;
         }
+        public async Task<List<CouponDto>> GetAllCouponsAsync()
+        {
+            var coupons = await _couponRepository.GetAllAsync();
+
+            var result = coupons.Select(c => new CouponDto
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Name = c.Name,
+                DiscountType = c.DiscountType,
+                DiscountValue = c.DiscountValue,
+                MinimumAmount = c.MinimumAmount,
+                ValidFrom = c.ValidFrom,
+                ValidTo = c.ValidTo,
+                UsageLimit = c.UsageLimit,
+                UsedCount = c.UsedCount,
+                IsActive = c.IsActive,
+            }).ToList();
+
+            return result;
+        }
 
         public async Task<OperationResult<CouponDto>> GetCouponByCodeAsync(string code)
         {

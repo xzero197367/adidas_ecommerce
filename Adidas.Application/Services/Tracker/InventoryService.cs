@@ -1,11 +1,14 @@
-﻿
-using Adidas.Application.Contracts.RepositoriesContracts;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
+using Adidas.Application.Contracts.RepositoriesContracts.Tracker;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
 using Adidas.DTOs.Tracker;
 using Adidas.Models.Tracker;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Tracker
@@ -109,10 +112,11 @@ namespace Adidas.Application.Services.Tracker
 
         public async Task<InventoryReportDto> GenerateInventoryReportAsync()
         {
-            var variantsList = _variantRepository.GetAll();
+            var allVariants = await _variantRepository.GetAllAsync();
+            var variantsList = allVariants.ToList();
 
-            var lowStockVariants = await variantsList.Where(v => v.StockQuantity <= 10).CountAsync();
-            var outOfStockVariants = await variantsList.Where(v => v.StockQuantity == 0).CountAsync();
+            var lowStockVariants = variantsList.Where(v => v.StockQuantity <= 10).Count();
+            var outOfStockVariants = variantsList.Where(v => v.StockQuantity == 0).Count();
 
             var productStocks = variantsList
                 .GroupBy(v => v.Product)
@@ -128,7 +132,7 @@ namespace Adidas.Application.Services.Tracker
             return new InventoryReportDto
             {
                 TotalProducts = variantsList.Select(v => v.ProductId).Distinct().Count(),
-                TotalVariants = await variantsList.CountAsync(),
+                TotalVariants = variantsList.Count,
                 LowStockVariants = lowStockVariants,
                 OutOfStockVariants = outOfStockVariants,
                 TotalInventoryValue = productStocks.Sum(ps => ps.InventoryValue),

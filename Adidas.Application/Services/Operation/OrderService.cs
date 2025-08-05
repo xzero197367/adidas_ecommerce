@@ -10,6 +10,7 @@ using Adidas.DTOs.Operation.OrderDTOs.Create;
 using Adidas.DTOs.Operation.OrderDTOs.Query;
 using Adidas.DTOs.Operation.OrderDTOs.Result;
 using Adidas.DTOs.Operation.OrderDTOs.Update;
+using Adidas.DTOs.Operation.PaymentDTOs.Result;
 using Adidas.Models.Feature;
 using AutoMapper;
 using Microsoft.Extensions.Logging;

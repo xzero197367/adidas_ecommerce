@@ -1,5 +1,11 @@
-﻿using Adidas.Models.Operation;
-using Adidas.DTOs.People.UserDtos;
+﻿using Adidas.DTOs.Feature.OrderCouponDTOs;
+using Adidas.DTOs.Operation.PaymentDTOs.Result;
+using Adidas.Models.Operation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Adidas.DTOs.Operation.OrderDTOs.Result
 {
@@ -25,12 +31,10 @@ namespace Adidas.DTOs.Operation.OrderDTOs.Result
         public string UserEmail { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
-        
-        public UserGetDto User { get; set; }
 
-        // public List<OrderItemDto> OrderItems { get; set; } = new();
-        // public List<PaymentDto> Payments { get; set; } = new();
-        // public List<OrderCouponDto> OrderCoupons { get; set; } = new();
+        public List<OrderItemDto> OrderItems { get; set; } = new();
+        public List<PaymentDto> Payments { get; set; } = new();
+        public List<OrderCouponDto> OrderCoupons { get; set; } = new();
     }
    
 }

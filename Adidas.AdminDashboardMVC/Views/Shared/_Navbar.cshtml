@@ -7,16 +7,7 @@
                 <i class="fas fa-bars"></i>
             </a>
         </li>
-        <li class="nav-item d-none d-sm-inline-block">
-            <a href="@Url.Action("Index", "Home")" class="nav-link">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </li>
-        <li class="nav-item d-none d-sm-inline-block">
-            <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-        </li>
+
     </ul>
 
     <!-- Right navbar links -->
@@ -43,26 +34,7 @@
             </div>
         </li>
 
-        <!-- Messages Dropdown Menu -->
-        <li class="nav-item dropdown">
-            <a class="nav-link" data-toggle="dropdown" href="#">
-                <i class="far fa-comments"></i>
-                <span class="badge badge-danger navbar-badge">3</span>
-            </a>
-            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <a href="#" class="dropdown-item">
-                    <div class="media">
-                        <div class="media-body">
-                            <h3 class="dropdown-item-title">New Customer Inquiry</h3>
-                            <p class="text-sm">Product availability question...</p>
-                            <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                        </div>
-                    </div>
-                </a>
-                <div class="dropdown-divider"></div>
-                <a href="@Url.Action("Messages", "Admin")" class="dropdown-item dropdown-footer">See All Messages</a>
-            </div>
-        </li>
+
 
         <!-- Notifications Dropdown Menu -->
         <li class="nav-item dropdown">
@@ -90,18 +62,23 @@
         <!-- User Account Menu -->
         <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                <img src="~/images/admin-avatar.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                <i class="fa-solid fa-user"></i>
                 <span class="d-none d-md-inline">@User.Identity.Name</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                 <li class="user-header bg-dark">
-                    <img src="~/images/admin-avatar.jpg" class="img-circle elevation-2" alt="User Image">
                     <p>@User.Identity.Name - Administrator</p>
                 </li>
                 <li class="user-footer">
                     <a href="@Url.Action("Profile", "Account")" class="btn btn-default btn-flat">Profile</a>
-                    <a href="@Url.Action("Logout", "Account")" class="btn btn-default btn-flat float-right">Sign out</a>
                 </li>
+                <li class="user-footer">
+                    <form asp-controller="Account" asp-action="Logout" method="post" class=" ">
+                        <button type="submit" class="btn btn-outline-danger btn-flat" style="border: none; background: none;">
+                            Logout
+                        </button>
+                    </form>
+              </li>
             </ul>
         </li>
     </ul>
