@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Adidas.Application.Contracts.RepositoriesContracts.Main;
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.People;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.DTOs.Static;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.People;
 
@@ -58,7 +54,7 @@ namespace Adidas.Application.Services.Static
                 var lowStockVariants = await _variantRepository.GetLowStockVariantsAsync(10);
                 var pendingOrders = await _orderRepository.CountAsync(o => o.OrderStatus == OrderStatus.Pending);
 
-                var allOrders = await _orderRepository.GetAllAsync();
+                var allOrders = await _orderRepository.GetAll().ToListAsync();
                 var averageOrderValue = allOrders.Any() ? allOrders.Average(o => o.TotalAmount) : 0;
 
                 return new DashboardStatsDto
@@ -133,7 +129,7 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var allOrders = await _orderRepository.GetAllAsync();
+                var allOrders =  _orderRepository.GetAll();
                 var popularProducts = allOrders
                     .Where(o => o.OrderStatus != OrderStatus.Cancelled)
                     .SelectMany(o => o.OrderItems)
@@ -148,7 +144,7 @@ namespace Adidas.Application.Services.Static
                     .OrderByDescending(p => p.UnitsSold)
                     .Take(count);
 
-                return popularProducts;
+                return await popularProducts.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -161,26 +157,26 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var categories = await _categoryRepository.GetAllAsync();
-                var allOrders = await _orderRepository.GetAllAsync();
+                var categories = await  _categoryRepository.GetAll().ToListAsync();
+                var allOrders =  await _orderRepository.GetAll().ToListAsync();
 
-                var categoryPerformance = categories.Select(category =>
-                {
-                    var categoryOrders = allOrders
-                        .Where(o => o.OrderStatus != OrderStatus.Cancelled)
-                        .SelectMany(o => o.OrderItems)
-                        .Where(oi => oi.Variant.Product.CategoryId == category.Id);
-
-                    return new CategoryPerformanceDto
+                var categoryPerformance =  categories.Select((category) =>
                     {
-                        CategoryId = category.Id,
-                        CategoryName = category.Name,
-                        ProductCount = category.Products.Count,
-                        TotalSales = categoryOrders.Sum(oi => oi.TotalPrice),
-                        OrderCount = categoryOrders.Select(oi => oi.OrderId).Distinct().Count()
-                    };
-                })
-                .OrderByDescending(cp => cp.TotalSales);
+                        var categoryOrders = allOrders
+                            .Where(o => o.OrderStatus != OrderStatus.Cancelled)
+                            .SelectMany(o => o.OrderItems)
+                            .Where(oi => oi.Variant.Product.CategoryId == category.Id);
+
+                        return new CategoryPerformanceDto
+                        {
+                            CategoryId = category.Id,
+                            CategoryName = category.Name,
+                            ProductCount = category.Products.Count,
+                            TotalSales = categoryOrders.Sum(oi => oi.TotalPrice),
+                            OrderCount = categoryOrders.Select(oi => oi.OrderId).Distinct().Count()
+                        };
+                    })
+                    .OrderByDescending(cp => cp.TotalSales).ToList();
 
                 return categoryPerformance;
             }

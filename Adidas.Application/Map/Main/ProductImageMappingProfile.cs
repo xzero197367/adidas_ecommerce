@@ -9,7 +9,7 @@ public class ProductImageMappingProfile: BaseMappingProfile
     {            
         // ProductImage <=> DTOs
         CreateMap<ProductImage, ProductImageDto>();
-        CreateMap<CreateProductImageDto, ProductImage>();
+        CreateMap<ProductImageCreateDto, ProductImage>();
         CreateMap<UpdateProductImageDto, ProductImage>();
     }
 }

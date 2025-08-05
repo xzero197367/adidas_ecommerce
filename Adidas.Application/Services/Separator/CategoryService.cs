@@ -8,7 +8,8 @@ using Adidas.DTOs.Common_DTOs;
 
 namespace Adidas.Application.Services.Separator
 {
-    public class CategoryService : GenericService<Category, CategoryResponseDto, CreateCategoryDto, UpdateCategoryDto>, ICategoryService
+    public class CategoryService : GenericService<Category, CategoryResponseDto, CreateCategoryDto, UpdateCategoryDto>,
+        ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
 
@@ -120,7 +121,8 @@ namespace Adidas.Application.Services.Separator
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving subcategories for parent ID: {ParentCategoryId}", parentCategoryId);
+                _logger.LogError(ex, "Error retrieving subcategories for parent ID: {ParentCategoryId}",
+                    parentCategoryId);
                 throw;
             }
         }
@@ -206,8 +208,10 @@ namespace Adidas.Application.Services.Separator
         {
             try
             {
-                _logger.LogInformation("Getting paginated category list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
-                var (categories, totalCount) = await _categoryRepository.GetPagedAsync(pageNumber, pageSize, c => !c.IsDeleted);
+                _logger.LogInformation("Getting paginated category list - Page: {PageNumber}, Size: {PageSize}",
+                    pageNumber, pageSize);
+                var (categories, totalCount) =
+                    await _categoryRepository.GetPagedAsync(pageNumber, pageSize, q => q.Where(c => !c.IsDeleted));
                 var categoryList = _mapper.Map<IEnumerable<CategoryDto>>(categories);
 
                 return new PagedResultDto<CategoryDto>

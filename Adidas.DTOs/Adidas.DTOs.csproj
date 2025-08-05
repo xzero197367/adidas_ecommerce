@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-
-    <Folder Include="People\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Models\Models.csproj" />
   </ItemGroup>
 

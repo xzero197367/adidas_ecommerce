@@ -1,4 +1,3 @@
-using Adidas.Context;
 using Adidas.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -7,7 +6,7 @@ using Adidas.Application.Contracts.RepositoriesContracts;
 
 namespace Adidas.Infra;
 
-public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditableEntity
+public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditableEntity
 {
     protected readonly AdidasDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -18,15 +17,15 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         _dbSet = context.Set<T>();
     }
 
-    #region  Write operations
+    #region Write operations
 
     public async Task<EntityEntry<T>> AddAsync(T entity)
     {
         var createdEntity = await _context.AddAsync(entity);
-        
+
         return createdEntity;
     }
-    
+
     public async Task<IEnumerable<EntityEntry<T>>> AddRangeAsync(IEnumerable<T> entities)
     {
         List<EntityEntry<T>> createdEntities = new();
@@ -34,14 +33,14 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         {
             createdEntities.Add(await _context.AddAsync(entity));
         }
-        
+
         return createdEntities;
     }
-    
+
     public async Task<EntityEntry<T>> UpdateAsync(T entity)
     {
         var updatedEntity = _context.Update(entity);
-        
+
         return updatedEntity;
     }
 
@@ -52,7 +51,7 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         {
             updatedEntities.Add(_context.Update(entity));
         }
-        
+
         return updatedEntities;
     }
 
@@ -60,7 +59,7 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
 
     #region Soft delete operations
 
-    public async Task<bool> SoftDeleteAsync(Guid id)
+    public async Task<EntityEntry<T>> SoftDeleteAsync(Guid id)
     {
         var entity = await _dbSet.FindAsync(id);
         if (entity == null)
@@ -71,53 +70,43 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         entity.IsDeleted = true;
         var updatedEntity = _context.Update(entity);
 
-
-        if (updatedEntity.State == EntityState.Modified)
-        {
-            return true;
-        }
-        return false;
+        return updatedEntity;
     }
 
-    public async Task<int> SoftDeleteRangeAsync(IEnumerable<T> entities)
+    public IEnumerable<EntityEntry<T>> SoftDeleteRange(IEnumerable<T> entities)
     {
-        List<bool> updatedEntities = new();
+        List<EntityEntry<T>> updatedEntities = new();
         foreach (var entity in entities)
         {
             entity.IsDeleted = true;
-            updatedEntities.Add(_context.Update(entity).State == EntityState.Modified);
+            updatedEntities.Add(_context.Update(entity));
         }
 
-        
-        return updatedEntities.Count;
+        return updatedEntities;
     }
 
     #endregion
 
     #region Hard delete operations (use with caution)
 
-    public async Task<bool> HardDeleteAsync(Guid id)
+    public async Task<EntityEntry<T>> HardDeleteAsync(Guid id)
     {
         var entity = await _dbSet.FindAsync(id);
         if (entity == null)
         {
             throw new Exception($"Entity with id {id} not found");
         }
-        _dbSet.Remove(entity);
-        
-        return true;
+        return _dbSet.Remove(entity);
     }
-    
-    public async Task<int> HardDeleteRangeAsync(IEnumerable<T> entities)
+
+    public async Task<IEnumerable<EntityEntry<T>>> HardDeleteRangeAsync(IEnumerable<T> entities)
     {
-        List<bool> deletedEntities = new();
+        List<EntityEntry<T>> deletedEntities = new();
         foreach (var entity in entities)
         {
-            deletedEntities.Add(_dbSet.Remove(entity).State == EntityState.Deleted);
+            deletedEntities.Add(_dbSet.Remove(entity));
         }
-
-        
-        return deletedEntities.Count;
+        return deletedEntities;
     }
 
     #endregion
@@ -133,7 +122,8 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         catch (Exception ex)
         {
             // Log the exception here if needed
-            throw new Exception("An error occurred while saving changes to the database. See the inner exception for details.", ex);
+            throw new Exception(
+                "An error occurred while saving changes to the database. See the inner exception for details.", ex);
         }
     }
 
@@ -151,64 +141,39 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         catch (Exception ex)
         {
             // Log the exception here if needed
-            throw new Exception("An error occurred while saving changes to the database. See the inner exception for details.", ex);
+            throw new Exception(
+                "An error occurred while saving changes to the database. See the inner exception for details.", ex);
         }
-    }
-
-    #endregion
-
-    #region Query building
-
-    public IQueryable<T> GetQueryable()
-    {
-        return _dbSet.AsQueryable();
-    } 
-    
-    public IQueryable<T> GetQueryable(Expression<Func<T, bool>> predicate)
-    {
-        return _dbSet.AsQueryable().Where(predicate);
     }
 
     #endregion
 
     #region Count operations
 
-    public async Task<int> CountAsync()
+    public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
     {
-        return await _dbSet.CountAsync();
-    }
-    
-    public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
-    {
-        return await _dbSet.CountAsync(predicate);
+        var query = _dbSet.AsQueryable();
+        if (predicate != null) query = query.Where(predicate);
+        return await query.CountAsync();
     }
 
     #endregion
 
     #region Pagination
 
-    public async Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize)
+    public async Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize,
+        Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
     {
-        var items = await _dbSet.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-        var totalCount = await _dbSet.CountAsync();
-        return (items, totalCount);
-    }
-    
-    public async Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>> predicate)
-    {
-        var items = await _dbSet.Where(predicate).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-        var totalCount = await _dbSet.Where(predicate).CountAsync();
+        var query = _dbSet.AsQueryable();
+        if (queryFunc != null) query = queryFunc(query);
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
         return (items, totalCount);
     }
 
     #endregion
 
     #region Read operations
-
-    public async Task<T?> GetByIdAsync(Guid id)
-    {
-        return await _dbSet.FindAsync(id);
-    }
 
     public async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
     {
@@ -217,87 +182,28 @@ public class GenericRepository<T> : IGenericRepository<T>  where T : BaseAuditab
         {
             query = query.Include(include);
         }
+
         return await query.FirstOrDefaultAsync(x => x.Id == id);
     }
-    
-    public async Task<IEnumerable<T>> GetAllAsync()
-    {
-        return await _dbSet.ToListAsync();
-    }
-    
-    public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
+
+    public IQueryable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
     {
         var query = _dbSet.AsQueryable();
-        foreach (var include in includes)
-        {
-            query = query.Include(include);
-        }
-        return await query.ToListAsync();
+        if (queryFunc != null) query = queryFunc(query);
+        return query;
     }
 
-    public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
-    {
-        return await _dbSet.Where(predicate).ToListAsync();
-    }
-    
-    public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+    public async Task<T?> FindAsync(Func<IQueryable<T>, IQueryable<T>> queryFunc)
     {
         var query = _dbSet.AsQueryable();
-        foreach (var include in includes)
-        {
-            query = query.Include(include);
-        }
-        return await query.Where(predicate).ToListAsync();
-    }
-    
-    public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
-    {
-        return await _dbSet.FirstOrDefaultAsync(predicate);
-    }
-    
-    public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
-    {
-        var query = _dbSet.AsQueryable();
-        foreach (var include in includes)
-        {
-            query = query.Include(include);
-        }
-        return await query.FirstOrDefaultAsync(predicate);
+        query = queryFunc(query);
+        return await query.FirstOrDefaultAsync();
     }
 
     Task<bool> IGenericRepository<T>.ExistsAsync(Expression<Func<T, bool>> predicate)
     {
-        return  _context.Set<T>().AnyAsync(predicate);
-    }
-
-    public async Task<bool> SetActiveStatusAsync(Guid id, bool isActive)
-    {
-        var entity = await _context.Set<T>().FindAsync(id);
-        if (entity == null)
-            return false;
-
-        entity.IsActive = isActive;
-        return true;
-    }
-
-    public async Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive)
-    {
-        var idList = ids.ToList();
-        var entities = await _context.Set<T>()
-            .Where(e => idList.Contains(e.Id))
-            .ToListAsync();
-
-        if (!entities.Any())
-            return 0;
-
-        foreach (var entity in entities)
-        {
-            entity.IsActive = isActive;
-        }
-
-        return entities.Count;
+        return _context.Set<T>().AnyAsync(predicate);
     }
 
     #endregion
-
 }

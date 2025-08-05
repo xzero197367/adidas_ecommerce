@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.DTOs.Main.Product_Variant_DTOs
 {
-    public class UpdateProductVariantDto
+    public class ProductVariantUpdateDto
     {
         [Required, MaxLength(50)]
         public string Color { get; set; } = string.Empty;

@@ -43,11 +43,11 @@ namespace Adidas.Application.Map
                 .ForMember(dest => dest.AverageRating, opt => opt.MapFrom(src => src.Reviews.Any() ? src.Reviews.Average(r => r.Rating) : 0))
                 .ForMember(dest => dest.ReviewCount, opt => opt.MapFrom(src => src.Reviews.Count))
                 .ForMember(dest => dest.InStock, opt => opt.MapFrom(src => src.Variants.Any(v => v.StockQuantity > 0)));
-            CreateMap<CreateProductDto, Product>()
+            CreateMap<ProductCreateDto, Product>()
                 .ForMember(dest => dest.Sku, opt => opt.Ignore()) // SKU is generated in ProductService
                 .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants))
                 .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
-            CreateMap<UpdateProductDto, Product>()
+            CreateMap<ProductUpdateDto, Product>()
                 .ForMember(dest => dest.Sku, opt => opt.Ignore()); // SKU is not updated
 
 
@@ -57,7 +57,7 @@ namespace Adidas.Application.Map
                 .ForMember(dest => dest.ColorHex, opt => opt.MapFrom(src => src.ImageUrl)); // Assuming ImageUrl might store ColorHex
             CreateMap<CreateProductVariantDto, ProductVariant>()
                 .ForMember(dest => dest.Sku, opt => opt.Ignore()); // SKU may be generated
-            CreateMap<UpdateProductVariantDto, ProductVariant>()
+            CreateMap<ProductVariantUpdateDto, ProductVariant>()
                 .ForMember(dest => dest.Sku, opt => opt.Ignore());
 
 
@@ -179,9 +179,9 @@ namespace Adidas.Application.Map
             CreateMap<ShoppingCart, ShoppingCartItemDto>()
                 .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => (src.Variant.Product.SalePrice ?? src.Variant.Product.Price) + src.Variant.PriceAdjustment))
                 .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => ((src.Variant.Product.SalePrice ?? src.Variant.Product.Price) + src.Variant.PriceAdjustment) * src.Quantity));
-            CreateMap<AddToCartDto, ShoppingCart>()
+            CreateMap<ShoppingCartCreateDto, ShoppingCart>()
                 .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
-            CreateMap<UpdateCartItemDto, ShoppingCart>();
+            CreateMap<ShoppingChartUpdateDto, ShoppingCart>();
 
 
 
@@ -208,7 +208,7 @@ namespace Adidas.Application.Map
 
             // ProductImage <=> DTOs
             CreateMap<ProductImage, ProductImageDto>();
-            CreateMap<CreateProductImageDto, ProductImage>();
+            CreateMap<ProductImageCreateDto, ProductImage>();
             CreateMap<UpdateProductImageDto, ProductImage>();
 
             // Wishlist <=> DTOs

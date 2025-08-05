@@ -16,7 +16,7 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
         public string? ColorHex { get; set; }
         public int SortOrder { get; set; }
 
-        public ProductDto Product { get; set; } = new();
+        // public ProductDto Product { get; set; };
         public ICollection<ProductImageDto> Images { get; set; } = new List<ProductImageDto>();
     }
 }

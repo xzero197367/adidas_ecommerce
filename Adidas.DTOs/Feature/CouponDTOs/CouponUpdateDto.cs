@@ -5,13 +5,13 @@ namespace Adidas.DTOs.Feature.CouponDTOs;
 
 public class CouponUpdateDto:BaseDto
 {
-    public string Code { get; set; }
-    public string Name { get; set; }
-    public DiscountType DiscountType { get; set; }
-    public decimal DiscountValue { get; set; }
-    public decimal MinimumAmount { get; set; }
-    public DateTime ValidFrom { get; set; }
-    public DateTime ValidTo { get; set; }
-    public int UsageLimit { get; set; }
-    public int UsedCount { get; set; }
+    public Guid Id { get; set; }
+    public string? Code { get; set; }
+    public string? Name { get; set; }
+    public DiscountType? DiscountType { get; set; }
+    public decimal? DiscountValue { get; set; }
+    public decimal? MinimumAmount { get; set; }
+    public DateTime? ValidFrom { get; set; }
+    public DateTime? ValidTo { get; set; }
+    public int? UsageLimit { get; set; }
 }

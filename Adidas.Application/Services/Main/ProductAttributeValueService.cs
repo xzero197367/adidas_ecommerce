@@ -4,16 +4,12 @@ using Adidas.DTOs.Main.ProductAttributeValueDTOs;
 using Adidas.Models.Main;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Adidas.Application.Contracts.RepositoriesContracts.Main;
 
 
 namespace Adidas.Application.Services.Main
 {
     public class ProductAttributeValueService :
-        GenericService<ProductAttributeValue, ProductAttributeValueDto, CreateProductAttributeValueDto, UpdateProductAttributeValueDto>,
+        GenericService<ProductAttributeValue, ProductAttributeValueDto, ProductAttributeValueCreateDto, ProductAttributeValueUpdateDto>,
         IProductAttributeValueService
     {
         private readonly IAttributeValueRepository _repository;
@@ -31,18 +27,18 @@ namespace Adidas.Application.Services.Main
             _logger = logger;
         }
 
-        public async Task<ProductAttributeValueDto> CreateAsync(CreateProductAttributeValueDto createDto)
+        public async Task<ProductAttributeValueDto> CreateAsync(ProductAttributeValueCreateDto productAttributeValueCreateDto)
         {
-            await ValidateCreateAsync(createDto);
+            await ValidateCreateAsync(productAttributeValueCreateDto);
 
-            var entity = _mapper.Map<ProductAttributeValue>(createDto);
+            var entity = _mapper.Map<ProductAttributeValue>(productAttributeValueCreateDto);
             await BeforeCreateAsync(entity);
 
             var created = await _repository.AddAsync(entity);
             return _mapper.Map<ProductAttributeValueDto>(created);
         }
 
-        public async Task<IEnumerable<ProductAttributeValueDto>> CreateRangeAsync(IEnumerable<CreateProductAttributeValueDto> createDtos)
+        public async Task<IEnumerable<ProductAttributeValueDto>> CreateRangeAsync(IEnumerable<ProductAttributeValueCreateDto> createDtos)
         {
             var entities = _mapper.Map<IEnumerable<ProductAttributeValue>>(createDtos);
             await _repository.AddRangeAsync(entities);
@@ -64,19 +60,19 @@ namespace Adidas.Application.Services.Main
             return await _repository.GetValuesByProductIdAsync(productId);
         }
 
-        public async Task<ProductAttributeValueDto> UpdateAsync(Guid id, UpdateProductAttributeValueDto updateDto)
+        public async Task<ProductAttributeValueDto> UpdateAsync(Guid id, ProductAttributeValueUpdateDto productAttributeValueUpdateDto)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
                 throw new KeyNotFoundException($"Product attribute value with ID {id} not found.");
 
-            _mapper.Map(updateDto, entity);
+            _mapper.Map(productAttributeValueUpdateDto, entity);
             await _repository.UpdateAsync(entity);
 
             return _mapper.Map<ProductAttributeValueDto>(entity);
         }
 
-        public async Task<IEnumerable<ProductAttributeValueDto>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, UpdateProductAttributeValueDto>> updates)
+        public async Task<IEnumerable<ProductAttributeValueDto>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductAttributeValueUpdateDto>> updates)
         {
             var result = new List<ProductAttributeValueDto>();
 
@@ -93,21 +89,21 @@ namespace Adidas.Application.Services.Main
             return result;
         }
 
-        protected override Task ValidateCreateAsync(CreateProductAttributeValueDto createDto)
+        public override Task ValidateCreateAsync(ProductAttributeValueCreateDto productAttributeValueCreateDto)
         {
-            if (string.IsNullOrWhiteSpace(createDto.Value))
+            if (string.IsNullOrWhiteSpace(productAttributeValueCreateDto.Value))
                 throw new ArgumentException("Attribute value is required.");
 
-            if (createDto.ProductId == Guid.Empty)
+            if (productAttributeValueCreateDto.ProductId == Guid.Empty)
                 throw new ArgumentException("Product ID must be specified.");
 
-            if (createDto.AttributeId == Guid.Empty)
+            if (productAttributeValueCreateDto.AttributeId == Guid.Empty)
                 throw new ArgumentException("Attribute ID must be specified.");
 
             return Task.CompletedTask;
         }
 
-        protected override Task BeforeCreateAsync(ProductAttributeValue entity)
+        public override Task BeforeCreateAsync(ProductAttributeValue entity)
         {
             // You can add logic like trimming value or checking uniqueness if needed
             entity.Value = entity.Value.Trim();

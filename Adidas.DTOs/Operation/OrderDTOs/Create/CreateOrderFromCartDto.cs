@@ -20,6 +20,9 @@ namespace Adidas.DTOs.Operation.OrderDTOs.Create
 
         public string? DiscountCode { get; set; }
         public string? Notes { get; set; }
+        
+        public decimal TotalAmount { get; set; }
+        public string Currency { get; set; }
     }
 
 }

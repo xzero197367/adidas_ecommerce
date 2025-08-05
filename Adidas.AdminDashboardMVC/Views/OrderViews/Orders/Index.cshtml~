@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "All Orders";
+}
+
+@Html.Partial("_OrderTopBar")
+@Html.Partial("_OrderFilter")
+@Html.Partial("_OrderTable")
+
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Order/order_top_bar.css">
+    <link rel="stylesheet" href="~/css/Order/order_filter.css">
+    <link rel="stylesheet" href="~/css/Order/order_table.css">
+
+}
+
+@section Scripts {
+    <script src="~/js/Order/order_top_bar.js"></script>
+}

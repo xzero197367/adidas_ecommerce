@@ -1,19 +1,14 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts;
-using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.DTOs.Main.ProductAttributeDTOs;
 using Adidas.Models.Main;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.Application.Services.Main
 {
-    public class ProductAttributeService : GenericService<ProductAttribute, ProductAttributeDto, CreateProductAttributeDto, UpdateProductAttributeDto>, IProductAttributeService
+    public class ProductAttributeService : GenericService<ProductAttribute, ProductAttributeDto, ProductAttributeCreateDto, ProductAttributeUpdateDto>, IProductAttributeService
     {
         private readonly IGenericRepository<ProductAttribute> _repository;
 
@@ -29,7 +24,7 @@ namespace Adidas.Application.Services.Main
             {
                 _logger.LogInformation("Getting filterable attributes");
 
-                var allAttributes = await _repository.GetAllAsync();
+                var allAttributes = await _repository.GetAll().ToListAsync();
                 var filterableAttributes = allAttributes.Where(attr => attr.IsFilterable).OrderBy(attr => attr.SortOrder);
 
                 _logger.LogInformation("Found {Count} filterable attributes", filterableAttributes.Count());
@@ -48,7 +43,7 @@ namespace Adidas.Application.Services.Main
             {
                 _logger.LogInformation("Getting required attributes");
 
-                var allAttributes = await _repository.GetAllAsync();
+                var allAttributes = await _repository.GetAll().ToListAsync();
                 var requiredAttributes = allAttributes.Where(attr => attr.IsRequired).OrderBy(attr => attr.SortOrder);
 
                 _logger.LogInformation("Found {Count} required attributes", requiredAttributes.Count());

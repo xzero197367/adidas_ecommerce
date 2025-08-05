@@ -1,0 +1,94 @@
+﻿.order_table {
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0px 0px 10px 0px;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        border-radius: 0 0 10px 10px;
+        border: 1px solid var(--adidas-blue);
+        overflow: hidden;
+    }
+
+    .table_header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        background-color: var(--adidas-white);
+        color: var(--adidas-blue);
+        padding: 5px 10px;
+        border-radius: 10px 10px 0 0;
+    }
+
+    thead tr {
+        /*background-color: var(--adidas-blue);*/
+        /*color: var(--adidas-white);*/
+        border-bottom: 1px solid var(--adidas-blue);
+        text-align: left;
+    }
+
+    th,
+    td {
+        padding: 12px 15px;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    tbody tr:last-of-type {
+        border-bottom: 2px solid var(--adidas-blue);
+    }
+
+    tbody tr.active-row {
+        font-weight: bold;
+        color: var(--adidas-blue);
+    }
+
+    .pagination {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 5px;
+        padding: 5px 10px;
+        border-radius: 5px;
+
+        .left {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .right {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+
+            a {
+                text-decoration: none;
+                color: var(--adidas-blue);
+                font-weight: bold;
+                cursor: pointer;
+                padding: 5px 10px;
+                border-radius: 5px;
+                transition: all 0.3s ease;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+
+                &:hover {
+                    background-color: var(--adidas-blue);
+                    color: var(--adidas-white);
+                }
+            }
+        }
+    }
+
+}

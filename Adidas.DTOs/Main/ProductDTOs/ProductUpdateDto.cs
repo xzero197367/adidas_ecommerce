@@ -1,12 +1,10 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
-using Adidas.DTOs.Main.Product_Variant_DTOs;
-using Adidas.DTOs.Main.ProductImageDTOs;
 using Models.People;
 
 namespace Adidas.DTOs.Main.Product_DTOs
 {
-    public class CreateProductDto
+    public class ProductUpdateDto
     {
         [Required, MaxLength(200)]
         public string Name { get; set; } = string.Empty;
@@ -17,13 +15,10 @@ namespace Adidas.DTOs.Main.Product_DTOs
         [MaxLength(500)]
         public string ShortDescription { get; set; } = string.Empty;
 
-        [MaxLength(50)]
-        public string? Sku { get; set; }
-
-        [Required, Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+        [Required, Range(0.01, double.MaxValue)]
         public decimal Price { get; set; }
 
-        [Range(0.01, double.MaxValue, ErrorMessage = "Sale price must be greater than 0")]
+        [Range(0.01, double.MaxValue)]
         public decimal? SalePrice { get; set; }
 
         [Required]
@@ -39,8 +34,5 @@ namespace Adidas.DTOs.Main.Product_DTOs
         public string? MetaTitle { get; set; }
         public string? MetaDescription { get; set; }
         public string? Keywords { get; set; }
-
-        public ICollection<CreateProductVariantDto> Variants { get; set; } = new List<CreateProductVariantDto>();
-        public ICollection<CreateProductImageDto> Images { get; set; } = new List<CreateProductImageDto>();
     }
 }

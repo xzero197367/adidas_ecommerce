@@ -9,7 +9,7 @@ public class ProductAttributeMappingProfile:BaseMappingProfile
     {
         // ProductAttribute <=> DTOs
         CreateMap<ProductAttribute, ProductAttributeDto>();
-        CreateMap<CreateProductAttributeDto, ProductAttribute>();
-        CreateMap<UpdateProductAttributeDto, ProductAttribute>();
+        CreateMap<ProductAttributeCreateDto, ProductAttribute>();
+        CreateMap<ProductAttributeUpdateDto, ProductAttribute>();
     }
 }
