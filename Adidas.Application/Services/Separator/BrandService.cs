@@ -25,14 +25,18 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<Result> DeleteAsync(Guid id)
         {
-            var brand = await _brandRepository.GetByIdAsync(id);
+            var brand = await _brandRepository.GetByIdAsync(id,
+                  c => c.Products            
+                );
             if (brand == null)
                 return Result.Failure("Brand not found.");
+            if (brand.Products.Count() != 0)
+                return Result.Failure("Cannot delete a brand that has products.");
 
-            await _brandRepository.SoftDeleteAsync(id);
+            await _brandRepository.HardDeleteAsync(id);
             var result = await _brandRepository.SaveChangesAsync();
 
-            return result == null ? Result.Failure("Failed to Create Brand.") : Result.Success();
+            return result == null ? Result.Failure("Failed to Delete Brand.") : Result.Success();
         }
 
         public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()

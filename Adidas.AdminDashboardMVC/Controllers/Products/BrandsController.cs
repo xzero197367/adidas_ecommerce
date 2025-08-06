@@ -58,6 +58,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 TempData["Success"] = "Brand deleted successfully!";
             }
 
+
             return RedirectToAction("Index");
         }
 
