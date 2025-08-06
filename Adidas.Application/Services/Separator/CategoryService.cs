@@ -66,7 +66,6 @@ namespace Adidas.Application.Services.Separator
         {
             var categories = await _categoryRepository.GetAllAsync();
 
-            // Step 1: Filter by Category Type
             if (!string.IsNullOrEmpty(categoryType))
             {
                 if (categoryType == "Main")
@@ -76,21 +75,21 @@ namespace Adidas.Application.Services.Separator
                
             }
 
-            // Step 2: Filter by Status
+          
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 bool isActive = statusFilter == "Active";
                 categories = categories.Where(c => c.IsActive == isActive).ToList();
             }
 
-            // Step 3: Filter by Search Term
+            
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 categories = categories.Where(c =>
                     c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
-            // Step 4: Map to DTOs
+            
             var categoryDtos = categories.Select(c => new CategoryDto
             {
                 Id = c.Id,
@@ -107,7 +106,7 @@ namespace Adidas.Application.Services.Separator
                 {
                     Id = p.Id,
                     Name = p.Name
-                    // Add more properties if needed
+                    
                 }).ToList() ?? new List<ProductDto>(),
                 SubCategories = c.SubCategories?.Select(sc => new CategoryDto
                 {
@@ -170,10 +169,14 @@ namespace Adidas.Application.Services.Separator
             if (category == null)
                 return Result.Failure("Category not found.");
 
-            await _categoryRepository.SoftDeleteAsync(id);
+            var Children = await _categoryRepository.GetSubCategoriesAsync(id);
+            if (Children.Count()!=0)
+                return Result.Failure("Cannot delete a category that has subcategories.");
+
+            await _categoryRepository.HardDeleteAsync(id);
             var result = await _categoryRepository.SaveChangesAsync();
 
-            return result == null ? Result.Failure("Failed to Delete category.") : Result.Success();
+            return result == null ? Result.Failure("Failed to delete category.") : Result.Success();
         }
 
         public async Task<Result> UpdateAsync(UpdateCategoryDto dto)

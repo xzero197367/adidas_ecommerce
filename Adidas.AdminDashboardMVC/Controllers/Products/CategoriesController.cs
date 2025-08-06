@@ -5,15 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
-{
-    public class CategoryFilterRequest
-    {
-        public string Search { get; set; } = string.Empty;
-        public string CategoryType { get; set; } = "all"; // all, main, sub
-        public string Status { get; set; } = "all"; // all, active, inactive
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-    }
+{ 
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
