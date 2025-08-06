@@ -9,6 +9,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
 {
     public class UpdateCategoryDto
     {
+        public Guid Id { get; set; }
         [Required]
         [StringLength(100, ErrorMessage = "Category name cannot exceed 100 characters")]
         public string Name { get; set; }

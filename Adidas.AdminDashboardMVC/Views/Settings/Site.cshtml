@@ -1,0 +1,457 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Settings.SiteSettingsViewModel
+@{
+    ViewData["Title"] = "Site Settings";
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Site Settings</h1>
+                <p class="text-muted">Configure general site settings and preferences</p>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">System Management</a></li>
+                    <li class="breadcrumb-item active">Site Settings</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Settings Form -->
+            <div class="col-md-8">
+                <form id="siteSettingsForm">
+                    <!-- General Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-cog"></i>
+                                General Settings
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label asp-for="SiteName"></label>
+                                        <input asp-for="SiteName" class="form-control" />
+                                        <span asp-validation-for="SiteName" class="text-danger"></span>
+                                    </div>
+                                </div>
+                 
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="SiteDescription"></label>
+                                <textarea asp-for="SiteDescription" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="SiteDescription" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-envelope"></i>
+                                Contact Information
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="AdminEmail"></label>
+                                        <input asp-for="AdminEmail" class="form-control" />
+                                        <span asp-validation-for="AdminEmail" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="SupportEmail"></label>
+                                        <input asp-for="SupportEmail" class="form-control" />
+                                        <span asp-validation-for="SupportEmail" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-shield-alt"></i>
+                                Security Settings
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="MaxLoginAttempts"></label>
+                                        <input asp-for="MaxLoginAttempts" class="form-control" type="number" min="1" max="10" />
+                                        <span asp-validation-for="MaxLoginAttempts" class="text-danger"></span>
+                                        <small class="form-text text-muted">Maximum number of failed login attempts before account lockout</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="SessionTimeout"></label>
+                                        <input asp-for="SessionTimeout" class="form-control" type="number" min="5" max="120" />
+                                        <span asp-validation-for="SessionTimeout" class="text-danger"></span>
+                                        <small class="form-text text-muted">Session timeout in minutes</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-check">
+                                        <input asp-for="AllowRegistration" class="form-check-input" />
+                                        <label asp-for="AllowRegistration" class="form-check-label"></label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input asp-for="EmailVerificationRequired" class="form-check-input" />
+                                        <label asp-for="EmailVerificationRequired" class="form-check-label"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Display Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-desktop"></i>
+                                Display Settings
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="PageSize"></label>
+                                        <input asp-for="PageSize" class="form-control" type="number" min="5" max="100" />
+                                        <span asp-validation-for="PageSize" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="TimeZone"></label>
+                                        <select asp-for="TimeZone" class="form-control">
+                                            <option value="UTC">UTC</option>
+                                            <option value="EST">Eastern Standard Time</option>
+                                            <option value="PST">Pacific Standard Time</option>
+                                            <option value="GMT">Greenwich Mean Time</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label asp-for="Currency"></label>
+                                        <select asp-for="Currency" class="form-control">
+                                            <option value="USD">USD - US Dollar</option>
+                                            <option value="EUR">EUR - Euro</option>
+                                            <option value="GBP">GBP - British Pound</option>
+                                            <option value="EGP">EGP - Egyptian Pound</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="DateFormat"></label>
+                                        <select asp-for="DateFormat" class="form-control">
+                                            <option value="MM/dd/yyyy">MM/dd/yyyy</option>
+                                            <option value="dd/MM/yyyy">dd/MM/yyyy</option>
+                                            <option value="yyyy-MM-dd">yyyy-MM-dd</option>
+                                            <option value="MMM dd, yyyy">MMM dd, yyyy</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Maintenance Mode -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-tools"></i>
+                                Maintenance Mode
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-switch">
+                                <input asp-for="MaintenanceMode" class="form-check-input" />
+                                <label asp-for="MaintenanceMode" class="form-check-label"></label>
+                                <small class="form-text text-muted">Enable maintenance mode to temporarily disable site access for regular users</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                            <button type="button" class="btn btn-secondary ml-2" onclick="location.reload()">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- System Actions & Info -->
+            <div class="col-md-4">
+                <!-- System Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-tools"></i>
+                            System Actions
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning btn-block mb-2" id="clearCacheBtn">
+                                <i class="fas fa-broom"></i> Clear Cache
+                            </button>
+                            <button class="btn btn-info btn-block mb-2" id="backupDbBtn">
+                                <i class="fas fa-database"></i> Backup Database
+                            </button>
+                            <button class="btn btn-secondary btn-block" id="systemInfoBtn">
+                                <i class="fas fa-info-circle"></i> System Information
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-heartbeat"></i>
+                            System Status
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success">
+                                <i class="fas fa-server"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Server Status</span>
+                                <span class="info-box-number">Online</span>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info">
+                                <i class="fas fa-database"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Database</span>
+                                <span class="info-box-number">Connected</span>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning">
+                                <i class="fas fa-memory"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Cache</span>
+                                <span class="info-box-number">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- System Info Modal -->
+<div class="modal fade" id="systemInfoModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">System Information</h4>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="systemInfoContent">
+                <!-- System info will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Save settings
+            $('#siteSettingsForm').on('submit', function(e) {
+                e.preventDefault();
+
+                var formData = $(this).serialize();
+                var btn = $('#saveSettingsBtn');
+                var originalText = btn.html();
+
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("UpdateSiteSettings")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('An error occurred while saving settings.');
+                    },
+                    complete: function() {
+                        btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Clear cache
+            $('#clearCacheBtn').on('click', function() {
+                var btn = $(this);
+                var originalText = btn.html();
+
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Clearing...').prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("ClearCache")',
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('An error occurred while clearing cache.');
+                    },
+                    complete: function() {
+                        btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Backup database
+            $('#backupDbBtn').on('click', function() {
+                var btn = $(this);
+                var originalText = btn.html();
+
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Creating Backup...').prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("BackupDatabase")',
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('An error occurred while creating backup.');
+                    },
+                    complete: function() {
+                        btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Show system information
+            $('#systemInfoBtn').on('click', function() {
+                $.ajax({
+                    url: '@Url.Action("SystemInfo")',
+                    type: 'GET',
+                    success: function(data) {
+                        $('#systemInfoContent').html(data);
+                        $('#systemInfoModal').modal('show');
+                    },
+                    error: function() {
+                        toastr.error('An error occurred while loading system information.');
+                    }
+                });
+            });
+        });
+    </script>
+}
+            @*             } else { *@
+            @*                 toastr.error(response.message); *@
+            @*             } *@
+            @*         }, *@
+            @*         error: function() { *@
+            @*             toastr.error('An error occurred while saving settings.'); *@
+            @*         }, *@
+            @*         complete: function() { *@
+            @*             btn.html(originalText).prop('disabled', false); *@
+            @*         } *@
+            @*     }); *@
+            @* }); *@
+
+            @* // Clear cache *@
+            @* $('#clearCacheBtn').on('click', function() { *@
+            @*     var btn = $(this); *@
+            @*     var originalText = btn.html(); *@
+
+            @*     btn.html('<i class="fas fa-spinner fa-spin"></i> Clearing...').prop('disabled', true); *@
+
+            @*     $.ajax({ *@
+            @*         url: '@Url.Action("ClearCache")', *@
+            @*         type: 'POST', *@
+            @*         success: function(response) { *@
+            @*             if (response.success) { *@
+            @*                 toastr.success(response.message); *@
+            @*             } else { *@
+            @*                 toastr.error(response.message); *@
+            @*             } *@
+            @*         }, *@
+            @*         error: function() { *@
+            @*             toastr.error('An error occurred while clearing cache.'); *@
+            @*         }, *@
+            @*         complete: function() { *@
+            @*             btn.html(originalText).prop('disabled', false); *@
+            @*         } *@
+            @*     }); *@
+            @* }); *@
+
+            @* // Backup database *@
+            @* $('#backupDbBtn').on('click', function() { *@
+            @*     var btn = $(this); *@
+            @*     var originalText = btn.html(); *@
+
+            @*     btn.html('<i class="fas fa-spinner fa-spin"></i> Creating Backup...').prop('disabled', true); *@
+
+            @*     $.ajax({ *@
+            @*         url: '@Url.Action("BackupDatabase")', *@
+            @*         type: 'POST', *@
+            @*         success: function(response) { *@
+            @*             if (response.success) { *@
+            @*                 toastr. *@

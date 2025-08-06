@@ -1,0 +1,83 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Settings.SystemInfoViewModel
+
+<div class="row">
+    <div class="col-md-6">
+        <h5><i class="fas fa-server"></i> Server Information</h5>
+        <table class="table table-sm">
+            <tr>
+                <td><strong>Server Name:</strong></td>
+                <td>@Model.ServerName</td>
+            </tr>
+            <tr>
+                <td><strong>Operating System:</strong></td>
+                <td>@Model.OperatingSystem</td>
+            </tr>
+            <tr>
+                <td><strong>.NET Version:</strong></td>
+                <td>@Model.DotNetVersion</td>
+            </tr>
+            <tr>
+                <td><strong>Application Version:</strong></td>
+                <td>@Model.ApplicationVersion</td>
+            </tr>
+            <tr>
+                <td><strong>Processor Count:</strong></td>
+                <td>@Model.ProcessorCount cores</td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-md-6">
+        <h5><i class="fas fa-memory"></i> Memory & Performance</h5>
+        <table class="table table-sm">
+            <tr>
+                <td><strong>Total Memory:</strong></td>
+                <td>@((Model.TotalMemory / 1024 / 1024).ToString("N2")) MB</td>
+            </tr>
+            <tr>
+                <td><strong>Working Set:</strong></td>
+                <td>@((Model.WorkingSet / 1024 / 1024).ToString("N2")) MB</td>
+            </tr>
+            <tr>
+                <td><strong>Application Uptime:</strong></td>
+                <td>@Model.ApplicationUptime.ToString(@"dd\.hh\:mm\:ss")</td>
+            </tr>
+            <tr>
+                <td><strong>Database Status:</strong></td>
+                <td>
+                    <span class="badge badge-success">
+                        <i class="fas fa-check"></i> @Model.DatabaseStatus
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Cache Status:</strong></td>
+                <td>
+                    <span class="badge badge-info">
+                        <i class="fas fa-memory"></i> @Model.CacheStatus
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <h5><i class="fas fa-chart-line"></i> System Health</h5>
+        <div class="progress mb-2">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
+                CPU Usage: 15%
+            </div>
+        </div>
+        <div class="progress mb-2">
+            <div class="progress-bar bg-info" role="progressbar" style="width: 60%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">
+                Memory Usage: 60%
+            </div>
+        </div>
+        <div class="progress">
+            <div class="progress-bar bg-warning" role="progressbar" style="width: 45%" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">
+                Disk Usage: 45%
+            </div>
+        </div>
+    </div>
+</div>

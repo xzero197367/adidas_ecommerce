@@ -1,4 +1,8 @@
 ﻿
+using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.Operation.ReviewDTOs.Query;
+using Adidas.DTOs.Operation.ReviewDTOs.Result;
+
 namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
 {
     public interface IReviewRepository : IGenericRepository<Review>
@@ -10,7 +14,9 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<double> GetAverageRatingAsync(Guid productId);
         Task<IEnumerable<Review>> GetVerifiedPurchaseReviewsAsync(Guid productId);
         Task<bool> HasUserReviewedProductAsync(string userId, Guid productId);
+        Task<PagedResultDto<Review>> GetFilteredReviewsAsync(string status, int pageNumber, int pageSize);
         Task<(IEnumerable<Review> reviews, int totalCount)> GetReviewsPagedAsync(Guid productId, int pageNumber, int pageSize, bool? isApproved = null);
     }
+
 }
  
