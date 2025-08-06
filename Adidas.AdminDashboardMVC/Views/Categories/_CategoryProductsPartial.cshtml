@@ -1,0 +1,38 @@
+﻿@model List<Adidas.DTOs.Main.Product_DTOs.ProductDto>
+
+@if (Model == null || !Model.Any())
+{
+        <p class="text-muted">No products available in this category.</p>
+}
+else
+{
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var product in Model)
+                {
+                            <tr>
+                                <td>@product.Name</td>
+                                <td>@(string.IsNullOrEmpty(product.Description) ? "N/A" : product.Description)</td>
+                                <td>$@product.Price</td>
+                                <td>
+                                    <span class="badge @(product.IsActive ? "bg-success" : "bg-danger")">
+                                @(product.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                            </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+}
+
+

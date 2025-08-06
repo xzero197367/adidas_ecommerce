@@ -1,4 +1,5 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -225,5 +226,23 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
         }
 
-   }
+        [HttpGet]
+        public async Task<IActionResult> GetProductsByCategoryId(Guid id)
+        {
+            try
+            {
+                var categoryDto = await _categoryService.GetCategoryDetailsAsync(id);
+                if (categoryDto == null || categoryDto.Products == null)
+                    return PartialView("_CategoryProductsPartial", new List<ProductDto>());
+
+                return PartialView("_CategoryProductsPartial", categoryDto.Products);
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred while loading products.");
+            }
+        }
+
+
+    }
 }
