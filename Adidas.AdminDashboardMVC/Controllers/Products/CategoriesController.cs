@@ -1,10 +1,19 @@
-﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
+﻿using Adidas.AdminDashboardMVC.ViewModels.Category;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
+    public class CategoryFilterRequest
+    {
+        public string Search { get; set; } = string.Empty;
+        public string CategoryType { get; set; } = "all"; // all, main, sub
+        public string Status { get; set; } = "all"; // all, active, inactive
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
@@ -17,10 +26,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string categoryType, string statusFilter, string searchTerm)
         {
-            var mainCategories = await _categoryService.GetMainCategoriesAsync();
-            return View(mainCategories);
+            var categories = await _categoryService.GetFilteredCategoriesAsync(categoryType, statusFilter, searchTerm);
+
+            ViewData["CurrentType"] = categoryType;
+            ViewData["CurrentStatus"] = statusFilter;
+            ViewData["SearchTerm"] = searchTerm;
+
+            return View(categories);
         }
 
 
@@ -98,7 +112,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         // POST: /Category/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit( UpdateCategoryDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Edit(UpdateCategoryDto model, IFormFile ImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -181,8 +195,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         {
             if (id == Guid.Empty)
             {
-                TempData["ErrorMessage"] = "Invalid category ID provided.";  
-                return RedirectToAction(nameof(Index));  
+                TempData["ErrorMessage"] = "Invalid category ID provided.";
+                return RedirectToAction(nameof(Index));
             }
 
             try
@@ -191,61 +205,19 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
                 if (categoryDto == null)
                 {
-                    TempData["ErrorMessage"] = $"Category with ID '{id}' not found."; 
-                    return RedirectToAction(nameof(Index));  
+                    TempData["ErrorMessage"] = $"Category with ID '{id}' not found.";
+                    return RedirectToAction(nameof(Index));
                 }
 
-                return View(categoryDto); 
+                return View(categoryDto);
             }
             catch (Exception ex)
             {
-                
+
                 TempData["ErrorMessage"] = $"An unexpected error occurred while retrieving category details: {ex.Message}";
-                return RedirectToAction(nameof(Index));  
+                return RedirectToAction(nameof(Index));
             }
         }
 
-
-        [HttpGet]
-        public IActionResult FilterCategories(string search, string categoryType, string status)
-        {
-            // 1. Get all categories from your database
-            var categories = _categoryService.GetMainCategoriesAsync(); // Assuming you have a service
-
-            // 2. Apply filtering logic
-            //if (!string.IsNullOrEmpty(search))
-            //{
-            //    categories = categories.(c => c.Name.Contains(search) || c.Description.Contains(search));
-            //}
-
-            //if (categoryType != "all")
-            //{
-            //    switch (categoryType)
-            //    {
-            //        case "main":
-            //            categories = categories.Where(c => !c.ParentCategoryId.HasValue);
-            //            break;
-            //        case "sub":
-            //            categories = categories.Where(c => c.ParentCategoryId.HasValue);
-            //            break;
-            //        case "uncategorized":
-            //            // Assuming you have a way to identify uncategorized products
-            //            break;
-            //    }
-            //}
-
-            //if (status != "all")
-            //{
-            //    bool isActive = (status == "active");
-            //    categories = categories.Where(c => c.IsActive == isActive);
-            //}
-
-            // 3. Return a partial view with the filtered data
-            return Json(categories);
-        }
-    }
-
-
-
+   }
 }
-

@@ -23,7 +23,7 @@ namespace Adidas.Application.Services.Separator
         }
         public async Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync()
         {
-            var categories = await _categoryRepository.GetMainCategoriesAsync();
+            var categories = await _categoryRepository.GetAllAsync();
 
             // Manual mapping
             var categoryDtos = categories.Select(c => new CategoryDto
@@ -62,6 +62,70 @@ namespace Adidas.Application.Services.Separator
             return categoryDtos;
         }
 
+        public async Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter, string searchTerm)
+        {
+            var categories = await _categoryRepository.GetAllAsync();
+
+            // Step 1: Filter by Category Type
+            if (!string.IsNullOrEmpty(categoryType))
+            {
+                if (categoryType == "Main")
+                    categories = categories.Where(c => c.ParentCategoryId == null).ToList();
+                else if (categoryType == "Sub")
+                    categories = categories.Where(c => c.ParentCategoryId != null).ToList();
+               
+            }
+
+            // Step 2: Filter by Status
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                bool isActive = statusFilter == "Active";
+                categories = categories.Where(c => c.IsActive == isActive).ToList();
+            }
+
+            // Step 3: Filter by Search Term
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                categories = categories.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            // Step 4: Map to DTOs
+            var categoryDtos = categories.Select(c => new CategoryDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                Slug = c.Slug,
+                ImageUrl = c.ImageUrl,
+                SortOrder = c.SortOrder,
+                ParentCategoryId = c.ParentCategoryId,
+                CreatedAt = c.CreatedAt ?? DateTime.MinValue,
+                UpdatedAt = c.UpdatedAt,
+                IsActive = c.IsActive,
+                Products = c.Products?.Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name
+                    // Add more properties if needed
+                }).ToList() ?? new List<ProductDto>(),
+                SubCategories = c.SubCategories?.Select(sc => new CategoryDto
+                {
+                    Id = sc.Id,
+                    Name = sc.Name,
+                    Description = sc.Description,
+                    Slug = sc.Slug,
+                    ImageUrl = sc.ImageUrl,
+                    SortOrder = sc.SortOrder,
+                    ParentCategoryId = sc.ParentCategoryId,
+                    CreatedAt = sc.CreatedAt ?? DateTime.MinValue,
+                    UpdatedAt = sc.UpdatedAt,
+                    IsActive = sc.IsActive
+                }).ToList() ?? new List<CategoryDto>()
+            }).ToList();
+
+            return categoryDtos;
+        }
 
         public async Task<Result> CreateAsync(CreateCategoryDto createCategoryDto)
         {
