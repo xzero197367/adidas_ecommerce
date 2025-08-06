@@ -167,13 +167,19 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<Result> DeleteAsync(Guid id)
         {
-            var category = await _categoryRepository.GetByIdAsync(id);
+            var category = await _categoryRepository.GetByIdAsync(
+                id,
+                c => c.Products,
+                c => c.SubCategories);
             if (category == null)
                 return Result.Failure("Category not found.");
 
-            var Children = await _categoryRepository.GetSubCategoriesAsync(id);
-            if (Children.Count() != 0)
+            //var Children = await _categoryRepository.GetSubCategoriesAsync(id);
+
+            if (category.SubCategories.Count() != 0)
                 return Result.Failure("Cannot delete a category that has subcategories.");
+          if (category.Products.Count() != 0)
+                return Result.Failure("Cannot delete a category that has products.");
 
             await _categoryRepository.HardDeleteAsync(id);
             var result = await _categoryRepository.SaveChangesAsync();
