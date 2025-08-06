@@ -1,12 +1,251 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.DTOs.Separator.Category_DTOs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
     public class CategoriesController : Controller
     {
-        public IActionResult Index()
+        private readonly ICategoryService _categoryService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+
+        public CategoriesController(ICategoryService categoryService, IWebHostEnvironment webHostEnvironment)
         {
+            _categoryService = categoryService;
+            _webHostEnvironment = webHostEnvironment;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var mainCategories = await _categoryService.GetMainCategoriesAsync();
+            return View(mainCategories);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            await PopulateParentCategoriesDropdown();
             return View();
         }
+
+        // POST: /Category/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateCategoryDto model, IFormFile ImageFile)
+        {
+            if (!ModelState.IsValid)
+            {
+                await PopulateParentCategoriesDropdown();
+                return View(model);
+            }
+
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                if (ImageFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
+                    await PopulateParentCategoriesDropdown();
+                    return View(model);
+                }
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+                var relativePath = Path.Combine("uploads", "categories", fileName);
+                var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
+
+                if (!Directory.Exists(absolutePath))
+                {
+                    Directory.CreateDirectory(absolutePath);
+                }
+
+                var filePath = Path.Combine(absolutePath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImageFile.CopyToAsync(stream);
+                }
+
+                model.ImageUrl = "/" + relativePath.Replace("\\", "/");
+            }
+
+            // ✅ Get Result instead of just bool
+            var result = await _categoryService.CreateAsync(model);
+
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.Error); // Show specific error (e.g., slug exists)
+                TempData["Error"] = result.Error;
+
+                await PopulateParentCategoriesDropdown();
+                return View(model);
+            }
+
+            TempData["Success"] = "Category created successfully!";
+            return RedirectToAction("Index");
+        }
+
+
+        // GET: /Category/Edit/{id}
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            var category = await _categoryService.GetCategoryToEditByIdAsync(id);
+            await PopulateParentCategoriesDropdown();
+            return View(category);
+        }
+
+        // POST: /Category/Edit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit( UpdateCategoryDto model, IFormFile ImageFile)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CategoryId = model.Id;
+                await PopulateParentCategoriesDropdown();
+                return View(model);
+            }
+
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                if (ImageFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
+                    ViewBag.CategoryId = model.Id;
+                    await PopulateParentCategoriesDropdown();
+                    return View(model);
+                }
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+                var relativePath = Path.Combine("uploads", "categories", fileName);
+                var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
+
+                if (!Directory.Exists(absolutePath))
+                {
+                    Directory.CreateDirectory(absolutePath);
+                }
+
+                var filePath = Path.Combine(absolutePath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImageFile.CopyToAsync(stream);
+                }
+
+                model.ImageUrl = "/" + relativePath.Replace("\\", "/");
+            }
+
+            var result = await _categoryService.UpdateAsync(model);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.Error);
+                TempData["Error"] = result.Error;
+                ViewBag.CategoryId = model.Id;
+                await PopulateParentCategoriesDropdown();
+                return View(model);
+            }
+
+            TempData["Success"] = "Category updated successfully!";
+            return RedirectToAction("Index");
+        }
+
+
+
+        private async Task PopulateParentCategoriesDropdown()
+        {
+            var parentCategories = await _categoryService.GetMainCategoriesAsync(); // Use method that fetches only main/active ones if needed
+
+            ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _categoryService.DeleteAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Category deleted successfully!";
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> Details(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                TempData["ErrorMessage"] = "Invalid category ID provided.";  
+                return RedirectToAction(nameof(Index));  
+            }
+
+            try
+            {
+                var categoryDto = await _categoryService.GetCategoryDetailsAsync(id);
+
+                if (categoryDto == null)
+                {
+                    TempData["ErrorMessage"] = $"Category with ID '{id}' not found."; 
+                    return RedirectToAction(nameof(Index));  
+                }
+
+                return View(categoryDto); 
+            }
+            catch (Exception ex)
+            {
+                
+                TempData["ErrorMessage"] = $"An unexpected error occurred while retrieving category details: {ex.Message}";
+                return RedirectToAction(nameof(Index));  
+            }
+        }
+
+
+        [HttpGet]
+        public IActionResult FilterCategories(string search, string categoryType, string status)
+        {
+            // 1. Get all categories from your database
+            var categories = _categoryService.GetMainCategoriesAsync(); // Assuming you have a service
+
+            // 2. Apply filtering logic
+            //if (!string.IsNullOrEmpty(search))
+            //{
+            //    categories = categories.(c => c.Name.Contains(search) || c.Description.Contains(search));
+            //}
+
+            //if (categoryType != "all")
+            //{
+            //    switch (categoryType)
+            //    {
+            //        case "main":
+            //            categories = categories.Where(c => !c.ParentCategoryId.HasValue);
+            //            break;
+            //        case "sub":
+            //            categories = categories.Where(c => c.ParentCategoryId.HasValue);
+            //            break;
+            //        case "uncategorized":
+            //            // Assuming you have a way to identify uncategorized products
+            //            break;
+            //    }
+            //}
+
+            //if (status != "all")
+            //{
+            //    bool isActive = (status == "active");
+            //    categories = categories.Where(c => c.IsActive == isActive);
+            //}
+
+            // 3. Return a partial view with the filtered data
+            return Json(categories);
+        }
     }
+
+
+
 }
+

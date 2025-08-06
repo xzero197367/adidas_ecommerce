@@ -8,6 +8,10 @@ using Adidas.AdminDashboardMVC.Services;
 
 using Models.People;
 
+// Mapping Profiles
+using Adidas.Application.Map;
+using Adidas.Application.Map.Feature;
+
 // Services
 using Adidas.Application.Services.Feature;
 using Adidas.Application.Services.People;
@@ -26,9 +30,12 @@ using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Static;
-using Adidas.Application.Mapping;
 using Microsoft.AspNetCore.Authentication;
-
+using Adidas.Application.Contracts.ServicesContracts.Operation;
+using Adidas.Application.Services.Operation;
+using Adidas.Infrastructure.Repositories;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.Application.Services.Separator;
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
@@ -36,7 +43,9 @@ builder.Services.AddDbContext<AdidasDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 #endregion
 
+
 #region 2. Identity Configuration
+
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -57,6 +66,10 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<AdidasDbContext>()
 .AddDefaultTokenProviders();
+
+
+
+// 3. Add Authorization
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -83,12 +96,36 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("EmployeeOrAdmin", policy => policy.RequireRole("Admin", "Employee"));
+
     options.AddPolicy("ActiveUser", policy => policy.RequireClaim("IsActive", "True"));
 });
 #endregion
 
 #region 5. MVC
 builder.Services.AddControllersWithViews();
+builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
+//builder.Services.AddAutoMapper(typeof(MappingProfiles));
+//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+
+// 5. NOW add your custom services (after Identity is configured)
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+builder.Services.AddScoped<IReviewService, ReviewService>();
+//builder.Services.AddScoped<IOrderService, OrderService>();
+//builder.Services.AddAutoMapper(Program);
+
+#endregion
+
+#region 6. AutoMapper Configuration (v12+)
+builder.Services.AddAutoMapper(
+    typeof(MappingProfiles).Assembly,
+    typeof(CouponMappingProfile).Assembly
+);
+
 #endregion
 
 #region 7. Application Services & Repositories
@@ -100,12 +137,16 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+//Register Category
+builder.Services.AddScoped<ICategoryRepository,CategoryRepository>();
+builder.Services.AddScoped<ICategoryService,CategoryService>();
 
+// Register Brands 
+builder.Services.AddScoped<IBrandService,BrandService>();
+builder.Services.AddScoped<IBrandRepository,BrandRepository>();
 builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
 #endregion
 
-// mapster configuration
-MapsterConfig.Configure();
 
 var app = builder.Build();
 
@@ -113,6 +154,8 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+
+
     app.UseStatusCodePagesWithReExecute("/Account/Error/{0}");
 }
 
