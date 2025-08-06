@@ -134,6 +134,14 @@
                                                title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </a>
+
+                                            <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@subCategory.Id" />
+                                                <button type="submit" class="btn btn-sm @(subCategory.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                                                        title="@(subCategory.IsActive ? "Deactivate" : "Activate")">
+                                                    <i class="@(subCategory.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
 
@@ -180,6 +188,7 @@
 
 
 
+                <h4>Products</h4>
 
                 @if (Model.Products == null || !Model.Products.Any())
                 {
