@@ -168,6 +168,12 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 TempData["Success"] = "Category status updated successfully.";
             }
+            var referer = Request.Headers["Referer"].ToString();
+            if (!string.IsNullOrEmpty(referer))
+            {
+                return Redirect(referer);
+            }
+
 
             return RedirectToAction(nameof(Index));
         }
