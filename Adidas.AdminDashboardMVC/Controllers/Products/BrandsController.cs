@@ -16,7 +16,24 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-   
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleStatus(Guid id)
+        {
+            var result = await _brandService.ToggleCategoryStatusAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Brands status updated successfully.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         public async Task<IActionResult> Index(string statusFilter, string searchTerm)
         {
             var brands = await _brandService.GetFilteredBrandsAsync(statusFilter,searchTerm);

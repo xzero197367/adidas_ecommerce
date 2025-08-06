@@ -199,6 +199,31 @@ namespace Adidas.Application.Services.Separator
             return brandDtos;
         }
 
+        public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
+        {
+            var brand = await _brandRepository.GetByIdAsync(categoryId);
+            if (brand == null)
+                return Result.Failure("brand not found.");
+
+            brand.IsActive = !brand.IsActive;
+
+            try
+            {
+                await _brandRepository.UpdateAsync(brand);
+                var result = await _brandRepository.SaveChangesAsync();
+
+                if (result > 0)
+                    return Result.Success();
+                else
+                    return Result.Failure("No changes were made to the database.");
+            }
+            catch (Exception ex)
+            {
+
+                return Result.Failure("An error occurred while updating the brand status.");
+            }
+        }
+
     }
 }
  //#region Generic Service Overrides

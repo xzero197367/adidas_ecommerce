@@ -120,6 +120,14 @@
                                    title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </a>
+
+                                <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@brand.Id" />
+                                    <button type="submit" class="btn btn-sm @(brand.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                                            title="@(brand.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="@(brand.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
 
