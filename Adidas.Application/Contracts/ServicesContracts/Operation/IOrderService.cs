@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {
-    public interface IOrderService : IGenericService<Order, OrderDto, CreateOrderDto, UpdateOrderDto>
+    public interface IOrderService : IGenericService<Order, OrderDto, OrderCreateDto, UpdateOrderDto>
     {
         Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(string userId);
         Task<OrderDto?> GetOrderByOrderNumberAsync(string orderNumber);

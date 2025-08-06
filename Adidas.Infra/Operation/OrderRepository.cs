@@ -4,37 +4,40 @@ namespace Adidas.Infra.Operation
 {
     public class OrderRepository : GenericRepository<Order>, IOrderRepository
     {
-        public OrderRepository(AdidasDbContext context) : base(context) { }
+        public OrderRepository(AdidasDbContext context) : base(context)
+        {
+        }
 
         public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId)
         {
-            return await FindAsync(o => o.UserId == userId && !o.IsDeleted,
-                                 o => o.OrderItems,
-                                 o => o.Payments);
+            return await GetAll(q =>
+                    q.Where(o => o.UserId == userId && !o.IsDeleted).Include(o => o.OrderItems)
+                        .Include(o => o.Payments))
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
-            return await FindAsync(o => o.OrderStatus == status && !o.IsDeleted);
+            return await GetAll(q => q.Where(o => o.OrderStatus == status && !o.IsDeleted)).ToListAsync();
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            return await FindAsync(o => o.OrderDate >= startDate &&
-                                       o.OrderDate <= endDate &&
-                                       !o.IsDeleted);
+            return await GetAll(q => q.Where(o => o.OrderDate >= startDate &&
+                                                  o.OrderDate <= endDate &&
+                                                  !o.IsDeleted)).ToListAsync();
         }
 
         public async Task<Order?> GetOrderWithItemsAsync(Guid orderId)
         {
             return await GetByIdAsync(orderId,
-                                    o => o.OrderItems,
-                                    o => o.User);
+                o => o.OrderItems,
+                o => o.User);
         }
 
         public async Task<Order?> GetOrderWithPaymentsAsync(Guid orderId)
         {
-            return await GetByIdAsync(orderId, o => o.Payments);  
+            return await GetByIdAsync(orderId, o => o.Payments);
         }
 
         public async Task<Order?> GetOrderWithCouponsAsync(Guid orderId)
@@ -44,18 +47,18 @@ namespace Adidas.Infra.Operation
 
         public async Task<Order?> GetOrderByNumberAsync(string orderNumber)
         {
-            return await FirstOrDefaultAsync(o => o.OrderNumber == orderNumber && !o.IsDeleted);
+            return await FindAsync(q=>q.Where(o => o.OrderNumber == orderNumber && !o.IsDeleted));
         }
 
         public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
         {
-            return await FindAsync(o => o.OrderStatus == OrderStatus.Pending && !o.IsDeleted);
+            return await GetAll(q => q.Where(o => o.OrderStatus == OrderStatus.Pending && !o.IsDeleted)).ToListAsync();
         }
 
         public async Task<decimal> GetTotalSalesAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             var query = _context.Orders
-                                .Where(o => o.OrderStatus == OrderStatus.Delivered && !o.IsDeleted);
+                .Where(o => o.OrderStatus == OrderStatus.Delivered && !o.IsDeleted);
 
             if (startDate.HasValue)
                 query = query.Where(o => o.OrderDate >= startDate.Value);
@@ -67,8 +70,8 @@ namespace Adidas.Infra.Operation
         }
 
 
-
-        public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId,
+            int pageNumber, int pageSize)
         {
             var query = _context.Orders
                 .Where(o => o.UserId == userId && !o.IsDeleted)
@@ -79,7 +82,5 @@ namespace Adidas.Infra.Operation
 
             return (orders, totalCount);
         }
-
-
     }
 }

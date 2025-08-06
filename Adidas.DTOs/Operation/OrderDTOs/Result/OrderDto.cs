@@ -1,11 +1,6 @@
 ﻿using Adidas.DTOs.Feature.OrderCouponDTOs;
-using Adidas.DTOs.Operation.PaymentDTOs.Result;
 using Adidas.Models.Operation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Adidas.DTOs.Operation.PaymentDTOs;
 
 namespace Adidas.DTOs.Operation.OrderDTOs.Result
 {

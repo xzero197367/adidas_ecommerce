@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Adidas.Application.Services.Separator
 {
 
-    public class BrandService : GenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>, IBrandService
+    public class BrandService : GenericService<Brand, BrandResponseDto, BrandCreateDto, BrandUpdateDto>, IBrandService
     {
         private readonly IBrandRepository _brandRepository;
 
@@ -27,20 +27,20 @@ namespace Adidas.Application.Services.Separator
 
         #region Generic Service Overrides
 
-        protected override async Task ValidateCreateAsync(CreateBrandDto createDto)
+        protected override async Task ValidateCreateAsync(BrandCreateDto brandCreateDto)
         {
             // Check if brand name already exists
-            var existingBrand = await _brandRepository.GetBrandByNameAsync(createDto.Name);
+            var existingBrand = await _brandRepository.GetBrandByNameAsync(brandCreateDto.Name);
             if (existingBrand != null)
             {
                 throw new InvalidOperationException("Brand with this name already exists");
             }
         }
 
-        protected override async Task ValidateUpdateAsync(Guid id, UpdateBrandDto updateDto)
+        protected override async Task ValidateUpdateAsync(Guid id, BrandUpdateDto brandUpdateDto)
         {
             // Check if another brand with the same name exists
-            var brandWithSameName = await _brandRepository.GetBrandByNameAsync(updateDto.Name);
+            var brandWithSameName = await _brandRepository.GetBrandByNameAsync(brandUpdateDto.Name);
             if (brandWithSameName != null && brandWithSameName.Id != id)
             {
                 throw new InvalidOperationException("Another brand with this name already exists");

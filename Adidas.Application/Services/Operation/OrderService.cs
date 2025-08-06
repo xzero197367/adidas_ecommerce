@@ -19,7 +19,7 @@ using System.Transactions;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation.OrderItemServices
 {
-    public class OrderService : GenericService<Order, OrderDto, CreateOrderDto, UpdateOrderDto>, IOrderService
+    public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, UpdateOrderDto>, IOrderService
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IShoppingCartRepository _cartRepository;

@@ -49,7 +49,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
             if (customer == null)
                 return NotFound();
 
-            var updateDto = new UpdateCustomerDto
+            var updateDto = new CustomerUpdateDto
             {
                 Phone = customer.Phone,
                 Gender = customer.Gender,
@@ -66,7 +66,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, UpdateCustomerDto updateDto)
+        public async Task<IActionResult> Edit(string id, CustomerUpdateDto customerUpdateDto)
         {
             if (string.IsNullOrEmpty(id))
                 return NotFound();
@@ -77,10 +77,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
                 ViewBag.CustomerId = id;
                 ViewBag.CustomerName = customer?.Name;
                 ViewBag.CustomerEmail = customer?.Email;
-                return View(updateDto);
+                return View(customerUpdateDto);
             }
 
-            var success = await _customerService.UpdateCustomerAsync(id, updateDto);
+            var success = await _customerService.UpdateCustomerAsync(id, customerUpdateDto);
 
             if (success)
             {
@@ -89,7 +89,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
             }
 
             TempData["Error"] = "Failed to update customer.";
-            return View(updateDto);
+            return View(customerUpdateDto);
         }
 
         [HttpPost]

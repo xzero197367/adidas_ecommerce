@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
-    public interface ICategoryService : IGenericService<Category, CategoryResponseDto, CreateCategoryDto, UpdateCategoryDto>
+    public interface ICategoryService : IGenericService<Category, CategoryResponseDto, CategoryCreateDto, CategoryUpdateDto>
     {
         // Category-specific methods
         Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();

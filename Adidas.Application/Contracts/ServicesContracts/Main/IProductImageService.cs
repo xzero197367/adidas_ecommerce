@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Main
 {
-    public interface IProductImageService : IGenericService<ProductImage, ProductImageDto, ProductImageCreateDto, UpdateProductImageDto>
+    public interface IProductImageService : IGenericService<ProductImage, ProductImageDto, ProductImageCreateDto, ProductImageUpdateDto>
     {
         Task<IEnumerable<ProductImage>> GetImagesByProductIdAsync(Guid productId);
         Task<IEnumerable<ProductImage>> GetImagesByVariantIdAsync(Guid variantId);

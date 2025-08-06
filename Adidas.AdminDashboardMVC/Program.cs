@@ -8,10 +8,6 @@ using Adidas.AdminDashboardMVC.Services;
 
 using Models.People;
 
-// Mapping Profiles
-using Adidas.Application.Map;
-using Adidas.Application.Map.Feature;
-
 // Services
 using Adidas.Application.Services.Feature;
 using Adidas.Application.Services.People;
@@ -30,6 +26,7 @@ using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Static;
+using Adidas.Application.Mapping;
 using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -94,14 +91,6 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddControllersWithViews();
 #endregion
 
-#region 6. AutoMapper Configuration (v12+)
-builder.Services.AddAutoMapper(
-    typeof(MappingProfiles).Assembly,
-    typeof(CouponMappingProfile).Assembly
-);
-
-#endregion
-
 #region 7. Application Services & Repositories
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -114,6 +103,9 @@ builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 
 builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
 #endregion
+
+// mapster configuration
+MapsterConfig.Configure();
 
 var app = builder.Build();
 

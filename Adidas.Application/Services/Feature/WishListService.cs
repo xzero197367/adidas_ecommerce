@@ -25,13 +25,13 @@ namespace Adidas.Application.Services.Feature
         //  //  _mapper = mapper;
         //}
 
-        public async Task<IEnumerable<WishlistItemDto>> GetWishlistByUserIdAsync(string userId)
+        public async Task<IEnumerable<WishlistDto>> GetWishlistByUserIdAsync(string userId)
         {
             var wishlists = await _wishlistRepository.GetWishlistByUserIdAsync(userId);
-            return wishlists.Select(w => _mapper.Map<WishlistItemDto>(w));
+            return wishlists.Select(w => _mapper.Map<WishlistDto>(w));
         }
 
-        public async Task<WishlistItemDto> AddToWishlistAsync(AddToWishlistDto addDto)
+        public async Task<WishlistDto> AddToWishlistAsync(AddToWishlistDto addDto)
         {
             var exists = await _wishlistRepository.IsProductInWishlistAsync(addDto.UserId, addDto.ProductId);
             if (exists) throw new Exception("Product already in wishlist.");
@@ -44,7 +44,7 @@ namespace Adidas.Application.Services.Feature
             };
 
             await _wishlistRepository.AddAsync(wishlist);
-            return _mapper.Map<WishlistItemDto>(wishlist);
+            return _mapper.Map<WishlistDto>(wishlist);
         }
 
         public Task<bool> RemoveFromWishlistAsync(string userId, Guid productId) =>
@@ -56,12 +56,12 @@ namespace Adidas.Application.Services.Feature
         public Task<int> GetWishlistCountAsync(string userId) =>
             _wishlistRepository.GetWishlistCountAsync(userId);
 
-        public async Task<IEnumerable<WishlistItemDto>> GetWishlistSummaryAsync(string userId)
+        public async Task<IEnumerable<WishlistDto>> GetWishlistSummaryAsync(string userId)
         {
             var wishlists = await _wishlistRepository.GetWishlistByUserIdAsync(userId);
             return wishlists.Select(w =>
             {
-                var dto = _mapper.Map<WishlistItemDto>(w);
+                var dto = _mapper.Map<WishlistDto>(w);
                 dto.SavingsAmount = dto.IsOnSale ? (dto.Price - dto.SalePrice) : null;
                 return dto;
             });
@@ -79,7 +79,7 @@ namespace Adidas.Application.Services.Feature
             return Task.FromResult(Convert.ToBase64String(Encoding.UTF8.GetBytes(userId.ToString())));
         }
 
-        public Task<IEnumerable<WishlistItemDto>> GetSharedWishlistAsync(string shareToken)
+        public Task<IEnumerable<WishlistDto>> GetSharedWishlistAsync(string shareToken)
         {
             var userId = new String(Encoding.UTF8.GetString(Convert.FromBase64String(shareToken)));
             return GetWishlistByUserIdAsync(userId);

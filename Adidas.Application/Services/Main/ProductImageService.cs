@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Services.Main
 {
-    public class ProductImageService : GenericService<ProductImage, ProductImageDto, ProductImageCreateDto, UpdateProductImageDto>, IProductImageService
+    public class ProductImageService : GenericService<ProductImage, ProductImageDto, ProductImageCreateDto, ProductImageUpdateDto>, IProductImageService
     {
         private readonly IProductAttrbuteRepository _productImageRepository;
         public ProductImageService(

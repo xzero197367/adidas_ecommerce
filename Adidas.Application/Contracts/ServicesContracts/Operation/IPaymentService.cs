@@ -13,7 +13,7 @@ using Adidas.DTOs.Common_DTOs;
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {
 
-    public interface IPaymentService : IGenericService<Payment, PaymentDto, CreatePaymentDto, UpdatePaymentDto>
+    public interface IPaymentService : IGenericService<Payment, PaymentDto, PaymentCreateDto, PaymentUpdateDto>
     {
         // Payment-specific Query Operations
         // Task<IEnumerable<OperationResult<PaymentDto>>> GetPaymentsByOrderIdAsync(Guid orderId);

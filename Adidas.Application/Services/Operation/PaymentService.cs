@@ -12,7 +12,7 @@ using AutoMapper;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
-public class PaymentService : GenericService<Payment, PaymentDto, CreatePaymentDto, UpdatePaymentDto> ,IPaymentService
+public class PaymentService : GenericService<Payment, PaymentDto, PaymentCreateDto, PaymentUpdateDto> ,IPaymentService
 {
     private readonly IPaymentRepository _paymentRepository;
     private readonly IMapper _mapper;
@@ -40,9 +40,9 @@ public class PaymentService : GenericService<Payment, PaymentDto, CreatePaymentD
     }
 
     // Legacy method that now calls the generic method
-    public async Task<OperationResult<PaymentDto>> CreatePaymentAsync(CreatePaymentDto createPaymentDto)
+    public async Task<OperationResult<PaymentDto>> CreatePaymentAsync(PaymentCreateDto paymentCreateDto)
     {
-        return await CreateAsync(createPaymentDto);
+        return await CreateAsync(paymentCreateDto);
     }
 
     // Legacy method that now calls the generic method
@@ -216,12 +216,12 @@ public class PaymentService : GenericService<Payment, PaymentDto, CreatePaymentD
     //     return _mapper.Map<IEnumerable<PaymentDto>>(payments);
     // }
 
-    public async Task<PaymentDto?> ProcessPaymentAsync(CreatePaymentDto paymentDto)
+    public async Task<PaymentDto?> ProcessPaymentAsync(PaymentCreateDto dto)
     {
         try
         {
             // Create the payment record with pending status
-            var payment = _mapper.Map<Payment>(paymentDto);
+            var payment = _mapper.Map<Payment>(dto);
             payment.Id = Guid.NewGuid();
             payment.CreatedAt = DateTime.UtcNow;
             payment.IsActive = true;
@@ -231,7 +231,7 @@ public class PaymentService : GenericService<Payment, PaymentDto, CreatePaymentD
             var createdPayment = await _paymentRepository.AddAsync(payment);
 
             // Simulate payment processing logic
-            var isPaymentValid = ValidatePaymentData(paymentDto);
+            var isPaymentValid = ValidatePaymentData(dto);
 
             if (isPaymentValid)
             {
@@ -258,13 +258,13 @@ public class PaymentService : GenericService<Payment, PaymentDto, CreatePaymentD
         }
     }
 
-    private bool ValidatePaymentData(CreatePaymentDto paymentDto)
+    private bool ValidatePaymentData(PaymentCreateDto dto)
     {
         // Add your payment validation logic here
-        if (paymentDto.Amount <= 0)
+        if (dto.Amount <= 0)
             return false;
 
-        if (string.IsNullOrEmpty(paymentDto.PaymentMethod))
+        if (string.IsNullOrEmpty(dto.PaymentMethod))
             return false;
 
         // Add more validation rules as needed

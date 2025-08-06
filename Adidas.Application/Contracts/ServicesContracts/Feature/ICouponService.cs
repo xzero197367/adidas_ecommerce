@@ -1,4 +1,5 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Adidas.Models.Feature;
 using Models.Feature;
@@ -9,8 +10,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         IGenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>
     {
         Task<List<CouponDto>> GetAllCouponsAsync();
-        Task<IEnumerable<CouponDto>> GetActiveCouponsAsync();
-        Task<CouponValidationResultDto> ValidateCouponAsync(string code, decimal orderAmount);
+        Task<OperationResult<IEnumerable<CouponDto>>> GetActiveCouponsAsync();
+        Task<OperationResult<CouponDto>> ValidateCouponAsync(string code, decimal orderAmount);
         Task<decimal> CalculateCouponAmountAsync(string code, decimal orderAmount);
         Task<bool> ApplyCouponAsync(string code);
     }

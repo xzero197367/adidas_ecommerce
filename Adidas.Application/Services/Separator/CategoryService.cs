@@ -8,7 +8,7 @@ using Adidas.DTOs.Common_DTOs;
 
 namespace Adidas.Application.Services.Separator
 {
-    public class CategoryService : GenericService<Category, CategoryResponseDto, CreateCategoryDto, UpdateCategoryDto>,
+    public class CategoryService : GenericService<Category, CategoryResponseDto, CategoryCreateDto, CategoryUpdateDto>,
         ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
@@ -24,19 +24,19 @@ namespace Adidas.Application.Services.Separator
 
         #region Generic Service Overrides
 
-        protected override async Task ValidateCreateAsync(CreateCategoryDto createDto)
+        protected override async Task ValidateCreateAsync(CategoryCreateDto categoryCreateDto)
         {
             // Validate slug uniqueness
-            var slugExists = await ValidateSlugUniquenessAsync(createDto.Slug);
+            var slugExists = await ValidateSlugUniquenessAsync(categoryCreateDto.Slug);
             if (!slugExists)
             {
                 throw new InvalidOperationException("Category with this slug already exists");
             }
 
             // Validate parent category if provided
-            if (createDto.ParentCategoryId.HasValue)
+            if (categoryCreateDto.ParentCategoryId.HasValue)
             {
-                var parentCategory = await _categoryRepository.GetByIdAsync(createDto.ParentCategoryId.Value);
+                var parentCategory = await _categoryRepository.GetByIdAsync(categoryCreateDto.ParentCategoryId.Value);
                 if (parentCategory == null || parentCategory.IsDeleted)
                 {
                     throw new InvalidOperationException("Parent category not found");
@@ -44,24 +44,24 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        protected override async Task ValidateUpdateAsync(Guid id, UpdateCategoryDto updateDto)
+        protected override async Task ValidateUpdateAsync(Guid id, CategoryUpdateDto categoryUpdateDto)
         {
             // Validate slug uniqueness
-            var slugExists = await ValidateSlugUniquenessAsync(updateDto.Slug, id);
+            var slugExists = await ValidateSlugUniquenessAsync(categoryUpdateDto.Slug, id);
             if (!slugExists)
             {
                 throw new InvalidOperationException("Another category with this slug already exists");
             }
 
             // Validate parent category if provided
-            if (updateDto.ParentCategoryId.HasValue)
+            if (categoryUpdateDto.ParentCategoryId.HasValue)
             {
-                if (updateDto.ParentCategoryId == id)
+                if (categoryUpdateDto.ParentCategoryId == id)
                 {
                     throw new InvalidOperationException("Category cannot be its own parent");
                 }
 
-                var parentCategory = await _categoryRepository.GetByIdAsync(updateDto.ParentCategoryId.Value);
+                var parentCategory = await _categoryRepository.GetByIdAsync(categoryUpdateDto.ParentCategoryId.Value);
                 if (parentCategory == null || parentCategory.IsDeleted)
                 {
                     throw new InvalidOperationException("Parent category not found");

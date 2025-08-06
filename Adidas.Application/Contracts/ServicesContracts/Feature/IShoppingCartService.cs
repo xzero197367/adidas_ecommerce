@@ -9,16 +9,16 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {
     public interface IShoppingCartService 
     {
-        Task<IEnumerable<ShoppingCartItemDto>> GetCartItemsByUserIdAsync(string userId);
-        Task<ShoppingCartItemDto> AddToCartAsync(ShoppingCartCreateDto addCreateDto);
-        Task<ShoppingCartItemDto> UpdateCartItemQuantityAsync(ShoppingChartUpdateDto shoppingChartUpdateDto);
+        Task<IEnumerable<ShoppingCartDto>> GetCartItemsByUserIdAsync(string userId);
+        Task<ShoppingCartDto> AddToCartAsync(ShoppingCartCreateDto addCreateDto);
+        Task<ShoppingCartDto> UpdateCartItemQuantityAsync(ShoppingCartUpdateDto shoppingCartUpdateDto);
         Task<bool> RemoveFromCartAsync(string userId, Guid variantId);
         Task<bool> ClearCartAsync(string userId);
 
-        Task<CartSummaryDto> GetCartSummaryAsync(string userId);
-        Task<CartSummaryDto> GetCartSummaryWithTaxAsync(string userId, string? shippingAddress = null);
+        Task<ShoppingCartSummaryDto> GetCartSummaryAsync(string userId);
+        Task<ShoppingCartSummaryDto> GetCartSummaryWithTaxAsync(string userId, string? shippingAddress = null);
         Task<bool> ValidateCartItemsAsync(string userId);
-        Task<IEnumerable<ShoppingCartItemDto>> GetUnavailableItemsAsync(string userId);
+        Task<IEnumerable<ShoppingCartDto>> GetUnavailableItemsAsync(string userId);
 
         Task<bool> MergeCartsAsync(string fromUserId, string toUserId);
         Task<bool> SaveCartForLaterAsync(string userId);

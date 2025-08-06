@@ -129,15 +129,15 @@ namespace Adidas.Application.Services.People
         }
 
 
-        public async Task<bool> UpdateCustomerAsync(string id, UpdateCustomerDto updateDto)
+        public async Task<bool> UpdateCustomerAsync(string id, CustomerUpdateDto customerUpdateDto)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null || user.Role != UserRole.Customer) return false;
 
-            user.Phone = updateDto.Phone;
-            user.Gender = updateDto.Gender;
-            user.DateOfBirth = updateDto.DateOfBirth;
-            user.PreferredLanguage = updateDto.PreferredLanguage;
+            user.Phone = customerUpdateDto.Phone;
+            user.Gender = customerUpdateDto.Gender;
+            user.DateOfBirth = customerUpdateDto.DateOfBirth;
+            user.PreferredLanguage = customerUpdateDto.PreferredLanguage;
             user.UpdatedAt = DateTime.UtcNow;
 
             var result = await _userManager.UpdateAsync(user);

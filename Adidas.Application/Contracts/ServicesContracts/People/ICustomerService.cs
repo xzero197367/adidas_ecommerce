@@ -14,7 +14,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.People
     {
         Task<PagedResult<CustomerDto>> GetCustomersAsync(CustomerFilterDto filter);
         Task<CustomerDetailsDto?> GetCustomerByIdAsync(string id);
-        Task<bool> UpdateCustomerAsync(string id, UpdateCustomerDto updateDto);
+        Task<bool> UpdateCustomerAsync(string id, CustomerUpdateDto customerUpdateDto);
         Task<bool> ToggleCustomerStatusAsync(string id);
         Task<byte[]> ExportCustomersAsync(CustomerFilterDto filter);
         Task<bool> DeleteCustomerAsync(string id);

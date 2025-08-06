@@ -3,6 +3,7 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.Feature;
 
@@ -29,7 +30,7 @@ namespace Adidas.Application.Services.Feature
         }
         public async Task<List<CouponDto>> GetAllCouponsAsync()
         {
-            var coupons = await _couponRepository.GetAllAsync();
+            var coupons = await _couponRepository.GetAll().ToListAsync();
 
             var result = coupons.Select(c => new CouponDto
             {
@@ -132,7 +133,9 @@ namespace Adidas.Application.Services.Feature
                     DiscountType = coupon.DiscountType,
                     DiscountAmount = discountAmount,
                     OriginalAmount = orderAmount,
-                    FinalAmount = finalAmount
+                    FinalAmount = finalAmount,
+                    ValidFrom = coupon.ValidFrom,
+                    ValidTo = coupon.ValidTo
                 });
             }
             catch (Exception ex)

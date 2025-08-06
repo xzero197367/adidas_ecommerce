@@ -23,7 +23,7 @@ namespace Adidas.Application.Services.Feature
              _mapper = mapper;
         }
 
-        public async Task<ShoppingCartItemDto> AddToCartAsync(ShoppingCartCreateDto addCreateDto)
+        public async Task<ShoppingCartDto> AddToCartAsync(ShoppingCartCreateDto addCreateDto)
         {
             var existingItem = await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
 
@@ -44,7 +44,7 @@ namespace Adidas.Application.Services.Feature
             }
 
             var updatedItem = await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
-           return _mapper.Map<ShoppingCartItemDto>(updatedItem);
+           return _mapper.Map<ShoppingCartDto>(updatedItem);
         }
 
         public async Task<bool> ClearCartAsync(string userId)
@@ -74,18 +74,18 @@ namespace Adidas.Application.Services.Feature
             return await _cartRepository.ClearCartAsync(fromUserId);
         }
 
-        public async Task<IEnumerable<ShoppingCartItemDto>> GetCartItemsByUserIdAsync(string userId)
+        public async Task<IEnumerable<ShoppingCartDto>> GetCartItemsByUserIdAsync(string userId)
         {
             var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            return _mapper.Map<IEnumerable<ShoppingCartItemDto>>(items);
+            return _mapper.Map<IEnumerable<ShoppingCartDto>>(items);
         }
 
-        public async Task<CartSummaryDto> GetCartSummaryAsync(string userId)
+        public async Task<ShoppingCartSummaryDto> GetCartSummaryAsync(string userId)
         {
             var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            var dtoItems = _mapper.Map<IEnumerable<ShoppingCartItemDto>>(items);
+            var dtoItems = _mapper.Map<IEnumerable<ShoppingCartDto>>(items);
 
-            var summary = new CartSummaryDto
+            var summary = new ShoppingCartSummaryDto
             {
                 UserId = userId,
                 Items = dtoItems,
@@ -138,25 +138,25 @@ namespace Adidas.Application.Services.Feature
             return items.All(i => i.Variant.StockQuantity >= i.Quantity);
         }
 
-        public async Task<IEnumerable<ShoppingCartItemDto>> GetUnavailableItemsAsync(string userId)
+        public async Task<IEnumerable<ShoppingCartDto>> GetUnavailableItemsAsync(string userId)
         {
             var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
             var unavailable = items.Where(i => i.Variant.StockQuantity < i.Quantity);
-            return _mapper.Map<IEnumerable<ShoppingCartItemDto>>(unavailable);
+            return _mapper.Map<IEnumerable<ShoppingCartDto>>(unavailable);
         }
 
-        public async Task<ShoppingCartItemDto> UpdateCartItemQuantityAsync(ShoppingChartUpdateDto shoppingChartUpdateDto)
+        public async Task<ShoppingCartDto> UpdateCartItemQuantityAsync(ShoppingCartUpdateDto shoppingCartUpdateDto)
         {
-            var item = await _cartRepository.GetCartItemAsync(shoppingChartUpdateDto.UserId, shoppingChartUpdateDto.ProductVariantId);
+            var item = await _cartRepository.GetCartItemAsync(shoppingCartUpdateDto.UserId, shoppingCartUpdateDto.ProductVariantId);
             if (item == null) return null;
 
-            item.Quantity = shoppingChartUpdateDto.Quantity;
+            item.Quantity = shoppingCartUpdateDto.Quantity;
             await _cartRepository.UpdateAsync(item);
 
-            return _mapper.Map<ShoppingCartItemDto>(item);
+            return _mapper.Map<ShoppingCartDto>(item);
         }
 
-        public async Task<CartSummaryDto> GetCartSummaryWithTaxAsync(string userId, string? shippingAddress = null)
+        public async Task<ShoppingCartSummaryDto> GetCartSummaryWithTaxAsync(string userId, string? shippingAddress = null)
         {
             var summary = await GetCartSummaryAsync(userId);
             summary.TaxAmount = summary.Subtotal * 0.15m;

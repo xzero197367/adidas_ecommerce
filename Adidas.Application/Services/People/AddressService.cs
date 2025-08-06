@@ -8,7 +8,7 @@ using Models.People;
 
 namespace Adidas.Application.Services.People;
 
-public class AddressService : GenericService<Address, AddressDto, CreateAddressDto, UpdateAddressDto>, IAddressService
+public class AddressService : GenericService<Address, AddressDto, AddressCreateDto, AddressUpdateDto>, IAddressService
 {
     public AddressService(IGenericRepository<Address> repository, IMapper mapper, ILogger logger) : base(repository,
         mapper, logger)
@@ -41,7 +41,7 @@ public class AddressService : GenericService<Address, AddressDto, CreateAddressD
         return _mapper.Map<AddressDto>(updatedAddress.Entity);
     }
 
-    public Task<bool> ValidateAddressAsync(CreateAddressDto addressDto)
+    public Task<bool> ValidateAddressAsync(AddressCreateDto dto)
     {
         throw new NotImplementedException();
     }
