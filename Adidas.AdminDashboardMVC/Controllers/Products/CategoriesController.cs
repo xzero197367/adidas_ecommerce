@@ -104,8 +104,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         // POST: /Category/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UpdateCategoryDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Edit(UpdateCategoryDto model, IFormFile? ImageFile)
         {
+         
             if (!ModelState.IsValid)
             {
                 ViewBag.CategoryId = model.Id;

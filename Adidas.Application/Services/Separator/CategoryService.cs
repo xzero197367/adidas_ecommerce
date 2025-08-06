@@ -192,17 +192,18 @@ namespace Adidas.Application.Services.Separator
             var category = await _categoryRepository.GetByIdAsync(dto.Id);
             if (category == null)
                 return Result.Failure("Category not found.");
-
-            // Check for slug uniqueness
+            var nameExists = await _categoryRepository.GetCategoryByNameAsync(dto.Name);
+            if (nameExists != null && nameExists.Id != category.Id)
+                return Result.Failure("name is already exists.");
+ 
             var slugExists = await _categoryRepository.GetCategoryBySlugAsync(dto.Slug);
-            if (slugExists != null && dto.Id != category.Id)
+            if (slugExists != null && slugExists.Id != category.Id)
                 return Result.Failure("Slug already exists.");
 
             category.Name = dto.Name;
             category.Slug = dto.Slug;
             category.Description = dto.Description;
             category.ImageUrl = dto.ImageUrl ?? category.ImageUrl; // retain if not changed
-            category.SortOrder = dto.SortOrder;
             category.ParentCategoryId = dto.ParentCategoryId;
 
             await _categoryRepository.UpdateAsync(category);
