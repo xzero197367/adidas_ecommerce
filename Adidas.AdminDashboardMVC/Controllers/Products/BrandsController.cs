@@ -16,11 +16,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+   
+        public async Task<IActionResult> Index(string statusFilter, string searchTerm)
         {
-            var brands = await _brandService.GetActiveBrandsAsync();
+            var brands = await _brandService.GetFilteredBrandsAsync(statusFilter,searchTerm);
 
+            ViewData["CurrentStatus"] = statusFilter;
+            ViewData["SearchTerm"] = searchTerm;
             return View(brands);
         }
 

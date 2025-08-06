@@ -167,8 +167,38 @@ namespace Adidas.Application.Services.Separator
 
             return brandDto;
         }
- 
-    
+
+        public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
+        {
+            var brands = await _brandRepository.GetAllAsync();
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                bool isActive = statusFilter == "Active";
+                brands = brands.Where(c => c.IsActive == isActive).ToList();
+            }
+
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                brands = brands.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+            var brandDtos = brands.Select(b => new BrandDto
+            {
+
+                Id = b.Id,
+                UpdatedAt = b.UpdatedAt,
+                IsActive = b.IsActive,
+
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+            }).ToList();
+
+            return brandDtos;
+        }
+
     }
 }
  //#region Generic Service Overrides
