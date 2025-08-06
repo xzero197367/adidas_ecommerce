@@ -1,21 +1,22 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts;
+using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.ServicesContracts.Main;
-using Adidas.DTOs.Main.ProductAttributeDTOs;
 using Adidas.Models.Main;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Main
 {
-    public class ProductAttributeService : GenericService<ProductAttribute, ProductAttributeDto, ProductAttributeCreateDto, ProductAttributeUpdateDto>, IProductAttributeService
+    public class ProductAttributeService :  IProductAttributeService
     {
-        private readonly IGenericRepository<ProductAttribute> _repository;
+        private readonly IProductAttributeRepository _repository;
+        private readonly ILogger _logger;
 
-        public ProductAttributeService(IGenericRepository<ProductAttribute> repository, IMapper mapper, ILogger logger)
-            : base(repository, mapper, logger)
+        public ProductAttributeService(IProductAttributeRepository repository,  ILogger logger)
+           
         {
             _repository = repository;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<ProductAttribute>> GetFilterableAttributesAsync()

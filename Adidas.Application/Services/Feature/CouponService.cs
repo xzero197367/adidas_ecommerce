@@ -2,7 +2,7 @@
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.Feature;
@@ -12,42 +12,21 @@ namespace Adidas.Application.Services.Feature
     public class CouponService : ICouponService
     {
         private readonly ICouponRepository _couponRepository;
-
-        // private readonly IOrderCouponRepository _orderCouponRepository;
-        public readonly IMapper _mapper;
         public readonly ILogger _logger;
 
         public CouponService(
             // IOrderCouponRepository orderCouponRepository,
             ICouponRepository couponRepository,
-            IMapper mapper,
             ILogger<CouponService> logger)
         {
             _couponRepository = couponRepository;
             // _orderCouponRepository = orderCouponRepository;
             _logger = logger;
-            _mapper = mapper;
         }
-        public async Task<List<CouponDto>> GetAllCouponsAsync()
+        public async Task<OperationResult<IEnumerable<CouponDto>>> GetAllCouponsAsync()
         {
             var coupons = await _couponRepository.GetAll().ToListAsync();
-
-            var result = coupons.Select(c => new CouponDto
-            {
-                Id = c.Id,
-                Code = c.Code,
-                Name = c.Name,
-                DiscountType = c.DiscountType,
-                DiscountValue = c.DiscountValue,
-                MinimumAmount = c.MinimumAmount,
-                ValidFrom = c.ValidFrom,
-                ValidTo = c.ValidTo,
-                UsageLimit = c.UsageLimit,
-                UsedCount = c.UsedCount,
-                IsActive = c.IsActive,
-            }).ToList();
-
-            return result;
+            return OperationResult<IEnumerable<CouponDto>>.Success(coupons.Adapt<IEnumerable<CouponDto>>());
         }
 
         public async Task<OperationResult<CouponDto>> GetCouponByCodeAsync(string code)
@@ -61,7 +40,7 @@ namespace Adidas.Application.Services.Feature
                     return OperationResult<CouponDto>.Fail("Invalid coupon code");
                 }
 
-                return OperationResult<CouponDto>.Success(_mapper.Map<CouponDto>(coupon));
+                return OperationResult<CouponDto>.Success(coupon.Adapt<CouponDto>());
             }
             catch (Exception ex)
             {
@@ -81,7 +60,7 @@ namespace Adidas.Application.Services.Feature
                     return OperationResult<IEnumerable<CouponDto>>.Fail("No active coupons found");
                 }
 
-                return OperationResult<IEnumerable<CouponDto>>.Success(_mapper.Map<IEnumerable<CouponDto>>(coupons));
+                return OperationResult<IEnumerable<CouponDto>>.Success(coupons.Adapt<IEnumerable<CouponDto>>());
             }
             catch (Exception ex)
             {

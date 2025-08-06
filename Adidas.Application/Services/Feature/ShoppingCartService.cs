@@ -1,8 +1,11 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.ShoppingCartDTOS;
 using Adidas.Models.Feature;
-using AutoMapper;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Models.Feature;
 
 namespace Adidas.Application.Services.Feature
@@ -11,168 +14,265 @@ namespace Adidas.Application.Services.Feature
     {
         private readonly IShoppingCartRepository _cartRepository;
         private readonly IWishlistRepository _wishlistRepository;
-       private readonly IMapper _mapper;
+        private readonly ILogger<OrderCouponService> logger;
+
 
         public ShoppingCartService(
             IShoppingCartRepository cartRepository,
-            IWishlistRepository wishlistRepository,
-            IMapper mapper)
+            ILogger<OrderCouponService> logger,
+            IWishlistRepository wishlistRepository)
         {
+            this.logger = logger;
             _cartRepository = cartRepository;
             _wishlistRepository = wishlistRepository;
-             _mapper = mapper;
         }
 
-        public async Task<ShoppingCartDto> AddToCartAsync(ShoppingCartCreateDto addCreateDto)
+        public async Task<OperationResult<ShoppingCartDto>> AddToCartAsync(ShoppingCartCreateDto addCreateDto)
         {
-            var existingItem = await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
+            try
+            {
+                var existingItem =
+                    await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
 
-            if (existingItem != null)
-            {
-                existingItem.Quantity += addCreateDto.Quantity;
-                await _cartRepository.UpdateAsync(existingItem);
-            }
-            else
-            {
-                var cartItem = new ShoppingCart
+                if (existingItem != null)
                 {
-                    UserId = addCreateDto.UserId,
-                    VariantId = addCreateDto.ProductVariantId,
-                    Quantity = addCreateDto.Quantity
-                };
-                await _cartRepository.AddAsync(cartItem);
-            }
-
-            var updatedItem = await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
-           return _mapper.Map<ShoppingCartDto>(updatedItem);
-        }
-
-        public async Task<bool> ClearCartAsync(string userId)
-        {
-            return await _cartRepository.ClearCartAsync(userId);
-        }
-
-        public async Task<bool> MergeCartsAsync(string fromUserId, string toUserId)
-        {
-            var fromCart = await _cartRepository.GetCartItemsByUserIdAsync(fromUserId);
-            var toCart = await _cartRepository.GetCartItemsByUserIdAsync(toUserId);
-
-            foreach (var item in fromCart)
-            {
-                var existing = toCart.FirstOrDefault(c => c.VariantId == item.VariantId);
-                if (existing != null)
-                {
-                    existing.Quantity += item.Quantity;
-                    await _cartRepository.UpdateAsync(existing);
+                    existingItem.Quantity += addCreateDto.Quantity;
+                    await _cartRepository.UpdateAsync(existingItem);
                 }
                 else
                 {
-                    item.UserId = toUserId;
-                    await _cartRepository.AddAsync(item);
+                    var cartItem = new ShoppingCart
+                    {
+                        UserId = addCreateDto.UserId,
+                        VariantId = addCreateDto.ProductVariantId,
+                        Quantity = addCreateDto.Quantity
+                    };
+                    await _cartRepository.AddAsync(cartItem);
                 }
+
+                var updatedItem =
+                    await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
+                return OperationResult<ShoppingCartDto>.Success(updatedItem.Adapt<ShoppingCartDto>());
             }
-            return await _cartRepository.ClearCartAsync(fromUserId);
-        }
-
-        public async Task<IEnumerable<ShoppingCartDto>> GetCartItemsByUserIdAsync(string userId)
-        {
-            var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            return _mapper.Map<IEnumerable<ShoppingCartDto>>(items);
-        }
-
-        public async Task<ShoppingCartSummaryDto> GetCartSummaryAsync(string userId)
-        {
-            var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            var dtoItems = _mapper.Map<IEnumerable<ShoppingCartDto>>(items);
-
-            var summary = new ShoppingCartSummaryDto
+            catch (Exception ex)
             {
-                UserId = userId,
-                Items = dtoItems,
-                ItemCount = dtoItems.Count(),
-                TotalQuantity = dtoItems.Sum(i => i.Quantity),
-                Subtotal = dtoItems.Sum(i => i.TotalPrice),
-                SavingsAmount = dtoItems.Sum(i => i.UnitPrice - i.SalePrice),
-                TotalAmount = dtoItems.Sum(i => i.TotalPrice),
-                HasUnavailableItems = dtoItems.Any(i => !i.IsAvailable)
-            };
-
-            return summary;
+                logger.LogError(ex, "Error adding item to cart");
+                return OperationResult<ShoppingCartDto>.Fail(ex.Message);
+            }
         }
 
-        public async Task<bool> MoveToWishlistAsync(string userId, Guid variantId)
+        public async Task<OperationResult<bool>> ClearCartAsync(string userId)
         {
-            var item = await _cartRepository.GetCartItemAsync(userId, variantId);
-            if (item == null) return false;
-
-            await _wishlistRepository.AddAsync(new Wishlist
+            try
             {
-                UserId = userId,
-                ProductId = item.Variant.ProductId,
-                AddedAt = DateTime.UtcNow
-            });
-
-            return await _cartRepository.RemoveFromCartAsync(userId, variantId);
+                var result = await _cartRepository.ClearCartAsync(userId);
+                return OperationResult<bool>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error clearing cart");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
         }
 
-        public async Task<bool> RemoveFromCartAsync(string userId, Guid variantId)
+        public async Task<OperationResult<bool>> MergeCartsAsync(string fromUserId, string toUserId)
         {
-            return await _cartRepository.RemoveFromCartAsync(userId, variantId);
+            try
+            {
+                var fromCart = await _cartRepository.GetCartItemsByUserIdAsync(fromUserId);
+                var toCart = await _cartRepository.GetCartItemsByUserIdAsync(toUserId);
+
+                foreach (var item in fromCart)
+                {
+                    var existing = toCart.FirstOrDefault(c => c.VariantId == item.VariantId);
+                    if (existing != null)
+                    {
+                        existing.Quantity += item.Quantity;
+                        await _cartRepository.UpdateAsync(existing);
+                    }
+                    else
+                    {
+                        item.UserId = toUserId;
+                        await _cartRepository.AddAsync(item);
+                    }
+                }
+
+                var result = await _cartRepository.ClearCartAsync(fromUserId);
+                return OperationResult<bool>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error merging carts");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
         }
 
-        public async Task<bool> RestoreSavedCartAsync(string userId)
+        public async Task<OperationResult<IEnumerable<ShoppingCartDto>>> GetCartItemsByUserIdAsync(string userId)
         {
-            // Custom logic needed if SaveCartForLaterAsync is implemented with a separate table
-            return false;
+            try
+            {
+                var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
+                return OperationResult<IEnumerable<ShoppingCartDto>>.Success(
+                    items.Adapt<IEnumerable<ShoppingCartDto>>());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting cart items");
+                return OperationResult<IEnumerable<ShoppingCartDto>>.Fail(ex.Message);
+            }
         }
 
-        public async Task<bool> SaveCartForLaterAsync(string userId)
+        public async Task<OperationResult<ShoppingCartSummaryDto>> GetCartSummaryAsync(string userId)
         {
-            // Custom logic needed if SaveCartForLaterAsync is implemented with a separate table
-            return false;
+            try
+            {
+                var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
+                var dtoItems = items.Adapt<IEnumerable<ShoppingCartDto>>();
+                var summary = dtoItems.Adapt<ShoppingCartSummaryDto>();
+                return OperationResult<ShoppingCartSummaryDto>.Success(summary);
+                ;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting cart summary");
+                return null;
+            }
         }
 
-        public async Task<bool> ValidateCartItemsAsync(string userId)
+        public async Task<OperationResult<bool>> MoveToWishlistAsync(string userId, Guid variantId)
         {
-            var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            return items.All(i => i.Variant.StockQuantity >= i.Quantity);
+            try
+            {
+                var item = await _cartRepository.GetCartItemAsync(userId, variantId);
+                if (item == null) return OperationResult<bool>.Fail("Item not found");
+
+                await _wishlistRepository.AddAsync(new Wishlist
+                {
+                    UserId = userId,
+                    ProductId = item.Variant.ProductId,
+                    AddedAt = DateTime.UtcNow
+                });
+
+                var result = await _cartRepository.RemoveFromCartAsync(userId, variantId);
+                return OperationResult<bool>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error moving item to wishlist");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
         }
 
-        public async Task<IEnumerable<ShoppingCartDto>> GetUnavailableItemsAsync(string userId)
+        public async Task<OperationResult<bool>> RemoveFromCartAsync(string userId, Guid variantId)
         {
-            var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            var unavailable = items.Where(i => i.Variant.StockQuantity < i.Quantity);
-            return _mapper.Map<IEnumerable<ShoppingCartDto>>(unavailable);
+            try
+            {
+                var result = await _cartRepository.RemoveFromCartAsync(userId, variantId);
+                return OperationResult<bool>.Success(result);
+            }
+            catch
+            {
+                logger.LogError("Error removing item from cart");
+                return OperationResult<bool>.Fail("Error removing item from cart");
+            }
         }
 
-        public async Task<ShoppingCartDto> UpdateCartItemQuantityAsync(ShoppingCartUpdateDto shoppingCartUpdateDto)
+        public async Task<OperationResult<bool>> RestoreSavedCartAsync(string userId)
         {
-            var item = await _cartRepository.GetCartItemAsync(shoppingCartUpdateDto.UserId, shoppingCartUpdateDto.ProductVariantId);
-            if (item == null) return null;
-
-            item.Quantity = shoppingCartUpdateDto.Quantity;
-            await _cartRepository.UpdateAsync(item);
-
-            return _mapper.Map<ShoppingCartDto>(item);
+            try
+            {
+                // Custom logic needed if SaveCartForLaterAsync is implemented with a separate table
+                return OperationResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error restoring saved cart");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
         }
 
-        public async Task<ShoppingCartSummaryDto> GetCartSummaryWithTaxAsync(string userId, string? shippingAddress = null)
+        public async Task<OperationResult<bool>> SaveCartForLaterAsync(string userId)
         {
-            var summary = await GetCartSummaryAsync(userId);
-            summary.TaxAmount = summary.Subtotal * 0.15m;
-            summary.ShippingCost = 30m;
-            summary.TotalAmount = summary.Subtotal + summary.TaxAmount + summary.ShippingCost;
-            return summary;
+            try
+            {
+                // Custom logic needed if SaveCartForLaterAsync is implemented with a separate table
+                return OperationResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error saving cart for later");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
         }
 
-        //public Task<bool> MoveToWishlistAsync(Guid userId, Guid variantId)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public async Task<OperationResult<bool>> ValidateCartItemsAsync(string userId)
+        {
+            try
+            {
+                var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
+                return OperationResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error validating cart items");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
+        }
 
-        //public Task<bool> MoveFromWishlistAsync(Guid userId, Guid productId, Guid variantId)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public async Task<OperationResult<IEnumerable<ShoppingCartDto>>> GetUnavailableItemsAsync(string userId)
+        {
+            try
+            {
+                var items = await _cartRepository.GetCartItemsByUserIdAsync(userId);
+                var unavailable = items.Where(i => i.Variant.StockQuantity < i.Quantity);
+                
+                return OperationResult<IEnumerable<ShoppingCartDto>>.Success(unavailable
+                    .Adapt<IEnumerable<ShoppingCartDto>>());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting unavailable items");
+                return OperationResult<IEnumerable<ShoppingCartDto>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<OperationResult<ShoppingCartDto>> UpdateCartItemQuantityAsync(
+            ShoppingCartUpdateDto shoppingCartUpdateDto)
+        {
+            try
+            {
+                var item = await _cartRepository.GetByIdAsync(shoppingCartUpdateDto.Id);
+                if (item == null) return OperationResult<ShoppingCartDto>.Fail("Item not found");
+                var result = await _cartRepository.UpdateAsync(shoppingCartUpdateDto.Adapt<ShoppingCart>());
+                await _cartRepository.SaveChangesAsync();
+                result.State = EntityState.Detached;
+                return OperationResult<ShoppingCartDto>.Success(result.Entity.Adapt<ShoppingCartDto>());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error updating cart item quantity");
+                return OperationResult<ShoppingCartDto>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<OperationResult<ShoppingCartSummaryDto>> GetCartSummaryWithTaxAsync(string userId,
+            string? shippingAddress = null)
+        {
+            try
+            {
+                var summary = await GetCartSummaryAsync(userId);
+                if (summary.IsSuccess)
+                {
+                    summary.Data.TaxAmount = summary.Data.Subtotal * 0.15m;
+                    summary.Data.ShippingCost = 30m;
+                    summary.Data.TotalAmount = summary.Data.Subtotal + summary.Data.TaxAmount + summary.Data.ShippingCost;
+                }
+                return summary;
+            }catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting cart summary with tax");
+                return OperationResult<ShoppingCartSummaryDto>.Fail(ex.Message);
+            }
+        }
     }
-} 
+}

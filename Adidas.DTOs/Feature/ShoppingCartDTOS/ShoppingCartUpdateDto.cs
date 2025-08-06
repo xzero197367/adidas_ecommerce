@@ -5,5 +5,6 @@ namespace Adidas.DTOs.Feature.ShoppingCartDTOS
     {
         public Guid Id;
         public int? Quantity { get; set; }
+        public Guid? VariantId { get; set; }
     }
 }

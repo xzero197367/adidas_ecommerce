@@ -35,6 +35,7 @@ using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Services.Operation;
 using Adidas.Infrastructure.Repositories;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.Application.Mapping;
 using Adidas.Application.Services.Separator;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,9 +104,6 @@ builder.Services.AddAuthorization(options =>
 
 #region 5. MVC
 builder.Services.AddControllersWithViews();
-builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
-//builder.Services.AddAutoMapper(typeof(MappingProfiles));
-//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
 
@@ -120,12 +118,8 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 
 #endregion
 
-#region 6. AutoMapper Configuration (v12+)
-builder.Services.AddAutoMapper(
-    typeof(MappingProfiles).Assembly,
-    typeof(CouponMappingProfile).Assembly
-);
-
+#region 6. Mapster Configuration (v12+)
+MapsterConfig.Configure();
 #endregion
 
 #region 7. Application Services & Repositories

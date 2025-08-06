@@ -1,6 +1,8 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
-using AutoMapper;
+using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.Feature.OrderCouponDTOs;
+using Mapster;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Feature
@@ -8,50 +10,86 @@ namespace Adidas.Application.Services.Feature
     public class OrderCouponService : IOrderCouponService
     {
         private readonly IOrderCouponRepository repository;
-        private readonly IMapper mapper;
         private readonly ILogger<OrderCouponService> logger;
 
         public OrderCouponService(
             IOrderCouponRepository repository,
-            IMapper mapper,
             ILogger<OrderCouponService> logger)
         {
             this.repository = repository;
-            this.mapper = mapper;
             this.logger = logger;
         }
-        
-        
-        public async Task<IEnumerable<OrderCouponDto>> GetByOrderIdAsync(Guid orderId)
+
+
+        public async Task<OperationResult<IEnumerable<OrderCouponDto>>> GetByOrderIdAsync(Guid orderId)
         {
-            var orderCoupons = await repository.GetByOrderIdAsync(orderId);
-            return mapper.Map<IEnumerable<OrderCouponDto>>(orderCoupons);
+            try
+            {
+                var orderCoupons = await repository.GetByOrderIdAsync(orderId);
+                return OperationResult<IEnumerable<OrderCouponDto>>.Success(orderCoupons
+                    .Adapt<IEnumerable<OrderCouponDto>>());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting entity by id {Id} with includes", orderId);
+                return OperationResult<IEnumerable<OrderCouponDto>>.Fail("Error getting entity by id");
+            }
         }
 
-        public async Task<OrderCouponDto?> GetByOrderAndCouponIdAsync(Guid orderId, Guid couponId)
+        public async Task<OperationResult<OrderCouponDto>> GetByOrderAndCouponIdAsync(Guid orderId, Guid couponId)
         {
-            var orderCoupon = await repository.GetByOrderAndCouponIdAsync(orderId, couponId);
-            if(orderCoupon == null) return null;
-            return mapper.Map<OrderCouponDto>(orderCoupon);
+            try
+            {
+                var orderCoupon = await repository.GetByOrderAndCouponIdAsync(orderId, couponId);
+                if (orderCoupon == null) return OperationResult<OrderCouponDto>.Fail("OrderCoupon not found");
+                return OperationResult<OrderCouponDto>.Success(orderCoupon.Adapt<OrderCouponDto>());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting entity by id {Id} with includes", orderId);
+                return OperationResult<OrderCouponDto>.Fail("Error getting entity by id");
+            }
         }
-        
-        public async Task<decimal> GetTotalDiscountAppliedByCouponAsync(Guid couponId)
+
+        public async Task<OperationResult<decimal>> GetTotalDiscountAppliedByCouponAsync(Guid couponId)
         {
-            var totalDiscount = await repository.GetTotalDiscountAppliedByCouponAsync(couponId);
-            return totalDiscount;
+            try
+            {
+                var totalDiscount = await repository.GetTotalDiscountAppliedByCouponAsync(couponId);
+                return OperationResult<decimal>.Success(totalDiscount);
+            }catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting entity by id {Id} with includes", couponId);
+                return OperationResult<decimal>.Fail("Error getting entity by id");
+            }
         }
-        
-        public async Task<int> GetCouponUsageCountAsync(Guid couponId)
+
+        public async Task<OperationResult<int>> GetCouponUsageCountAsync(Guid couponId)
         {
-            var usageCount = await repository.GetCouponUsageCountAsync(couponId);
-            return usageCount;
+            try
+            {
+                var usageCount = await repository.GetCouponUsageCountAsync(couponId);
+                return OperationResult<int>.Success(usageCount);
+            }catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting entity by id {Id} with includes", couponId);
+                return OperationResult<int>.Fail("Error getting entity by id");
+            }
         }
-        
-        public async Task<IEnumerable<OrderCouponDto>> GetWithIncludesAsync()
+
+        public async Task<OperationResult<IEnumerable<OrderCouponDto>>> GetWithIncludesAsync()
         {
-            var orderCoupons = await repository.GetWithIncludesAsync();
-            return mapper.Map<IEnumerable<OrderCouponDto>>(orderCoupons);
+            try
+            {
+                var orderCoupons = await repository.GetWithIncludesAsync();
+                return OperationResult<IEnumerable<OrderCouponDto>>.Success(orderCoupons
+                    .Adapt<IEnumerable<OrderCouponDto>>());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting entity by id {Id} with includes");
+                return OperationResult<IEnumerable<OrderCouponDto>>.Fail("Error getting entity by id");
+            }
         }
-     
     }
 }

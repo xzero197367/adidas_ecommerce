@@ -3,7 +3,7 @@ using Adidas.Application.Contracts.RepositoriesContracts;
 using Adidas.Application.Contracts.ServicesContracts;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.Models;
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -17,13 +17,11 @@ namespace Adidas.Application.Services
         where TUpdateDto : class
     {
         public readonly IGenericRepository<TEntity> _repository;
-        public readonly IMapper _mapper;
         public readonly ILogger _logger;
 
-        public GenericService(IGenericRepository<TEntity> repository, IMapper mapper, ILogger logger)
+        public GenericService(IGenericRepository<TEntity> repository, ILogger logger)
         {
             _repository = repository;
-            _mapper = mapper;
             _logger = logger;
         }
 
@@ -37,7 +35,7 @@ namespace Adidas.Application.Services
                 if (entity == null)
                     return OperationResult<TDto>.Fail("Entity not found");
 
-                return OperationResult<TDto>.Success(_mapper.Map<TDto>(entity));
+                return OperationResult<TDto>.Success(entity.Adapt<TDto>());
             }
             catch (Exception ex)
             {
@@ -52,7 +50,7 @@ namespace Adidas.Application.Services
             try
             {
                 var entities = await _repository.GetAll(queryFunc).ToListAsync();
-                return OperationResult<IEnumerable<TDto>>.Success(_mapper.Map<IEnumerable<TDto>>(entities));
+                return OperationResult<IEnumerable<TDto>>.Success(entities.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {
@@ -68,7 +66,7 @@ namespace Adidas.Application.Services
             try
             {
                 var entities = await _repository.FindAsync(queryFunc);
-                return OperationResult<IEnumerable<TDto>>.Success(_mapper.Map<IEnumerable<TDto>>(entities));
+                return OperationResult<IEnumerable<TDto>>.Success(entities.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {
@@ -86,7 +84,7 @@ namespace Adidas.Application.Services
 
                 return OperationResult<PagedResultDto<TDto>>.Success(new PagedResultDto<TDto>
                 {
-                    Items = _mapper.Map<IEnumerable<TDto>>(items),
+                    Items = items.Adapt<IEnumerable<TDto>>(),
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
@@ -135,7 +133,7 @@ namespace Adidas.Application.Services
             {
                 await ValidateCreateAsync(createDto);
 
-                var entity = _mapper.Map<TEntity>(createDto);
+                var entity = createDto.Adapt<TEntity>();
                 await BeforeCreateAsync(entity);
 
                 var createdEntityEntry = await _repository.AddAsync(entity);
@@ -143,7 +141,7 @@ namespace Adidas.Application.Services
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
                 await AfterCreateAsync(createdEntity);
 
-                return OperationResult<TDto>.Success(_mapper.Map<TDto>(createdEntity));
+                return OperationResult<TDto>.Success(createdEntity.Adapt<TDto>());
             }
             catch (Exception ex)
             {
@@ -163,7 +161,7 @@ namespace Adidas.Application.Services
                     await ValidateCreateAsync(createDto);
                 }
 
-                var entities = _mapper.Map<IEnumerable<TEntity>>(createDtoList);
+                var entities = createDtoList.Adapt<IEnumerable<TEntity>>();
                 var entityList = entities.ToList();
 
                 foreach (var entity in entityList)
@@ -187,7 +185,7 @@ namespace Adidas.Application.Services
                     await AfterCreateAsync(createdEntity);
                 }
 
-                return OperationResult<IEnumerable<TDto>>.Success(_mapper.Map<IEnumerable<TDto>>(createdEntityList));
+                return OperationResult<IEnumerable<TDto>>.Success(createdEntityList.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {
@@ -206,7 +204,7 @@ namespace Adidas.Application.Services
 
                 await ValidateUpdateAsync(id, updateDto);
 
-                _mapper.Map(updateDto, existingEntity);
+                existingEntity = existingEntity.Adapt<TEntity>();
                 await BeforeUpdateAsync(existingEntity);
 
                 var updatedEntityEntry = await _repository.UpdateAsync(existingEntity);
@@ -216,7 +214,7 @@ namespace Adidas.Application.Services
                 updatedEntityEntry.State = EntityState.Detached;
                 await AfterUpdateAsync(updatedEntity);
 
-                return OperationResult<TDto>.Success(_mapper.Map<TDto>(updatedEntity));
+                return OperationResult<TDto>.Success(updatedEntity.Adapt<TDto>());
             }
             catch (Exception ex)
             {
@@ -240,7 +238,8 @@ namespace Adidas.Application.Services
                         throw new KeyNotFoundException($"Entity with id {update.Key} not found");
 
                     await ValidateUpdateAsync(update.Key, update.Value);
-                    _mapper.Map(update.Value, existingEntity);
+                    existingEntity = existingEntity.Adapt<TEntity>();
+                    // _mapper.Map(update.Value, existingEntity);
                     await BeforeUpdateAsync(existingEntity);
                     entities.Add(existingEntity);
                 }
@@ -262,7 +261,7 @@ namespace Adidas.Application.Services
                     await AfterUpdateAsync(updatedEntity);
                 }
 
-                return OperationResult<IEnumerable<TDto>>.Success(_mapper.Map<IEnumerable<TDto>>(updatedEntityList));
+                return OperationResult<IEnumerable<TDto>>.Success(updatedEntityList.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {

@@ -4,6 +4,7 @@ using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.DTOs.Static;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
 {
@@ -99,7 +100,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
         {
             try
             {
-                var recentOrders = await _orderRepository.GetAllAsync();
+                var recentOrders = await _orderRepository.GetAll().ToListAsync();
                 var orderDtos = recentOrders.Select(o => new RecentOrderDto
                 {
                     OrderId = o.Id,

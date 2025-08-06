@@ -10,6 +10,7 @@ namespace Adidas.DTOs.Feature.ShoppingCartDTOS
         public decimal TaxAmount { get; set; }
         public decimal ShippingCost { get; set; }
         public decimal TotalAmount { get; set; }
+        
         public decimal SavingsAmount { get; set; }
         public bool HasUnavailableItems { get; set; }
         public IEnumerable<ShoppingCartDto> Items { get; set; }

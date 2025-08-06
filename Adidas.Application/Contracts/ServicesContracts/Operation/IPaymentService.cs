@@ -1,14 +1,6 @@
-﻿using Adidas.DTOs.Operation.PaymentDTOs.Create;
-using Adidas.DTOs.Operation.PaymentDTOs.Query;
-using Adidas.DTOs.Operation.PaymentDTOs.Result;
-using Adidas.DTOs.Operation.PaymentDTOs.Statistics;
-using Adidas.DTOs.Operation.PaymentDTOs.Update;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Adidas.DTOs.Common_DTOs;
+﻿
+
+using Adidas.DTOs.Operation.PaymentDTOs;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {
