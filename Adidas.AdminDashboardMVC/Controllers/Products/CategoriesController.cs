@@ -1,5 +1,4 @@
-﻿using Adidas.AdminDashboardMVC.ViewModels.Category;
-using Adidas.Application.Contracts.ServicesContracts.Separator;
+﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -155,7 +154,22 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ToggleStatus(Guid id)
+        {
+            var result = await _categoryService.ToggleCategoryStatusAsync(id);
 
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Category status updated successfully.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
 
         private async Task PopulateParentCategoriesDropdown()
         {
