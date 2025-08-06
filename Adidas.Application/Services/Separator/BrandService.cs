@@ -149,24 +149,36 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<BrandDto?> GetDetailsByIdAsync(Guid id)
         {
-            var brand = await _brandRepository.GetByIdAsync(id);
+            var brand = await _brandRepository.GetByIdAsync(id, b => b.Products);
 
             if (brand == null)
-            {
                 return null;
-            }
 
-          var brandDto = new BrandDto
+            var brandDto = new BrandDto
             {
                 Id = brand.Id,
                 IsActive = brand.IsActive,
                 Name = brand.Name,
                 Description = brand.Description,
                 LogoUrl = brand.LogoUrl,
+                Products = brand.Products.Select(product => new ProductDto
+                {
+                    Id = product.Id,
+                    IsActive= product.IsActive,
+                    Name = product.Name,
+                    Description = product.Description,
+                    ShortDescription = product.ShortDescription,
+                    Sku = product.Sku,
+                    Price = product.Price,
+                    SalePrice = product.SalePrice,
+                    GenderTarget = product.GenderTarget,
+                    MetaDescription = product.MetaDescription
+                }).ToList()
             };
 
             return brandDto;
         }
+
 
         public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
         {
