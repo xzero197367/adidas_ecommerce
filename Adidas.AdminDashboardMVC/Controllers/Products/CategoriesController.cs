@@ -200,16 +200,31 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 TempData["Success"] = "Category deleted successfully!";
             }
+            var referer = Request.Headers["Referer"].ToString();
+           
+            if (!string.IsNullOrEmpty(referer))
+            {
+                return Redirect(referer);
+            }
+
 
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Details(Guid id)
         {
+            var referer = Request.Headers["Referer"].ToString();
             if (id == Guid.Empty)
             {
                 TempData["ErrorMessage"] = "Invalid category ID provided.";
-                return RedirectToAction(nameof(Index));
+               
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    return Redirect(referer);
+                }
+
+                return RedirectToAction($"{nameof(Index)}");
+
             }
 
             try
@@ -219,8 +234,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 if (categoryDto == null)
                 {
                     TempData["ErrorMessage"] = $"Category with ID '{id}' not found.";
-                    return RedirectToAction(nameof(Index));
+                    if (!string.IsNullOrEmpty(referer))
+                    {
+                        return Redirect(referer);
+                    }
+                    return RedirectToAction($"{nameof(Index)}");
+
                 }
+
 
                 return View(categoryDto);
             }
@@ -228,7 +249,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
 
                 TempData["ErrorMessage"] = $"An unexpected error occurred while retrieving category details: {ex.Message}";
-                return RedirectToAction(nameof(Index));
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    return Redirect(referer);
+                }
+
+                return RedirectToAction($"{nameof(Index)}");
+
             }
         }
 
