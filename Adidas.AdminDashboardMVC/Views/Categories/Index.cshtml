@@ -25,61 +25,49 @@
         </div>
     }
 
-    <div class="filter-container animate-on-load">
-        <h2 class="filter-title">
-            <i class="fas fa-filter me-2"></i>
-            Category Filters
-        </h2>
 
-        <form method="get" asp-action="Index" asp-controller="Categories">
-            <div class="form-section">
-                <div class="filter-grid">
-                    <div>
-                        <label class="form-label">Search Categories</label>
-                        <div class="input-group-custom">
-                            <i class="fas fa-search input-icon"></i>
-                            <input type="text"
-                                   name="searchTerm"
-                                   class="form-control with-icon"
-                                   placeholder="Search by name..."
-                                   value="@(ViewData["SearchTerm"] as string)" />
-                        </div>
-                    </div>
+    <form method="get" asp-action="Index" asp-controller="Categories">
+    <div class="row mb-3">
+        <!-- Search Box -->
+        <div class="col-md-6 mb-2">
+            <label class="form-label">Search Categories</label>
+            <input type="text"
+                   name="searchTerm"
+                   class="form-control"
+                   placeholder="Search by name..."
+                   value="@(ViewData["SearchTerm"] as string)" />
+        </div>
 
-                    <div>
-                        <label class="form-label">Category Type</label>
-                        <select name="categoryType" class="form-select">
-                            <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentType"] as string))">All Categories</option>
-                            <option value="Main" selected="@(ViewData["CurrentType"] as string == "Main")">Main Categories</option>
-                            <option value="Sub" selected="@(ViewData["CurrentType"] as string == "Sub")">Sub Categories</option>
-                            @* <option value="Uncategorized" selected="@(ViewData["CurrentType"] as string == "Deleted")">Deleted Categories</option> *@
-                        </select>
-                    </div>
+        <!-- Category Type Dropdown -->
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Category Type</label>
+            <select name="categoryType" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentType"] as string))">All Categories</option>
+                <option value="Main" selected="@(ViewData["CurrentType"] as string == "Main")">Main Categories</option>
+                <option value="Sub" selected="@(ViewData["CurrentType"] as string == "Sub")">Sub Categories</option>
+            </select>
+        </div>
 
-                    <div>
-                        <label class="form-label">Status</label>
-                        <select name="statusFilter" class="form-select">
-                            <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentStatus"] as string))">All Status</option>
-                            <option value="Active" selected="@(ViewData["CurrentStatus"] as string == "Active")">Active</option>
-                            <option value="Inactive" selected="@(ViewData["CurrentStatus"] as string == "Inactive")">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-grid">
-                <button type="submit" class="btn btn-filter">
-                    <i class="fas fa-search me-2"></i>
-                    Apply Filters
-                </button>
-            </div>
-
-            @* <div class="filter-stats"> *@
-            @*     <span><i class="fas fa-info-circle me-1"></i>Use filters to refine your search results</span> *@
-            @*     <span><i class="fas fa-clock me-1"></i>Real-time filtering</span> *@
-            @* </div> *@
-        </form>
+        <!-- Status Dropdown -->
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Status</label>
+            <select name="statusFilter" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentStatus"] as string))">All Status</option>
+                <option value="Active" selected="@(ViewData["CurrentStatus"] as string == "Active")">Active</option>
+                <option value="Inactive" selected="@(ViewData["CurrentStatus"] as string == "Inactive")">Inactive</option>
+            </select>
+        </div>
     </div>
+
+    <!-- Full-width Apply Button -->
+    <div class="d-grid">
+            <button type="submit" class="btn btn-dark w-100">
+            <i class="fas fa-search me-2"></i> Apply Filters
+        </button>
+    </div>
+</form>
+
+
 
 
     <div class="table-responsive">
