@@ -1,69 +1,209 @@
 ﻿@model Adidas.DTOs.Feature.CouponDTOs.CouponCreateDto
 
-<h2>Create Coupon</h2>
-
-<form asp-action="Create" method="post">
-    <div class="form-group">
-        <label asp-for="Code"></label>
-        <input asp-for="Code" class="form-control" />
-        <span asp-validation-for="Code" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Name"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="DiscountType"></label>
-        <select asp-for="DiscountType" asp-items="Html.GetEnumSelectList<Models.Feature.DiscountType>()" class="form-control">
-            <option value="">-- Select Type --</option>
-        </select>
-        <span asp-validation-for="DiscountType" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="DiscountValue"></label>
-        <input asp-for="DiscountValue" class="form-control" />
-        <span asp-validation-for="DiscountValue" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="MinimumAmount"></label>
-        <input asp-for="MinimumAmount" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label asp-for="ValidFrom"></label>
-        <input asp-for="ValidFrom" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label asp-for="ValidTo"></label>
-        <input asp-for="ValidTo" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label asp-for="UsageLimit"></label>
-        <input asp-for="UsageLimit" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Description"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-    </div>
-
-    <div class="form-check">
-        <input asp-for="IsActive" class="form-check-input" />
-        <label asp-for="IsActive" class="form-check-label"></label>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Create</button>
-</form>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@{
+    ViewData["Title"] = "Create New Coupon";
 }
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Create New Coupon</h2>
+                    <p class="text-muted">Add a new discount coupon to your promotional campaigns</p>
+                </div>
+                <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Coupon Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="@Url.Action("Create", "Coupon")">
+                                @Html.AntiForgeryToken()
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="Code" class="form-label">Coupon Code <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control @(ViewData.ModelState.ContainsKey("Code") && ViewData.ModelState["Code"].Errors.Count > 0 ? "is-invalid" : "")"
+                                               id="Code" name="Code" value="@Model?.Code" placeholder="e.g., SUMMER25" required>
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.Code)
+                                        </div>
+                                        <small class="form-text text-muted">Must be unique and easy to remember</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="Name" class="form-label">Coupon Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control @(ViewData.ModelState.ContainsKey("Name") && ViewData.ModelState["Name"].Errors.Count > 0 ? "is-invalid" : "")"
+                                               id="Name" name="Name" value="@Model?.Name" placeholder="e.g., Summer Sale 2025" required>
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.Name)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="DiscountType" class="form-label">Discount Type <span class="text-danger">*</span></label>
+                                        <select class="form-select @(ViewData.ModelState.ContainsKey("DiscountType") && ViewData.ModelState["DiscountType"].Errors.Count > 0 ? "is-invalid" : "")"
+                                                id="DiscountType" name="DiscountType" required>
+                                            <option value="">Select discount type</option>
+                                            <option value="Percentage" selected="@(Model?.DiscountType.ToString() == "Percentage" ? "selected" : null)">Percentage (%)</option>
+                                            <option value="FixedAmount" selected="@(Model?.DiscountType.ToString() == "FixedAmount" ? "selected" : null)">Fixed Amount ($)</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.DiscountType)
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="DiscountValue" class="form-label">Discount Value <span class="text-danger">*</span></label>
+                                        <input type="number" step="0.01" class="form-control @(ViewData.ModelState.ContainsKey("DiscountValue") && ViewData.ModelState["DiscountValue"].Errors.Count > 0 ? "is-invalid" : "")"
+                                               id="DiscountValue" name="DiscountValue" value="@Model?.DiscountValue" placeholder="e.g., 25" required>
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.DiscountValue)
+                                        </div>
+                                        <small class="form-text text-muted" id="discountHint">Enter discount amount</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="MinimumAmount" class="form-label">Minimum Order Amount</label>
+                                        <input type="number" step="0.01" class="form-control @(ViewData.ModelState.ContainsKey("MinimumAmount") && ViewData.ModelState["MinimumAmount"].Errors.Count > 0 ? "is-invalid" : "")"
+                                               id="MinimumAmount" name="MinimumAmount" value="@Model?.MinimumAmount" placeholder="0.00">
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.MinimumAmount)
+                                        </div>
+                                        <small class="form-text text-muted">Leave blank for no minimum</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="UsageLimit" class="form-label">Usage Limit</label>
+                                        <input type="number" class="form-control @(ViewData.ModelState.ContainsKey("UsageLimit") && ViewData.ModelState["UsageLimit"].Errors.Count > 0 ? "is-invalid" : "")"
+                                               id="UsageLimit" name="UsageLimit" value="@Model?.UsageLimit" placeholder="e.g., 100">
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.UsageLimit)
+                                        </div>
+                                        <small class="form-text text-muted">Leave blank for unlimited usage</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ValidFrom" class="form-label">Valid From <span class="text-danger">*</span></label>
+                                        <input type="datetime-local" class="form-control @(ViewData.ModelState.ContainsKey("ValidFrom") && ViewData.ModelState["ValidFrom"].Errors.Count > 0 ? "is-invalid" : "")"
+                                               id="ValidFrom" name="ValidFrom" value="@(Model?.ValidFrom.ToString("yyyy-MM-ddTHH:mm"))" required>
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.ValidFrom)
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ValidTo" class="form-label">Valid Until <span class="text-danger">*</span></label>
+                                        <input type="datetime-local" class="form-control @(ViewData.ModelState.ContainsKey("ValidTo") && ViewData.ModelState["ValidTo"].Errors.Count > 0 ? "is-invalid" : "")"
+                                               id="ValidTo" name="ValidTo" value="@(Model?.ValidTo.ToString("yyyy-MM-ddTHH:mm"))" required>
+                                        <div class="invalid-feedback">
+                                            @Html.ValidationMessageFor(m => m.ValidTo)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="IsActive" name="IsActive" value="true" @(Model?.IsActive == true ? "checked" : "")>
+                                        <input name="IsActive" type="hidden" value="false" />
+                                        <label class="form-check-label" for="IsActive">
+                                            <strong>Activate coupon immediately</strong>
+                                        </label>
+                                        <div class="form-text">Uncheck to create as inactive (can be activated later)</div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="@Url.Action("Index", "Coupon")" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Create Coupon
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    .sidebar {
+        background-color: #343a40 !important;
+    }
+
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
+
+<script>
+    // Update discount hint based on type
+    document.getElementById('DiscountType').addEventListener('change', function () {
+        const hint = document.getElementById('discountHint');
+        const value = this.value;
+
+        if (value === 'Percentage') {
+            hint.textContent = 'Enter percentage (e.g., 25 for 25%)';
+        } else if (value === 'FixedAmount') {
+            hint.textContent = 'Enter fixed dollar amount (e.g., 10 for $10 off)';
+        } else {
+            hint.textContent = 'Enter discount amount';
+        }
+    });
+
+    // Set default dates
+    document.addEventListener('DOMContentLoaded', function () {
+        const now = new Date();
+        const validFromInput = document.getElementById('ValidFrom');
+        const validToInput = document.getElementById('ValidTo');
+
+        if (!validFromInput.value) {
+            validFromInput.value = now.toISOString().slice(0, 16);
+        }
+
+        if (!validToInput.value) {
+            const oneMonthLater = new Date(now);
+            oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+            validToInput.value = oneMonthLater.toISOString().slice(0, 16);
+        }
+    });
+</script>

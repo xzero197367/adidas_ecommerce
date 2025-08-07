@@ -1,12 +1,13 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Microsoft.AspNetCore.Mvc;
-
+using Adidas.Context;
 namespace Adidas.Web.Controllers
 {
     public class CouponController : Controller
     {
         private readonly ICouponService _couponService;
+        private readonly AdidasDbContext _context;
 
         public CouponController(ICouponService couponService)
         {
@@ -22,21 +23,33 @@ namespace Adidas.Web.Controllers
             if (!string.IsNullOrWhiteSpace(search))
                 allCoupons = allCoupons.Where(c => c.Code.Contains(search, StringComparison.OrdinalIgnoreCase));
 
-            // Filter by status
+            // Filter by status (Active, Expired, All)
             if (!string.IsNullOrWhiteSpace(status) && status != "All")
             {
-                allCoupons = allCoupons.Where(c => c.StatusText.Equals(status, StringComparison.OrdinalIgnoreCase));
+                switch (status.ToLower())
+                {
+                    case "active":
+                        allCoupons = allCoupons.Where(c => c.IsValidNow && c.IsActive);
+                        break;
+                    case "expired":
+                        allCoupons = allCoupons.Where(c => c.IsExpired);
+                        break;
+                    case "inactive":
+                        allCoupons = allCoupons.Where(c => !c.IsActive);
+                        break;
+                }
             }
 
-            // Stats
-            ViewBag.TotalUsage = allCoupons.Sum(c => c.UsedCount);
-            ViewBag.TotalSavings = allCoupons.Sum(c => c.UsedCount * c.DiscountValue); // Approximation
-            ViewBag.ActiveCount = allCoupons.Count(c => c.IsValidNow);
-            ViewBag.ExpiredCount = allCoupons.Count(c => c.IsExpired);
+            // Enhanced Stats
+            var allCouponsList = allCoupons.ToList();
+            ViewBag.TotalUsage = allCouponsList.Sum(c => c.UsedCount);
+            ViewBag.TotalSavings = CalculateTotalSavings(allCouponsList);
+            ViewBag.ActiveCount = allCouponsList.Count(c => c.IsValidNow && c.IsActive);
+            ViewBag.ExpiredCount = allCouponsList.Count(c => c.IsExpired);
 
             // Pagination
-            int totalCoupons = allCoupons.Count();
-            var pagedCoupons = allCoupons
+            int totalCoupons = allCouponsList.Count;
+            var pagedCoupons = allCouponsList
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -45,6 +58,7 @@ namespace Adidas.Web.Controllers
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCoupons / pageSize);
             ViewBag.Search = search;
             ViewBag.Status = status;
+            ViewBag.PageSize = pageSize;
 
             return View(pagedCoupons);
         }
@@ -63,8 +77,17 @@ namespace Adidas.Web.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-            await _couponService.CreateAsync(dto);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _couponService.CreateAsync(dto);
+                TempData["Success"] = "Coupon created successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error creating coupon: {ex.Message}";
+                return View(dto);
+            }
         }
 
         // GET: Edit
@@ -84,10 +107,11 @@ namespace Adidas.Web.Controllers
                 ValidFrom = coupon.ValidFrom,
                 ValidTo = coupon.ValidTo,
                 UsageLimit = coupon.UsageLimit,
-                UsedCount = coupon.UsedCount
+                UsedCount = coupon.UsedCount,
+                IsActive = coupon.IsActive
             };
 
-            ViewBag.CouponId = id; // for form submission
+            ViewBag.CouponId = id;
             return View(updateDto);
         }
 
@@ -97,10 +121,23 @@ namespace Adidas.Web.Controllers
         public async Task<IActionResult> Edit(Guid id, CouponUpdateDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.CouponId = id;
                 return View(dto);
+            }
 
-            await _couponService.UpdateAsync(id, dto);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _couponService.UpdateAsync(id, dto);
+                TempData["Success"] = "Coupon updated successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error updating coupon: {ex.Message}";
+                ViewBag.CouponId = id;
+                return View(dto);
+            }
         }
 
         // POST: Delete
@@ -108,8 +145,153 @@ namespace Adidas.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _couponService.DeleteAsync(id);
+            try
+            {
+                await _couponService.DeleteAsync(id);
+                TempData["Success"] = "Coupon deleted successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error deleting coupon: {ex.Message}";
+            }
+
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Activate (using UpdateAsync with IsActive = true)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Activate(Guid id)
+        {
+            try
+            {
+                var coupon = await _couponService.GetByIdAsync(id);
+                if (coupon == null)
+                    return NotFound();
+
+                var updateDto = new CouponUpdateDto
+                {
+                    Code = coupon.Code,
+                    Name = coupon.Name,
+                    DiscountType = coupon.DiscountType,
+                    DiscountValue = coupon.DiscountValue,
+                    MinimumAmount = coupon.MinimumAmount,
+                    ValidFrom = coupon.ValidFrom,
+                    ValidTo = coupon.ValidTo,
+                    UsageLimit = coupon.UsageLimit,
+                    UsedCount = coupon.UsedCount,
+                    IsActive = true
+                };
+
+                await _couponService.UpdateAsync(id, updateDto);
+                TempData["Success"] = "Coupon activated successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error activating coupon: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Deactivate (using UpdateAsync with IsActive = false)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Deactivate(Guid id)
+        {
+            try
+            {
+                var coupon = await _couponService.GetByIdAsync(id);
+                if (coupon == null)
+                    return NotFound();
+
+                var updateDto = new CouponUpdateDto
+                {
+                    Code = coupon.Code,
+                    Name = coupon.Name,
+                    DiscountType = coupon.DiscountType,
+                    DiscountValue = coupon.DiscountValue,
+                    MinimumAmount = coupon.MinimumAmount,
+                    ValidFrom = coupon.ValidFrom,
+                    ValidTo = coupon.ValidTo,
+                    UsageLimit = coupon.UsageLimit,
+                    UsedCount = coupon.UsedCount,
+                    IsActive = false
+                };
+
+                await _couponService.UpdateAsync(id, updateDto);
+                TempData["Success"] = "Coupon deactivated successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error deactivating coupon: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // AJAX endpoint for quick actions
+        [HttpPost]
+        public async Task<IActionResult> ToggleStatus(Guid id)
+        {
+            var coupon = await _context.Coupons.FindAsync(id);
+            if (coupon == null)
+                return Json(new { success = false, message = "Coupon not found" });
+
+            try
+            {
+                // Toggle logic
+                if (coupon.ValidTo > DateTime.Now)
+                {
+                    coupon.ValidTo = DateTime.Now.AddDays(-1); // deactivate
+                }
+                else
+                {
+                    coupon.ValidTo = DateTime.Now.AddDays(30); // activate
+                }
+
+                coupon.UpdatedAt = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                var isActive = coupon.ValidTo > DateTime.Now && coupon.UsedCount < coupon.UsageLimit;
+
+                return Json(new
+                {
+                    success = true,
+                    status = isActive ? "Active" : "Inactive",
+                    message = $"Coupon {coupon.Code} status updated successfully!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"Error: {ex.Message}",
+                    details = ex.InnerException?.Message
+                });
+            }
+        }
+
+        // Helper method for calculating total savings
+        private decimal CalculateTotalSavings(List<CouponDto> coupons)
+        {
+            return coupons.Sum(c =>
+            {
+                if (c.DiscountType.ToString().Equals("Percentage", StringComparison.OrdinalIgnoreCase))
+                {
+                    // For percentage, estimate based on average order value
+                    // You might want to get actual order data here
+                    decimal avgOrderValue = 100; // Adjust based on your business
+                    return c.UsedCount * (avgOrderValue * c.DiscountValue / 100);
+                }
+                else
+                {
+                    // Fixed amount
+                    return c.UsedCount * c.DiscountValue;
+                }
+            });
         }
     }
 }

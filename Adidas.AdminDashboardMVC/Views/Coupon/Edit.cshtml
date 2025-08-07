@@ -1,0 +1,26 @@
+﻿@model Adidas.DTOs.Feature.CouponDTOs.CouponUpdateDto
+
+@{
+    ViewData["Title"] = "Edit Coupon";
+}
+
+<div class="container-fluid">
+    <div class="row">
+       
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Edit Coupon</h2>
+                    <p class="text-muted">Update coupon details and settings</p>
+                </div>
+                <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class=" mb-0
