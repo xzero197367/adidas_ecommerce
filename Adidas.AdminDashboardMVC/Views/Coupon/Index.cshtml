@@ -185,7 +185,7 @@
                                                         <button type="submit"
                                                                 class="btn btn-outline-@(coupon.IsActive ? "warning" : "success") btn-sm"
                                                                 title="@(coupon.IsActive ? "Deactivate" : "Activate")"
-                                                        @(coupon.IsActive ? "onclick=\"return confirm('Are you sure you want to deactivate this coupon?')\"" : "")>
+                                                        >
                                                             <i class="fas fa-@(coupon.IsActive ? "pause" : "play")"></i>
                                                         </button>
                                                     </form>

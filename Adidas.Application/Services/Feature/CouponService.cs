@@ -309,10 +309,18 @@ namespace Adidas.Application.Services.Feature
             if (coupon == null)
                 return Result.Failure("coupon not found.");
 
+            var now = DateTime.UtcNow;
+
+            if (now < coupon.ValidFrom || now > coupon.ValidTo)
+            {
+                return Result.Failure("Coupon is not valid at this time.");
+            }
+
             coupon.IsActive = !coupon.IsActive;
 
             try
             {
+                
                 await _couponRepository.UpdateAsync(coupon);
                 var result = await _couponRepository.SaveChangesAsync();
 
