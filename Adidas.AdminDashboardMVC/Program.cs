@@ -38,6 +38,8 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Microsoft.AspNetCore.Authentication;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
+using Adidas.Application.Services.Operation;
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
