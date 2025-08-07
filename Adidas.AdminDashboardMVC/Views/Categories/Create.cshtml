@@ -30,21 +30,22 @@
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Slug" class="form-label"></label>
-                        <input asp-for="Slug" class="form-control" />
-                        <span asp-validation-for="Slug" class="text-danger"></span>
-                        <small class="form-text text-muted">A unique, URL-friendly identifier for the category (e.g., "running-shoes").</small>
-                    </div>
+                    <input type="hidden" asp-for="Slug" />
+                    @* <div class="mb-3"> *@
+                    @*     <label asp-for="Slug" class="form-label"></label> *@
+                    @*     <input asp-for="Slug" class="form-control" /> *@
+                    @*     <span asp-validation-for="Slug" class="text-danger"></span> *@
+                    @*     <small class="form-text text-muted">A unique, URL-friendly identifier for the category (e.g., "running-shoes").</small> *@
+                    @* </div> *@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="mb-3">
-                        <label asp-for="SortOrder" class="form-label"></label>
-                        <input asp-for="SortOrder" type="number" class="form-control" value="0" />
-                        <span asp-validation-for="SortOrder" class="text-danger"></span>
-                        <small class="form-text text-muted">Order in which categories will be displayed (lower numbers appear first).</small>
-                    </div>
+                    @* <div class="mb-3"> *@
+                    @*     <label asp-for="SortOrder" class="form-label"></label> *@
+                    @*     <input asp-for="SortOrder" type="number" class="form-control" value="0" /> *@
+                    @*     <span asp-validation-for="SortOrder" class="text-danger"></span> *@
+                    @*     <small class="form-text text-muted">Order in which categories will be displayed (lower numbers appear first).</small> *@
+                    @* </div> *@
 
                     <div class="mb-3">
                         <label asp-for="ParentCategoryId" class="form-label">Parent Category (Optional)</label>
@@ -119,6 +120,28 @@
                     slug = slug.replace(/[^a-z0-9\s-]/g, ''); // Remove invalid chars
                     slug = slug.replace(/\s+/g, '-').trim(); // Replace spaces with hyphens
                     slug = slug.replace(/-+/g, '-'); // Replace multiple hyphens with single
+                    return slug;
+                }
+            }
+        });
+
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const nameInput = document.getElementById('Name');
+            const slugInput = document.getElementById('Slug');
+
+            if (nameInput && slugInput) {
+                nameInput.addEventListener('input', function () {
+                    slugInput.value = generateSlug(this.value);
+                });
+
+                function generateSlug(text) {
+                    let slug = text.toLowerCase();
+                    slug = slug.replace(/[^a-z0-9\s-]/g, '');
+                    slug = slug.replace(/\s+/g, '-').trim();
+                    slug = slug.replace(/-+/g, '-');
                     return slug;
                 }
             }
