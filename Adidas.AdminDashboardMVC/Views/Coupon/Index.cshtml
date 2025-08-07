@@ -7,7 +7,6 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        
         <!-- Main Content -->
         <div class="col-md-10 p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -202,6 +201,14 @@
                                                         </form>
                                                     }
                                                 }
+                                                else
+                                                {
+                                                    <!-- Coupon is expired and inactive, show a disabled "Activate" button -->
+                                                    <button class="btn btn-outline-secondary btn-sm" title="Expired - Cannot activate" disabled>
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                }
+
 
                                                 <form method="post" action="@Url.Action("Delete", "Coupon")" style="display: inline;">
                                                     @Html.AntiForgeryToken()
