@@ -11,9 +11,7 @@
     </div>
 
     <div class="card p-4 shadow-sm">
-        @* Added shadow-sm for a slightly nicer card look *@
         <form asp-action="Create" method="post" enctype="multipart/form-data">
-            @* Displays non-field-specific errors (e.g., from ValidateCreateAsync) *@
             <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
             <div class="row">
@@ -31,54 +29,33 @@
                     </div>
 
                     <input type="hidden" asp-for="Slug" />
-                    @* <div class="mb-3"> *@
-                    @*     <label asp-for="Slug" class="form-label"></label> *@
-                    @*     <input asp-for="Slug" class="form-control" /> *@
-                    @*     <span asp-validation-for="Slug" class="text-danger"></span> *@
-                    @*     <small class="form-text text-muted">A unique, URL-friendly identifier for the category (e.g., "running-shoes").</small> *@
-                    @* </div> *@
                 </div>
 
                 <div class="col-md-6">
-                    @* <div class="mb-3"> *@
-                    @*     <label asp-for="SortOrder" class="form-label"></label> *@
-                    @*     <input asp-for="SortOrder" type="number" class="form-control" value="0" /> *@
-                    @*     <span asp-validation-for="SortOrder" class="text-danger"></span> *@
-                    @*     <small class="form-text text-muted">Order in which categories will be displayed (lower numbers appear first).</small> *@
-                    @* </div> *@
-
                     <div class="mb-3">
                         <label asp-for="ParentCategoryId" class="form-label">Parent Category (Optional)</label>
                         <select asp-for="ParentCategoryId" class="form-select" asp-items="@ViewBag.ParentCategories">
                             <option value="">-- No Parent (Main Category) --</option>
                         </select>
                         <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
-                        <small class="form-text text-muted">Select if this is a sub-category.</small>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label" for="ImageFile">Category Image</label>
                         <input type="file" name="ImageFile" id="ImageFile" class="form-control" accept="image/*" />
-                        @* asp-validation-for="ImageUrl" here will display errors related to ImageUrl,
-                           which might be set by the controller if file upload fails or for size limits etc. *@
                         <span asp-validation-for="ImageUrl" class="text-danger"></span>
-                        <small class="form-text text-muted">Upload an image for the category (e.g., PNG, JPG). Max file size: 5MB (example).</small>
-                    </div>
 
-                    @* Based on your BeforeCreateAsync, IsActive is set to true automatically,
-                       so you typically don't need a checkbox for it on creation.
-                       If you wanted user control, uncomment this:
-                    <div class="mb-3 form-check">
-                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                        <label asp-for="IsActive" class="form-check-label"></label>
-                        <span asp-validation-for="IsActive" class="text-danger"></span>
+                        <img id="logoPreview"
+                             src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "#" : Url.Content(Model.ImageUrl))"
+                             alt="Logo Preview"
+                             class="mt-3 rounded w-100"
+                             style="max-height: 200px; @(string.IsNullOrEmpty(Model.ImageUrl) ? "display: none;" : "")" />
+
                     </div>
-                    *@
                 </div>
             </div>
 
             <div class="mt-4 border-top pt-3">
-                @* Added border-top and pt-3 for visual separation *@
                 <button type="submit" class="btn btn-primary me-2">Add Category</button>
                 <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
             </div>
@@ -88,53 +65,26 @@
 
 @section Scripts {
     @{
-        // This line is essential for client-side validation using jQuery Validation Unobtrusive
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Optional: Add JavaScript for live slug generation based on name input
         document.addEventListener('DOMContentLoaded', function () {
             const nameInput = document.getElementById('Name');
             const slugInput = document.getElementById('Slug');
 
             if (nameInput && slugInput) {
-                // Initial slug generation in case the name field already has a value
                 if (nameInput.value.trim() !== '') {
                     slugInput.value = generateSlug(nameInput.value);
                 }
 
                 nameInput.addEventListener('input', function () {
-                    // Only auto-generate if the slug field is empty or hasn't been manually edited
                     if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
                         slugInput.value = generateSlug(this.value);
                     }
                 });
 
-                slugInput.addEventListener('change', function() {
-                    // Mark the slug field as manually edited if the user changes it
+                slugInput.addEventListener('change', function () {
                     this.setAttribute('data-manual-edit', 'true');
-                });
-
-                function generateSlug(text) {
-                    let slug = text.toLowerCase();
-                    slug = slug.replace(/[^a-z0-9\s-]/g, ''); // Remove invalid chars
-                    slug = slug.replace(/\s+/g, '-').trim(); // Replace spaces with hyphens
-                    slug = slug.replace(/-+/g, '-'); // Replace multiple hyphens with single
-                    return slug;
-                }
-            }
-        });
-
-
-
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const nameInput = document.getElementById('Name');
-            const slugInput = document.getElementById('Slug');
-
-            if (nameInput && slugInput) {
-                nameInput.addEventListener('input', function () {
-                    slugInput.value = generateSlug(this.value);
                 });
 
                 function generateSlug(text) {
@@ -145,6 +95,24 @@
                     return slug;
                 }
             }
+
+            const imageInput = document.getElementById('ImageFile');
+            const imagePreview = document.getElementById('imagePreview');
+
+            imageInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.src = '#';
+                    imagePreview.style.display = 'none';
+                }
+            });
         });
     </script>
 }
