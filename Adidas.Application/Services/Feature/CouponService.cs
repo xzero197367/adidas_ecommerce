@@ -206,7 +206,7 @@ namespace Adidas.Application.Services.Feature
         public async Task<IEnumerable<CouponDto>> GetFilteredCouponsAsync(string search, string status)
         {
             var allCoupons = await _couponRepository.GetAllAsync();
-
+            allCoupons = allCoupons.Where(c=>!c.IsDeleted);
             if (!string.IsNullOrWhiteSpace(search))
             {
                 allCoupons = allCoupons
@@ -263,13 +263,16 @@ namespace Adidas.Application.Services.Feature
          
             if (coupon == null)
                 return Result.Failure("coupon not found.");
-             
+               if (coupon.IsDeleted)
+                return Result.Failure("Coupon is already deleted.");
+
 
             await _couponRepository.SoftDeleteAsync(id);
             var result = await _couponRepository.SaveChangesAsync();
-
-            return result == null ? Result.Failure("Failed to delete Coupon.") : Result.Success();
-
+          
+            return result < 1
+                ? Result.Failure("Failed to delete coupon.")
+                : Result.Success();
 
         }
 
