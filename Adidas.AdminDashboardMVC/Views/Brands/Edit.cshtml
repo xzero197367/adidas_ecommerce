@@ -15,7 +15,7 @@
 
             <form asp-controller="Brands" asp-action="Edit" method="post" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="LogoUrl" /> @* Used to keep track of the old image for deletion *@
+                <input type="hidden" asp-for="LogoUrl" />
 
                 <div class="row">
                     <div class="col-md-6">
@@ -40,15 +40,16 @@
                             <small class="form-text text-muted">Upload a new image to replace the old one (Max file size: 5MB)</small>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(Model.LogoUrl))
-                        {
-                            <div class="mb-3">
-                                <label class="form-label">Current Logo</label>
-                                <div>
-                                    <img src="@Model.LogoUrl" alt="Current Brand Logo" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" />
-                                </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Logo</label>
+                            <div>
+                                <img id="logoPreview"
+                                     src="@(string.IsNullOrEmpty(Model.LogoUrl) ? "#" : Model.LogoUrl)"
+                                     alt="Brand Logo Preview"
+                                     class="img-thumbnail"
+                                     style="width: 100%; max-width: 100%; height: auto; object-fit: contain;" />
                             </div>
-                        }
+                        </div>
                     </div>
                 </div>
 
@@ -63,4 +64,18 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('LogoImageFile')?.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('logoPreview');
+
+            if (file && preview) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 }
