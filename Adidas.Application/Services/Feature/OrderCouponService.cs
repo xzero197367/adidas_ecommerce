@@ -1,20 +1,22 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Feature.OrderCouponDTOs;
+using Adidas.Models.Feature;
 using Mapster;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Feature
 {
-    public class OrderCouponService : IOrderCouponService
+    public class OrderCouponService : GenericService<OrderCoupon, OrderCouponDto, OrderCouponCreateDto, OrderCouponUpdateDto>,IOrderCouponService
     {
         private readonly IOrderCouponRepository repository;
         private readonly ILogger<OrderCouponService> logger;
 
         public OrderCouponService(
             IOrderCouponRepository repository,
-            ILogger<OrderCouponService> logger)
+            ILogger<OrderCouponService> logger): base(repository, logger)
         {
             this.repository = repository;
             this.logger = logger;

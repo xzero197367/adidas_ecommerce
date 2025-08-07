@@ -1,6 +1,7 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Feature.ShoppingCartDTOS;
 using Adidas.Models.Feature;
 using Mapster;
@@ -10,7 +11,7 @@ using Models.Feature;
 
 namespace Adidas.Application.Services.Feature
 {
-    public class ShoppingCartService : IShoppingCartService
+    public class ShoppingCartService : GenericService<ShoppingCart, ShoppingCartDto, ShoppingCartCreateDto, ShoppingCartUpdateDto>,IShoppingCartService
     {
         private readonly IShoppingCartRepository _cartRepository;
         private readonly IWishlistRepository _wishlistRepository;
@@ -20,7 +21,7 @@ namespace Adidas.Application.Services.Feature
         public ShoppingCartService(
             IShoppingCartRepository cartRepository,
             ILogger<OrderCouponService> logger,
-            IWishlistRepository wishlistRepository)
+            IWishlistRepository wishlistRepository): base(cartRepository, logger)
         {
             this.logger = logger;
             _cartRepository = cartRepository;

@@ -1,18 +1,12 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
-using Adidas.Context;
 using Adidas.Models.Main;
-using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.Infra.Main
 {
-    public class AttributeValueRepository : GenericRepository<ProductAttributeValue>, IAttributeValueRepository
+    public class ProductAttributeValueRepository : GenericRepository<ProductAttributeValue>, IProductAttributeValueRepository
     {
-        public AttributeValueRepository(AdidasDbContext context) : base(context) { }
+        public ProductAttributeValueRepository(AdidasDbContext context) : base(context) { }
         public async Task<IEnumerable<ProductAttributeValue>> GetValuesByProductIdAsync(Guid productId)
         {
             return await _dbSet

@@ -1,9 +1,11 @@
 ﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Feature.ShoppingCartDTOS;
+using Adidas.Models.Feature;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {
-    public interface IShoppingCartService 
+    public interface IShoppingCartService : IGenericService<ShoppingCart, ShoppingCartDto, ShoppingCartCreateDto, ShoppingCartUpdateDto>
     {
         Task<OperationResult<IEnumerable<ShoppingCartDto>>> GetCartItemsByUserIdAsync(string userId);
         Task<OperationResult<ShoppingCartDto>> AddToCartAsync(ShoppingCartCreateDto addCreateDto);

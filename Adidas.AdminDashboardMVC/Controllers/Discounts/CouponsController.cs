@@ -16,7 +16,8 @@ namespace Adidas.Web.Controllers
         // Display all coupons with filters, search, and pagination
         public async Task<IActionResult> Index(string search = "", string status = "All", int page = 1, int pageSize = 10)
         {
-            var allCoupons = await _couponService.GetAllAsync();
+            var result = await _couponService.GetAllCouponsAsync();
+            var allCoupons = result.Data;
 
             // Filtering by search
             if (!string.IsNullOrWhiteSpace(search))
@@ -70,9 +71,10 @@ namespace Adidas.Web.Controllers
         // GET: Edit
         public async Task<IActionResult> Edit(Guid id)
         {
-            var coupon = await _couponService.GetByIdAsync(id);
-            if (coupon == null)
+            var result = await _couponService.GetByIdAsync(id);
+            if (result.IsSuccess == false)
                 return NotFound();
+            var coupon = result.Data;
 
             var updateDto = new CouponUpdateDto
             {
@@ -84,7 +86,7 @@ namespace Adidas.Web.Controllers
                 ValidFrom = coupon.ValidFrom,
                 ValidTo = coupon.ValidTo,
                 UsageLimit = coupon.UsageLimit,
-                UsedCount = coupon.UsedCount
+                // UsedCount = coupon.UsedCount
             };
 
             ViewBag.CouponId = id; // for form submission

@@ -1,4 +1,4 @@
-﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
+﻿  using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Services.Separator;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Microsoft.AspNetCore.Hosting;
@@ -21,7 +21,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         {
             var brands = await _brandService.GetActiveBrandsAsync();
 
-            return View(brands);
+            return View(brands.Data);
         }
 
         [HttpPost]
@@ -32,7 +32,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (!result.IsSuccess)
             {
-                TempData["Error"] = result.Error;
+                TempData["Error"] = result.ErrorMessage;
             }
             else
             {
@@ -45,11 +45,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [HttpGet]
         public IActionResult Create()
         {
-            return View(new CreateBrandDto());
+            return View(new BrandCreateDto());
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateBrandDto createBrandDto, IFormFile? LogoImageFile)
+        public async Task<IActionResult> Create(BrandCreateDto createBrandDto, IFormFile? LogoImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -86,8 +86,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.Error);
-                TempData["Error"] = result.Error;
+                ModelState.AddModelError(string.Empty, result.ErrorMessage);
+                TempData["Error"] = result.ErrorMessage;
                 return View(createBrandDto);
             }
 
@@ -106,12 +106,12 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
 
 
-            var updateBrandDto = new UpdateBrandDto
+            var updateBrandDto = new BrandUpdateDto
             {
-                Id = brand.Id,
-                Name = brand.Name,
-                Description = brand.Description,
-                LogoUrl = brand.LogoUrl,
+                Id = brand.Data.Id,
+                Name = brand.Data.Name,
+                Description = brand.Data.Description,
+                LogoUrl = brand.Data.LogoUrl,
 
             };
 
@@ -120,7 +120,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UpdateBrandDto updateBrandDto, IFormFile? LogoImageFile)
+        public async Task<IActionResult> Edit(BrandUpdateDto updateBrandDto, IFormFile? LogoImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -157,8 +157,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             var result = await _brandService.UpdateAsync(updateBrandDto);
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.Error);
-                TempData["Error"] = result.Error;
+                ModelState.AddModelError(string.Empty, result.ErrorMessage);
+                TempData["Error"] = result.ErrorMessage;
                 ViewBag.BrandId = updateBrandDto.Id;
                 return View(updateBrandDto);
             }
@@ -172,13 +172,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         {
             var brandDetails = await _brandService.GetDetailsByIdAsync(id);
 
-            if (brandDetails == null)
+            if (brandDetails.IsSuccess == false)
             {
                 TempData["Error"] = "Brand not found.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(brandDetails);
+            return View(brandDetails.Data);
         }
     }
 }

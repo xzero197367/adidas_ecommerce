@@ -1,6 +1,7 @@
-﻿using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+﻿
+using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
-using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ using Models.Feature;
 
 namespace Adidas.Application.Services.Feature
 {
-    public class CouponService : ICouponService
+    public class CouponService : GenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>, ICouponService
     {
         private readonly ICouponRepository _couponRepository;
         public readonly ILogger _logger;
@@ -17,12 +18,14 @@ namespace Adidas.Application.Services.Feature
         public CouponService(
             // IOrderCouponRepository orderCouponRepository,
             ICouponRepository couponRepository,
-            ILogger<CouponService> logger)
+            ILogger<CouponService> logger) : base(couponRepository, logger)
         {
             _couponRepository = couponRepository;
             // _orderCouponRepository = orderCouponRepository;
             _logger = logger;
         }
+
+
         public async Task<OperationResult<IEnumerable<CouponDto>>> GetAllCouponsAsync()
         {
             var coupons = await _couponRepository.GetAll().ToListAsync();

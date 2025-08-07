@@ -1,14 +1,10 @@
 ﻿using Adidas.DTOs.Feature.WishLIstDTOS;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
+using Models.Feature;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {
-    public interface IWishListService
+    public interface IWishListService: IGenericService<Wishlist, WishlistDto, WishlistCreateDto, WishlistUpdateDto>
     {
         Task<OperationResult<IEnumerable<WishlistDto>>> GetWishlistByUserIdAsync(string userId);
         Task<OperationResult<WishlistDto>> AddToWishlistAsync(WishlistCreateDto addDto);

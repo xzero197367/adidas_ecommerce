@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Adidas.Infra.Main
 {
-    public class ProductImageRepository : GenericRepository<ProductImage>, IProductAttrbuteRepository
+    public class ProductImageRepository : GenericRepository<ProductImage>, IProductImageRepository
     {
         public ProductImageRepository(AdidasDbContext context) : base(context) { }
         public async Task<IEnumerable<ProductImage>> GetImagesByProductIdAsync(Guid productId)

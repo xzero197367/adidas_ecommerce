@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Tracker;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Tracker;
 using Adidas.Models.Tracker;
-using AutoMapper;
+using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Tracker
@@ -17,7 +15,7 @@ namespace Adidas.Application.Services.Tracker
     {
         private readonly IProductVariantRepository _variantRepository;
         private readonly IInventoryLogRepository _inventoryLogRepository;
-        private readonly IMapper _mapper;
+
         private readonly ILogger<InventoryService> _logger;
 
         public InventoryService(
@@ -28,116 +26,139 @@ namespace Adidas.Application.Services.Tracker
         {
             _variantRepository = variantRepository;
             _inventoryLogRepository = inventoryLogRepository;
-            _mapper = mapper;
             _logger = logger;
         }
 
-        public async Task<bool> ReserveStockAsync(Guid variantId, int quantity)
+        public async Task<OperationResult<bool>> ReserveStockAsync(Guid variantId, int quantity)
         {
             try
             {
                 var variant = await _variantRepository.GetByIdAsync(variantId);
                 if (variant == null || variant.StockQuantity < quantity)
-                    return false;
+                {
+                    return OperationResult<bool>.Fail("Not enough stock");
+                }
 
                 var oldQuantity = variant.StockQuantity;
                 variant.StockQuantity -= quantity;
                 await _variantRepository.UpdateAsync(variant);
 
                 await LogInventoryChangeAsync(variantId, oldQuantity, variant.StockQuantity, "RESERVE", "Guid.Empty", $"Reserved {quantity} units");
-                return true;
+                return OperationResult<bool>.Success(true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error reserving stock for variant {VariantId}", variantId);
-                return false;
+                return OperationResult<bool>.Fail(ex.Message);
             }
         }
 
-        public async Task<bool> ReleaseStockAsync(Guid variantId, int quantity)
+        public async Task<OperationResult<bool>> ReleaseStockAsync(Guid variantId, int quantity)
         {
             try
             {
                 var variant = await _variantRepository.GetByIdAsync(variantId);
-                if (variant == null) return false;
+                if (variant == null)
+                {
+                    return OperationResult<bool>.Fail("Variant not found");
+                }
 
                 var oldQuantity = variant.StockQuantity;
                 variant.StockQuantity += quantity;
                 await _variantRepository.UpdateAsync(variant);
 
                 await LogInventoryChangeAsync(variantId, oldQuantity, variant.StockQuantity, "RELEASE", "Guid.Empty", $"Released {quantity} units");
-                return true;
+                return OperationResult<bool>.Success(true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error releasing stock for variant {VariantId}", variantId);
-                return false;
+                return OperationResult<bool>.Fail(ex.Message);
             }
         }
 
-        public async Task<bool> UpdateStockAsync(Guid variantId, int newStock)
+        public async Task<OperationResult<bool>> UpdateStockAsync(Guid variantId, int newStock)
         {
             try
             {
                 var variant = await _variantRepository.GetByIdAsync(variantId);
-                if (variant == null) return false;
+                if (variant == null)
+                {
+                    return OperationResult<bool>.Fail("Variant not found");
+                }
 
                 var oldQuantity = variant.StockQuantity;
                 variant.StockQuantity = newStock;
                 await _variantRepository.UpdateAsync(variant);
 
                 await LogInventoryChangeAsync(variantId, oldQuantity, newStock, "UPDATE", "Guid.Empty", "Manual stock update");
-                return true;
+                return OperationResult<bool>.Success(true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating stock for variant {VariantId}", variantId);
-                return false;
+                return OperationResult<bool>.Fail(ex.Message);
             }
         }
 
-        public async Task<IEnumerable<LowStockAlertDto>> GetLowStockAlertsAsync(int threshold = 10)
+        public async Task<OperationResult<IEnumerable<LowStockAlertDto>>> GetLowStockAlertsAsync(int threshold = 10)
         {
-            var lowStockVariants = await _variantRepository.GetLowStockVariantsAsync(threshold);
-
-            return lowStockVariants.Select(v => new LowStockAlertDto
+            try
             {
-                VariantId = v.Id,
-                ProductName = v.Product.Name,
-                VariantDetails = $"{v.Color} - {v.Size}",
-                CurrentStock = v.StockQuantity,
-                ReorderLevel = threshold
-            });
+                var lowStockVariants = await _variantRepository.GetLowStockVariantsAsync(threshold);
+
+                var result = lowStockVariants.Select(v => new LowStockAlertDto
+                {
+                    VariantId = v.Id,
+                    ProductName = v.Product.Name,
+                    VariantDetails = $"{v.Color} - {v.Size}",
+                    CurrentStock = v.StockQuantity,
+                    ReorderLevel = threshold
+                });
+                return OperationResult<IEnumerable<LowStockAlertDto>>.Success(result);
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting low stock alerts");
+                return OperationResult<IEnumerable<LowStockAlertDto>>.Fail(ex.Message);
+            }
         }
 
-        public async Task<InventoryReportDto> GenerateInventoryReportAsync()
+        public async Task<OperationResult<InventoryReportDto>> GenerateInventoryReportAsync()
         {
-            var allVariants = await _variantRepository.GetAllAsync();
-            var variantsList = allVariants.ToList();
-
-            var lowStockVariants = variantsList.Where(v => v.StockQuantity <= 10).Count();
-            var outOfStockVariants = variantsList.Where(v => v.StockQuantity == 0).Count();
-
-            var productStocks = variantsList
-                .GroupBy(v => v.Product)
-                .Select(g => new ProductStockDto
-                {
-                    ProductId = g.Key.Id,
-                    ProductName = g.Key.Name,
-                    TotalStock = g.Sum(v => v.StockQuantity),
-                    VariantCount = g.Count(),
-                    InventoryValue = g.Sum(v => v.StockQuantity * (g.Key.SalePrice ?? g.Key.Price))
-                });
-
-            return new InventoryReportDto
+            try
             {
-                TotalProducts = variantsList.Select(v => v.ProductId).Distinct().Count(),
-                TotalVariants = variantsList.Count,
-                LowStockVariants = lowStockVariants,
-                OutOfStockVariants = outOfStockVariants,
-                TotalInventoryValue = productStocks.Sum(ps => ps.InventoryValue),
-                ProductStocks = productStocks
-            };
+                var allVariants = await _variantRepository.GetAll().ToListAsync();
+                var variantsList = allVariants.ToList();
+
+                var lowStockVariants = variantsList.Where(v => v.StockQuantity <= 10).Count();
+                var outOfStockVariants = variantsList.Where(v => v.StockQuantity == 0).Count();
+
+                var productStocks = variantsList
+                    .GroupBy(v => v.Product)
+                    .Select(g => new ProductStockDto
+                    {
+                        ProductId = g.Key.Id,
+                        ProductName = g.Key.Name,
+                        TotalStock = g.Sum(v => v.StockQuantity),
+                        VariantCount = g.Count(),
+                        InventoryValue = g.Sum(v => v.StockQuantity * (g.Key.SalePrice ?? g.Key.Price))
+                    });
+
+                var result = new InventoryReportDto
+                {
+                    TotalProducts = variantsList.Select(v => v.ProductId).Distinct().Count(),
+                    TotalVariants = variantsList.Count,
+                    LowStockVariants = lowStockVariants,
+                    OutOfStockVariants = outOfStockVariants,
+                    TotalInventoryValue = productStocks.Sum(ps => ps.InventoryValue),
+                    ProductStocks = productStocks
+                };
+                return OperationResult<InventoryReportDto>.Success(result);
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating inventory report");
+                return OperationResult<InventoryReportDto>.Fail(ex.Message);
+            }
         }
 
         public async Task LogInventoryChangeAsync(Guid variantId, int oldQuantity, int newQuantity, string changeType, string userId, string? reason = null)

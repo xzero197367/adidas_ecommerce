@@ -20,7 +20,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Index()
         {
             var mainCategories = await _categoryService.GetMainCategoriesAsync();
-            return View(mainCategories);
+            return View(mainCategories.Data);
         }
 
 
@@ -34,7 +34,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         // POST: /Category/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateCategoryDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Create(CategoryCreateDto model, IFormFile ImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -74,8 +74,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.Error); // Show specific error (e.g., slug exists)
-                TempData["Error"] = result.Error;
+                ModelState.AddModelError(string.Empty, result.ErrorMessage); // Show specific error (e.g., slug exists)
+                TempData["Error"] = result.ErrorMessage;
 
                 await PopulateParentCategoriesDropdown();
                 return View(model);
@@ -98,7 +98,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         // POST: /Category/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit( UpdateCategoryDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Edit( CategoryUpdateDto model, IFormFile ImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -138,8 +138,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             var result = await _categoryService.UpdateAsync(model);
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.Error);
-                TempData["Error"] = result.Error;
+                ModelState.AddModelError(string.Empty, result.ErrorMessage);
+                TempData["Error"] = result.ErrorMessage;
                 ViewBag.CategoryId = model.Id;
                 await PopulateParentCategoriesDropdown();
                 return View(model);
@@ -155,7 +155,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         {
             var parentCategories = await _categoryService.GetMainCategoriesAsync(); // Use method that fetches only main/active ones if needed
 
-            ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+            ViewBag.ParentCategories = new SelectList(parentCategories.Data, "Id", "Name");
         }
 
 
@@ -167,7 +167,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (!result.IsSuccess)
             {
-                TempData["Error"] = result.Error;
+                TempData["Error"] = result.ErrorMessage;
             }
             else
             {
@@ -195,7 +195,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     return RedirectToAction(nameof(Index));  
                 }
 
-                return View(categoryDto); 
+                return View(categoryDto.Data); 
             }
             catch (Exception ex)
             {

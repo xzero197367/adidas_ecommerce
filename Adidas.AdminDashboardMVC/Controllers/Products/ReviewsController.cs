@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
-using Adidas.DTOs.Operation.ReviewDTOs.Create;
-using Adidas.DTOs.Operation.ReviewDTOs.Update;
 using Adidas.DTOs.Common_DTOs;
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.Operation.ReviewDTOs.Result;
@@ -72,12 +69,12 @@ namespace Adidas.Web.Controllers
             try
             {
                 var review = await _reviewService.GetByIdAsync(id);
-                if (review == null)
+                if (review.IsSuccess == false)
                 {
                     return NotFound();
                 }
 
-                return View(review);
+                return View(review.Data);
             }
             catch (Exception ex)
             {
@@ -94,7 +91,7 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _reviewService.ApproveReviewAsync(id);
-                if (result)
+                if (result.IsSuccess)
                 {
                     TempData["Success"] = "Review approved successfully.";
                     _logger.LogInformation("Review {ReviewId} approved by {User}", id, User.Identity?.Name);
@@ -104,7 +101,7 @@ namespace Adidas.Web.Controllers
                     TempData["Error"] = "Failed to approve review.";
                 }
 
-                return Json(new { success = result, message = result ? "Review approved" : "Failed to approve review" });
+                return Json(new { success = result, message = result.IsSuccess ? "Review approved" : "Failed to approve review" });
             }
             catch (Exception ex)
             {
@@ -125,7 +122,7 @@ namespace Adidas.Web.Controllers
                 }
 
                 var result = await _reviewService.RejectReviewAsync(id, request.Reason);
-                if (result)
+                if (result.IsSuccess)
                 {
                     TempData["Success"] = "Review rejected successfully.";
                     _logger.LogInformation("Review {ReviewId} rejected by {User} with reason: {Reason}",
@@ -136,7 +133,7 @@ namespace Adidas.Web.Controllers
                     TempData["Error"] = "Failed to reject review.";
                 }
 
-                return Json(new { success = result, message = result ? "Review rejected" : "Failed to reject review" });
+                return Json(new { success = result, message = result.IsSuccess ? "Review rejected" : "Failed to reject review" });
             }
             catch (Exception ex)
             {
@@ -163,8 +160,9 @@ namespace Adidas.Web.Controllers
                 {
                     bool result = request.Action.ToLower() switch
                     {
-                        "approve" => await _reviewService.ApproveReviewAsync(reviewId),
-                        "reject" => await _reviewService.RejectReviewAsync(reviewId, request.Reason ?? "Bulk rejection"),
+                        "approve" => (await _reviewService.ApproveReviewAsync(reviewId)).IsSuccess,
+                        "reject" => (await _reviewService.RejectReviewAsync(reviewId,
+                            request.Reason ?? "Bulk rejection")).IsSuccess,
                         _ => false
                     };
 
@@ -243,7 +241,7 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _reviewService.DeleteAsync(id);
-                if (result)
+                if (result.IsSuccess)
                 {
                     _logger.LogInformation("Review {ReviewId} deleted by {User}", id, User.Identity?.Name);
                     return Json(new { success = true, message = "Review deleted successfully." });
@@ -262,7 +260,8 @@ namespace Adidas.Web.Controllers
         {
             // This would need to be enhanced based on your actual filtering implementation
             // For now, returning basic paged results
-            return await _reviewService.GetPagedAsync(viewModel.CurrentPage, viewModel.PageSize);
+            var result = await _reviewService.GetPagedAsync(viewModel.CurrentPage, viewModel.PageSize);
+            return result.Data;
         }
 
         private async Task<ReviewStatsDto> GetReviewStatsAsync()
@@ -270,12 +269,12 @@ namespace Adidas.Web.Controllers
             // You'll need to implement this method in your service
             var totalReviews = await _reviewService.CountAsync();
             var approvedReviews = await _reviewService.CountAsync(r => r.IsApproved);
-            var pendingReviews = totalReviews - approvedReviews;
+            var pendingReviews = totalReviews.Data - approvedReviews.Data;
 
             return new ReviewStatsDto
             {
-                TotalReviews = totalReviews,
-                ApprovedReviews = approvedReviews,
+                TotalReviews = totalReviews.Data,
+                ApprovedReviews = approvedReviews.Data,
                 PendingReviews = pendingReviews,
                 // Add other stats as needed
             };

@@ -1,13 +1,13 @@
-﻿using Adidas.Application.Contracts.ServicesContracts;
-using Adidas.DTOs.Common_DTOs;
+﻿
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
-using Adidas.Models.Feature;
 using Models.Feature;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {
-    public interface ICouponService 
+    public interface ICouponService: IGenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>
     {
+        
         Task<OperationResult<IEnumerable<CouponDto>>> GetAllCouponsAsync();
         Task<OperationResult<IEnumerable<CouponDto>>> GetActiveCouponsAsync();
         Task<OperationResult<CouponDto>> ValidateCouponAsync(string code, decimal orderAmount);

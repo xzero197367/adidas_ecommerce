@@ -1,214 +1,243 @@
-﻿using AutoMapper;
+﻿
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Models.Separator;
 using Microsoft.Extensions.Logging;
 using Adidas.DTOs.Separator.Category_DTOs;
-using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.Product_DTOs;
 using Microsoft.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
+using Adidas.DTOs.CommonDTOs;
+using Mapster;
 
 namespace Adidas.Application.Services.Separator
 {
-    public class CategoryService: ICategoryService
+    public class CategoryService : GenericService<Category, CategoryDto, CategoryCreateDto, CategoryUpdateDto>,ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ILogger<CategoryService> _logger;
 
         public CategoryService(
-            ICategoryRepository categoryRepository
-          )
+            ICategoryRepository categoryRepository,
+            ILogger<CategoryService> logger
+        ): base(categoryRepository, logger)
         {
             _categoryRepository = categoryRepository;
-        }
-        public async Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync()
-        {
-            var categories = await _categoryRepository.GetMainCategoriesAsync();
-
-            // Manual mapping
-            var categoryDtos = categories.Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                Slug = c.Slug,
-                ImageUrl = c.ImageUrl,
-                SortOrder = c.SortOrder,
-                ParentCategoryId = c.ParentCategoryId,
-                CreatedAt = c.CreatedAt ?? DateTime.MinValue,
-                UpdatedAt = c.UpdatedAt,
-                IsActive = c.IsActive,
-                Products = c.Products?.Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    // Add other necessary mappings here
-                }).ToList() ?? new List<ProductDto>(),
-                SubCategories = c.SubCategories?.Select(sc => new CategoryDto
-                {
-                    Id = sc.Id,
-                    Name = sc.Name,
-                    Description = sc.Description,
-                    Slug = sc.Slug,
-                    ImageUrl = sc.ImageUrl,
-                    SortOrder = sc.SortOrder,
-                    ParentCategoryId = sc.ParentCategoryId,
-                    CreatedAt = sc.CreatedAt ?? DateTime.MinValue,
-                    UpdatedAt = sc.UpdatedAt,
-                    IsActive = sc.IsActive
-                }).ToList() ?? new List<CategoryDto>()
-            }).ToList();
-
-            return categoryDtos;
+            _logger = logger;
         }
 
-
-        public async Task<Result> CreateAsync(CreateCategoryDto createCategoryDto)
+        public async Task<OperationResult<IEnumerable<CategoryDto>>> GetMainCategoriesAsync()
         {
             try
             {
-                var category = new Category
-                {
-                    ParentCategoryId = createCategoryDto.ParentCategoryId,
-                    Name = createCategoryDto.Name,
-                    Slug = createCategoryDto.Slug,
-                    SortOrder = createCategoryDto.SortOrder,
-                    Description = createCategoryDto.Description,
-                    ImageUrl = createCategoryDto.ImageUrl,
-                };
+                var categories = await _categoryRepository.GetMainCategoriesAsync();
 
-                await _categoryRepository.AddAsync(category);
+                // // Manual mapping
+                // var categoryDtos = categories.Select(c => new CategoryDto
+                // {
+                //     Id = c.Id,
+                //     Name = c.Name,
+                //     Description = c.Description,
+                //     Slug = c.Slug,
+                //     ImageUrl = c.ImageUrl,
+                //     SortOrder = c.SortOrder,
+                //     ParentCategoryId = c.ParentCategoryId,
+                //     CreatedAt = c.CreatedAt ?? DateTime.MinValue,
+                //     UpdatedAt = c.UpdatedAt,
+                //     IsActive = c.IsActive,
+                //     Products = c.Products?.Select(p => new ProductDto
+                //     {
+                //         Id = p.Id,
+                //         Name = p.Name,
+                //         // Add other necessary mappings here
+                //     }).ToList() ?? new List<ProductDto>(),
+                //     SubCategories = c.SubCategories?.Select(sc => new CategoryDto
+                //     {
+                //         Id = sc.Id,
+                //         Name = sc.Name,
+                //         Description = sc.Description,
+                //         Slug = sc.Slug,
+                //         ImageUrl = sc.ImageUrl,
+                //         SortOrder = sc.SortOrder,
+                //         ParentCategoryId = sc.ParentCategoryId,
+                //         CreatedAt = sc.CreatedAt ?? DateTime.MinValue,
+                //         UpdatedAt = sc.UpdatedAt,
+                //         IsActive = sc.IsActive
+                //     }).ToList() ?? new List<CategoryDto>()
+                // }).ToList();
+
+                return OperationResult<IEnumerable<CategoryDto>>.Success(categories.Adapt<IEnumerable<CategoryDto>>());
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting main categories");
+                return OperationResult<IEnumerable<CategoryDto>>.Fail(ex.Message);
+            }
+        }
+
+
+        public async Task<OperationResult<bool>> CreateAsync(CategoryCreateDto createCategoryDto)
+        {
+            try
+            {
+                await _categoryRepository.AddAsync(createCategoryDto.Adapt<Category>());
                 var result = await _categoryRepository.SaveChangesAsync();
 
-                return result == null
-                    ? Result.Failure("Could not save the category.")
-                    : Result.Success();
+                return result == 0
+                    ? OperationResult<bool>.Fail("Failed to create category.")
+                    : OperationResult<bool>.Success(true);
             }
             catch (DbUpdateException ex)
             {
                 if (ex.InnerException is SqlException sqlEx &&
                     sqlEx.Message.Contains("IX_Categories_Slug"))
                 {
-                    return Result.Failure("A category with the same slug already exists.");
+                    _logger.LogError(ex, "Error creating category");
+                    return OperationResult<bool>.Fail("Slug already exists.");
                 }
 
-                return Result.Failure("A database error occurred.");
+                return OperationResult<bool>.Fail(ex.Message);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return Result.Failure("An unexpected error occurred.");
+                _logger.LogError(ex, "Error creating category");
+                return OperationResult<bool>.Fail(ex.Message);
             }
         }
 
-        public async Task<Result> DeleteAsync(Guid id)
+        public async Task<OperationResult<bool>> DeleteAsync(Guid id)
         {
-            var category = await _categoryRepository.GetByIdAsync(id);
-            if (category == null)
-                return Result.Failure("Category not found.");
-
-            await _categoryRepository.SoftDeleteAsync(id);
-            var result = await _categoryRepository.SaveChangesAsync();
-
-            return result == null ? Result.Failure("Failed to Delete category.") : Result.Success();
-        }
-
-        public async Task<Result> UpdateAsync(UpdateCategoryDto dto)
-        {
-            var category = await _categoryRepository.GetByIdAsync(dto.Id);
-            if (category == null)
-                return Result.Failure("Category not found.");
-
-            // Check for slug uniqueness
-            var slugExists = await _categoryRepository.GetCategoryBySlugAsync(dto.Slug);
-            if (slugExists!=null && dto.Id !=category.Id)
-                return Result.Failure("Slug already exists.");
-
-            category.Name = dto.Name;
-            category.Slug = dto.Slug;
-            category.Description = dto.Description;
-            category.ImageUrl = dto.ImageUrl ?? category.ImageUrl; // retain if not changed
-            category.SortOrder = dto.SortOrder;
-            category.ParentCategoryId = dto.ParentCategoryId;
-
-            await _categoryRepository.UpdateAsync(category);
-            var result = await _categoryRepository.SaveChangesAsync();
-
-            return result == null ? Result.Failure("Failed to Create category.") : Result.Success();
-
-        }
-
-      
-
-        public async Task<UpdateCategoryDto> GetCategoryToEditByIdAsync(Guid id)
-        {
-            var category = await _categoryRepository.GetByIdAsync(id);
-
-            if (category == null)
-                return null;
-
-            var dto = new UpdateCategoryDto
+            try
             {
-                Id = category.Id,
-                Name = category.Name,
-                Slug = category.Slug,
-                Description = category.Description,
-                ImageUrl = category.ImageUrl,
-                ParentCategoryId = category.ParentCategoryId,
-                SortOrder = category.SortOrder
-            };
+                var category = await _categoryRepository.GetByIdAsync(id);
+                if (category == null)
+                {
+                    return OperationResult<bool>.Fail("Category not found.");
+                }
 
-            return dto;
+                await _categoryRepository.SoftDeleteAsync(id);
+                var result = await _categoryRepository.SaveChangesAsync();
+
+                if (result == 0)
+                {
+                    return OperationResult<bool>.Fail("Failed to Delete category.");
+                }
+
+                return OperationResult<bool>.Success(true);
+            
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting category");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
         }
 
-        public async Task<CategoryDto> GetCategoryDetailsAsync(Guid id)
+        public async Task<OperationResult<bool>> UpdateAsync(CategoryUpdateDto dto)
         {
-            var category = await _categoryRepository.GetByIdAsync(id,
-                c => c.SubCategories,
-                c => c.Products,
-                c => c.ParentCategory);
-
-            if (category == null)
-                return null;
-
-            var dto = new CategoryDto
+            try
             {
-                Id = category.Id,
-                Name = category.Name,
-                Slug = category.Slug,
-                Description = category.Description,
-                ImageUrl = category.ImageUrl,
-                ParentCategoryId = category.ParentCategoryId,
-                SortOrder = category.SortOrder,
-                IsActive = category.IsActive,
-                ParentCategory = category.ParentCategory != null
-                    ? new CategoryDto
-                    {
-                        Id = category.ParentCategory.Id,
-                        Name = category.ParentCategory.Name,
-                        Slug = category.ParentCategory.Slug
-                    }
-                    : null,
-                SubCategories = category.SubCategories?.Select(sub => new CategoryDto
+                var category = await _categoryRepository.GetByIdAsync(dto.Id);
+                if (category == null)
                 {
-                    Id = sub.Id,
-                    Name = sub.Name,
-                    Description = sub.Description,
-                    ImageUrl = sub.ImageUrl,
-                    SortOrder= sub.SortOrder,
-                    Slug = sub.Slug,
-                    IsActive = sub.IsActive
-                }).ToList() ?? new List<CategoryDto>(),
-                Products = category.Products?.Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    IsActive = p.IsActive
-                }).ToList() ?? new List<ProductDto>()
-            };
+                    return OperationResult<bool>.Fail("Category not found.");
+                }
 
-            return dto;
+                // Check for slug uniqueness
+                var slugExists = await _categoryRepository.GetCategoryBySlugAsync(dto.Slug);
+                if (slugExists != null && dto.Id != category.Id)
+                {
+                    return OperationResult<bool>.Fail("Slug already exists.");
+                }
+                
+
+                await _categoryRepository.UpdateAsync(dto.Adapt<Category>());
+                var result = await _categoryRepository.SaveChangesAsync();
+
+                return result == 0 ? OperationResult<bool>.Fail("Failed to update category.") : OperationResult<bool>.Success(true);
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating category");
+                return OperationResult<bool>.Fail(ex.Message);
+            }
+        }
+
+
+        public async Task<OperationResult<CategoryUpdateDto>> GetCategoryToEditByIdAsync(Guid id)
+        {
+            try
+            {
+                var category = await _categoryRepository.GetByIdAsync(id);
+
+                if (category == null)
+                {
+                    return OperationResult<CategoryUpdateDto>.Fail("Category not found.");
+                }
+
+                return OperationResult<CategoryUpdateDto>.Success(category.Adapt<CategoryUpdateDto>());
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting category to edit");
+                return OperationResult<CategoryUpdateDto>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<OperationResult<CategoryDto>> GetCategoryDetailsAsync(Guid id)
+        {
+            try
+            {
+                var category = await _categoryRepository.GetByIdAsync(id,
+                    c => c.SubCategories,
+                    c => c.Products,
+                    c => c.ParentCategory);
+
+                if (category == null)
+                {
+                    return OperationResult<CategoryDto>.Fail("Category not found.");
+                }
+                return OperationResult<CategoryDto>.Success(category.Adapt<CategoryDto>());
+
+                // var dto = new CategoryDto
+                // {
+                //     Id = category.Id,
+                //     Name = category.Name,
+                //     Slug = category.Slug,
+                //     Description = category.Description,
+                //     ImageUrl = category.ImageUrl,
+                //     ParentCategoryId = category.ParentCategoryId,
+                //     SortOrder = category.SortOrder,
+                //     IsActive = category.IsActive,
+                //     ParentCategory = category.ParentCategory != null
+                //         ? new CategoryDto
+                //         {
+                //             Id = category.ParentCategory.Id,
+                //             Name = category.ParentCategory.Name,
+                //             Slug = category.ParentCategory.Slug
+                //         }
+                //         : null,
+                //     SubCategories = category.SubCategories?.Select(sub => new CategoryDto
+                //     {
+                //         Id = sub.Id,
+                //         Name = sub.Name,
+                //         Description = sub.Description,
+                //         ImageUrl = sub.ImageUrl,
+                //         SortOrder = sub.SortOrder,
+                //         Slug = sub.Slug,
+                //         IsActive = sub.IsActive
+                //     }).ToList() ?? new List<CategoryDto>(),
+                //     Products = category.Products?.Select(p => new ProductDto
+                //     {
+                //         Id = p.Id,
+                //         Name = p.Name,
+                //         Description = p.Description,
+                //         Price = p.Price,
+                //         IsActive = p.IsActive
+                //     }).ToList() ?? new List<ProductDto>()
+                // };
+                //
+                // return dto;
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting category details");
+                return OperationResult<CategoryDto>.Fail(ex.Message);
+            }
         }
 
 
@@ -418,6 +447,5 @@ namespace Adidas.Application.Services.Separator
         //}
 
         //#endregion
-
     }
 }

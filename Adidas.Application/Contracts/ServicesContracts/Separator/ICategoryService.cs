@@ -1,23 +1,19 @@
 ﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Separator;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
-    public interface ICategoryService 
+    public interface ICategoryService : IGenericService<Category, CategoryDto, CategoryCreateDto, CategoryUpdateDto>
     {
         // Category-specific methods
-        Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();
-        Task<Result> CreateAsync(CreateCategoryDto createCategoryDto);
-        Task<Result>DeleteAsync(Guid id);
-        Task<Result> UpdateAsync(UpdateCategoryDto updateCategoryDto);
-        Task<UpdateCategoryDto> GetCategoryToEditByIdAsync(Guid id);
-        Task<CategoryDto> GetCategoryDetailsAsync(Guid id);
+        Task<OperationResult<IEnumerable<CategoryDto>>> GetMainCategoriesAsync();
+        Task<OperationResult<bool>> CreateAsync(CategoryCreateDto createCategoryDto);
+        Task<OperationResult<bool>> DeleteAsync(Guid id);
+        Task<OperationResult<bool>> UpdateAsync(CategoryUpdateDto updateCategoryDto);
+        Task<OperationResult<CategoryUpdateDto>> GetCategoryToEditByIdAsync(Guid id);
+        Task<OperationResult<CategoryDto>> GetCategoryDetailsAsync(Guid id);
         //Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId);
         //Task<CategoryResponseDto?> GetCategoryBySlugAsync(string slug);
         //Task<List<CategoryHierarchyDto>> GetCategoryHierarchyAsync(Guid categoryId);
