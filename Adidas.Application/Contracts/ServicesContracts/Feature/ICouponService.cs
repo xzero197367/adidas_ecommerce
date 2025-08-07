@@ -13,5 +13,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<CouponValidationResultDto> ValidateCouponAsync(string code, decimal orderAmount);
         Task<decimal> CalculateCouponAmountAsync(string code, decimal orderAmount);
         Task<bool> ApplyCouponAsync(string code);
+        Task<IEnumerable<CouponDto>> GetFilteredCouponsAsync(string search,string status);
+        Task<CouponListResult> GetFilteredPagedCouponsAsync(string search, string status, int page, int pageSize);
+
     }
 }

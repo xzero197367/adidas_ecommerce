@@ -174,10 +174,112 @@ namespace Adidas.Application.Services.Feature
             {
                 return orderAmount * (coupon.DiscountValue / 100m);
             }
-            else // Fixed amount
+            else 
             {
                 return Math.Min(coupon.DiscountValue, orderAmount);
             }
         }
+
+        public async Task<CouponListResult> GetFilteredPagedCouponsAsync(string search, string status, int page, int pageSize)
+        {
+            var allCoupons = await GetFilteredCouponsAsync(search, status);
+            var list = allCoupons.ToList();
+
+            var result = new CouponListResult
+            {
+                TotalCount = list.Count,
+                ActiveCount = list.Count(c => c.IsValidNow && c.IsActive),
+                ExpiredCount = list.Count(c => c.IsExpired),
+                TotalUsage = list.Sum(c => c.UsedCount),
+                TotalSavings = CalculateTotalSavings(list),
+                Coupons = list
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList()
+            };
+
+            return result;
+        }
+
+        public async Task<IEnumerable<CouponDto>> GetFilteredCouponsAsync(string search, string status)
+        {
+            var allCoupons = await _couponRepository.GetAllAsync();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                allCoupons = allCoupons
+                    .Where(c => c.Code.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "all")
+            {
+                switch (status.ToLower())
+                {
+                    case "active":
+                        allCoupons = allCoupons.Where(c =>
+                            c.IsActive &&
+                            !c.IsDeleted &&
+                            c.ValidFrom <= DateTime.UtcNow &&
+                            c.ValidTo >= DateTime.UtcNow);
+                        break;
+
+                    case "expired":
+                        allCoupons = allCoupons.Where(c =>
+                            c.ValidTo < DateTime.UtcNow);
+                        break;
+
+                    case "inactive":
+                        allCoupons = allCoupons.Where(c =>
+                            !c.IsActive && !c.IsDeleted);
+                        break;
+                }
+            }
+
+            var dtoList = allCoupons.Select(c => new CouponDto
+            {
+                Id = c.Id,
+                //CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                IsActive = c.IsActive,
+                Code = c.Code,
+                Name = c.Name,
+                DiscountType = c.DiscountType,
+                DiscountValue = c.DiscountValue,
+                MinimumAmount = c.MinimumAmount,
+                ValidFrom = c.ValidFrom,
+                ValidTo = c.ValidTo,
+                UsageLimit = c.UsageLimit,
+                UsedCount = c.UsedCount,
+            });
+
+            return dtoList;
+        }
+
+        private decimal CalculateTotalSavings(IEnumerable<CouponDto> coupons)
+        {
+            decimal total = 0;
+
+            foreach (var coupon in coupons)
+            {
+                if (coupon.UsedCount > 0)
+                {
+                    switch (coupon.DiscountType)
+                    {
+                        case DiscountType.Amount:
+                        case DiscountType.FixedAmount:
+                            total += coupon.DiscountValue * coupon.UsedCount;
+                            break;
+
+                        case DiscountType.Percentage:
+                            total += (coupon.MinimumAmount * (coupon.DiscountValue / 100m)) * coupon.UsedCount;
+                            break;
+                    }
+                }
+            }
+
+            return total;
+        }
+
+     
     }
 }

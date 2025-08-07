@@ -17,50 +17,20 @@ namespace Adidas.Web.Controllers
         // Display all coupons with filters, search, and pagination
         public async Task<IActionResult> Index(string search = "", string status = "All", int page = 1, int pageSize = 10)
         {
-            var allCoupons = await _couponService.GetAllAsync();
-
-            // Filtering by search
-            if (!string.IsNullOrWhiteSpace(search))
-                allCoupons = allCoupons.Where(c => c.Code.Contains(search, StringComparison.OrdinalIgnoreCase));
-
-            // Filter by status (Active, Expired, All)
-            if (!string.IsNullOrWhiteSpace(status) && status != "All")
-            {
-                switch (status.ToLower())
-                {
-                    case "active":
-                        allCoupons = allCoupons.Where(c => c.IsValidNow && c.IsActive);
-                        break;
-                    case "expired":
-                        allCoupons = allCoupons.Where(c => c.IsExpired);
-                        break;
-                    case "inactive":
-                        allCoupons = allCoupons.Where(c => !c.IsActive);
-                        break;
-                }
-            }
-
-            // Enhanced Stats
-            var allCouponsList = allCoupons.ToList();
-            ViewBag.TotalUsage = allCouponsList.Sum(c => c.UsedCount);
-            ViewBag.TotalSavings = CalculateTotalSavings(allCouponsList);
-            ViewBag.ActiveCount = allCouponsList.Count(c => c.IsValidNow && c.IsActive);
-            ViewBag.ExpiredCount = allCouponsList.Count(c => c.IsExpired);
-
-            // Pagination
-            int totalCoupons = allCouponsList.Count;
-            var pagedCoupons = allCouponsList
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            var result = await _couponService.GetFilteredPagedCouponsAsync(search, status, page, pageSize);
 
             ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalCoupons / pageSize);
+            ViewBag.TotalPages = (int)Math.Ceiling((double)result.TotalCount / pageSize);
             ViewBag.Search = search;
             ViewBag.Status = status;
             ViewBag.PageSize = pageSize;
 
-            return View(pagedCoupons);
+            ViewBag.TotalUsage = result.TotalUsage;
+            ViewBag.TotalSavings = result.TotalSavings;
+            ViewBag.ActiveCount = result.ActiveCount;
+            ViewBag.ExpiredCount = result.ExpiredCount;
+
+            return View(result.Coupons);
         }
 
         // GET: Create
