@@ -1,4 +1,5 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Adidas.Models.Feature;
 using Models.Feature;
@@ -15,6 +16,6 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<bool> ApplyCouponAsync(string code);
         Task<IEnumerable<CouponDto>> GetFilteredCouponsAsync(string search,string status);
         Task<CouponListResult> GetFilteredPagedCouponsAsync(string search, string status, int page, int pageSize);
-
+        Task<Result> SoftDeletAsync(Guid id);
     }
 }

@@ -115,14 +115,21 @@ namespace Adidas.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            try
+            var result = await _couponService.SoftDeletAsync(id);
+
+            if (!result.IsSuccess)
             {
-                await _couponService.DeleteAsync(id);
-                TempData["Success"] = "Coupon deleted successfully!";
+                TempData["Error"] = result.Error;
             }
-            catch (Exception ex)
+            else
             {
-                TempData["Error"] = $"Error deleting coupon: {ex.Message}";
+                TempData["Success"] = "Category deleted successfully!";
+            }
+            var referer = Request.Headers["Referer"].ToString();
+
+            if (!string.IsNullOrEmpty(referer))
+            {
+                return Redirect(referer);
             }
 
             return RedirectToAction(nameof(Index));
@@ -245,23 +252,22 @@ namespace Adidas.Web.Controllers
         }
 
         // Helper method for calculating total savings
-        private decimal CalculateTotalSavings(List<CouponDto> coupons)
-        {
-            return coupons.Sum(c =>
-            {
-                if (c.DiscountType.ToString().Equals("Percentage", StringComparison.OrdinalIgnoreCase))
-                {
-                    // For percentage, estimate based on average order value
-                    // You might want to get actual order data here
-                    decimal avgOrderValue = 100; // Adjust based on your business
-                    return c.UsedCount * (avgOrderValue * c.DiscountValue / 100);
-                }
-                else
-                {
-                    // Fixed amount
-                    return c.UsedCount * c.DiscountValue;
-                }
-            });
+        //private decimal CalculateTotalSavings(List<CouponDto> coupons)
+        //{
+        //    return coupons.Sum(c =>
+        //    {
+        //        if (c.DiscountType.ToString().Equals("Percentage", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            // For percentage, estimate based on average order value
+        //            // You might want to get actual order data here
+        //            decimal avgOrderValue = 100; // Adjust based on your business
+        //            return c.UsedCount * (avgOrderValue * c.DiscountValue / 100);
+        //        }
+        //        else
+        //        {
+        //            // Fixed amount
+        //            return c.UsedCount * c.DiscountValue;
+        //        }
+        //    });
         }
     }
-}

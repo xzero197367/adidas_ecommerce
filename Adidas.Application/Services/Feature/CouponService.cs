@@ -1,6 +1,8 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -255,6 +257,23 @@ namespace Adidas.Application.Services.Feature
             return dtoList;
         }
 
+        public async Task<Result> SoftDeletAsync(Guid id)
+        {
+            var coupon = await _couponRepository.GetByIdAsync(id);
+         
+            if (coupon == null)
+                return Result.Failure("coupon not found.");
+             
+
+            await _couponRepository.SoftDeleteAsync(id);
+            var result = await _couponRepository.SaveChangesAsync();
+
+            return result == null ? Result.Failure("Failed to delete Coupon.") : Result.Success();
+
+
+        }
+
+
         private decimal CalculateTotalSavings(IEnumerable<CouponDto> coupons)
         {
             decimal total = 0;
@@ -280,6 +299,7 @@ namespace Adidas.Application.Services.Feature
             return total;
         }
 
-     
+    
+
     }
 }
