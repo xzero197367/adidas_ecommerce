@@ -135,121 +135,146 @@ namespace Adidas.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Activate (using UpdateAsync with IsActive = true)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Activate(Guid id)
-        {
-            try
-            {
-                var coupon = await _couponService.GetByIdAsync(id);
-                if (coupon == null)
-                    return NotFound();
-
-                var updateDto = new CouponUpdateDto
-                {
-                    Code = coupon.Code,
-                    Name = coupon.Name,
-                    DiscountType = coupon.DiscountType,
-                    DiscountValue = coupon.DiscountValue,
-                    MinimumAmount = coupon.MinimumAmount,
-                    ValidFrom = coupon.ValidFrom,
-                    ValidTo = coupon.ValidTo,
-                    UsageLimit = coupon.UsageLimit,
-                    UsedCount = coupon.UsedCount,
-                    IsActive = true
-                };
-
-                await _couponService.UpdateAsync(id, updateDto);
-                TempData["Success"] = "Coupon activated successfully!";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error activating coupon: {ex.Message}";
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: Deactivate (using UpdateAsync with IsActive = false)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deactivate(Guid id)
-        {
-            try
-            {
-                var coupon = await _couponService.GetByIdAsync(id);
-                if (coupon == null)
-                    return NotFound();
-
-                var updateDto = new CouponUpdateDto
-                {
-                    Code = coupon.Code,
-                    Name = coupon.Name,
-                    DiscountType = coupon.DiscountType,
-                    DiscountValue = coupon.DiscountValue,
-                    MinimumAmount = coupon.MinimumAmount,
-                    ValidFrom = coupon.ValidFrom,
-                    ValidTo = coupon.ValidTo,
-                    UsageLimit = coupon.UsageLimit,
-                    UsedCount = coupon.UsedCount,
-                    IsActive = false
-                };
-
-                await _couponService.UpdateAsync(id, updateDto);
-                TempData["Success"] = "Coupon deactivated successfully!";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error deactivating coupon: {ex.Message}";
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // AJAX endpoint for quick actions
         [HttpPost]
         public async Task<IActionResult> ToggleStatus(Guid id)
         {
-            var coupon = await _context.Coupons.FindAsync(id);
-            if (coupon == null)
-                return Json(new { success = false, message = "Coupon not found" });
+            var result = await _couponService.ToggleCouponStatusAsync(id);
 
-            try
+            if (!result.IsSuccess)
             {
-                // Toggle logic
-                if (coupon.ValidTo > DateTime.Now)
-                {
-                    coupon.ValidTo = DateTime.Now.AddDays(-1); // deactivate
-                }
-                else
-                {
-                    coupon.ValidTo = DateTime.Now.AddDays(30); // activate
-                }
-
-                coupon.UpdatedAt = DateTime.Now;
-
-                await _context.SaveChangesAsync();
-
-                var isActive = coupon.ValidTo > DateTime.Now && coupon.UsedCount < coupon.UsageLimit;
-
-                return Json(new
-                {
-                    success = true,
-                    status = isActive ? "Active" : "Inactive",
-                    message = $"Coupon {coupon.Code} status updated successfully!"
-                });
+                TempData["Error"] = result.Error;
             }
-            catch (Exception ex)
+            else
             {
-                return Json(new
-                {
-                    success = false,
-                    message = $"Error: {ex.Message}",
-                    details = ex.InnerException?.Message
-                });
+                TempData["Success"] = "coupon status updated successfully.";
             }
+            var referer = Request.Headers["Referer"].ToString();
+            if (!string.IsNullOrEmpty(referer))
+            {
+                return Redirect(referer);
+            }
+
+
+            return RedirectToAction(nameof(Index));
         }
+
+        /*
+                // POST: Activate (using UpdateAsync with IsActive = true)
+                [HttpPost]
+                [ValidateAntiForgeryToken]
+                public async Task<IActionResult> Activate(Guid id)
+                {
+                    try
+                    {
+                        var coupon = await _couponService.GetByIdAsync(id);
+                        if (coupon == null)
+                            return NotFound();
+
+                        var updateDto = new CouponUpdateDto
+                        {
+                            Code = coupon.Code,
+                            Name = coupon.Name,
+                            DiscountType = coupon.DiscountType,
+                            DiscountValue = coupon.DiscountValue,
+                            MinimumAmount = coupon.MinimumAmount,
+                            ValidFrom = coupon.ValidFrom,
+                            ValidTo = coupon.ValidTo,
+                            UsageLimit = coupon.UsageLimit,
+                            UsedCount = coupon.UsedCount,
+                            IsActive = true
+                        };
+
+                        await _couponService.UpdateAsync(id, updateDto);
+                        TempData["Success"] = "Coupon activated successfully!";
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["Error"] = $"Error activating coupon: {ex.Message}";
+                    }
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // POST: Deactivate (using UpdateAsync with IsActive = false)
+                [HttpPost]
+                [ValidateAntiForgeryToken]
+                public async Task<IActionResult> Deactivate(Guid id)
+                {
+                    try
+                    {
+                        var coupon = await _couponService.GetByIdAsync(id);
+                        if (coupon == null)
+                            return NotFound();
+
+                        var updateDto = new CouponUpdateDto
+                        {
+                            Code = coupon.Code,
+                            Name = coupon.Name,
+                            DiscountType = coupon.DiscountType,
+                            DiscountValue = coupon.DiscountValue,
+                            MinimumAmount = coupon.MinimumAmount,
+                            ValidFrom = coupon.ValidFrom,
+                            ValidTo = coupon.ValidTo,
+                            UsageLimit = coupon.UsageLimit,
+                            UsedCount = coupon.UsedCount,
+                            IsActive = false
+                        };
+
+                        await _couponService.UpdateAsync(id, updateDto);
+                        TempData["Success"] = "Coupon deactivated successfully!";
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["Error"] = $"Error deactivating coupon: {ex.Message}";
+                    }
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // AJAX endpoint for quick actions
+                [HttpPost]
+                public async Task<IActionResult> ToggleStatus(Guid id)
+                {
+                    var coupon = await _context.Coupons.FindAsync(id);
+                    if (coupon == null)
+                        return Json(new { success = false, message = "Coupon not found" });
+
+                    try
+                    {
+                        // Toggle logic
+                        if (coupon.ValidTo > DateTime.Now)
+                        {
+                            coupon.ValidTo = DateTime.Now.AddDays(-1); // deactivate
+                        }
+                        else
+                        {
+                            coupon.ValidTo = DateTime.Now.AddDays(30); // activate
+                        }
+
+                        coupon.UpdatedAt = DateTime.Now;
+
+                        await _context.SaveChangesAsync();
+
+                        var isActive = coupon.ValidTo > DateTime.Now && coupon.UsedCount < coupon.UsageLimit;
+
+                        return Json(new
+                        {
+                            success = true,
+                            status = isActive ? "Active" : "Inactive",
+                            message = $"Coupon {coupon.Code} status updated successfully!"
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            message = $"Error: {ex.Message}",
+                            details = ex.InnerException?.Message
+                        });
+                    }
+                }
+                */
 
         // Helper method for calculating total savings
         //private decimal CalculateTotalSavings(List<CouponDto> coupons)
@@ -269,5 +294,5 @@ namespace Adidas.Web.Controllers
         //            return c.UsedCount * c.DiscountValue;
         //        }
         //    });
-        }
     }
+}

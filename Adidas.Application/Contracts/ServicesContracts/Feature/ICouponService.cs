@@ -17,5 +17,6 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<IEnumerable<CouponDto>> GetFilteredCouponsAsync(string search,string status);
         Task<CouponListResult> GetFilteredPagedCouponsAsync(string search, string status, int page, int pageSize);
         Task<Result> SoftDeletAsync(Guid id);
+        Task<Result> ToggleCouponStatusAsync(Guid id);
     }
 }

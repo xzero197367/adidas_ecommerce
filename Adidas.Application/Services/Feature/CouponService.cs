@@ -4,6 +4,7 @@ using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
+using Adidas.Models.Separator;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Models.Feature;
@@ -302,7 +303,30 @@ namespace Adidas.Application.Services.Feature
             return total;
         }
 
-    
+        public async Task<Result> ToggleCouponStatusAsync(Guid id)
+        {
+            var coupon = await _couponRepository.GetByIdAsync(id);
+            if (coupon == null)
+                return Result.Failure("coupon not found.");
 
+            coupon.IsActive = !coupon.IsActive;
+
+            try
+            {
+                await _couponRepository.UpdateAsync(coupon);
+                var result = await _couponRepository.SaveChangesAsync();
+
+                if (result > 0)
+                    return Result.Success();
+                else
+                    return Result.Failure("No changes were made to the database.");
+            }
+            catch (Exception ex)
+            {
+
+                return Result.Failure("An error occurred while updating the coupon status.");
+            }
+
+        }
     }
 }
