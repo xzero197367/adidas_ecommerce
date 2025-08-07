@@ -189,9 +189,13 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<Result> UpdateAsync(UpdateCategoryDto dto)
         {
+            if (dto.Id == dto.ParentCategoryId)
+                return Result.Failure("You cannot assign a category as its own parent.");
+
             var category = await _categoryRepository.GetByIdAsync(dto.Id);
             if (category == null)
                 return Result.Failure("Category not found.");
+           
             var nameExists = await _categoryRepository.GetCategoryByNameAsync(dto.Name);
             if (nameExists != null && nameExists.Id != category.Id)
                 return Result.Failure("name is already exists.");

@@ -97,7 +97,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Edit(Guid id)
         {
             var category = await _categoryService.GetCategoryToEditByIdAsync(id);
-            await PopulateParentCategoriesDropdown();
+            await PopulateParentCategoriesDropdown(id);
             return View(category);
         }
 
@@ -179,10 +179,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task PopulateParentCategoriesDropdown()
+        private async Task PopulateParentCategoriesDropdown(Guid? currentCategoryId = null)
         {
-            var parentCategories = await _categoryService.GetMainCategoriesAsync(); 
-
+            var parentCategories = await _categoryService.GetMainCategoriesAsync();
+            if (currentCategoryId.HasValue)
+            {
+                parentCategories = parentCategories
+                    .Where(c => c.Id != currentCategoryId.Value)
+                    .ToList();
+            }
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
         }
 
