@@ -210,17 +210,48 @@
                                                 }
 
 
-                                                <form method="post" action="@Url.Action("Delete", "Coupon")" style="display: inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="id" value="@coupon.Id" />
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete"
-                                                            onclick="return confirm('Are you sure you want to delete this coupon? This action cannot be undone.')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                            
+                                                <a href="#" class="btn btn-sm btn-outline-danger me-1" data-bs-toggle="modal"
+                                                   data-bs-target="#deleteModal-@coupon.Id" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+
+
                                             </div>
                                         </td>
                                     </tr>
+                                    <div class="modal fade" id="deleteModal-@coupon.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@coupon.Id" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title" id="deleteModalLabel-@coupon.Id">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete the Coupon : <strong>@coupon.Name</strong>?</p>
+                                                    @* @if (category.SubCategories != null && category.SubCategories.Any()) *@
+                                                    @* { *@
+                                                    @*     <div class="alert alert-warning"> *@
+                                                    @*         <i class="fas fa-exclamation-triangle me-2"></i> *@
+                                                    @*         This category has @coupon.SubCategories.Count() subcategories that will also be deleted! *@
+                                                    @*     </div> *@
+                                                    @* } *@
+                                                    <p class="text-danger">This action cannot be undone.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form asp-action="Delete" asp-controller="Coupons" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@coupon.Id" />
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-trash me-1"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
                                 }
                             </tbody>
                         </table>
