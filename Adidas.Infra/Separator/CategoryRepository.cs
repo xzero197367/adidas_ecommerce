@@ -27,11 +27,12 @@ namespace Adidas.Infra.Separator
                 .Where(c => c.ParentCategoryId == parentCategoryId && !c.IsDeleted && c.IsActive)
                 .ToListAsync();
         }
+       
 
         public async Task<Category?> GetCategoryBySlugAsync(string slug)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(c => c.Slug == slug && !c.IsDeleted && c.IsActive);
+                .FirstOrDefaultAsync(c => c.Slug == slug);
         }
 
         public async Task<List<Category>> GetCategoryHierarchyAsync(Guid categoryId)
@@ -47,6 +48,12 @@ namespace Adidas.Infra.Separator
             }
 
             return hierarchy;
+        }
+
+        public async Task<Category> GetCategoryByNameAsync(string name)
+        {
+            return await _dbSet
+              .FirstOrDefaultAsync(c => c.Name == name);
         }
     }
 }

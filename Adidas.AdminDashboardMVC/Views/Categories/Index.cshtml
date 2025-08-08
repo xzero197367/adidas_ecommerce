@@ -10,49 +10,51 @@
         <a asp-controller="Categories" asp-action="Create" class="btn btn-dark">+ Add Category</a>
     </div>
 
-    @* @if (TempData["Success"] != null) *@
-    @* { *@
-    @*     <div class="alert alert-success alert-dismissible fade show" role="alert"> *@
-    @*         @TempData["Success"] *@
-    @*         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> *@
-    @*     </div> *@
-    @* } *@
-    @* @if (TempData["Error"] != null) *@
-    @* { *@
-    @*     <div class="alert alert-danger alert-dismissible fade show" role="alert"> *@
-    @*         @TempData["Error"] *@
-    @*         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> *@
-    @*     </div> *@
-    @* } *@
+    
 
+    <form method="get" asp-action="Index" asp-controller="Categories">
     <div class="row mb-3">
-        <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Search categories..." />
+        <!-- Search Box -->
+        <div class="col-md-6 mb-2">
+            <label class="form-label">Search Categories</label>
+            <input type="text"
+                   name="searchTerm"
+                   class="form-control"
+                   placeholder="Search by name..."
+                   value="@(ViewData["SearchTerm"] as string)" />
         </div>
-        <div class="col-md-3">
-            <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle w-100" type="button" id="dropdownMenuButtonAllCategories" data-bs-toggle="dropdown" aria-expanded="false">
-                    All Categories
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonAllCategories">
-                    <li><a class="dropdown-item" href="#">Main Categories</a></li>
-                    <li><a class="dropdown-item" href="#">Sub Categories</a></li>
-                    <li><a class="dropdown-item" href="#">Uncategorized</a></li>
-                </ul>
-            </div>
+
+        <!-- Category Type Dropdown -->
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Category Type</label>
+            <select name="categoryType" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentType"] as string))">All Categories</option>
+                <option value="Main" selected="@(ViewData["CurrentType"] as string == "Main")">Main Categories</option>
+                <option value="Sub" selected="@(ViewData["CurrentType"] as string == "Sub")">Sub Categories</option>
+            </select>
         </div>
-        <div class="col-md-3">
-            <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle w-100" type="button" id="dropdownMenuButtonAllStatus" data-bs-toggle="dropdown" aria-expanded="false">
-                    All Status
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonAllStatus">
-                    <li><a class="dropdown-item" href="#">Active</a></li>
-                    <li><a class="dropdown-item" href="#">Inactive</a></li>
-                </ul>
-            </div>
+
+        <!-- Status Dropdown -->
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Status</label>
+            <select name="statusFilter" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentStatus"] as string))">All Status</option>
+                <option value="Active" selected="@(ViewData["CurrentStatus"] as string == "Active")">Active</option>
+                <option value="Inactive" selected="@(ViewData["CurrentStatus"] as string == "Inactive")">Inactive</option>
+            </select>
         </div>
     </div>
+
+    <!-- Full-width Apply Button -->
+    <div class="d-grid">
+            <button type="submit" class="btn btn-dark w-100">
+            <i class="fas fa-search me-2"></i> Apply Filters
+        </button>
+    </div>
+</form>
+
+
+
 
     <div class="table-responsive">
         <table class="table table-hover">
@@ -62,7 +64,6 @@
                     <th scope="col">NAME</th>
                     <th scope="col">DESCRIPTION</th>
                     <th scope="col">SLUG</th>
-                    <th scope="col">SORT ORDER</th>
                     <th scope="col">STATUS</th>
                     <th scope="col">ACTIONS</th>
                 </tr>
@@ -92,38 +93,50 @@
                                     <br />
                                     <small>Sub-category</small>
                                 }
+                                else
+                                {
+                                    <br />
+                                    <small>Main-category</small>
+                                }
                             </td>
                             <td>@(string.IsNullOrEmpty(category.Description) ? "N/A" : (category.Description.Length > 50 ? category.Description.Substring(0, 50) + "..." : category.Description))</td>
                             <td>@category.Slug</td>
-                            <td>@category.SortOrder</td>
-                            <td class="text-success fw-bold">
-                                @(category.IsActive ? "✓" : "✗")
-                            </td>
                             <td>
+                                @if (category.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-nowrap">
                                 <a asp-action="Details" asp-controller="Categories" asp-route-id="@category.Id"
                                    class="btn btn-sm btn-outline-info me-1" title="View Details">
                                     <i class="bi bi-eye"></i>
                                 </a>
-
-                                <a href="@Url.Action("Edit", "Categories", new { id = category.Id })"
-                                   class="btn btn-sm btn-outline-warning me-1"
-                                   title="Edit">
+                                <a asp-action="Edit" asp-controller="Categories" asp-route-id="@category.Id"
+                                   class="btn btn-sm btn-outline-warning me-1" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-
-
-
-                                <!-- Delete Button with Modal Trigger -->
-                                <a href="#" class="btn btn-sm btn-outline-danger"
-                                   data-bs-toggle="modal"
-                                   data-bs-target="#deleteModal-@category.Id"
-                                   title="Delete">
+                                <a href="#" class="btn btn-sm btn-outline-danger me-1" data-bs-toggle="modal"
+                                   data-bs-target="#deleteModal-@category.Id" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </a>
+
+                                <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@category.Id" />
+                                    <button type="submit" class="btn btn-sm @(category.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                                            title="@(category.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="@(category.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                    </button>
+                                </form>
+
                             </td>
+
                         </tr>
 
-                        <!-- Delete Confirmation Modal -->
                         <div class="modal fade" id="deleteModal-@category.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@category.Id" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -133,18 +146,18 @@
                                     </div>
                                     <div class="modal-body">
                                         <p>Are you sure you want to delete the category <strong>@category.Name</strong>?</p>
-                                        @if (category.SubCategories?.Count > 0)
+                                        @if (category.SubCategories != null && category.SubCategories.Any())
                                         {
                                             <div class="alert alert-warning">
                                                 <i class="fas fa-exclamation-triangle me-2"></i>
-                                                This category has @category.SubCategories.Count subcategories that will also be deleted!
+                                                This category has @category.SubCategories.Count() subcategories that will also be deleted!
                                             </div>
                                         }
                                         <p class="text-danger">This action cannot be undone.</p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <form asp-action="Delete" method="post">
+                                        <form asp-action="Delete" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@category.Id" />
                                             <button type="submit" class="btn btn-danger">
                                                 <i class="fas fa-trash me-1"></i> Delete
@@ -154,17 +167,12 @@
                                 </div>
                             </div>
                         </div>
-
-                       
-
-                    
-                    
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="7" class="text-center">No categories found.</td>
+                        <td colspan="6" class="text-center">No categories found.</td>
                     </tr>
                 }
             </tbody>
@@ -172,29 +180,26 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-4">
-        <small>Showing 1 to @(Model != null ? Math.Min(3, Model.Count()) : 0) of @(Model != null ? Model.Count() : 0) results</small>
-        <nav aria-label="Page navigation example">
-            <ul class="pagination mb-0">
-                <li class="page-item disabled">
-                    <a class="page-link" href="#" aria-label="Previous">
-                        <span aria-hidden="true">Previous</span>
-                    </a>
-                </li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item">
-                    <a class="page-link" href="#" aria-label="Next">
-                        <span aria-hidden="true">Next</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+        <small>Showing 1 to @(Model?.Count() ?? 0) of @(Model?.Count() ?? 0) results</small>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // You can enhance functionality with AJAX, search filter, and pagination here
+          document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input, select');
+
+            // Add subtle animations on focus
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
     </script>
 }

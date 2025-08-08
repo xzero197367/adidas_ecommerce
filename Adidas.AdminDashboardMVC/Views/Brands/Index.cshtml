@@ -12,48 +12,44 @@
         <a asp-controller="Brands" asp-action="Create" class="btn btn-dark">+ Add Brand</a>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+    
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Search brands..." />
-        </div>
-        <div class="col-md-3">
-            <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle w-100" type="button" id="dropdownMenuButtonAllBrands" data-bs-toggle="dropdown" aria-expanded="false">
-                    All Brands
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonAllBrands">
-                    <li><a class="dropdown-item" href="#">All</a></li>
-                    <li><a class="dropdown-item" href="#">...other options...</a></li>
-                </ul>
+    <form method="get" asp-action="Index" asp-controller="Brands">
+        <div class="row mb-3">
+            <!-- Search Box -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Search Brand</label>
+                <input type="text"
+                       name="searchTerm"
+                       class="form-control"
+                       placeholder="Search by name..."
+                       value="@(ViewData["SearchTerm"] as string)" />
+            </div>
+
+            
+
+            <!-- Status Dropdown -->
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Status</label>
+                <select name="statusFilter" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentStatus"] as string))">All Status</option>
+                    <option value="Active" selected="@(ViewData["CurrentStatus"] as string == "Active")">Active</option>
+                    <option value="Inactive" selected="@(ViewData["CurrentStatus"] as string == "Inactive")">Inactive</option>
+                </select>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle w-100" type="button" id="dropdownMenuButtonAllStatus" data-bs-toggle="dropdown" aria-expanded="false">
-                    All Status
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonAllStatus">
-                    <li><a class="dropdown-item" href="#">Active</a></li>
-                    <li><a class="dropdown-item" href="#">Inactive</a></li>
-                </ul>
-            </div>
+
+        <!-- Full-width Apply Button -->
+        <div class="d-grid">
+            <button type="submit" class="btn btn-dark w-100">
+                <i class="fas fa-search me-2"></i> Apply Filters
+            </button>
         </div>
-    </div>
+    </form>
+
+
+
+
 
     <div class="table-responsive">
         <table class="table table-hover">
@@ -110,6 +106,14 @@
                                    title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </a>
+
+                                <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@brand.Id" />
+                                    <button type="submit" class="btn btn-sm @(brand.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                                            title="@(brand.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="@(brand.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
 
@@ -173,6 +177,20 @@
 
 @section Scripts {
     <script>
-        // You can enhance functionality with AJAX, search filter, and pagination here
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input, select');
+
+            // Add subtle animations on focus
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
     </script>
 }

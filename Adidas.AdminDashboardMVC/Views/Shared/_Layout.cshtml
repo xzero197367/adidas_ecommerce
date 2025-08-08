@@ -29,7 +29,8 @@
     <!-- OverlayScrollbars -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.3.0/styles/overlayscrollbars.min.css">
     <link rel="stylesheet" href="~/css/style.css" />
-
+    <link rel="stylesheet" href="~/css//category.css"/>
+ 
     <!-- Page Specific Styles -->
     @RenderSection("Styles", required: false)
 </head>
@@ -51,6 +52,22 @@
                 <div class="container-fluid">
                     @Html.AntiForgeryToken()
                     <partial name="_Alerts" />
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
                     @RenderBody()
                 </div>
             </section>

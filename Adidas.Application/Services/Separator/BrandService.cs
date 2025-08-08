@@ -25,14 +25,18 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<Result> DeleteAsync(Guid id)
         {
-            var brand = await _brandRepository.GetByIdAsync(id);
+            var brand = await _brandRepository.GetByIdAsync(id,
+                  c => c.Products            
+                );
             if (brand == null)
                 return Result.Failure("Brand not found.");
+            if (brand.Products.Count() != 0)
+                return Result.Failure("Cannot delete a brand that has products.");
 
-            await _brandRepository.SoftDeleteAsync(id);
+            await _brandRepository.HardDeleteAsync(id);
             var result = await _brandRepository.SaveChangesAsync();
 
-            return result == null ? Result.Failure("Failed to Create Brand.") : Result.Success();
+            return result == null ? Result.Failure("Failed to Delete Brand.") : Result.Success();
         }
 
         public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
@@ -149,26 +153,93 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<BrandDto?> GetDetailsByIdAsync(Guid id)
         {
-            var brand = await _brandRepository.GetByIdAsync(id);
+            var brand = await _brandRepository.GetByIdAsync(id, b => b.Products);
 
             if (brand == null)
-            {
                 return null;
-            }
 
-          var brandDto = new BrandDto
+            var brandDto = new BrandDto
             {
                 Id = brand.Id,
                 IsActive = brand.IsActive,
                 Name = brand.Name,
                 Description = brand.Description,
                 LogoUrl = brand.LogoUrl,
+                Products = brand.Products.Select(product => new ProductDto
+                {
+                    Id = product.Id,
+                    IsActive= product.IsActive,
+                    Name = product.Name,
+                    Description = product.Description,
+                    ShortDescription = product.ShortDescription,
+                    Sku = product.Sku,
+                    Price = product.Price,
+                    SalePrice = product.SalePrice,
+                    GenderTarget = product.GenderTarget,
+                    MetaDescription = product.MetaDescription
+                }).ToList()
             };
 
             return brandDto;
         }
- 
-    
+
+
+        public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
+        {
+            var brands = await _brandRepository.GetAllAsync();
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                bool isActive = statusFilter == "Active";
+                brands = brands.Where(c => c.IsActive == isActive).ToList();
+            }
+
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                brands = brands.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+            var brandDtos = brands.Select(b => new BrandDto
+            {
+
+                Id = b.Id,
+                UpdatedAt = b.UpdatedAt,
+                IsActive = b.IsActive,
+
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+            }).ToList();
+
+            return brandDtos;
+        }
+
+        public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
+        {
+            var brand = await _brandRepository.GetByIdAsync(categoryId);
+            if (brand == null)
+                return Result.Failure("brand not found.");
+
+            brand.IsActive = !brand.IsActive;
+
+            try
+            {
+                await _brandRepository.UpdateAsync(brand);
+                var result = await _brandRepository.SaveChangesAsync();
+
+                if (result > 0)
+                    return Result.Success();
+                else
+                    return Result.Failure("No changes were made to the database.");
+            }
+            catch (Exception ex)
+            {
+
+                return Result.Failure("An error occurred while updating the brand status.");
+            }
+        }
+
     }
 }
  //#region Generic Service Overrides
