@@ -1,3 +1,9 @@
+
+
+using Resto.Web.Helpers;
+using Adidas.Infrastructure.Repositories;
+
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
@@ -33,9 +39,12 @@ using Adidas.Application.Contracts.ServicesContracts.Static;
 using Microsoft.AspNetCore.Authentication;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Services.Operation;
+using Adidas.Application.Map.Operation;
+
 using Adidas.Infrastructure.Repositories;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Services.Separator;
+
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
@@ -123,12 +132,16 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 #region 6. AutoMapper Configuration (v12+)
 builder.Services.AddAutoMapper(
     typeof(MappingProfiles).Assembly,
-    typeof(CouponMappingProfile).Assembly
+    typeof(CouponMappingProfile).Assembly,
+    typeof(ReviewMappingProfile).Assembly // أضف هذا السطر
+
 );
 
 #endregion
 
 #region 7. Application Services & Repositories
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();

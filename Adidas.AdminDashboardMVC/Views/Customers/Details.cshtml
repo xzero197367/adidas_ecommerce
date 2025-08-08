@@ -181,7 +181,10 @@
                                     <strong>Product:</strong> @review.ProductId <br />
                                     <strong>Rating:</strong> @review.Rating / 5 <br />
                                     <strong>Comment:</strong> @review.ReviewText <br />
-                                    <small class="text-muted">Posted on @review.CreatedAt.ToString("MMMM dd, yyyy")</small>
+                                    @* <small class="text-muted">Posted on @review.CreatedAt.ToString("MMMM dd, yyyy")</small> *@
+                                    <small class="text-muted">Posted on @((DateTime)review.CreatedAt).ToString("MMMM dd, yyyy")</small>
+
+
                                 </div>
                             }
                         }
