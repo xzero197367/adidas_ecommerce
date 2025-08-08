@@ -13,7 +13,7 @@ namespace Adidas.Application.Services.Feature
     public class CouponService : GenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>, ICouponService
     {
         private readonly ICouponRepository _couponRepository;
-        public readonly ILogger _logger;
+        public readonly ILogger<CouponService> _logger;
 
         public CouponService(
             // IOrderCouponRepository orderCouponRepository,

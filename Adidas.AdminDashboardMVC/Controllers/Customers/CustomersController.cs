@@ -127,7 +127,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
         {
             var csvData = await _customerService.ExportCustomersAsync(filter);
 
-            return File(csvData, "text/csv", $"customers_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
+            return File(csvData.Data, "text/csv", $"customers_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
         }
 
         // AJAX endpoint for filtered data

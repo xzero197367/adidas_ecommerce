@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Text;
-using System.Threading.Tasks;
-using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Context;
 using Adidas.DTOs.Common_DTOs;
@@ -30,7 +26,7 @@ namespace Adidas.Application.Services.People
             _context = context;
         }
 
-        public async Task<OperationResult<PagedResult<CustomerDto>>> GetCustomersAsync(CustomerFilterDto filter)
+        public async Task<OperationResult<PagedResultDto<CustomerDto>>> GetCustomersAsync(CustomerFilterDto filter)
         {
             try
             {
@@ -79,20 +75,20 @@ namespace Adidas.Application.Services.People
                     })
                     .ToListAsync();
 
-                var result = new PagedResult<CustomerDto>
+                var result = new PagedResultDto<CustomerDto>
                 {
                     Items = customers,
                     TotalCount = totalCount,
-                    Page = filter.Page,
+                    PageNumber = filter.Page,
                     PageSize = filter.PageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / filter.PageSize)
                 };
-                return OperationResult<PagedResult<CustomerDto>>.Success(result);
+                return OperationResult<PagedResultDto<CustomerDto>>.Success(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting customers");
-                return OperationResult<PagedResult<CustomerDto>>.Fail(ex.Message);
+                return OperationResult<PagedResultDto<CustomerDto>>.Fail(ex.Message);
             }
         }
 
@@ -239,7 +235,7 @@ namespace Adidas.Application.Services.People
                     csv.AppendLine(
                         $"{customer.Name},{customer.Email},{customer.JoinDate:yyyy-MM-dd},{customer.Status},{customer.TotalSpent:C},{customer.Phone}");
                 }
-                return OperationResult<byte[]>.Fail(Encoding.UTF8.GetBytes(csv.ToString()));
+                return OperationResult<byte[]>.Success(Encoding.UTF8.GetBytes(csv.ToString()));
 
                 // return Encoding.UTF8.GetBytes(csv.ToString());
             }catch (Exception ex)

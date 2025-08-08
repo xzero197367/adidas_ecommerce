@@ -1,9 +1,10 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
+using Adidas.DTOs.CommonDTOs;
 
 namespace Adidas.DTOs.Operation.ReviewDTOs
 {
-    public class ReviewUpdateDto
+    public class ReviewUpdateDto: BaseUpdateDto
     {
         [Required]
         [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5")]

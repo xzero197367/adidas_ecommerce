@@ -1,7 +1,8 @@
-﻿namespace Adidas.DTOs.Feature.WishLIstDTOS;
+﻿using Adidas.DTOs.CommonDTOs;
 
-public class WishlistUpdateDto
+namespace Adidas.DTOs.Feature.WishLIstDTOS;
+
+public class WishlistUpdateDto: BaseUpdateDto
 {
-    public Guid Id { get; set; }
     public Guid? ProductId { get; set; }
 }

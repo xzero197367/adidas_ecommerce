@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Folder Include="Models\Discounts\" />
+    <Folder Include="wwwroot\js\Order\" />
   </ItemGroup>
 
   <ItemGroup>

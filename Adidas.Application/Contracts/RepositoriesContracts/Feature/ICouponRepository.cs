@@ -1,4 +1,5 @@
-﻿using Adidas.DTOs.Feature.CouponDTOs;
+﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.Feature.CouponDTOs;
 using Models.Feature;
 
 namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
@@ -12,7 +13,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<IEnumerable<Coupon>> GetCouponsByUsageAsync(int maxUsage);
         Task<bool> IncrementUsageCountAsync(Guid couponId);
 
-        Task<(IEnumerable<Coupon> coupons, int totalCount)> GetCouponsPagedAsync(int pageNumber, int pageSize,
+        Task<PagedResultDto<Coupon>> GetCouponsPagedAsync(int pageNumber, int pageSize,
             bool? isActive = null);
 
         Task<IEnumerable<Coupon>> GetCouponsByUserAsync(string userId);

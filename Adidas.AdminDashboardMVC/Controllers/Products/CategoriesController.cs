@@ -92,7 +92,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         {
             var category = await _categoryService.GetCategoryToEditByIdAsync(id);
             await PopulateParentCategoriesDropdown();
-            return View(category);
+            return View(category.Data);
         }
 
         // POST: /Category/Edit

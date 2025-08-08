@@ -101,7 +101,7 @@ namespace Adidas.Web.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-            await _couponService.UpdateAsync(id, dto);
+            await _couponService.UpdateAsync(dto);
             return RedirectToAction(nameof(Index));
         }
 

@@ -33,7 +33,7 @@ namespace Adidas.Application.Contracts.ServicesContracts
         // Write operations
         Task<OperationResult<TDto>> CreateAsync(TCreateDto createDto);
         Task<OperationResult<IEnumerable<TDto>>> CreateRangeAsync(IEnumerable<TCreateDto> createDtos);
-        Task<OperationResult<TDto>> UpdateAsync(Guid id, TUpdateDto updateDto);
+        Task<OperationResult<TDto>> UpdateAsync(TUpdateDto updateDto);
         Task<OperationResult<IEnumerable<TDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, TUpdateDto>> updates);
 
         // Delete operations

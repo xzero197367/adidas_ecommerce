@@ -14,9 +14,9 @@ namespace Adidas.Application.Services.People;
 public class AddressService : GenericService<Address, AddressDto, AddressCreateDto, AddressUpdateDto>,IAddressService
 {
     private readonly IAddressRepository _repository;
-    private readonly ILogger _logger;
+    private readonly ILogger<AddressService> _logger;
 
-    public AddressService(IAddressRepository repository, ILogger logger): base(repository, logger)
+    public AddressService(IAddressRepository repository, ILogger<AddressService> logger): base(repository, logger)
     {
         _repository = repository;
         _logger = logger;

@@ -13,16 +13,13 @@ namespace Adidas.Application.Services.Operation;
 public class PaymentService : IPaymentService
 {
     private readonly IPaymentRepository _paymentRepository;
-    private readonly IMapper _mapper;
     private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         IPaymentRepository paymentRepository,
-        IMapper mapper,
         ILogger<PaymentService> logger)
     {
         _paymentRepository = paymentRepository;
-        _mapper = mapper;
         _logger = logger;
     }
 
@@ -67,7 +64,7 @@ public class PaymentService : IPaymentService
         try
         {
             // Create the payment record with pending status
-            var payment = _mapper.Map<Payment>(dto);
+            var payment = dto.Adapt<Payment>();
             payment.Id = Guid.NewGuid();
             payment.CreatedAt = DateTime.UtcNow;
             payment.IsActive = true;

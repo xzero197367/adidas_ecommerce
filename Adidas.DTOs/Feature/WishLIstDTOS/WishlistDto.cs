@@ -1,7 +1,7 @@
 ﻿
 
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 
 namespace Adidas.DTOs.Feature.WishLIstDTOS
 {

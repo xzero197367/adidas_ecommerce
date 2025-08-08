@@ -1,5 +1,6 @@
 ﻿using Adidas.Models;
 using System.Linq.Expressions;
+using Adidas.DTOs.Common_DTOs;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Adidas.Application.Contracts.RepositoriesContracts
@@ -12,7 +13,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
         Task<T?> FindAsync(Func<IQueryable<T>, IQueryable<T>> queryFunc);
 
         // Pagination
-        Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, Func<IQueryable<T>, IQueryable<T>>? queryFunc = null);
+        Task<PagedResultDto<T>> GetPagedAsync(int pageNumber, int pageSize, Func<IQueryable<T>, IQueryable<T>>? queryFunc = null);
         
         // Count operations
         // Task<int> CountAsync(); // todo: optional where

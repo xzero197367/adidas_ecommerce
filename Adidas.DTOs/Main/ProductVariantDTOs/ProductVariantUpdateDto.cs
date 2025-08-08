@@ -1,9 +1,10 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
+using Adidas.DTOs.CommonDTOs;
 
 namespace Adidas.DTOs.Main.Product_Variant_DTOs
 {
-    public class ProductVariantUpdateDto
+    public class ProductVariantUpdateDto: BaseUpdateDto
     {
         [Required, MaxLength(50)]
         public string Color { get; set; } = string.Empty;

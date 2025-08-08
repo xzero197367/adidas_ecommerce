@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Adidas.DTOs.CommonDTOs;
 
 namespace Adidas.DTOs.Feature.OrderCouponDTOs;
 
-public class OrderCouponUpdateDto
+public class OrderCouponUpdateDto: BaseUpdateDto
 {
-    public Guid Id { get; set; }
     // fields
     public decimal? DiscountApplied { get; set; }
 }

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Adidas.DTOs.Operation.OrderDTOs.Result;
+﻿
+using Adidas.DTOs.Operation.OrderDTOs;
 
 namespace Adidas.DTOs.Operation.PaymentDTOs.Result
 {

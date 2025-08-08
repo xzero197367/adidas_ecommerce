@@ -1,3 +1,4 @@
+using Adidas.AdminDashboardMVC.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
@@ -32,6 +33,7 @@ using Adidas.Infrastructure.Repositories;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Mapping;
 using Adidas.Application.Services.Separator;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,11 +112,11 @@ builder.Services.AddControllersWithViews();
 
 
 // 5. NOW add your custom services (after Identity is configured)
-builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-
-builder.Services.AddScoped<IReviewService, ReviewService>();
+// builder.Services.AddScoped<ICustomerService, CustomerService>();
+// builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+// builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+//
+// builder.Services.AddScoped<IReviewService, ReviewService>();
 //builder.Services.AddScoped<IOrderService, OrderService>();
 //builder.Services.AddAutoMapper(Program);
 
@@ -127,6 +129,13 @@ MapsterConfig.Configure();
 #endregion
 
 #region 7. Application Services & Repositories
+
+// viewlocation exapnder
+// add custom view locations
+builder.Services.Configure<RazorViewEngineOptions>(options =>
+{
+    options.ViewLocationExpanders.Add(new ViewLocationExpander());
+});
 
 MyDependancyInjection.ConfigDependancies(builder.Services);
 

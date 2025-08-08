@@ -1,7 +1,6 @@
 ﻿
 using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
-using Adidas.DTOs.Operation.OrderDTOs.Result;
 using Mapster;
 
 namespace Adidas.Application.Mapping.Operation;

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
 using Adidas.Application.Contracts.RepositoriesContracts;
+using Adidas.DTOs.Common_DTOs;
 
 namespace Adidas.Infra;
 
@@ -96,6 +97,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
         {
             throw new Exception($"Entity with id {id} not found");
         }
+
         return _dbSet.Remove(entity);
     }
 
@@ -106,6 +108,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
         {
             deletedEntities.Add(_dbSet.Remove(entity));
         }
+
         return deletedEntities;
     }
 
@@ -161,14 +164,20 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
 
     #region Pagination
 
-    public async Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize,
+    public async Task<PagedResultDto<T>> GetPagedAsync(int pageNumber, int pageSize,
         Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
     {
         var query = _dbSet.AsQueryable();
         if (queryFunc != null) query = queryFunc(query);
         var totalCount = await query.CountAsync();
         var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-        return (items, totalCount);
+        return new PagedResultDto<T>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     #endregion

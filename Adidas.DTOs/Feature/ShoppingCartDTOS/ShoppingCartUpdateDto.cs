@@ -1,9 +1,10 @@
 ﻿
+using Adidas.DTOs.CommonDTOs;
+
 namespace Adidas.DTOs.Feature.ShoppingCartDTOS
 {
-    public class ShoppingCartUpdateDto
+    public class ShoppingCartUpdateDto: BaseUpdateDto
     {
-        public Guid Id;
         public int? Quantity { get; set; }
         public Guid? VariantId { get; set; }
     }

@@ -51,11 +51,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 // Create view model
                 var viewModel = new DashboardViewModel
                 {
-                    Stats = dashboardStats.Data,
-                    SalesReport = salesReport.Data,
-                    PopularProducts = popularProducts.Data.ToList(),
-                    CategoryPerformance = categoryPerformance.Data.Take(6).ToList(),
-                    CustomerInsights = customerInsights.Data,
+                    Stats = dashboardStats.Data ?? new DashboardStatsDto(),
+                    SalesReport = salesReport.Data ?? new SalesReportDto(),
+                    PopularProducts = popularProducts.Data != null
+                        ? popularProducts.Data.ToList()
+                        : new List<PopularProductDto>(),
+                    CategoryPerformance = categoryPerformance.Data != null
+                        ? categoryPerformance.Data.Take(6).ToList()
+                        : new List<CategoryPerformanceDto>(),
+                    CustomerInsights = customerInsights.Data != null ? customerInsights.Data : new CustomerInsightsDto(),
                     CurrentTimeRange = "Last 30 days",
                     LastUpdated = DateTime.UtcNow
                 };
@@ -80,7 +84,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 var startDate = endDate.AddDays(-days);
                 var salesReport = await _analyticsService.GenerateSalesReportAsync(startDate, endDate);
 
-                var chartData = salesReport.Data.DailySales.Select(d => new
+                var chartData = salesReport?.Data?.DailySales.Select(d => new
                 {
                     date = d.Date.ToString("yyyy-MM-dd"),
                     sales = d.Sales,
@@ -128,7 +132,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 var stats = await _analyticsService.GetDashboardStatsAsync();
 
                 // Low stock notification
-                if (stats.Data.LowStockProducts > 0)
+                if (stats?.Data?.LowStockProducts > 0)
                 {
                     notifications.Add(new NotificationDto
                     {
@@ -142,7 +146,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 }
 
                 // Pending orders notification
-                if (stats.Data.PendingOrders > 0)
+                if (stats?.Data?.PendingOrders > 0)
                 {
                     notifications.Add(new NotificationDto
                     {

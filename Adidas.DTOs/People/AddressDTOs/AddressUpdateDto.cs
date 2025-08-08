@@ -1,6 +1,8 @@
-﻿namespace Adidas.DTOs.People.Address_DTOs;
+﻿using Adidas.DTOs.CommonDTOs;
 
-public class AddressUpdateDto
+namespace Adidas.DTOs.People.Address_DTOs;
+
+public class AddressUpdateDto: BaseUpdateDto
 {
     public string FirstName { get; set; }
     public string LastName { get; set; }

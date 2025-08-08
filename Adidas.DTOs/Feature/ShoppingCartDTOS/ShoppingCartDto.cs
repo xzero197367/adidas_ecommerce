@@ -1,7 +1,6 @@
 ﻿
 
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
 
 namespace Adidas.DTOs.Feature.ShoppingCartDTOS

@@ -18,5 +18,12 @@ namespace Adidas.DTOs.Feature.CouponDTOs
         public decimal DiscountAmount { get; set; }
         public decimal OriginalAmount { get; set; }
         public decimal FinalAmount { get; set; }
+        
+        public bool IsValidNow { get; set; }
+        
+        public bool IsExpired { get; set; }
+        
+        public string StatusText { get; set; }
+        public string DiscountDisplayText { get; set; }
     }
 }

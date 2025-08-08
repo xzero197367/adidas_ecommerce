@@ -15,13 +15,11 @@ namespace Adidas.Application.Services.Tracker
     {
         private readonly IProductVariantRepository _variantRepository;
         private readonly IInventoryLogRepository _inventoryLogRepository;
-
         private readonly ILogger<InventoryService> _logger;
 
         public InventoryService(
             IProductVariantRepository variantRepository,
             IInventoryLogRepository inventoryLogRepository,
-            IMapper mapper,
             ILogger<InventoryService> logger)
         {
             _variantRepository = variantRepository;

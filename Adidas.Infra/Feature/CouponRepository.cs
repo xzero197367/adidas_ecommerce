@@ -1,4 +1,5 @@
-﻿using Adidas.Models.Feature;
+﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.Models.Feature;
 using Microsoft.EntityFrameworkCore;
 using Models.Feature;
 
@@ -30,7 +31,6 @@ namespace Adidas.Infra.Operation
                                     c.ValidFrom <= date &&
                                     c.ValidTo >= date);
             }).ToListAsync();
-   
         }
 
         public async Task<bool> IsCouponValidAsync(string code, decimal orderAmount)
@@ -64,15 +64,18 @@ namespace Adidas.Infra.Operation
             return false;
         }
 
-        public async Task<(IEnumerable<Coupon> coupons, int totalCount)> GetCouponsPagedAsync(int pageNumber,
+        public async Task<PagedResultDto<Coupon>> GetCouponsPagedAsync(int pageNumber,
             int pageSize, bool? isActive = null)
         {
             if (isActive.HasValue)
             {
-                return await GetPagedAsync(pageNumber, pageSize, q=>q.Where(c => c.IsActive == isActive.Value && !c.IsDeleted));
+                var coupons = await GetPagedAsync(pageNumber, pageSize,
+                    q => q.Where(c => c.IsActive == isActive.Value && !c.IsDeleted));
+                return coupons;
             }
 
-            return await GetPagedAsync(pageNumber, pageSize, q => q.Where(c => c.IsDeleted));
+            var coupons1 = await GetPagedAsync(pageNumber, pageSize, q => q.Where(c => c.IsDeleted));
+            return coupons1;
         }
 
         public async Task<IEnumerable<Coupon>> GetCouponsByUserAsync(string userId)

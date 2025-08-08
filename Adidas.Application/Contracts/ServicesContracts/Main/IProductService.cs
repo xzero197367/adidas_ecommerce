@@ -1,7 +1,7 @@
 ﻿
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.CommonDTOs;
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.Models.Main;
 using Models.People;
 

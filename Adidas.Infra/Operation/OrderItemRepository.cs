@@ -1,4 +1,6 @@
 ﻿using System.Data.Entity;
+using Adidas.DTOs.Common_DTOs;
+using Mapster;
 
 namespace Adidas.Infra.Operation
 {
@@ -46,11 +48,13 @@ namespace Adidas.Infra.Operation
             return await query.SumAsync(oi => oi.Quantity);
         }
 
-        public async Task<(IEnumerable<OrderItem> items, int totalCount)> GetOrderItemsPagedAsync(Guid orderId,
+        public async Task<PagedResultDto<OrderItem>> GetOrderItemsPagedAsync(Guid orderId,
             int pageNumber, int pageSize)
         {
-            return await GetPagedAsync(pageNumber, pageSize,
+            var orderItems = await GetPagedAsync(pageNumber, pageSize,
                 q => q.Where(oi => oi.OrderId == orderId && !oi.IsDeleted));
+
+            return orderItems.Adapt<PagedResultDto<OrderItem>>();
         }
     }
 }

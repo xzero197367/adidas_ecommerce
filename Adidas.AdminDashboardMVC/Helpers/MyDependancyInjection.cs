@@ -39,6 +39,7 @@ public static class MyDependancyInjection
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         MyDependancyInjection.ConfigDependancies(services);
+        
 
         return services;
     }
@@ -88,6 +89,9 @@ public static class MyDependancyInjection
         // Product
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductService, ProductService>();
+        
+        // ProductVariant
+        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
 
         // ProductAttribute
         services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
@@ -125,6 +129,9 @@ public static class MyDependancyInjection
         
         // Customer
         services.AddScoped<ICustomerService, CustomerService>();
+        
+        // User
+        services.AddScoped<IUserRepository, UserRepository>();
     }
 
     private static void AddSeparatorServices(IServiceCollection services)
@@ -148,5 +155,8 @@ public static class MyDependancyInjection
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         
         services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
+        
+        // NotificationService
+        services.AddScoped<INotificationService, NotificationService>();
     }
 }

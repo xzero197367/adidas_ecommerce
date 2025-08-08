@@ -3,7 +3,7 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.CommonDTOs;
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.Models.Main;
 using Mapster;
 using Microsoft.Extensions.Logging;
@@ -140,7 +140,7 @@ namespace Adidas.Application.Services.Main
                     filters.PageNumber, filters.PageSize, filters.CategoryId, filters.BrandId,
                     filters.Gender, filters.MinPrice, filters.MaxPrice, filters.SearchTerm);
 
-                var pagedResult = new PagedResultDto<ProductDto>
+                var PagedResultDto = new PagedResultDto<ProductDto>
                 {
                     Items = products.Adapt<IEnumerable<ProductDto>>(),
                     TotalCount = totalCount,
@@ -149,7 +149,7 @@ namespace Adidas.Application.Services.Main
                     TotalPages = (int)Math.Ceiling((double)totalCount / filters.PageSize)
                 };
 
-                return OperationResult<PagedResultDto<ProductDto>>.Success(pagedResult);
+                return OperationResult<PagedResultDto<ProductDto>>.Success(PagedResultDto);
             }
             catch (Exception ex)
             {

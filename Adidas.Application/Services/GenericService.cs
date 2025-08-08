@@ -10,12 +10,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services
 {
-    public abstract class
+    public class
         GenericService<TEntity, TDto, TCreateDto, TUpdateDto> : IGenericService<TEntity, TDto, TCreateDto, TUpdateDto>
         where TEntity : BaseAuditableEntity
         where TDto : class
         where TCreateDto : class
-        where TUpdateDto : class
+        where TUpdateDto : BaseUpdateDto
     {
         public readonly IGenericRepository<TEntity> _repository;
         public readonly ILogger _logger;
@@ -41,7 +41,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting entity by id {Id} with includes", id);
-                return OperationResult<TDto>.Fail("Error getting entity by id");
+                return OperationResult<TDto>.Fail("Error getting entity by id: " + ex.Message);
             }
         }
 
@@ -56,7 +56,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all entities");
-                return OperationResult<IEnumerable<TDto>>.Fail("Error getting all entities");
+                return OperationResult<IEnumerable<TDto>>.Fail("Error getting all entities: " + ex.Message);
             }
         }
 
@@ -72,7 +72,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding entities with predicate");
-                return OperationResult<IEnumerable<TDto>>.Fail("Error finding entities with predicate");
+                return OperationResult<IEnumerable<TDto>>.Fail("Error finding entities with predicate: " + ex.Message);
             }
         }
 
@@ -81,21 +81,14 @@ namespace Adidas.Application.Services
         {
             try
             {
-                var (items, totalCount) = await _repository.GetPagedAsync(pageNumber, pageSize, queryFunc);
+                var itemPaged = await _repository.GetPagedAsync(pageNumber, pageSize, queryFunc);
 
-                return OperationResult<PagedResultDto<TDto>>.Success(new PagedResultDto<TDto>
-                {
-                    Items = items.Adapt<IEnumerable<TDto>>(),
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                });
+                return OperationResult<PagedResultDto<TDto>>.Success(itemPaged.Adapt<PagedResultDto<TDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting paged entities");
-                return OperationResult<PagedResultDto<TDto>>.Fail("Error getting paged entities");
+                return OperationResult<PagedResultDto<TDto>>.Fail("Error getting paged entities: " + ex.Message);
             }
         }
 
@@ -110,7 +103,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error counting entities with predicate");
-                return OperationResult<int>.Fail("Error counting entities with predicate");
+                return OperationResult<int>.Fail("Error counting entities with predicate: " + ex.Message);
             }
         }
 
@@ -124,7 +117,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking entity existence");
-                return OperationResult<bool>.Fail("Error checking entity existence");
+                return OperationResult<bool>.Fail("Error checking entity existence: " + ex.Message);
             }
         }
 
@@ -147,7 +140,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating entity");
-                return OperationResult<TDto>.Fail("Error creating entity");
+                return OperationResult<TDto>.Fail("Error creating entity: " + ex.Message);
             }
         }
 
@@ -176,10 +169,10 @@ namespace Adidas.Application.Services
                 // Detached tracking for the created entities
                 var createdEntityList =
                     createdEntityEntries.Select(entry =>
-                        {
-                            entry.State = EntityState.Detached;
-                            return entry.Entity;
-                        }).ToList(); // Extract entities from EntityEntry collection
+                    {
+                        entry.State = EntityState.Detached;
+                        return entry.Entity;
+                    }).ToList(); // Extract entities from EntityEntry collection
 
                 foreach (var createdEntity in createdEntityList)
                 {
@@ -191,19 +184,19 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating entities");
-                return OperationResult<IEnumerable<TDto>>.Fail("Error creating entities");
+                return OperationResult<IEnumerable<TDto>>.Fail("Error creating entities: " + ex.Message);
             }
         }
 
-        public virtual async Task<OperationResult<TDto>> UpdateAsync(Guid id, TUpdateDto updateDto)
+        public virtual async Task<OperationResult<TDto>> UpdateAsync(TUpdateDto updateDto)
         {
             try
             {
-                var existingEntity = await _repository.GetByIdAsync(id);
+                var existingEntity = await _repository.GetByIdAsync(updateDto.Id);
                 if (existingEntity == null)
-                    throw new KeyNotFoundException($"Entity with id {id} not found");
+                    throw new KeyNotFoundException($"Entity with id {updateDto.Id} not found");
 
-                await ValidateUpdateAsync(id, updateDto);
+                await ValidateUpdateAsync(updateDto.Id, updateDto);
 
                 existingEntity = existingEntity.Adapt<TEntity>();
                 await BeforeUpdateAsync(existingEntity);
@@ -219,8 +212,8 @@ namespace Adidas.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating entity with id {Id}", id);
-                return OperationResult<TDto>.Fail("Error updating entity");
+                _logger.LogError(ex, "Error updating entity with id {Id}", updateDto.Id);
+                return OperationResult<TDto>.Fail("Error updating entity: " + ex.Message);
             }
         }
 
@@ -246,7 +239,7 @@ namespace Adidas.Application.Services
                 }
 
                 var updatedEntityEntries = await _repository.UpdateRangeAsync(entities);
-              
+
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
                 // Detached tracking for the updated entities
                 var updatedEntityList =
@@ -267,7 +260,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating entities");
-                return OperationResult<IEnumerable<TDto>>.Fail("Error updating entities");
+                return OperationResult<IEnumerable<TDto>>.Fail("Error updating entities: " + ex.Message);
             }
         }
 
@@ -288,7 +281,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting entity with id {Id}", id);
-                return OperationResult<TEntity>.Fail("Error deleting entity");
+                return OperationResult<TEntity>.Fail("Error deleting entity: " + ex.Message);
             }
         }
 
@@ -306,7 +299,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting entity");
-                return OperationResult<TEntity>.Fail("Error deleting entity");
+                return OperationResult<TEntity>.Fail("Error deleting entity: " + ex.Message);
             }
         }
 
@@ -325,7 +318,7 @@ namespace Adidas.Application.Services
                     }
                 }
 
-                var result =  _repository.SoftDeleteRange(entities);
+                var result = _repository.SoftDeleteRange(entities);
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
                 foreach (var entity in entities)
                 {
@@ -337,7 +330,7 @@ namespace Adidas.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting entities");
-                return OperationResult<IEnumerable<TEntity>>.Fail("Error deleting entities");
+                return OperationResult<IEnumerable<TEntity>>.Fail("Error deleting entities: " + ex.Message);
             }
         }
 

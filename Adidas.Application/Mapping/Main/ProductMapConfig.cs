@@ -1,5 +1,5 @@
 ﻿
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.Models.Main;
 using Mapster;
 

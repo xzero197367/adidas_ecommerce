@@ -9,7 +9,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.People
 {
     public interface ICustomerService
     {
-        Task<OperationResult<PagedResult<CustomerDto>>> GetCustomersAsync(CustomerFilterDto filter);
+        Task<OperationResult<PagedResultDto<CustomerDto>>> GetCustomersAsync(CustomerFilterDto filter);
         Task<OperationResult<CustomerDetailsDto>> GetCustomerByIdAsync(string id);
         Task<OperationResult<bool>> UpdateCustomerAsync(string id, CustomerUpdateDto customerUpdateDto);
         Task<OperationResult<bool>> ToggleCustomerStatusAsync(string id);

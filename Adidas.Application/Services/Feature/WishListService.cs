@@ -15,9 +15,9 @@ namespace Adidas.Application.Services.Feature
         IWishListService
     {
         private readonly IWishlistRepository _wishlistRepository;
-        private readonly ILogger logger;
+        private readonly ILogger<WishListService> logger;
 
-        public WishListService(IWishlistRepository wishListRepository, ILogger logger) : base(wishListRepository,
+        public WishListService(IWishlistRepository wishListRepository, ILogger<WishListService> logger) : base(wishListRepository,
             logger)
         {
             _wishlistRepository = wishListRepository;

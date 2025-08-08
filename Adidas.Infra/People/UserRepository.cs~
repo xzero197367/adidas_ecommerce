@@ -1,0 +1,6 @@
+﻿namespace Adidas.Infra.People;
+
+public class UserRepository
+{
+    
+}

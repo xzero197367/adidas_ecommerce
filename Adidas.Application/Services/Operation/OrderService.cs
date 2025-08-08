@@ -4,8 +4,8 @@ using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
-using Adidas.DTOs.Operation.OrderDTOs.Result;
 using Adidas.DTOs.Operation.PaymentDTOs.Result;
 using Microsoft.Extensions.Logging;
 using Adidas.DTOs.CommonDTOs;
@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Operation;
 
-public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, OrderUpdateDto>, IOrderService
+public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, OrderUpdateDto>, IOrderService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IShoppingCartRepository _cartRepository;
@@ -37,6 +37,24 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         _variantRepository = variantRepository;
         _inventoryService = inventoryService;
         _notificationService = notificationService;
+        _logger = logger;
+    }
+
+    public async Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize,
+        OrderFilterDto? filter = null)
+    {
+        var pagedOrders = await _orderRepository.GetPagedAsync(pageNumber, pageSize, q =>
+        {
+            var query = q.Where(o => o.IsDeleted == false).OrderByDescending(o => o.OrderDate).AsQueryable();
+            if (filter != null && filter?.OrderNumber != null)
+            {
+                query = query.Where(o => o.OrderNumber.Contains(filter.OrderNumber));
+            }
+
+            return query;
+        });
+
+        return OperationResult<PagedResultDto<OrderDto>>.Success(pagedOrders.Adapt<PagedResultDto<OrderDto>>());
     }
 
     public async Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId)
@@ -85,98 +103,10 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return OperationResult<IEnumerable<OrderDto>>.Fail(ex.Message);
         }
     }
+    
 
-    public async Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(string userId,
-        CreateOrderFromCartDto orderDto)
-    {
-        var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-        if (!cartItems.Any())
-            return OperationResult<OrderDto>.Fail("Cart is empty");
 
-        try
-        {
-            // Reserve inventory
-            foreach (var item in cartItems)
-            {
-                var reserved = await _inventoryService.ReserveStockAsync(item.VariantId, item.Quantity);
-                if (!reserved.Data)
-                {
-                    return OperationResult<OrderDto>.Fail("Failed to reserve inventory");
-                }
-            }
-
-            var orderNumber = await GenerateOrderNumberAsync();
-            if (!orderNumber.IsSuccess) return OperationResult<OrderDto>.Fail(orderNumber.ErrorMessage);
-            var order = new Order
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                OrderNumber = orderNumber.Data,
-                OrderDate = DateTime.UtcNow,
-                OrderStatus = OrderStatus.Pending,
-                ShippingAddress = orderDto.ShippingAddress,
-                BillingAddress = orderDto.BillingAddress,
-                TotalAmount = orderDto.TotalAmount,
-                Currency = orderDto.Currency
-            };
-
-            // Create order items
-            var orderItems = new List<OrderItem>();
-            decimal totalAmount = 0;
-
-            foreach (var cartItem in cartItems)
-            {
-                var variant = await _variantRepository.GetByIdAsync(cartItem.VariantId);
-                var itemPrice = (variant.Product.SalePrice ?? variant.Product.Price) + variant.PriceAdjustment;
-
-                orderItems.Add(new OrderItem
-                {
-                    Id = Guid.NewGuid(),
-                    OrderId = order.Id,
-                    ProductName = variant.Product.Name,
-                    VariantId = cartItem.VariantId,
-                    Quantity = cartItem.Quantity,
-                    UnitPrice = itemPrice,
-                    TotalPrice = itemPrice * cartItem.Quantity
-                });
-
-                totalAmount += itemPrice * cartItem.Quantity;
-            }
-
-            order.Subtotal = totalAmount;
-            order.TaxAmount = CalculateTax(totalAmount);
-            order.TotalAmount = order.Subtotal + order.TaxAmount;
-
-            // Apply discount if provided
-            if (!string.IsNullOrEmpty(orderDto.DiscountCode))
-            {
-                // Implementation would validate and apply discount
-                // order.DiscountAmount = await CalculateDiscountAsync(orderDto.DiscountCode, order.SubTotal);
-                // order.TotalAmount -= order.DiscountAmount;
-            }
-
-            var createdOrder = await _orderRepository.AddAsync(order);
-            createdOrder.State = EntityState.Detached;
-
-            // Clear cart
-            await _cartRepository.ClearCartAsync(userId);
-
-            await _notificationService.SendOrderConfirmationAsync(createdOrder.Entity.Id);
-
-            return OperationResult<OrderDto>.Success(createdOrder.Entity.Adapt<OrderDto>());
-        }
-        catch (Exception ex)
-        {
-            // Release reserved inventory on failure
-            foreach (var item in cartItems)
-            {
-                await _inventoryService.ReleaseStockAsync(item.VariantId, item.Quantity);
-            }
-
-            return OperationResult<OrderDto>.Fail(ex.Message);
-        }
-    }
-
+ 
     public async Task<OperationResult<bool>> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus)
     {
         try
@@ -338,5 +268,14 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
     private static decimal CalculateTax(decimal subtotal)
     {
         return subtotal * 0.08m; // 8% tax
+    }
+
+    public override async Task BeforeCreateAsync(Order entity)
+    {
+        var result  = await GenerateOrderNumberAsync();
+        if (result.IsSuccess)
+        {
+            entity.OrderNumber = result.Data;
+        }
     }
 }

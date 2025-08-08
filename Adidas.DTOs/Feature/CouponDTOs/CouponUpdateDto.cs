@@ -1,11 +1,11 @@
 ﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Models.Feature;
 
 namespace Adidas.DTOs.Feature.CouponDTOs;
 
-public class CouponUpdateDto:BaseDto
+public class CouponUpdateDto:BaseUpdateDto
 {
-    public Guid Id { get; set; }
     public string? Code { get; set; }
     public string? Name { get; set; }
     public DiscountType? DiscountType { get; set; }

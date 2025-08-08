@@ -15,9 +15,9 @@ namespace Adidas.Application.Services.Main
         IProductAttributeService
     {
         private readonly IProductAttributeRepository _repository;
-        private readonly ILogger _logger;
+        private readonly ILogger<ProductAttributeService> _logger;
 
-        public ProductAttributeService(IProductAttributeRepository repository, ILogger logger) : base(repository,
+        public ProductAttributeService(IProductAttributeRepository repository, ILogger<ProductAttributeService> logger) : base(repository,
             logger)
 
         {

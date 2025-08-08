@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Adidas.DTOs.CommonDTOs;
 
 namespace Adidas.DTOs.Separator.Category_DTOs
 {
-    public class CategoryUpdateDto
+    public class CategoryUpdateDto: BaseUpdateDto
     {
-        public Guid Id { get; set; }
         [Required]
         [StringLength(100, ErrorMessage = "Category name cannot exceed 100 characters")]
         public string Name { get; set; }

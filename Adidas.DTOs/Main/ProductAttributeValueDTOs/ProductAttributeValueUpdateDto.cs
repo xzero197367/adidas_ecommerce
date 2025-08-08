@@ -1,8 +1,14 @@
 ﻿
+using Adidas.DTOs.CommonDTOs;
+
 namespace Adidas.DTOs.Main.ProductAttributeValueDTOs
 {
-    public class ProductAttributeValueUpdateDto: ProductAttributeValueCreateDto
+    public class ProductAttributeValueUpdateDto : BaseUpdateDto
     {
-        public Guid Id { get; set; }
+        public string? Value { get; set; }
+
+        public Guid? ProductId { get; set; }
+
+        public Guid? AttributeId { get; set; }
     }
 }
