@@ -5,8 +5,9 @@ using Models.Feature;
 
 namespace Adidas.DTOs.Feature.CouponDTOs
 {
-    public class CouponUpdateDto : BaseDto
+    public class CouponUpdateDto
     {
+        public Guid Id { get; set; }
         [Required(ErrorMessage = "Coupon code is required")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Code must be between 3 and 50 characters")]
         [RegularExpression(@"^[A-Z0-9]+$", ErrorMessage = "Code must contain only uppercase letters and numbers")]
@@ -35,8 +36,8 @@ namespace Adidas.DTOs.Feature.CouponDTOs
         [Range(0, int.MaxValue, ErrorMessage = "Usage limit cannot be negative")]
         public int UsageLimit { get; set; } = 0; // 0 means unlimited
 
-        
+       
 
-    
+
     }
 }

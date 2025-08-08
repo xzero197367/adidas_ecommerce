@@ -2,6 +2,7 @@
 using Adidas.DTOs.Feature.CouponDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Adidas.Context;
+using Adidas.DTOs.Common_DTOs;
 namespace Adidas.Web.Controllers
 {
     public class CouponController : Controller
@@ -65,51 +66,39 @@ namespace Adidas.Web.Controllers
         // GET: Edit
         public async Task<IActionResult> Edit(Guid id)
         {
-            var coupon = await _couponService.GetByIdAsync(id);
-            if (coupon == null)
+            var couponUpdateDto = await _couponService.GetCouponToEditByIdAsync(id);
+            if (couponUpdateDto == null)
                 return NotFound();
 
-            var updateDto = new CouponUpdateDto
-            {
-                Code = coupon.Code,
-                Name = coupon.Name,
-                DiscountType = coupon.DiscountType,
-                DiscountValue = coupon.DiscountValue,
-                MinimumAmount = coupon.MinimumAmount,
-                ValidFrom = coupon.ValidFrom,
-                ValidTo = coupon.ValidTo,
-                UsageLimit = coupon.UsageLimit,
-                UsedCount = coupon.UsedCount,
-                IsActive = coupon.IsActive
-            };
-
-            ViewBag.CouponId = id;
-            return View(updateDto);
+            
+            return View(couponUpdateDto);
         }
 
         // POST: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, CouponUpdateDto dto)
+        public async Task<IActionResult> Edit(CouponUpdateDto dto)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.CouponId = id;
+                ViewBag.CouponId = dto.Id;
                 return View(dto);
             }
 
-            try
+            var result = await _couponService.UpdateAsync(dto);
+            if (!result.IsSuccess)
             {
-                await _couponService.UpdateAsync(id, dto);
-                TempData["Success"] = "Coupon updated successfully!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error updating coupon: {ex.Message}";
-                ViewBag.CouponId = id;
+                ModelState.AddModelError(string.Empty, result.Error);
+                TempData["Error"] = result.Error;
+                ViewBag.CouponId = dto.Id;
+                
                 return View(dto);
             }
+
+            TempData["Success"] = "Coupon updated successfully!";
+
+            return RedirectToAction(nameof(Index));
+             
         }
 
         // POST: Delete

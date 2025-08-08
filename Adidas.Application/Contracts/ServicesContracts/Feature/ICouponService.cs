@@ -18,7 +18,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<Result> SoftDeletAsync(Guid id);
         Task<Result> ToggleCouponStatusAsync(Guid id);
         Task<CouponDto> GetByIdAsync(Guid id);
-        Task<Result> UpdateAsync(Guid id, CouponUpdateDto dto);
+        Task<Result> UpdateAsync( CouponUpdateDto dto);
         Task<Result> CreateAsync(CouponCreateDto dto);
         Task<CouponUpdateDto> GetCouponToEditByIdAsync(Guid id);
     }

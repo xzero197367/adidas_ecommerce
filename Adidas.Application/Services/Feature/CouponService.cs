@@ -362,10 +362,53 @@ namespace Adidas.Application.Services.Feature
             throw new NotImplementedException();
         }
 
-        public Task<Result> UpdateAsync(Guid id, CouponUpdateDto dto)
+        public async Task<Result> UpdateAsync(CouponUpdateDto dto)
         {
-            throw new NotImplementedException();
+             
+            var coupon = await _couponRepository.GetByIdAsync(dto.Id);
+            if (coupon == null || coupon.IsDeleted)
+            {
+                return Result.Failure("Coupon not found.");
+            }
+
+            
+            var otherCoupon = await _couponRepository.GetByCodeAsync(dto.Code);
+            if (otherCoupon != null && otherCoupon.Id != dto.Id)
+            {
+                return Result.Failure($"Coupon code '{dto.Code}' is already in use.");
+            }
+
+            
+            coupon.Code = dto.Code;
+            coupon.Name = dto.Name;
+            coupon.DiscountType = dto.DiscountType;
+            coupon.DiscountValue = dto.DiscountValue;
+            coupon.MinimumAmount = dto.MinimumAmount;
+            coupon.ValidFrom = dto.ValidFrom;
+            coupon.ValidTo = dto.ValidTo;
+            coupon.UsageLimit = dto.UsageLimit;
+            //coupon.IsActive = dto.IsActive;
+            coupon.UpdatedAt = DateTime.UtcNow;
+
+            try
+            {
+
+                await _couponRepository.UpdateAsync(coupon);
+                var affectedRows = await _couponRepository.SaveChangesAsync();
+
+                if (affectedRows <= 0)
+                {
+                    return Result.Failure("No changes were saved for the coupon.");
+                }
+
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"Could not update the coupon: {ex.Message}");
+            }
         }
+
 
         public async Task<Result> CreateAsync(CouponCreateDto dto)
         {
@@ -426,7 +469,7 @@ namespace Adidas.Application.Services.Feature
                 ValidFrom = coupon.ValidFrom,
                 ValidTo = coupon.ValidTo,
                 UsageLimit = coupon.UsageLimit,
-                IsActive = coupon.IsActive,
+                //IsActive = coupon.IsActive,
                 
             };
 
