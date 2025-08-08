@@ -1,6 +1,6 @@
 ﻿using Models.People;
 
-namespace Adidas.DTOs.Main.Product_DTOs
+namespace Adidas.DTOs.Main.ProductDTOs
 {
     public class ProductFilterDto
     {

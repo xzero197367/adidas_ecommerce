@@ -1,7 +1,7 @@
 ﻿@using Adidas.DTOs.Common_DTOs
 @using Adidas.DTOs.People.Customer_DTOs
 <!-- Views/Customers/Index.cshtml -->
-@model PagedResult<CustomerDto>
+@model PagedResultDto<CustomerDto>
 @{
     ViewData["Title"] = "All Customers";
     var filter = ViewBag.CurrentFilter as CustomerFilterDto ?? new CustomerFilterDto();

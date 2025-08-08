@@ -2,12 +2,10 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
-using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Separator;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Separator
 {
@@ -42,10 +40,10 @@ namespace Adidas.Application.Services.Separator
         public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
         {
 
-            var brands = await _brandRepository.GetAllAsync();
+            var brands =  _brandRepository.GetAll();
 
 
-            var activeBrands = brands.Where(b => b.IsActive && !b.IsDeleted);
+            var activeBrands = await brands.Where(b => b.IsActive && !b.IsDeleted).ToListAsync();
 
             var brandDtos = activeBrands.Select(b => new BrandDto
             {
@@ -62,7 +60,7 @@ namespace Adidas.Application.Services.Separator
             return brandDtos;
         }
 
-        public async Task<Result> CreateAsync(CreateBrandDto createBrandDto)
+        public async Task<Result> CreateAsync(BrandCreateDto createBrandDto)
         {
 
             if (await _brandRepository.GetBrandByNameAsync(createBrandDto.Name) != null)
@@ -96,7 +94,7 @@ namespace Adidas.Application.Services.Separator
         }
 
 
-        public async Task<Result> UpdateAsync(UpdateBrandDto dto)
+        public async Task<Result> UpdateAsync(BrandUpdateDto dto)
         {
             var brandToUpdate = await _brandRepository.GetByIdAsync(dto.Id);
 
@@ -131,7 +129,7 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id)
+        public async Task<BrandUpdateDto> GetBrandToEditByIdAsync(Guid id)
         {
             var brand = await _brandRepository.GetByIdAsync(id);
 
@@ -139,7 +137,7 @@ namespace Adidas.Application.Services.Separator
              {
                 return null;
              }
-            var updateBrandDto = new UpdateBrandDto
+            var updateBrandDto = new BrandUpdateDto
             {
                 Id = brand.Id,
                 Name = brand.Name,
@@ -176,7 +174,9 @@ namespace Adidas.Application.Services.Separator
                     Price = product.Price,
                     SalePrice = product.SalePrice,
                     GenderTarget = product.GenderTarget,
-                    MetaDescription = product.MetaDescription
+                    MetaDescription = product.MetaDescription,
+                    CategoryId = product.CategoryId,
+                    BrandId = product.BrandId
                 }).ToList()
             };
 
@@ -186,21 +186,22 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
         {
-            var brands = await _brandRepository.GetAllAsync();
+            var brandsQuery =  _brandRepository.GetAll();
 
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 bool isActive = statusFilter == "Active";
-                brands = brands.Where(c => c.IsActive == isActive).ToList();
+                brandsQuery =  brandsQuery.Where(c => c.IsActive == isActive);
             }
 
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                brands = brands.Where(c =>
-                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+                brandsQuery = brandsQuery.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
             }
-            var brandDtos = brands.Select(b => new BrandDto
+            var brandList = await brandsQuery.ToListAsync();
+            var brandDtos = brandList.Select(b => new BrandDto
             {
 
                 Id = b.Id,

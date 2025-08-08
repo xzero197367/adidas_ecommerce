@@ -1,6 +1,5 @@
 ﻿
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
 
 namespace Adidas.DTOs.Main.Product_Variant_DTOs

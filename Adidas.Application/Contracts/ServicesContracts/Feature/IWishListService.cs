@@ -1,24 +1,21 @@
 ﻿using Adidas.DTOs.Feature.WishLIstDTOS;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Adidas.DTOs.CommonDTOs;
+using Models.Feature;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {
-    public interface IWishListService
+    public interface IWishListService: IGenericService<Wishlist, WishlistDto, WishlistCreateDto, WishlistUpdateDto>
     {
-        Task<IEnumerable<WishlistItemDto>> GetWishlistByUserIdAsync(string userId);
-        Task<WishlistItemDto> AddToWishlistAsync(WishlistCreateDto addDto);
-        Task<bool> RemoveFromWishlistAsync(string userId, Guid productId);
-        Task<bool> IsProductInWishlistAsync(string userId, Guid productId);
-        Task<int> GetWishlistCountAsync(string userId);
-        Task<IEnumerable<WishlistItemDto>> GetWishlistSummaryAsync(string userId);
-        Task<bool> MoveToCartAsync(string userId, Guid productId, Guid variantId);
-        Task<string> GenerateWishlistShareLinkAsync(string userId);
-        Task<IEnumerable<WishlistItemDto>> GetSharedWishlistAsync(string shareToken);
-        Task<bool> NotifyWhenInStockAsync(string userId, Guid productId);
-        Task<bool> RemoveStockNotificationAsync(string userId, Guid productId);
+        Task<OperationResult<IEnumerable<WishlistDto>>> GetWishlistByUserIdAsync(string userId);
+        Task<OperationResult<WishlistDto>> AddToWishlistAsync(WishlistCreateDto addDto);
+        Task<OperationResult<bool>> RemoveFromWishlistAsync(string userId, Guid productId);
+        Task<OperationResult<bool>> IsProductInWishlistAsync(string userId, Guid productId);
+        Task<OperationResult<int>> GetWishlistCountAsync(string userId);
+        Task<OperationResult<IEnumerable<WishlistDto>>> GetWishlistSummaryAsync(string userId);
+        // Task<OperationResult<bool>> MoveToCartAsync(string userId, Guid productId, Guid variantId);
+        // Task<OperationResult<string>> GenerateWishlistShareLinkAsync(string userId);
+        // Task<OperationResult<IEnumerable<WishlistDto>>> GetSharedWishlistAsync(string shareToken);
+        // Task<OperationResult<bool>> NotifyWhenInStockAsync(string userId, Guid productId);
+        // Task<OperationResult<bool>> RemoveStockNotificationAsync(string userId, Guid productId);
     }
 }

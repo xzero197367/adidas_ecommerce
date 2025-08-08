@@ -1,10 +1,11 @@
 ﻿
 
+using Adidas.DTOs.CommonDTOs;
+
 namespace Adidas.DTOs.Main.ProductAttributeDTOs
 {
-    public class ProductAttributeUpdateDto
+    public class ProductAttributeUpdateDto: BaseUpdateDto
     {
-        public Guid Id { get; set; }
         public string? Name { get; set; }
         public string? DataType { get; set; }
         public bool? IsFilterable { get; set; }

@@ -1,170 +1,157 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
-using Adidas.Application.Contracts.RepositoriesContracts.People;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
-using Adidas.Application.Services;
-using Adidas.DTOs.Operation.OrderDTOs.Calculation;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
-using Adidas.DTOs.Operation.OrderDTOs.Query;
-using Adidas.DTOs.Operation.OrderDTOs.Result;
-using Adidas.DTOs.Operation.OrderDTOs.Update;
 using Adidas.DTOs.Operation.PaymentDTOs.Result;
-using Adidas.Models.Feature;
-using AutoMapper;
 using Microsoft.Extensions.Logging;
-using Models.Feature;
-using System.Transactions;
+using Adidas.DTOs.CommonDTOs;
+using Adidas.DTOs.Operation.OrderDTOs;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
 
-namespace Adidas.Application.Contracts.ServicesContracts.Operation.OrderItemServices
+namespace Adidas.Application.Services.Operation;
+
+public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, OrderUpdateDto>, IOrderService
 {
-    public class OrderService : GenericService<Order, OrderDto, CreateOrderDto, UpdateOrderDto>, IOrderService
+    private readonly IOrderRepository _orderRepository;
+    private readonly IShoppingCartRepository _cartRepository;
+    private readonly IProductVariantRepository _variantRepository;
+    private readonly IInventoryService _inventoryService;
+    private readonly INotificationService _notificationService;
+    private readonly ILogger<OrderService> _logger;
+
+    public OrderService(
+        IOrderRepository orderRepository,
+        IShoppingCartRepository cartRepository,
+        IProductVariantRepository variantRepository,
+        IInventoryService inventoryService,
+        INotificationService notificationService,
+        ILogger<OrderService> logger) : base(orderRepository, logger)
     {
-        private readonly IOrderRepository _orderRepository;
-        private readonly IShoppingCartRepository _cartRepository;
-        private readonly IProductVariantRepository _variantRepository;
-        private readonly IInventoryService _inventoryService;
-        private readonly INotificationService _notificationService;
+        _orderRepository = orderRepository;
+        _cartRepository = cartRepository;
+        _variantRepository = variantRepository;
+        _inventoryService = inventoryService;
+        _notificationService = notificationService;
+        _logger = logger;
+    }
 
-        public OrderService(
-            IOrderRepository orderRepository,
-            IShoppingCartRepository cartRepository,
-            IProductVariantRepository variantRepository,
-            IInventoryService inventoryService,
-            INotificationService notificationService,
-            IMapper mapper,
-            ILogger<OrderService> logger)
-            : base(orderRepository, mapper, logger)
+    public async Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize,
+        OrderFilterDto? filter = null)
+    {
+        var pagedOrders = await _orderRepository.GetPagedAsync(pageNumber, pageSize, q =>
         {
-            _orderRepository = orderRepository;
-            _cartRepository = cartRepository;
-            _variantRepository = variantRepository;
-            _inventoryService = inventoryService;
-            _notificationService = notificationService;
-        }
+            var query = q.Where(o => o.IsDeleted == false).OrderByDescending(o => o.OrderDate).AsQueryable();
+            if (filter != null && filter?.OrderNumber != null)
+            {
+                query = query.Where(o => o.OrderNumber.Contains(filter.OrderNumber));
+            }
 
-        public async Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(string userId)
+            return query;
+        });
+
+        return OperationResult<PagedResultDto<OrderDto>>.Success(pagedOrders.Adapt<PagedResultDto<OrderDto>>());
+    }
+
+    public async Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId)
+    {
+        try
         {
             var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
-            return _mapper.Map<IEnumerable<OrderDto>>(orders);
+            return OperationResult<IEnumerable<OrderDto>>.Success(orders.Adapt<IEnumerable<OrderDto>>());
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting orders for user {UserId}", userId);
+            return OperationResult<IEnumerable<OrderDto>>.Fail(ex.Message);
+        }
+    }
 
-        public async Task<OrderDto?> GetOrderByOrderNumberAsync(string orderNumber)
+    public async Task<OperationResult<OrderDto>> GetOrderByOrderNumberAsync(string orderNumber)
+    {
+        try
         {
             var order = await _orderRepository.GetOrderByNumberAsync(orderNumber);
-            return order == null ? null : _mapper.Map<OrderDto>(order);
-        }
+            if (order == null)
+            {
+                return OperationResult<OrderDto>.Fail($"Order with number {orderNumber} was not found.");
+            }
 
-        public async Task<IEnumerable<OrderDto>> GetOrdersByStatusAsync(OrderStatus status)
+            return OperationResult<OrderDto>.Success(order.Adapt<OrderDto>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting order {OrderNumber}", orderNumber);
+            return OperationResult<OrderDto>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByStatusAsync(OrderStatus status)
+    {
+        try
         {
             var orders = await _orderRepository.GetOrdersByStatusAsync(status);
-            return _mapper.Map<IEnumerable<OrderDto>>(orders);
+            return OperationResult<IEnumerable<OrderDto>>.Success(orders.Adapt<IEnumerable<OrderDto>>());
         }
-
-        public async Task<OrderDto> CreateOrderFromCartAsync(string userId, CreateOrderFromCartDto orderDto)
+        catch (Exception ex)
         {
-            var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            if (!cartItems.Any())
-                throw new InvalidOperationException("Cart is empty");
-
-            // Reserve inventory
-            foreach (var item in cartItems)
-            {
-                var reserved = await _inventoryService.ReserveStockAsync(item.VariantId, item.Quantity);
-                if (!reserved)
-                    throw new InvalidOperationException($"Insufficient stock for variant {item.VariantId}");
-            }
-
-            try
-            {
-                var order = new Order
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    OrderNumber = await GenerateOrderNumberAsync(),
-                    OrderDate = DateTime.UtcNow,
-                    OrderStatus = OrderStatus.Pending,
-                    ShippingAddress = orderDto.ShippingAddress,
-                    BillingAddress = orderDto.BillingAddress,
-                    TotalAmount = orderDto.TotalAmount,
-                    Currency = orderDto.Currency
-                };
-
-                // Create order items
-                var orderItems = new List<OrderItem>();
-                decimal totalAmount = 0;
-
-                foreach (var cartItem in cartItems)
-                {
-                    var variant = await _variantRepository.GetByIdAsync(cartItem.VariantId);
-                    var itemPrice = (variant.Product.SalePrice ?? variant.Product.Price) + variant.PriceAdjustment;
-
-                    orderItems.Add(new OrderItem
-                    {
-                        Id = Guid.NewGuid(),
-                        OrderId = order.Id,
-                        ProductName = variant.Product.Name,
-                        VariantId = cartItem.VariantId,
-                        Quantity = cartItem.Quantity,
-                        UnitPrice = itemPrice,
-                        TotalPrice = itemPrice * cartItem.Quantity
-                    });
-
-                    totalAmount += itemPrice * cartItem.Quantity;
-                }
-
-                order.Subtotal = totalAmount;
-                order.TaxAmount = CalculateTax(totalAmount);
-                order.TotalAmount = order.Subtotal  + order.TaxAmount;
-
-                // Apply discount if provided
-                if (!string.IsNullOrEmpty(orderDto.DiscountCode))
-                {
-                    // Implementation would validate and apply discount
-                    // order.DiscountAmount = await CalculateDiscountAsync(orderDto.DiscountCode, order.SubTotal);
-                    // order.TotalAmount -= order.DiscountAmount;
-                }
-
-                var createdOrder = await _repository.AddAsync(order);
-
-                // Clear cart
-                await _cartRepository.ClearCartAsync(userId);
-
-                await _notificationService.SendOrderConfirmationAsync(createdOrder.Entity.Id);
-
-                return _mapper.Map<OrderDto>(createdOrder);
-            }
-            catch
-            {
-                // Release reserved inventory on failure
-                foreach (var item in cartItems)
-                {
-                    await _inventoryService.ReleaseStockAsync(item.VariantId, item.Quantity);
-                }
-                throw;
-            }
+            _logger.LogError(ex, "Error getting orders by status {Status}", status);
+            return OperationResult<IEnumerable<OrderDto>>.Fail(ex.Message);
         }
+    }
+    
 
-        public async Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus)
+
+ 
+    public async Task<OperationResult<bool>> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus)
+    {
+        try
         {
             var order = await _orderRepository.GetByIdAsync(orderId);
-            if (order == null) return false;
+            if (order == null)
+            {
+                return OperationResult<bool>.Fail($"Order with id {orderId} was not found.");
+            }
 
             order.OrderStatus = newStatus;
-            await _repository.UpdateAsync(order);
+            await _orderRepository.UpdateAsync(order);
 
             await _notificationService.SendOrderStatusUpdateAsync(orderId);
-            return true;
+            return OperationResult<bool>.Success(true);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating order status");
+            return OperationResult<bool>.Fail(ex.Message);
+        }
+    }
 
-        public async Task<OrderDto?> GetOrderWithItemsAsync(Guid orderId)
+    public async Task<OperationResult<OrderDto>> GetOrderWithItemsAsync(Guid orderId)
+    {
+        try
         {
             var order = await _orderRepository.GetOrderWithItemsAsync(orderId);
-            return order == null ? null : _mapper.Map<OrderDto>(order);
-        }
+            if (order == null)
+            {
+                return OperationResult<OrderDto>.Fail($"Order with id {orderId} was not found.");
+            }
 
-        public async Task<decimal> CalculateOrderTotalAsync(string userId, string? discountCode = null)
+            return OperationResult<OrderDto>.Success(order.Adapt<OrderDto>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting order with items");
+            return OperationResult<OrderDto>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<OperationResult<decimal>> CalculateOrderTotalAsync(string userId, string? discountCode = null)
+    {
+        try
         {
             var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId);
             decimal subtotal = 0;
@@ -186,14 +173,24 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation.OrderItemServ
                 // Implementation would calculate discount
             }
 
-            return total;
+            return OperationResult<decimal>.Success(total);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating order total");
+            return OperationResult<decimal>.Fail(ex.Message);
+        }
+    }
 
-        public async Task<bool> CancelOrderAsync(Guid orderId, string reason)
+    public async Task<OperationResult<bool>> CancelOrderAsync(Guid orderId, string reason)
+    {
+        try
         {
             var order = await _orderRepository.GetOrderWithItemsAsync(orderId);
             if (order == null || order.OrderStatus != OrderStatus.Pending)
-                return false;
+            {
+                return OperationResult<bool>.Fail($"Order with id {orderId} was not found.");
+            }
 
             // Release inventory
             foreach (var item in order.OrderItems)
@@ -202,28 +199,46 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation.OrderItemServ
             }
 
             order.OrderStatus = OrderStatus.Cancelled;
-           
-            await _repository.UpdateAsync(order);
 
-            return true;
+            var result = await _orderRepository.UpdateAsync(order);
+            result.State = EntityState.Detached;
+            await _orderRepository.SaveChangesAsync();
+
+            return OperationResult<bool>.Success(true);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling order");
+            return OperationResult<bool>.Fail(ex.Message);
+        }
+    }
 
-        public async Task<OrderSummaryDto> GetOrderSummaryAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<OperationResult<OrderSummaryDto>> GetOrderSummaryAsync(DateTime? startDate = null,
+        DateTime? endDate = null)
+    {
+        try
         {
             var totalSales = await _orderRepository.GetTotalSalesAsync(startDate, endDate);
             var orders = await _orderRepository.GetOrdersByDateRangeAsync(
                 startDate ?? DateTime.UtcNow.AddDays(-30),
                 endDate ?? DateTime.UtcNow);
 
-            return new OrderSummaryDto
+            return OperationResult<OrderSummaryDto>.Success(new OrderSummaryDto
             {
                 TotalAmount = totalSales,
                 ItemCount = orders.Count()
-                 
-            };
+            });
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting order summary");
+            return OperationResult<OrderSummaryDto>.Fail(ex.Message);
+        }
+    }
 
-        private async Task<string> GenerateOrderNumberAsync()
+    private async Task<OperationResult<string>> GenerateOrderNumberAsync()
+    {
+        try
         {
             var prefix = "ADI";
             var timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
@@ -236,17 +251,31 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation.OrderItemServ
                 orderNumber = $"{prefix}{timestamp}{counter:D4}";
             }
 
-            return orderNumber;
+            return OperationResult<string>.Success(orderNumber);
         }
-
-        private static decimal CalculateShippingCost(decimal subtotal)
+        catch (Exception ex)
         {
-            return subtotal >= 100 ? 0 : 10; // Free shipping over $100
+            _logger.LogError(ex, "Error generating order number");
+            return OperationResult<string>.Fail(ex.Message);
         }
+    }
 
-        private static decimal CalculateTax(decimal subtotal)
+    private static decimal CalculateShippingCost(decimal subtotal)
+    {
+        return subtotal >= 100 ? 0 : 10; // Free shipping over $100
+    }
+
+    private static decimal CalculateTax(decimal subtotal)
+    {
+        return subtotal * 0.08m; // 8% tax
+    }
+
+    public override async Task BeforeCreateAsync(Order entity)
+    {
+        var result  = await GenerateOrderNumberAsync();
+        if (result.IsSuccess)
         {
-            return subtotal * 0.08m; // 8% tax
+            entity.OrderNumber = result.Data;
         }
     }
 }

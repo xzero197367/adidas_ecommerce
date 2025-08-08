@@ -132,24 +132,19 @@
 //        }
 //    }
 //}
-using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
-using Adidas.DTOs.Operation.ReviewDTOs.Create;
-using Adidas.DTOs.Operation.ReviewDTOs.Update;
 using Adidas.DTOs.Operation.ReviewDTOs.Result;
 using Adidas.DTOs.Common_DTOs;
-using Adidas.Models.Operation;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
+using Adidas.DTOs.Operation.ReviewDTOs;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Operation
 {
-    public class ReviewService : GenericService<Review, ReviewDto, CreateReviewDto, UpdateReviewDto>, IReviewService
+    public class ReviewService : GenericService<Review, ReviewDto, ReviewCreateDto, ReviewUpdateDto>, IReviewService
     {
         private readonly IReviewRepository _reviewRepository;
         private readonly IOrderRepository _orderRepository;
@@ -157,9 +152,8 @@ namespace Adidas.Application.Services.Operation
         public ReviewService(
             IReviewRepository reviewRepository,
             IOrderRepository orderRepository,
-            IMapper mapper,
             ILogger<ReviewService> logger)
-            : base(reviewRepository, mapper, logger)
+            : base(reviewRepository, logger)
         {
             _reviewRepository = reviewRepository;
             _orderRepository = orderRepository;
@@ -171,7 +165,7 @@ namespace Adidas.Application.Services.Operation
 
             return new PagedResultDto<ReviewDto>
             {
-                Items = _mapper.Map<IEnumerable<ReviewDto>>(reviews),
+                Items = reviews.Adapt<IEnumerable<ReviewDto>>(),
                 TotalCount = totalCount,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
@@ -182,17 +176,17 @@ namespace Adidas.Application.Services.Operation
         public async Task<IEnumerable<ReviewDto>> GetReviewsByUserIdAsync(string userId)
         {
             var reviews = await _reviewRepository.GetReviewsByUserIdAsync(userId);
-            return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+            return reviews.Adapt<IEnumerable<ReviewDto>>();
         }
 
-        public async Task<ReviewDto> CreateReviewAsync(CreateReviewDto createReviewDto)
+        public async Task<ReviewDto> CreateReviewAsync(ReviewCreateDto createReviewDto)
         {
             if (!await CanUserReviewProductAsync(createReviewDto.UserId, createReviewDto.ProductId))
                 throw new InvalidOperationException("User cannot review this product");
 
             await ValidateCreateAsync(createReviewDto);
 
-            var review = _mapper.Map<Review>(createReviewDto);
+            var review = createReviewDto.Adapt<Review>();
             review.IsApproved = false; // Reviews need approval
             review.IsActive = true;
             review.IsDeleted = false;
@@ -204,7 +198,7 @@ namespace Adidas.Application.Services.Operation
             var createdReview = createdReviewEntry.Entity;
             await AfterCreateAsync(createdReview);
 
-            return _mapper.Map<ReviewDto>(createdReview);
+            return createdReview.Adapt<ReviewDto>();
         }
 
         public async Task<bool> ApproveReviewAsync(Guid reviewId)
@@ -306,7 +300,7 @@ namespace Adidas.Application.Services.Operation
                 var verifiedPurchases = await _repository.CountAsync(r => r.IsVerifiedPurchase && !r.IsDeleted);
 
                 // Calculate average rating for all approved reviews
-                var allApprovedReviews = await _repository.FindAsync(r => r.IsApproved && !r.IsDeleted);
+                var allApprovedReviews = await _repository.GetAll().Where(r => r.IsApproved && !r.IsDeleted).ToListAsync();
                 var averageRating = allApprovedReviews.Any() ? allApprovedReviews.Average(r => r.Rating) : 0.0;
 
                 return new ReviewStatsDto
@@ -326,7 +320,7 @@ namespace Adidas.Application.Services.Operation
             }
         }
 
-        protected override async Task ValidateCreateAsync(CreateReviewDto createDto)
+        public override async Task ValidateCreateAsync(ReviewCreateDto createDto)
         {
             if (createDto.Rating < 1 || createDto.Rating > 5)
                 throw new ArgumentException("Rating must be between 1 and 5");
@@ -347,7 +341,7 @@ namespace Adidas.Application.Services.Operation
             await Task.CompletedTask;
         }
 
-        protected override async Task ValidateUpdateAsync(Guid id, UpdateReviewDto updateDto)
+        public override async Task ValidateUpdateAsync(Guid id, ReviewUpdateDto updateDto)
         {
             var existingReview = await _repository.GetByIdAsync(id);
             if (existingReview == null)
@@ -365,27 +359,27 @@ namespace Adidas.Application.Services.Operation
             await Task.CompletedTask;
         }
 
-        protected override async Task BeforeCreateAsync(Review entity)
+        public override async Task BeforeCreateAsync(Review entity)
         {
             entity.CreatedAt = DateTime.UtcNow;
             entity.UpdatedAt = DateTime.UtcNow;
             await Task.CompletedTask;
         }
 
-        protected override async Task BeforeUpdateAsync(Review entity)
+        public override async Task BeforeUpdateAsync(Review entity)
         {
             entity.UpdatedAt = DateTime.UtcNow;
             await Task.CompletedTask;
         }
 
-        protected override async Task AfterCreateAsync(Review entity)
+        public override async Task AfterCreateAsync(Review entity)
         {
             _logger.LogInformation("New review created: ID {ReviewId} for Product {ProductId} by User {UserId}",
                 entity.Id, entity.ProductId, entity.UserId);
             await Task.CompletedTask;
         }
 
-        protected override async Task AfterUpdateAsync(Review entity)
+        public override async Task AfterUpdateAsync(Review entity)
         {
             _logger.LogInformation("Review updated: ID {ReviewId}", entity.Id);
             await Task.CompletedTask;

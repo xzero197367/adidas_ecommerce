@@ -1,5 +1,6 @@
-﻿@using Adidas.AdminDashboardMVC.Models.Order;
-@model OrderModel
+﻿@using Adidas.DTOs.Common_DTOs;
+@using Adidas.DTOs.Operation.OrderDTOs;
+@model PagedResultDto<OrderDto>
 
 <section class="order_table">
     <div class="table_header">
@@ -8,7 +9,7 @@
             showing 1 - 10 of 100 orders
         </div>
     </div>
-    <table >
+    <table>
         <thead>
         <tr>
             <th><input type="checkbox"></th>
@@ -20,13 +21,12 @@
             <th>ACTIONS</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="orderTableBody">
         @{
             int count = 0;
         }
         @{
-
-            foreach (var order in Model.Orders)
+            foreach (var order in Model?.Items)
             {
                 count = count + 1;
                 <tr>
@@ -38,59 +38,65 @@
                             <h3>@order.</h3>
                         </div>
                     </td>
-                    <td>$100.00</td>
-                    <td>Shipped</td>
-                    <td>2022-01-01</td>
+                    <td>@order.TotalAmount</td>
+                    <td>@order.OrderStatus</td>
+                    <td>@order.OrderDate</td>
                     <td>
-                        <a href="#">
+                        <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="#">
+                        <a asp-controller="Orders" asp-action="Edit" asp-route-id="@order.Id">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="#">
+                        <a onclick="window.orderTable.showDeleteAlertMessage(@order.Id)">
                             <i class="fas fa-trash"></i>
                         </a>
                     </td>
                 </tr>
             }
         }
-        @* <tr> *@
-        @*     <td><input type="checkbox"></td> *@
-        @*     <td>1</td> *@
-        @*     <td>John Doe</td> *@
-        @*     <td>$100.00</td> *@
-        @*     <td>Shipped</td> *@
-        @*     <td>2022-01-01</td> *@
-        @*     <td> *@
-        @*         <a href="#"> *@
-        @*             <i class="fas fa-eye"></i> *@
-        @*         </a> *@
-        @*         <a href="#"> *@
-        @*             <i class="fas fa-edit"></i> *@
-        @*         </a> *@
-        @*         <a href="#"> *@
-        @*             <i class="fas fa-trash"></i> *@
-        @*         </a> *@
-        @*     </td> *@
-        @* </tr> *@
+      
         </tbody>
-       
+
     </table>
-    
-    <div class="pagination">
-        
+
+    @{
+        var previousLinkEnabled = Model.PageNumber > 1;
+        var nextLinkEnabled = Model.PageNumber < Model.TotalPages;
+    }
+
+    @* <button onclick="window.orderTable.showDeleteAlertMessage(1)">show confirm message</button> *@
+
+    <div class="pagination" id="pagination">
+
         <div class="left">
-            Showing 1 to 10 of 100 entries
+            Showing @Model.PageNumber to @Model.PageSize of @Model.TotalCount entries
         </div>
-        
+
         <div class="right">
-            <a href="#">Previous</a>
-            <a href="#">1</a>
-            <a href="#">2</a>
-            <a href="#">3</a>
-            <a href="#">Next</a>
+            @if (previousLinkEnabled)
+            {
+                <a asp-controller="Orders" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber - 1)"
+                   asp-route-pageSize="@(Model.PageSize)">Previous</a>
+            }
+
+            @{
+                var pageNumber = Model.PageNumber;
+                var startPage = Math.Max(1, Model.PageNumber - 2);
+                var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+            }
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <a asp-controller="Orders" asp-action="Index" asp-route-pageNumber="@(i)"
+                   asp-route-pageSize="@(Model.PageSize)">@i</a>
+            }
+            @if (nextLinkEnabled)
+            {
+                <a asp-controller="Orders" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                asp-route-pageSize="@(Model.PageSize)">Next</a>
+            }
+
         </div>
-        
+
     </div>
 </section>

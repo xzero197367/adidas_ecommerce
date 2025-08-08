@@ -32,6 +32,7 @@ $(document).ready(function () {
 // Revenue Chart
 function initializeRevenueChart() {
     $.get(window.dashboardData.urls.getSalesData, function (data) {
+        console.log({data});
         if (data.error) {
             showErrorToast('Failed to load revenue data');
             return;

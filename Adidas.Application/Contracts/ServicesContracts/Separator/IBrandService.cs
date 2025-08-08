@@ -5,12 +5,12 @@ using Adidas.Models.Separator;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
-    public interface IBrandService //: IGenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>
+    public interface IBrandService //: IGenericService<Brand, BrandResponseDto, CreateBrandDto, BrandUpdateDto>
     {
         Task<Result> DeleteAsync(Guid id);
-        Task<Result> CreateAsync(CreateBrandDto createBrandDto);
-        Task<Result> UpdateAsync(UpdateBrandDto dto);
-        Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id);
+        Task<Result> CreateAsync(BrandCreateDto createBrandDto);
+        Task<Result> UpdateAsync(BrandUpdateDto dto);
+        Task<BrandUpdateDto> GetBrandToEditByIdAsync(Guid id);
 
         // Brand-specific methods
         //Task<BrandResponseDto?> GetBrandByNameAsync(string name);

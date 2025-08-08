@@ -1,13 +1,12 @@
-@using Adidas.AdminDashboardMVC.Models.Order;
-@model OrderModel
+@model Adidas.AdminDashboardMVC.Models.Order.OrderModel
 
 @{
     ViewData["Title"] = "All Orders";
 }
 
 @Html.Partial("_OrderTopBar")
-@Html.Partial("_OrderFilter")
-@Html.Partial("_OrderTable", Model)
+@Html.Partial("_OrderFilter", Model.Filter)
+@Html.Partial("_OrderTable", Model.OrderPaged)
 
 
 @section Styles {
@@ -18,4 +17,12 @@
 
 @section Scripts {
     <script src="~/js/Order/order_top_bar.js"></script>
+    <script src="~/js/Order/order_table.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            window.orderTable = new OrderTable();
+          
+        });
+    </script>
 }

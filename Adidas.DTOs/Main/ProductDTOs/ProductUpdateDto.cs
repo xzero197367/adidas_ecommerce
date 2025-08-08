@@ -1,38 +1,21 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Adidas.DTOs.CommonDTOs;
 using Models.People;
 
-namespace Adidas.DTOs.Main.Product_DTOs
+namespace Adidas.DTOs.Main.ProductDTOs;
+
+public class ProductUpdateDto : BaseUpdateDto
 {
-    public class ProductUpdateDto
-    {
-        [Required, MaxLength(200)]
-        public string Name { get; set; } = string.Empty;
-
-        [Required, MaxLength(2000)]
-        public string Description { get; set; } = string.Empty;
-
-        [MaxLength(500)]
-        public string ShortDescription { get; set; } = string.Empty;
-
-        [Required, Range(0.01, double.MaxValue)]
-        public decimal Price { get; set; }
-
-        [Range(0.01, double.MaxValue)]
-        public decimal? SalePrice { get; set; }
-
-        [Required]
-        public Gender GenderTarget { get; set; }
-
-        [Required]
-        public Guid CategoryId { get; set; }
-
-        [Required]
-        public Guid BrandId { get; set; }
-
-        public int SortOrder { get; set; }
-        public string? MetaTitle { get; set; }
-        public string? MetaDescription { get; set; }
-        public string? Keywords { get; set; }
-    }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public string? ShortDescription { get; set; }
+    public decimal? Price { get; set; }
+    public decimal? SalePrice { get; set; }
+    public Gender? GenderTarget { get; set; }
+    public Guid? CategoryId { get; set; }
+    public Guid? BrandId { get; set; }
+    public int? SortOrder { get; set; }
+    public string? MetaTitle { get; set; }
+    public string? MetaDescription { get; set; }
+    public string? Keywords { get; set; }
 }

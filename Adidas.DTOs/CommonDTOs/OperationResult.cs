@@ -1,4 +1,5 @@
-﻿namespace Adidas.DTOs.Common_DTOs;
+﻿
+namespace Adidas.DTOs.CommonDTOs;
 
 public class OperationResult<T>
 {

@@ -5,7 +5,7 @@ using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Models.People;
 
-namespace Adidas.DTOs.Main.Product_DTOs
+namespace Adidas.DTOs.Main.ProductDTOs
 {
     public class ProductDto : BaseDto
     {

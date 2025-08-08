@@ -134,7 +134,7 @@ namespace Adidas.Context
             #endregion
 
             // ✅ Call the Seed Method
-            AdidasDbContextSeed.Seed(modelBuilder);
+             AdidasDbContextSeed.Seed(modelBuilder);
         }
 
         

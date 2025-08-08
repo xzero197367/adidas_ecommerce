@@ -1,60 +1,67 @@
-﻿using Adidas.Application.Contracts.RepositoriesContracts;
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.ProductAttributeDTOs;
 using Adidas.Models.Main;
-using AutoMapper;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Main
 {
-    public class ProductAttributeService : GenericService<ProductAttribute, ProductAttributeDto, ProductAttributeCreateDto, ProductAttributeUpdateDto>, IProductAttributeService
+    public class ProductAttributeService :
+        GenericService<ProductAttribute, ProductAttributeDto, ProductAttributeCreateDto, ProductAttributeUpdateDto>,
+        IProductAttributeService
     {
-        private readonly IGenericRepository<ProductAttribute> _repository;
+        private readonly IProductAttributeRepository _repository;
+        private readonly ILogger<ProductAttributeService> _logger;
 
-        public ProductAttributeService(IGenericRepository<ProductAttribute> repository, IMapper mapper, ILogger logger)
-            : base(repository, mapper, logger)
+        public ProductAttributeService(IProductAttributeRepository repository, ILogger<ProductAttributeService> logger) : base(repository,
+            logger)
+
         {
             _repository = repository;
+            _logger = logger;
         }
 
-        public async Task<IEnumerable<ProductAttribute>> GetFilterableAttributesAsync()
+        public async Task<OperationResult<IEnumerable<ProductAttributeDto>>> GetFilterableAttributesAsync()
         {
             try
             {
                 _logger.LogInformation("Getting filterable attributes");
 
                 var allAttributes = await _repository.GetAll().ToListAsync();
-                var filterableAttributes = allAttributes.Where(attr => attr.IsFilterable).OrderBy(attr => attr.SortOrder);
+                var filterableAttributes =
+                    allAttributes.Where(attr => attr.IsFilterable).OrderBy(attr => attr.SortOrder);
 
-                _logger.LogInformation("Found {Count} filterable attributes", filterableAttributes.Count());
-                return filterableAttributes;
+                return OperationResult<IEnumerable<ProductAttributeDto>>.Success(filterableAttributes
+                    .Adapt<IEnumerable<ProductAttributeDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting filterable attributes");
-                throw;
+                return OperationResult<IEnumerable<ProductAttributeDto>>.Fail("Error getting filterable attributes");
             }
         }
 
-        public async Task<IEnumerable<ProductAttribute>> GetRequiredAttributesAsync()
+        public async Task<OperationResult<IEnumerable<ProductAttributeDto>>> GetRequiredAttributesAsync()
         {
             try
             {
                 _logger.LogInformation("Getting required attributes");
 
-                var allAttributes = await _repository.GetAll().ToListAsync();
-                var requiredAttributes = allAttributes.Where(attr => attr.IsRequired).OrderBy(attr => attr.SortOrder);
+                var requiredAttributes = await _repository.GetAll().Where(attr => attr.IsRequired)
+                    .OrderBy(attr => attr.SortOrder).ToListAsync();
 
-                _logger.LogInformation("Found {Count} required attributes", requiredAttributes.Count());
-                return requiredAttributes;
+                return OperationResult<IEnumerable<ProductAttributeDto>>.Success(requiredAttributes
+                    .Adapt<IEnumerable<ProductAttributeDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting required attributes");
-                throw;
+                return OperationResult<IEnumerable<ProductAttributeDto>>.Fail("Error getting required attributes");
             }
         }
-
     }
 }

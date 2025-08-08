@@ -1,7 +1,5 @@
-﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
-using Adidas.Application.Services.Separator;
+﻿  using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Separator.Brand_DTOs;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
@@ -16,30 +14,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-
-        [HttpPost]
-        public async Task<IActionResult> ToggleStatus(Guid id)
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            var result = await _brandService.ToggleCategoryStatusAsync(id);
+            var brands = await _brandService.GetActiveBrandsAsync();
 
-            if (!result.IsSuccess)
-            {
-                TempData["Error"] = result.Error;
-            }
-            else
-            {
-                TempData["Success"] = "Brands status updated successfully.";
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Index(string statusFilter, string searchTerm)
-        {
-            var brands = await _brandService.GetFilteredBrandsAsync(statusFilter,searchTerm);
-
-            ViewData["CurrentStatus"] = statusFilter;
-            ViewData["SearchTerm"] = searchTerm;
             return View(brands);
         }
 
@@ -58,18 +37,17 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 TempData["Success"] = "Brand deleted successfully!";
             }
 
-
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            return View(new CreateBrandDto());
+            return View(new BrandCreateDto());
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateBrandDto createBrandDto, IFormFile? LogoImageFile)
+        public async Task<IActionResult> Create(BrandCreateDto createBrandDto, IFormFile? LogoImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -126,7 +104,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
 
 
-            var updateBrandDto = new UpdateBrandDto
+            var updateBrandDto = new BrandUpdateDto
             {
                 Id = brand.Id,
                 Name = brand.Name,
@@ -140,7 +118,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UpdateBrandDto updateBrandDto, IFormFile? LogoImageFile)
+        public async Task<IActionResult> Edit(BrandUpdateDto updateBrandDto, IFormFile? LogoImageFile)
         {
             if (!ModelState.IsValid)
             {

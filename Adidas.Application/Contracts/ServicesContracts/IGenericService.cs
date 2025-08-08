@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.Models;
 
 namespace Adidas.Application.Contracts.ServicesContracts
@@ -36,7 +33,7 @@ namespace Adidas.Application.Contracts.ServicesContracts
         // Write operations
         Task<OperationResult<TDto>> CreateAsync(TCreateDto createDto);
         Task<OperationResult<IEnumerable<TDto>>> CreateRangeAsync(IEnumerable<TCreateDto> createDtos);
-        Task<OperationResult<TDto>> UpdateAsync(Guid id, TUpdateDto updateDto);
+        Task<OperationResult<TDto>> UpdateAsync(TUpdateDto updateDto);
         Task<OperationResult<IEnumerable<TDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, TUpdateDto>> updates);
 
         // Delete operations

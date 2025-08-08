@@ -1,4 +1,4 @@
-﻿@model List<Adidas.DTOs.Feature.CouponDTOs.CouponDto>
+﻿@model IEnumerable<Adidas.DTOs.Feature.CouponDTOs.CouponDto>
 
 @{
     ViewData["Title"] = "Manage Discounts";
@@ -264,7 +264,7 @@
             }
 
             <p class="text-muted text-center mt-3">
-                Showing @((ViewBag.CurrentPage - 1) * 10 + 1) to @Math.Min(ViewBag.CurrentPage * 10, Model.Count) of @Model.Count results
+                Showing @((ViewBag.CurrentPage - 1) * 10 + 1) to @Math.Min(ViewBag.CurrentPage * 10, Model.Count()) of @Model.Count() results
             </p>
         </div>
     </div>

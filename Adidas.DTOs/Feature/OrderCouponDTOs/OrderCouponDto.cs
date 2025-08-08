@@ -1,6 +1,6 @@
 ﻿using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
-using Adidas.DTOs.Operation.OrderDTOs.Result;
+using Adidas.DTOs.Operation.OrderDTOs;
 
 namespace Adidas.DTOs.Feature.OrderCouponDTOs;
 

@@ -1,6 +1,9 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 
 using System.Data.Entity;
+using Adidas.DTOs.Common_DTOs;
+using Mapster;
+
 namespace Adidas.Infra.Operation
 {
     public class PaymentRepository : GenericRepository<Payment>, IPaymentRepository
@@ -45,13 +48,16 @@ namespace Adidas.Infra.Operation
             return await GetAll(q => q.Where(p => p.PaymentStatus == "Failed" && !p.IsDeleted)).ToListAsync();
         }
 
-        public async Task<(IEnumerable<Payment> payments, int totalCount)> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null)
+        public async Task<PagedResultDto<OrderItem>> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null)
         {
             if (!string.IsNullOrEmpty(status))
             {
-                return await GetPagedAsync(pageNumber, pageSize, q=>q.Where(p => p.PaymentStatus == status && !p.IsDeleted));
+                var payments1 = await GetPagedAsync(pageNumber, pageSize, q=>q.Where(p => p.PaymentStatus == status && !p.IsDeleted));
+                return payments1.Adapt<PagedResultDto<OrderItem>>();
             }
-            return await GetPagedAsync(pageNumber, pageSize, q => q.Where(p => !p.IsDeleted));
+            var payments = await GetPagedAsync(pageNumber, pageSize, q => q.Where(p => !p.IsDeleted));
+            
+            return payments.Adapt<PagedResultDto<OrderItem>>();
         }
     }
 }

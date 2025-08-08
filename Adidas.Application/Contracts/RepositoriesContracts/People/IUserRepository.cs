@@ -8,23 +8,19 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.People;
 
 public interface IUserRepository
 {
-    Task< User?> GetByIdAsync(string id);
-    Task< User?> GetByIdAsync(string id, params Expression<Func<User, object>>[] includes);
-    Task<IEnumerable<User>> GetAllAsync();
-    Task<IEnumerable<User>> GetAllAsync(params Expression<Func<User, object>>[] includes);
-    Task<IEnumerable<User>> FindAsync(Expression<Func<User, bool>> predicate);
-    Task<IEnumerable<User>> FindAsync(Expression<Func<User, bool>> predicate, params Expression<Func<User, object>>[] includes);
-    Task< User?> FirstOrDefaultAsync(Expression<Func<User, bool>> predicate);
-    Task< User?> FirstOrDefaultAsync(Expression<Func<User, bool>> predicate, params Expression<Func<User, object>>[] includes);
+    
+    // Read operations
+    Task<User?> GetByIdAsync(string id, params Expression<Func<User, object>>[] includes);
+    IQueryable<User> GetAll(Func<IQueryable<User>, IQueryable<User>>? queryFunc = null);
+    Task<User?> FindAsync(Func<IQueryable<User>, IQueryable<User>> queryFunc);
 
     // Pagination
-    Task<(IEnumerable<User> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize);
-    Task<(IEnumerable<User> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<User, bool>>? predicate = null);
-
+    Task<(IEnumerable<User> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, Func<IQueryable<User>, IQueryable<User>>? queryFunc = null);
+        
     // Count operations
-    Task<int> CountAsync();
-    Task<int> CountAsync(Expression<Func<User, bool>> predicate);
-    // Task<bool> ExistsAsync(Expression<Func<User, bool>> predicate);        /// بتعات ايه دي
+    // Task<int> CountAsync(); // todo: optional where
+    Task<int> CountAsync(Expression<Func<User, bool>>? predicate = null);
+    Task<bool> ExistsAsync(Expression<Func<User, bool>> predicate);
 
     // Write operations
     Task<EntityEntry<User>> AddAsync(User entity);
@@ -33,21 +29,19 @@ public interface IUserRepository
     Task<IEnumerable<EntityEntry<User>>> UpdateRangeAsync(IEnumerable<User> entities);
 
     // Soft delete operations
-    Task<bool> SoftDeleteAsync(Guid id);
-    // Task<bool> SoftDeleteAsync(User entity);                    
-    Task<int> SoftDeleteRangeAsync(IEnumerable<User> entities);
+
+    Task<EntityEntry<User>> SoftDeleteAsync(string id);
+
+    // Task<bool> SoftDeleteAsync(T entity);                    
+    IEnumerable<EntityEntry<User>> SoftDeleteRange(IEnumerable<User> entities);
 
     // Hard delete operations (use with caution)
-    Task<bool> HardDeleteAsync(Guid id);
-    // Task<bool> HardDeleteAsync(User entity);
-    Task<int> HardDeleteRangeAsync(IEnumerable<User> entities);
+    Task<EntityEntry<User>> HardDeleteAsync(string id);
 
-    // Active/Inactive operations
-    // Task<bool> SetActiveStatusAsync(Guid id, bool isActive);         /// بتعات ايه دي
-    // Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive);   /// بتعات ايه دي
+    // Task<bool> HardDeleteAsync(T entity);
+    Task<IEnumerable<EntityEntry<User>>> HardDeleteRangeAsync(IEnumerable<User> entities);
 
-    // Query building
-    IQueryable<User> GetQueryable();
-    IQueryable<User> GetQueryable(Expression<Func<User, bool>> predicate);
-
+    // Save changes
+    Task<int> SaveChangesAsync();
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
