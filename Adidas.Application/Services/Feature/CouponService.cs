@@ -9,6 +9,7 @@ using Adidas.Models.Separator;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Models.Feature;
+using System.Collections.Generic;
 
 namespace Adidas.Application.Services.Feature
 {
@@ -278,6 +279,25 @@ namespace Adidas.Application.Services.Feature
 
         }
 
+        private decimal CalculateCouponSavings(CouponDto coupon)
+        {
+            decimal total = 0;
+            if (coupon.UsedCount > 0)
+            {
+                switch (coupon.DiscountType)
+                {
+                    case DiscountType.Amount:
+                    case DiscountType.FixedAmount:
+                        total += coupon.DiscountValue * coupon.UsedCount;
+                        break;
+
+                    case DiscountType.Percentage:
+                        total += (coupon.MinimumAmount * (coupon.DiscountValue / 100m)) * coupon.UsedCount;
+                        break;
+                }
+            }
+            return total;
+        }
 
         private decimal CalculateTotalSavings(IEnumerable<CouponDto> coupons)
         {
@@ -285,20 +305,7 @@ namespace Adidas.Application.Services.Feature
 
             foreach (var coupon in coupons)
             {
-                if (coupon.UsedCount > 0)
-                {
-                    switch (coupon.DiscountType)
-                    {
-                        case DiscountType.Amount:
-                        case DiscountType.FixedAmount:
-                            total += coupon.DiscountValue * coupon.UsedCount;
-                            break;
-
-                        case DiscountType.Percentage:
-                            total += (coupon.MinimumAmount * (coupon.DiscountValue / 100m)) * coupon.UsedCount;
-                            break;
-                    }
-                }
+                total += CalculateCouponSavings(coupon);
             }
 
             return total;
@@ -494,12 +501,10 @@ namespace Adidas.Application.Services.Feature
             var couponDto = new CouponDto
             {
                 Id = coupon.Id,
-                CreatedAt = coupon.CreatedAt,
                 UpdatedAt = coupon.UpdatedAt,
                 IsActive = coupon.IsActive,
                 Code = coupon.Code,
                 Name = coupon.Name,
-                Description = coupon.Description,
                 DiscountType = coupon.DiscountType,
                 DiscountValue = coupon.DiscountValue,
                 MinimumAmount = coupon.MinimumAmount,
@@ -513,7 +518,6 @@ namespace Adidas.Application.Services.Feature
             var orderCouponDtos = orderCoupons.Select(oc => new OrderCouponDto
             {
                 Id = oc.Id,
-                CreatedAt = oc.CreatedAt,
                 UpdatedAt = oc.UpdatedAt,
                 IsActive = oc.IsActive,
                 DiscountApplied = oc.DiscountApplied,
@@ -521,11 +525,14 @@ namespace Adidas.Application.Services.Feature
                 OrderId = oc.OrderId
             }).ToList();
 
-           
+
             var couponDetails = new CouponDetailsDTO
             {
                 CouponDto = couponDto,
-                orderCouponDtos = orderCouponDtos
+                orderCouponDtos = orderCouponDtos,
+                TotalUsage = couponDto.UsedCount,
+                TotalSavings = CalculateCouponSavings(couponDto)
+
             };
 
             return couponDetails;

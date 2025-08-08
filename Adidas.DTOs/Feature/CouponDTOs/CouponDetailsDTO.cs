@@ -12,5 +12,7 @@ namespace Adidas.DTOs.Feature.CouponDTOs
         public CouponDto CouponDto { get; set; }
 
         public IEnumerable<OrderCouponDto> orderCouponDtos { get; set; }
+        public int TotalUsage { get; set; }
+        public decimal TotalSavings { get; set; }
     }
 }

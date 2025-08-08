@@ -36,7 +36,7 @@ namespace Adidas.Web.Controllers
         // GET: Create
         public IActionResult Create()
         {
-            return View();
+            return View(new CouponCreateDto());
         }
 
         // POST: Create
@@ -64,6 +64,17 @@ namespace Adidas.Web.Controllers
 
 
         // GET: Edit
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var result = await _couponService.GetCouponDetailsByIdAsync(id);
+
+            if (result == null)
+                return NotFound();
+
+            
+            return View(result);
+        }
+
         public async Task<IActionResult> Edit(Guid id)
         {
             var couponUpdateDto = await _couponService.GetCouponToEditByIdAsync(id);
@@ -126,6 +137,8 @@ namespace Adidas.Web.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> ToggleStatus(Guid id)
