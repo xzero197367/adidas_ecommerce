@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace Adidas.Application.Services.Feature
 {
-    public class CouponService : ICouponServic
+    public class CouponService : ICouponService
     {
         private readonly ICouponRepository _couponRepository;
         private readonly IOrderRepository _orderRepository;
@@ -475,6 +475,24 @@ namespace Adidas.Application.Services.Feature
             await _couponRepository.SaveChangesAsync();
 
             return CouponApplicationResult.Ok(0, order.TotalAmount);
+        }
+        public async Task<decimal> CalculateCouponAmountAsync(string code, decimal orderAmount)
+        {
+            try
+            {
+                var coupon = await _couponRepository.GetByCodeAsync(code);
+                if (coupon == null || coupon.IsDeleted)
+                {
+                    return 0;
+                }
+
+                return await CalculateDiscountAmountAsync(coupon, orderAmount);
+            }
+            catch (Exception ex)
+            {
+               
+                return -1;
+            }
         }
 
     }

@@ -36,6 +36,8 @@ using Adidas.Application.Services.Operation;
 using Adidas.Infrastructure.Repositories;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Services.Separator;
+using Adidas.Application.Contracts.RepositoriesContracts.Feature;
+using Adidas.Infra.Feature;
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
@@ -140,6 +142,8 @@ builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 //Register Category
 builder.Services.AddScoped<ICategoryRepository,CategoryRepository>();
 builder.Services.AddScoped<ICategoryService,CategoryService>();
+builder.Services.AddScoped<IOrderCouponRepository, OrderCouponRepository>();
+
 
 // Register Brands 
 builder.Services.AddScoped<IBrandService,BrandService>();

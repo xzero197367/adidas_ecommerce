@@ -8,6 +8,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {
     public interface ICouponService
     {
+        Task<decimal> CalculateCouponAmountAsync(string code, decimal orderAmount);
         Task<CouponApplicationResult>  ApplyCouponToOrderAsync(Guid orderId, string couponCode);
         Task<CouponListResult> GetFilteredPagedCouponsAsync(string search, string status, int page, int pageSize);
         Task<Result> SoftDeletAsync(Guid id);
