@@ -140,7 +140,6 @@ using Adidas.DTOs.Operation.ReviewDTOs.Result;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Operation.ReviewDTOs;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Operation
 {
@@ -300,7 +299,7 @@ namespace Adidas.Application.Services.Operation
                 var verifiedPurchases = await _repository.CountAsync(r => r.IsVerifiedPurchase && !r.IsDeleted);
 
                 // Calculate average rating for all approved reviews
-                var allApprovedReviews = await _repository.GetAll().Where(r => r.IsApproved && !r.IsDeleted).ToListAsync();
+                var allApprovedReviews = await _repository.FindAsync(r => r.IsApproved && !r.IsDeleted);
                 var averageRating = allApprovedReviews.Any() ? allApprovedReviews.Average(r => r.Rating) : 0.0;
 
                 return new ReviewStatsDto
@@ -320,7 +319,7 @@ namespace Adidas.Application.Services.Operation
             }
         }
 
-        public override async Task ValidateCreateAsync(ReviewCreateDto createDto)
+        protected override async Task ValidateCreateAsync(CreateReviewDto createDto)
         {
             if (createDto.Rating < 1 || createDto.Rating > 5)
                 throw new ArgumentException("Rating must be between 1 and 5");
@@ -341,7 +340,7 @@ namespace Adidas.Application.Services.Operation
             await Task.CompletedTask;
         }
 
-        public override async Task ValidateUpdateAsync(Guid id, ReviewUpdateDto updateDto)
+        protected override async Task ValidateUpdateAsync(Guid id, UpdateReviewDto updateDto)
         {
             var existingReview = await _repository.GetByIdAsync(id);
             if (existingReview == null)
@@ -359,27 +358,27 @@ namespace Adidas.Application.Services.Operation
             await Task.CompletedTask;
         }
 
-        public override async Task BeforeCreateAsync(Review entity)
+        protected override async Task BeforeCreateAsync(Review entity)
         {
             entity.CreatedAt = DateTime.UtcNow;
             entity.UpdatedAt = DateTime.UtcNow;
             await Task.CompletedTask;
         }
 
-        public override async Task BeforeUpdateAsync(Review entity)
+        protected override async Task BeforeUpdateAsync(Review entity)
         {
             entity.UpdatedAt = DateTime.UtcNow;
             await Task.CompletedTask;
         }
 
-        public override async Task AfterCreateAsync(Review entity)
+        protected override async Task AfterCreateAsync(Review entity)
         {
             _logger.LogInformation("New review created: ID {ReviewId} for Product {ProductId} by User {UserId}",
                 entity.Id, entity.ProductId, entity.UserId);
             await Task.CompletedTask;
         }
 
-        public override async Task AfterUpdateAsync(Review entity)
+        protected override async Task AfterUpdateAsync(Review entity)
         {
             _logger.LogInformation("Review updated: ID {ReviewId}", entity.Id);
             await Task.CompletedTask;

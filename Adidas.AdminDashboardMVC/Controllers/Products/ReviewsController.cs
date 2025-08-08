@@ -320,11 +320,8 @@
 
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
-using Adidas.DTOs.Operation.ReviewDTOs.Create;
-using Adidas.DTOs.Operation.ReviewDTOs.Update;
 using Adidas.DTOs.Common_DTOs;
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.Operation.ReviewDTOs.Result;
@@ -408,9 +405,9 @@ namespace Adidas.Web.Controllers
                 var response = new
                 {
                     draw,
-                    recordsTotal = pagedReviews.TotalCount,
-                    recordsFiltered = pagedReviews.TotalCount,
-                    data = pagedReviews.Items.Select(r => new
+                    recordsTotal = pagedReviews.Data.TotalCount,
+                    recordsFiltered = pagedReviews.Data.TotalCount,
+                    data = pagedReviews.Data.Items.Select(r => new
                     {
                         id = r.Id,
                         customer = new
@@ -479,7 +476,7 @@ namespace Adidas.Web.Controllers
                     return NotFound();
                 }
 
-                return View(review);
+                return View(review.Data);
             }
             catch (Exception ex)
             {
@@ -596,7 +593,7 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _reviewService.DeleteAsync(id);
-                if (result)
+                if (result.IsSuccess)
                 {
                     _logger.LogInformation("Review {ReviewId} deleted by {User}", id, User.Identity?.Name);
                     return Json(new { success = true, message = "Review deleted successfully." });
@@ -614,7 +611,8 @@ namespace Adidas.Web.Controllers
         private async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)
         {
             // يمكنك تحسين هذه الدالة لإضافة الفلاتر
-            return await _reviewService.GetPagedAsync(viewModel.CurrentPage, viewModel.PageSize);
+            var  result = await _reviewService.GetPagedAsync(viewModel.CurrentPage, viewModel.PageSize);
+            return result.Data;
         }
 
         private async Task<ReviewStatsDto> GetReviewStatsAsync()
@@ -623,14 +621,14 @@ namespace Adidas.Web.Controllers
             {
                 var totalReviews = await _reviewService.CountAsync();
                 var approvedReviews = await _reviewService.CountAsync(r => r.IsApproved);
-                var pendingReviews = totalReviews - approvedReviews;
+                var pendingReviews = totalReviews.Data - approvedReviews.Data;
                 // الرفض يحتاج لتعديل في الـ Repository للتمييز بين Rejected و Pending
                 var rejectedReviews = 0; // سنحسن هذا لاحقاً
 
                 return new ReviewStatsDto
                 {
-                    TotalReviews = totalReviews,
-                    ApprovedReviews = approvedReviews,
+                    TotalReviews = totalReviews.Data,
+                    ApprovedReviews = approvedReviews.Data,
                     PendingReviews = pendingReviews,
                     RejectedReviews = rejectedReviews
                 };

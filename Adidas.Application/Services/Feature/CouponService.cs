@@ -1,16 +1,12 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
-using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Adidas.DTOs.Feature.OrderCouponDTOs;
 using Adidas.Models.Feature;
-using Adidas.Models.Separator;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Models.Feature;
-using System.Collections.Generic;
 
 namespace Adidas.Application.Services.Feature
 {
@@ -63,7 +59,7 @@ namespace Adidas.Application.Services.Feature
 
         private async Task<IEnumerable<CouponDto>> GetFilteredCouponsAsync(string search, string status)
         {
-            var allCoupons = await _couponRepository.GetAllAsync();
+            var allCoupons =  _couponRepository.GetAll();
             allCoupons = allCoupons.Where(c => !c.IsDeleted);
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -95,7 +91,8 @@ namespace Adidas.Application.Services.Feature
                 }
             }
 
-            var dtoList = allCoupons.Select(c => new CouponDto
+            var dtoList = await allCoupons.ToListAsync();
+            var dtoList1 = dtoList.Select(c => new CouponDto
             {
                 Id = c.Id,
                 //CreatedAt = c.CreatedAt,
@@ -112,7 +109,7 @@ namespace Adidas.Application.Services.Feature
                 UsedCount = c.UsedCount,
             });
 
-            return dtoList;
+            return dtoList1;
         }
 
         public async Task<Result> SoftDeletAsync(Guid id)

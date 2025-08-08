@@ -2,10 +2,8 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.Models.Separator;
-using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Separator
 {
@@ -40,10 +38,10 @@ namespace Adidas.Application.Services.Separator
         public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
         {
 
-            var brands =  _brandRepository.GetAll();
+            var brands = await _brandRepository.GetAllAsync();
 
 
-            var activeBrands = await brands.Where(b => b.IsActive && !b.IsDeleted).ToListAsync();
+            var activeBrands = brands.Where(b => b.IsActive && !b.IsDeleted);
 
             var brandDtos = activeBrands.Select(b => new BrandDto
             {
@@ -60,7 +58,7 @@ namespace Adidas.Application.Services.Separator
             return brandDtos;
         }
 
-        public async Task<Result> CreateAsync(BrandCreateDto createBrandDto)
+        public async Task<Result> CreateAsync(CreateBrandDto createBrandDto)
         {
 
             if (await _brandRepository.GetBrandByNameAsync(createBrandDto.Name) != null)
@@ -94,7 +92,7 @@ namespace Adidas.Application.Services.Separator
         }
 
 
-        public async Task<Result> UpdateAsync(BrandUpdateDto dto)
+        public async Task<Result> UpdateAsync(UpdateBrandDto dto)
         {
             var brandToUpdate = await _brandRepository.GetByIdAsync(dto.Id);
 
@@ -129,7 +127,7 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<BrandUpdateDto> GetBrandToEditByIdAsync(Guid id)
+        public async Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id)
         {
             var brand = await _brandRepository.GetByIdAsync(id);
 
@@ -137,7 +135,7 @@ namespace Adidas.Application.Services.Separator
              {
                 return null;
              }
-            var updateBrandDto = new BrandUpdateDto
+            var updateBrandDto = new UpdateBrandDto
             {
                 Id = brand.Id,
                 Name = brand.Name,
@@ -174,9 +172,7 @@ namespace Adidas.Application.Services.Separator
                     Price = product.Price,
                     SalePrice = product.SalePrice,
                     GenderTarget = product.GenderTarget,
-                    MetaDescription = product.MetaDescription,
-                    CategoryId = product.CategoryId,
-                    BrandId = product.BrandId
+                    MetaDescription = product.MetaDescription
                 }).ToList()
             };
 
@@ -186,22 +182,21 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
         {
-            var brandsQuery =  _brandRepository.GetAll();
+            var brands = await _brandRepository.GetAllAsync();
 
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 bool isActive = statusFilter == "Active";
-                brandsQuery =  brandsQuery.Where(c => c.IsActive == isActive);
+                brands = brands.Where(c => c.IsActive == isActive).ToList();
             }
 
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                brandsQuery = brandsQuery.Where(c =>
-                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                brands = brands.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
             }
-            var brandList = await brandsQuery.ToListAsync();
-            var brandDtos = brandList.Select(b => new BrandDto
+            var brandDtos = brands.Select(b => new BrandDto
             {
 
                 Id = b.Id,

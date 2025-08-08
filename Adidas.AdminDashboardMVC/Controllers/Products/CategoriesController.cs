@@ -1,5 +1,5 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -34,13 +34,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Create()
         {
             await PopulateParentCategoriesDropdown();
-            return View(new CreateCategoryDto());
+            return View(new CategoryCreateDto());
         }
 
         // POST: /Category/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateCategoryDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Create(CategoryCreateDto model, IFormFile ImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -104,7 +104,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         // POST: /Category/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UpdateCategoryDto model, IFormFile? ImageFile)
+        public async Task<IActionResult> Edit(CategoryUpdateDto model, IFormFile? ImageFile)
         {
          
             if (!ModelState.IsValid)
