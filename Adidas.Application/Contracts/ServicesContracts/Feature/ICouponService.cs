@@ -6,8 +6,7 @@ using Models.Feature;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Feature
 {
-    public interface ICouponService :
-        IGenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>
+    public interface ICouponService //:IGenericService<Coupon, CouponDto, CouponCreateDto, CouponUpdateDto>
     {
         Task<List<CouponDto>> GetAllCouponsAsync();
         Task<IEnumerable<CouponDto>> GetActiveCouponsAsync();
@@ -18,5 +17,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<CouponListResult> GetFilteredPagedCouponsAsync(string search, string status, int page, int pageSize);
         Task<Result> SoftDeletAsync(Guid id);
         Task<Result> ToggleCouponStatusAsync(Guid id);
+        Task<CouponDto> GetByIdAsync(Guid id);
+        Task<Result> UpdateAsync(Guid id, CouponUpdateDto dto);
+        Task<Result> CreateAsync(CouponCreateDto dto);
     }
 }

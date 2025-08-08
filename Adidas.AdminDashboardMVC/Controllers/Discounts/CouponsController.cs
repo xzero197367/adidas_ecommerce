@@ -18,7 +18,6 @@ namespace Adidas.Web.Controllers
         public async Task<IActionResult> Index(string search = "", string status = "All", int page = 1, int pageSize = 10)
         {
             var result = await _couponService.GetFilteredPagedCouponsAsync(search, status, page, pageSize);
-
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling((double)result.TotalCount / pageSize);
             ViewBag.Search = search;
@@ -42,23 +41,26 @@ namespace Adidas.Web.Controllers
         // POST: Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> Create(CouponCreateDto dto)
         {
             if (!ModelState.IsValid)
+            {
                 return View(dto);
+            }
 
-            try
+            var result = await _couponService.CreateAsync(dto);
+
+            if (!result.IsSuccess)
             {
-                await _couponService.CreateAsync(dto);
-                TempData["Success"] = "Coupon created successfully!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error creating coupon: {ex.Message}";
+                TempData["Error"] = result.Error;
                 return View(dto);
             }
+
+            TempData["Success"] = "Coupon created successfully!";
+            return RedirectToAction(nameof(Index));
         }
+
 
         // GET: Edit
         public async Task<IActionResult> Edit(Guid id)
