@@ -4,6 +4,7 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.Product_Variant_DTOs;
 using Adidas.Models.Main;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,12 @@ namespace Adidas.Application.Services.Main
             var products = await _productRepository.GetProductsByBrandAsync(brandId);
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
+        public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId)
+        {
+            var product = await _productRepository.GetProductWithVariantsAsync(productId);
+            if (product == null) return null;
+            return _mapper.Map<ProductDto>(product);
+        }
 
         public async Task<IEnumerable<ProductDto>> GetProductsByGenderAsync(Gender gender)
         {
@@ -52,6 +59,21 @@ namespace Adidas.Application.Services.Main
         {
             var products = await _productRepository.GetFeaturedProductsAsync();
             return _mapper.Map<IEnumerable<ProductDto>>(products);
+        }
+        public async Task<ProductVariantDto?> GetVariantByIdAsync(Guid id)
+        {
+            var variant = await _variantRepository.GetByIdAsync(id);
+            if (variant == null) return null;
+            return _mapper.Map<ProductVariantDto>(variant);
+        }
+
+        public async Task DeleteVariantAsync(Guid id)
+        {
+            var variant = await _variantRepository.GetByIdAsync(id);
+            if (variant == null) return;
+
+            _variantRepository.Remove(variant);
+            await _variantRepository.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<ProductDto>> GetProductsOnSaleAsync()
@@ -118,6 +140,20 @@ namespace Adidas.Application.Services.Main
             var discountAmount = await _couponService.CalculateCouponAmountAsync(discountCode, basePrice);
             return Math.Max(0, basePrice - discountAmount);
         }
+        public async Task<PagedResultDto<ProductDto>> GetProductsFilteredByCategoryBrandGenderAsync(ProductFilterDto filters)
+        {
+            var (products, totalCount) = await _productRepository.GetFilteredProductsAsync(filters);
+
+            return new PagedResultDto<ProductDto>
+            {
+                Items = _mapper.Map<IEnumerable<ProductDto>>(products),
+                TotalCount = totalCount,
+                PageNumber = filters.PageNumber,
+                PageSize = filters.PageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / filters.PageSize)
+            };
+        }
+
 
         protected override Task ValidateCreateAsync(CreateProductDto createDto)
         {
@@ -141,6 +177,7 @@ namespace Adidas.Application.Services.Main
             // Create slug from name
             //entity.Slug = CreateSlug(entity.Name);
         }
+
 
         private async Task<string> GenerateSkuAsync(string productName)
         {

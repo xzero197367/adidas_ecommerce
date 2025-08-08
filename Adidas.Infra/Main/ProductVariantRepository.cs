@@ -21,7 +21,17 @@ namespace Adidas.Infra.Main
                 .Where(v => !v.IsDeleted && v.IsActive && v.ProductId == productId)
                 .ToListAsync();
         }
+        public void Remove(ProductVariant entity)
+        {
+            _context.ProductVariants.Remove(entity);
+        }
 
+        public async Task<ProductVariant?> GetByIdWithImagesAsync(Guid id)
+        {
+            return await _dbSet
+                .Include(v => v.Images)
+                .FirstOrDefaultAsync(v => v.Id == id && !v.IsDeleted);
+        }
         public async Task<ProductVariant?> GetVariantBySkuAsync(string sku)
         {
             return await _dbSet

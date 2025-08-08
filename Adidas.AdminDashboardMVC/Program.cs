@@ -1,41 +1,38 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper;
-//using AutoMapper.Extensions.Microsoft.DependencyInjection;
-using Adidas.Context;
 using Adidas.AdminDashboardMVC.Middleware;
 using Adidas.AdminDashboardMVC.Services;
-
-using Models.People;
-
-// Mapping Profiles
-using Adidas.Application.Map;
-using Adidas.Application.Map.Feature;
-
-// Services
-using Adidas.Application.Services.Feature;
-using Adidas.Application.Services.People;
-using Adidas.Application.Services.Static;
-
-// Repositories
-using Adidas.Infra.Main;
-using Adidas.Infra.Operation;
-using Adidas.Infra.Separator;
-
 // Contracts
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.People;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
-using Adidas.Application.Contracts.ServicesContracts.People;
-using Adidas.Application.Contracts.ServicesContracts.Static;
-using Microsoft.AspNetCore.Authentication;
+using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
-using Adidas.Application.Services.Operation;
-using Adidas.Infrastructure.Repositories;
+using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.Application.Contracts.ServicesContracts.Static;
+// Mapping Profiles
+using Adidas.Application.Map;
+using Adidas.Application.Map.Feature;
+// Services
+using Adidas.Application.Services.Feature;
+using Adidas.Application.Services.Main;
+using Adidas.Application.Services.Operation;
+using Adidas.Application.Services.People;
 using Adidas.Application.Services.Separator;
+using Adidas.Application.Services.Static;
+//using AutoMapper.Extensions.Microsoft.DependencyInjection;
+using Adidas.Context;
+// Repositories
+using Adidas.Infra.Main;
+using Adidas.Infra.Operation;
+using Adidas.Infra.Separator;
+using Adidas.Infrastructure.Repositories;
+using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Models.People;
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
@@ -138,16 +135,19 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 //Register Category
-builder.Services.AddScoped<ICategoryRepository,CategoryRepository>();
-builder.Services.AddScoped<ICategoryService,CategoryService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // Register Brands 
-builder.Services.AddScoped<IBrandService,BrandService>();
-builder.Services.AddScoped<IBrandRepository,BrandRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
+
+
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
 #endregion
-
-
 var app = builder.Build();
 
 #region 8. Middleware Pipeline

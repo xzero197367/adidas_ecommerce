@@ -1,0 +1,395 @@
+﻿@model Adidas.DTOs.Common_DTOs.PagedResultDto<Adidas.DTOs.Main.Product_DTOs.ProductDto>
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Products Management";
+    var request = HttpContextAccessor.HttpContext.Request;
+}
+
+<link href="~/css/Product.css" rel="stylesheet"  />
+<div class="main-headerr my-5 ">
+    <div class="container">
+        <div class="header-content text-center">
+            <h1 class="mb-0">
+                <i class="fas fa-boxes me-2"></i>
+                Products Management System
+            </h1>
+            <p class="mb-0 mt-2 opacity-75">Manage your product catalog efficiently</p>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="tab-container">
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-products-tab" data-bs-toggle="tab" data-bs-target="#all-products" type="button" role="tab">
+                    <i class="fas fa-th-list me-1"></i>All Products
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="on-sale-tab" data-bs-toggle="tab" data-bs-target="#on-sale" type="button" role="tab">
+                    <i class="fas fa-tags me-1"></i>On Sale
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="out-of-stock-tab" data-bs-toggle="tab" data-bs-target="#out-of-stock" type="button" role="tab">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Out of Stock
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                    <i class="fas fa-chart-bar me-1"></i>Analytics
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="productTabContent">
+            <!-- All Products Tab -->
+            <div class="tab-pane fade show active" id="all-products" role="tabpanel">
+                <!-- Stats Cards -->
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-value">@Model.TotalCount</div>
+                        <div class="stat-label">Total Products</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">@Model.Items.Count(p => p.InStock)</div>
+                        <div class="stat-label">In Stock</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">@Model.Items.Count(p => p.IsOnSale)</div>
+                        <div class="stat-label">On Sale</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">@Model.Items.Count(p => !p.InStock)</div>
+                        <div class="stat-label">Out of Stock</div>
+                    </div>
+                </div>
+
+                <!-- Add New Product Button -->
+                <div class="d-flex justify-content-center justify-content-md-end mb-3">
+                    <a href="@Url.Action("Create")" class="btn btn-add-new">
+                        <i class="fas fa-plus"></i>Add New Product
+                    </a>
+                </div>
+
+                <!-- Filters Section -->
+                <div class="filter-section">
+                    <h3 class="filter-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Advanced Filters
+                    </h3>
+
+                    <form method="get" asp-action="Index" id="filterForm">
+                        <div class="row g-3">
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-layer-group me-1"></i>Category
+                                </label>
+                                @Html.DropDownList("CategoryId",
+                                new SelectList(ViewBag.Categories, "Value", "Text", request.Query["CategoryId"]),
+                                                                "All Categories",
+                                                                new { @class = "form-control" })
+                            </div>
+
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-copyright me-1"></i>Brand
+                                </label>
+                                @Html.DropDownList("BrandId",
+                                                                new SelectList(ViewBag.Brands, "Value", "Text", request.Query["BrandId"]),
+                                                                "All Brands",
+                                                                new { @class = "form-control" })
+                            </div>
+
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-venus-mars me-1"></i>Gender
+                                </label>
+                                @Html.DropDownList("Gender",
+                                                                new SelectList(ViewBag.Genders, "Value", "Text", request.Query["Gender"]),
+                                                                "All Genders",
+                                                                new { @class = "form-control" })
+                            </div>
+
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold d-block d-md-none">&nbsp;</label>
+                                <div class="d-flex gap-2 mt-4">
+                                    <button type="submit" class="btn btn-search">
+                                        <i class="fas fa-search"></i>Search
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-clear">
+                                        <i class="fas fa-undo"></i>Reset
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Results Info -->
+                @if (Model.Items.Any())
+                {
+                    <div class="results-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Displaying @Model.Items.Count() of @Model.TotalCount products
+                        @if (Model.TotalPages > 1)
+                        {
+                            <span class="d-none d-md-inline ms-3">
+                                <i class="fas fa-file-alt me-1"></i>Page @Model.PageNumber of @Model.TotalPages
+                            </span>
+                        }
+                    </div>
+                }
+
+                <!-- Products Table -->
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table products-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-tag me-1"></i>Name</th>
+                                    <th><i class="fas fa-dollar-sign me-1"></i>Price</th>
+                                    <th class="d-none d-md-table-cell"><i class="fas fa-list-alt me-1"></i>Category</th>
+                                    <th class="d-none d-lg-table-cell"><i class="fas fa-trademark me-1"></i>Brand</th>
+                                    <th class="d-none d-lg-table-cell"><i class="fas fa-venus-mars me-1"></i>Gender</th>
+                                    <th><i class="fas fa-percentage me-1"></i>Sale</th>
+                                    <th><i class="fas fa-warehouse me-1"></i>Stock</th>
+                                    <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Items.Any())
+                                {
+                                    foreach (var product in Model.Items)
+                                    {
+                                        <tr>
+                                            <td class="product-name" title="@product.Name">@product.Name</td>
+                                            <td class="price-display">@product.DisplayPrice.ToString("C")</td>
+                                            <td class="d-none d-md-table-cell">@product.CategoryName</td>
+                                            <td class="d-none d-lg-table-cell">@product.BrandName</td>
+                                            <td class="d-none d-lg-table-cell">@product.GenderTarget</td>
+                                            <td>
+                                                <span class="status-badge @(product.IsOnSale ? "status-yes" : "status-no")">
+                                                    <i class="fas @(product.IsOnSale ? "fa-check" : "fa-times")"></i>
+                                                    <span class="d-none d-sm-inline">@(product.IsOnSale ? "Yes" : "No")</span>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge @(product.InStock ? "status-yes" : "status-no")">
+                                                    <i class="fas @(product.InStock ? "fa-check" : "fa-times")"></i>
+                                                    <span class="d-none d-sm-inline">@(product.InStock ? "Yes" : "No")</span>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a href="@Url.Action("Details", "Products", new { id = product.Id })"
+                                                       class="btn-action btn-view" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+
+                                                    <a href="@Url.Action("Edit", new { id = product.Id })"
+                                                       class="btn-action btn-edit"
+                                                       title="Edit Product">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button class="btn-action btn-delete"
+                                                            title="Delete Product"
+                                                            onclick="deleteProduct(@product.Id, '@product.Name')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="9" class="no-products">
+                                            <div class="no-products-icon">
+                                                <i class="fas fa-search"></i>
+                                            </div>
+                                            <h4 class="mb-3">No Products Found</h4>
+                                            <p class="mb-3">We couldn't find any products matching your current filters.</p>
+                                            <a href="@Url.Action("Index")" class="btn btn-clear">
+                                                <i class="fas fa-undo me-2"></i>Clear All Filters
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Product pagination">
+                        <ul class="pagination">
+                            @if (Model.PageNumber > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index"
+                                       asp-route-CategoryId="@request.Query["CategoryId"]"
+                                       asp-route-BrandId="@request.Query["BrandId"]"
+                                       asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-PageNumber="1"
+                                       title="First Page">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index"
+                                       asp-route-CategoryId="@request.Query["CategoryId"]"
+                                       asp-route-BrandId="@request.Query["BrandId"]"
+                                       asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-PageNumber="@(Model.PageNumber - 1)"
+                                       title="Previous Page">
+                                        <i class="fas fa-chevron-left d-md-none"></i>
+                                        <span class="d-none d-md-inline"><i class="fas fa-chevron-left me-1"></i>Prev</span>
+                                    </a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" asp-action="Index"
+                                       asp-route-CategoryId="@request.Query["CategoryId"]"
+                                       asp-route-BrandId="@request.Query["BrandId"]"
+                                       asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-PageNumber="@i">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            @if (Model.PageNumber < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index"
+                                       asp-route-CategoryId="@request.Query["CategoryId"]"
+                                       asp-route-BrandId="@request.Query["BrandId"]"
+                                       asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-PageNumber="@(Model.PageNumber + 1)"
+                                       title="Next Page">
+                                        <i class="fas fa-chevron-right d-md-none"></i>
+                                        <span class="d-none d-md-inline">Next<i class="fas fa-chevron-right ms-1"></i></span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index"
+                                       asp-route-CategoryId="@request.Query["CategoryId"]"
+                                       asp-route-BrandId="@request.Query["BrandId"]"
+                                       asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-PageNumber="@Model.TotalPages"
+                                       title="Last Page">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            </div>
+
+            <!-- On Sale Tab -->
+            <div class="tab-pane fade" id="on-sale" role="tabpanel">
+                <div id="on-sale-content" class="empty-tabs text-center">
+                    <i class="fas fa-tags" style="color: #f59e0b;"></i>
+                    <h3>Products On Sale</h3>
+                    <p>Display products that are currently on sale with special discounts</p>
+                    <button class="btn btn-warning" onclick="loadOnSaleProducts()">
+                        <i class="fas fa-sync me-2"></i>Load Sale Products
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Out of Stock Tab -->
+            <div class="tab-pane fade" id="out-of-stock" role="tabpanel">
+                <div id="out-of-stock-content" class="empty-tabs text-center">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                    <h3>Out of Stock Products</h3>
+                    <p>Manage products that are currently out of stock and need restocking</p>
+                    <button class="btn btn-danger" onclick="loadOutOfStockProducts()">
+                        <i class="fas fa-sync me-2"></i>Load Out of Stock Products
+                    </button>
+                </div>
+            </div>
+
+
+           
+        </div>
+    </div>
+</div>
+
+<script>
+    // Action Functions
+    function viewProduct(id) {
+        // Add your view product logic here
+        console.log('View product:', id);
+        // Example: window.location.href = '/Products/Details/' + id;
+    }
+
+    function deleteProduct(id, name) {
+        if (confirm(`Are you sure you want to delete "${name}"?`)) {
+            // Add your delete logic here
+            console.log('Delete product:', id);
+            // Example:
+            // fetch(`/Products/Delete/${id}`, { method: 'POST' })
+            //     .then(() => location.reload());
+        }
+    }
+
+    function loadOnSaleProducts() {
+       const saleDiv = document.getElementById('on-sale-content');
+    }
+
+    function loadOutOfStockProducts() {
+        const outOfStockDiv = document.getElementById('out-of-stock-content');
+        console.log('Loading out of stock products...');
+    }
+
+    function loadAnalytics() {
+        // Add logic to load analytics
+        console.log('Loading analytics...');
+    }
+
+    // Mobile menu handling for tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        const navTabs = document.querySelector('.nav-tabs');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        if (navTabs) {
+            navTabs.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - navTabs.offsetLeft;
+                scrollLeft = navTabs.scrollLeft;
+            });
+
+            navTabs.addEventListener('mouseleave', () => {
+                isDown = false;
+            });
+
+            navTabs.addEventListener('mouseup', () => {
+                isDown = false;
+            });
+
+            navTabs.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - navTabs.offsetLeft;
+                const walk = (x - startX) * 2;
+                navTabs.scrollLeft = scrollLeft - walk;
+            });
+        }
+    });
+</script>

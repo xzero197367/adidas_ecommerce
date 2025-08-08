@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -24,5 +25,7 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
         public decimal PriceAdjustment { get; set; } = 0;
         public string? ColorHex { get; set; }
         public int SortOrder { get; set; }
+        public IFormFile? ImageFile { get; set; }
+
     }
 }

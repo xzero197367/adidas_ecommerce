@@ -28,6 +28,13 @@ namespace Adidas.DTOs.Main.Product_DTOs
         public string? MetaTitle { get; set; }
         public string? MetaDescription { get; set; }
         public string? Keywords { get; set; }
+        public string CategoryName { get; set; } = "No Category";
+        public string BrandName { get; set; } = "No Brand";
+        public bool InStock { get; set; }
+        public bool ComputedInStock => Variants != null && Variants.Any(v => v.StockQuantity > 0);
+        public Guid CategoryId { get; set; }
+        public Guid BrandId { get; set; }
+
 
         // Navigation properties
         public CategoryDto Category { get; set; } = new();
@@ -41,6 +48,5 @@ namespace Adidas.DTOs.Main.Product_DTOs
         public bool IsOnSale => SalePrice.HasValue && SalePrice < Price;
         public double AverageRating => Reviews.Any() ? Reviews.Average(r => r.Rating) : 0;
         public int ReviewCount => Reviews.Count;
-        public bool InStock => Variants.Any(v => v.StockQuantity > 0);
     }
 }

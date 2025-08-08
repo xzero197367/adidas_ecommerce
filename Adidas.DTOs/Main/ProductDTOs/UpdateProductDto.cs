@@ -10,6 +10,7 @@ namespace Adidas.DTOs.Main.Product_DTOs
 {
     public class UpdateProductDto
     {
+        public Guid ID { get; set; }
         [Required, MaxLength(200)]
         public string Name { get; set; } = string.Empty;
 
@@ -33,6 +34,8 @@ namespace Adidas.DTOs.Main.Product_DTOs
 
         [Required]
         public Guid BrandId { get; set; }
+        public bool InStock { get; set; }
+        public bool Sale { get; set; }
 
         public int SortOrder { get; set; }
         public string? MetaTitle { get; set; }

@@ -14,9 +14,9 @@ namespace Adidas.Application.Services.Main
 {
     public class ProductImageService : GenericService<ProductImage, ProductImageDto, CreateProductImageDto, UpdateProductImageDto>, IProductImageService
     {
-        private readonly IProductAttrbuteRepository _productImageRepository;
+        private readonly IProductImageRepository _productImageRepository;
         public ProductImageService(
-            IProductAttrbuteRepository productImageRepository,
+            IProductImageRepository productImageRepository,
             IMapper mapper,
             ILogger<ProductImageService> logger)
             : base(productImageRepository, mapper, logger)
