@@ -20,5 +20,6 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<CouponDto> GetByIdAsync(Guid id);
         Task<Result> UpdateAsync(Guid id, CouponUpdateDto dto);
         Task<Result> CreateAsync(CouponCreateDto dto);
+        Task<CouponUpdateDto> GetCouponToEditByIdAsync(Guid id);
     }
 }

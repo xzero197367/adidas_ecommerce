@@ -411,5 +411,26 @@ namespace Adidas.Application.Services.Feature
             }
         }
 
+        public async Task<CouponUpdateDto> GetCouponToEditByIdAsync(Guid id)
+        {
+            var coupon = await _couponRepository.GetByIdAsync(id);
+            if (coupon == null)
+                return null;
+            var couponUpdateDto = new CouponUpdateDto
+            {
+                Code = coupon.Code,
+                Name = coupon.Name,
+                DiscountType = coupon.DiscountType,
+                DiscountValue = coupon.DiscountValue,
+                MinimumAmount = coupon.MinimumAmount,
+                ValidFrom = coupon.ValidFrom,
+                ValidTo = coupon.ValidTo,
+                UsageLimit = coupon.UsageLimit,
+                IsActive = coupon.IsActive,
+                
+            };
+
+            return couponUpdateDto;
+        }
     }
 }
