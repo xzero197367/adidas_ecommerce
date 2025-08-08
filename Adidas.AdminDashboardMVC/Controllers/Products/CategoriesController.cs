@@ -34,7 +34,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Create()
         {
             await PopulateParentCategoriesDropdown();
-            return View();
+            return View(new CreateCategoryDto());
         }
 
         // POST: /Category/Create
