@@ -1,168 +1,368 @@
-﻿using Adidas.Application.Contracts.RepositoriesContracts.Separator;
+﻿
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
-using Adidas.DTOs.CommonDTOs;
+using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
+using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Separator;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Separator
 {
-    public class BrandService : GenericService<Brand, BrandDto, BrandCreateDto, BrandUpdateDto>, IBrandService
+
+    public class BrandService : IBrandService//: GenericService<Brand, BrandResponseDto, CreateBrandDto, UpdateBrandDto>, IBrandService
     {
         private readonly IBrandRepository _brandRepository;
-        private readonly ILogger<BrandService> _logger;
 
         public BrandService(
-            IBrandRepository brandRepository,
-            ILogger<BrandService> logger
-        ) : base(brandRepository, logger)
+            IBrandRepository brandRepository
+           )
         {
             _brandRepository = brandRepository;
-            _logger = logger;
         }
 
-        public async Task<OperationResult<bool>> DeleteAsync(Guid id)
+        public async Task<Result> DeleteAsync(Guid id)
         {
+            var brand = await _brandRepository.GetByIdAsync(id,
+                  c => c.Products            
+                );
+            if (brand == null)
+                return Result.Failure("Brand not found.");
+            if (brand.Products.Count() != 0)
+                return Result.Failure("Cannot delete a brand that has products.");
+
+            await _brandRepository.HardDeleteAsync(id);
+            var result = await _brandRepository.SaveChangesAsync();
+
+            return result == null ? Result.Failure("Failed to Delete Brand.") : Result.Success();
+        }
+
+        public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
+        {
+
+            var brands = await _brandRepository.GetAllAsync();
+
+
+            var activeBrands = brands.Where(b => b.IsActive && !b.IsDeleted);
+
+            var brandDtos = activeBrands.Select(b => new BrandDto
+            {
+
+                Id = b.Id,
+                UpdatedAt = b.UpdatedAt,
+                IsActive = b.IsActive,
+
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+            }).ToList();
+
+            return brandDtos;
+        }
+
+        public async Task<Result> CreateAsync(CreateBrandDto createBrandDto)
+        {
+
+            if (await _brandRepository.GetBrandByNameAsync(createBrandDto.Name) != null)
+            {
+                return Result.Failure("A brand with this name already exists.");
+            }
+
+
+            var brand = new Brand
+            {
+
+                Name = createBrandDto.Name,
+                Description = createBrandDto.Description,
+                LogoUrl = createBrandDto.LogoUrl,
+                IsActive = true,
+                //CreatedAt = DateTime.UtcNow,
+                //UpdatedAt = DateTime.UtcNow
+            };
+
             try
             {
-                var brand = await _brandRepository.GetByIdAsync(id);
-                if (brand == null)
-                {
-                    return OperationResult<bool>.Fail("Brand not found.");
-                }
+                await _brandRepository.AddAsync(brand);
+                await _brandRepository.SaveChangesAsync();
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating brand: {ex.Message}");
+                return Result.Failure("An unexpected error occurred while creating the brand.");
+            }
+        }
 
-                await _brandRepository.SoftDeleteAsync(id);
+
+        public async Task<Result> UpdateAsync(UpdateBrandDto dto)
+        {
+            var brandToUpdate = await _brandRepository.GetByIdAsync(dto.Id);
+
+            if (brandToUpdate == null)
+            {
+                return Result.Failure("Brand not found.");
+            }
+            if (brandToUpdate.Name != dto.Name)
+            {
+                var brandWithSameName = await _brandRepository.GetBrandByNameAsync(dto.Name);
+                if (brandWithSameName != null)
+                {
+                    return Result.Failure("A brand with this name already exists.");
+                }
+            }
+
+            brandToUpdate.Name = dto.Name;
+            brandToUpdate.Description = dto.Description;
+            brandToUpdate.LogoUrl = dto.LogoUrl;
+            brandToUpdate.UpdatedAt = DateTime.UtcNow;
+
+
+            try
+            {
+                await _brandRepository.UpdateAsync(brandToUpdate);
+                await _brandRepository.SaveChangesAsync();
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"An unexpected error occurred while updating the brand. {ex.Message}");
+            }
+        }
+
+        public async Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id)
+        {
+            var brand = await _brandRepository.GetByIdAsync(id);
+
+             if (brand == null)
+             {
+                return null;
+             }
+            var updateBrandDto = new UpdateBrandDto
+            {
+                Id = brand.Id,
+                Name = brand.Name,
+                Description = brand.Description,
+                LogoUrl = brand.LogoUrl
+            };
+
+            return updateBrandDto;
+        }
+
+
+        public async Task<BrandDto?> GetDetailsByIdAsync(Guid id)
+        {
+            var brand = await _brandRepository.GetByIdAsync(id, b => b.Products);
+
+            if (brand == null)
+                return null;
+
+            var brandDto = new BrandDto
+            {
+                Id = brand.Id,
+                IsActive = brand.IsActive,
+                Name = brand.Name,
+                Description = brand.Description,
+                LogoUrl = brand.LogoUrl,
+                Products = brand.Products.Select(product => new ProductDto
+                {
+                    Id = product.Id,
+                    IsActive= product.IsActive,
+                    Name = product.Name,
+                    Description = product.Description,
+                    ShortDescription = product.ShortDescription,
+                    Sku = product.Sku,
+                    Price = product.Price,
+                    SalePrice = product.SalePrice,
+                    GenderTarget = product.GenderTarget,
+                    MetaDescription = product.MetaDescription
+                }).ToList()
+            };
+
+            return brandDto;
+        }
+
+
+        public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
+        {
+            var brands = await _brandRepository.GetAllAsync();
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                bool isActive = statusFilter == "Active";
+                brands = brands.Where(c => c.IsActive == isActive).ToList();
+            }
+
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                brands = brands.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+            var brandDtos = brands.Select(b => new BrandDto
+            {
+
+                Id = b.Id,
+                UpdatedAt = b.UpdatedAt,
+                IsActive = b.IsActive,
+
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+            }).ToList();
+
+            return brandDtos;
+        }
+
+        public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
+        {
+            var brand = await _brandRepository.GetByIdAsync(categoryId);
+            if (brand == null)
+                return Result.Failure("brand not found.");
+
+            brand.IsActive = !brand.IsActive;
+
+            try
+            {
+                await _brandRepository.UpdateAsync(brand);
                 var result = await _brandRepository.SaveChangesAsync();
 
-                if (result == null)
-                {
-                    return OperationResult<bool>.Fail("Failed to Delete brand.");
-                }
-
-                return OperationResult<bool>.Success(true);
+                if (result > 0)
+                    return Result.Success();
+                else
+                    return Result.Failure("No changes were made to the database.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting brand");
-                return OperationResult<bool>.Fail(ex.Message);
+
+                return Result.Failure("An error occurred while updating the brand status.");
             }
         }
 
-        public async Task<OperationResult<IEnumerable<BrandDto>>> GetActiveBrandsAsync()
-        {
-            try
-            {
-                var activeBrands = await _brandRepository.GetAll().Where(b => b.IsActive && !b.IsDeleted).ToListAsync();
-                return OperationResult<IEnumerable<BrandDto>>.Success(activeBrands.Adapt<IEnumerable<BrandDto>>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting active brands");
-                return OperationResult<IEnumerable<BrandDto>>.Fail(ex.Message);
-            }
-        }
-
-        public async Task<OperationResult<bool>> CreateAsync(BrandCreateDto createBrandDto)
-        {
-            try
-            {
-                if (await _brandRepository.GetBrandByNameAsync(createBrandDto.Name) != null)
-                {
-                    return OperationResult<bool>.Fail("A brand with this name already exists.");
-                }
-
-                var createdBrand = await _brandRepository.AddAsync(createBrandDto.Adapt<Brand>());
-                await _brandRepository.SaveChangesAsync();
-                createdBrand.State = EntityState.Detached;
-
-                return OperationResult<bool>.Success(true);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating brand");
-                return OperationResult<bool>.Fail(ex.Message);
-            }
-        }
-
-
-        public async Task<OperationResult<bool>> UpdateAsync(BrandUpdateDto dto)
-        {
-            try
-            {
-                var brandToUpdate = await _brandRepository.GetByIdAsync(dto.Id);
-
-                if (brandToUpdate == null)
-                {
-                    return OperationResult<bool>.Fail("Brand not found.");
-                }
-
-                if (brandToUpdate.Name != dto.Name)
-                {
-                    var brandWithSameName = await _brandRepository.GetBrandByNameAsync(dto.Name);
-                    if (brandWithSameName != null)
-                    {
-                        return OperationResult<bool>.Fail("A brand with this name already exists.");
-                    }
-                }
-
-                brandToUpdate.Name = dto.Name;
-                brandToUpdate.Description = dto.Description;
-                brandToUpdate.LogoUrl = dto.LogoUrl;
-                brandToUpdate.UpdatedAt = DateTime.UtcNow;
-
-                var result = await _brandRepository.UpdateAsync(brandToUpdate);
-                await _brandRepository.SaveChangesAsync();
-                result.State = EntityState.Detached;
-                return OperationResult<bool>.Success(true);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating brand");
-                return OperationResult<bool>.Fail(ex.Message);
-            }
-        }
-
-        public async Task<OperationResult<BrandUpdateDto>> GetBrandToEditByIdAsync(Guid id)
-        {
-            try
-            {
-                var brand = await _brandRepository.GetByIdAsync(id);
-
-                if (brand == null)
-                {
-                    return OperationResult<BrandUpdateDto>.Fail("Brand not found.");
-                }
-
-                return OperationResult<BrandUpdateDto>.Success(brand.Adapt<BrandUpdateDto>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting brand to edit");
-                return OperationResult<BrandUpdateDto>.Fail(ex.Message);
-            }
-        }
-
-
-        public async Task<OperationResult<BrandDto>> GetDetailsByIdAsync(Guid id)
-        {
-            try
-            {
-                var brand = await _brandRepository.GetByIdAsync(id);
-
-                if (brand == null)
-                {
-                    return OperationResult<BrandDto>.Fail("Brand not found.");
-                }
-
-                return OperationResult<BrandDto>.Success(brand.Adapt<BrandDto>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting brand details");
-                return OperationResult<BrandDto>.Fail(ex.Message);
-            }
-        }
     }
 }
+ //#region Generic Service Overrides
+
+    //protected override async Task ValidateCreateAsync(CreateBrandDto createDto)
+    //{
+    //    // Check if brand name already exists
+    //    var existingBrand = await _brandRepository.GetBrandByNameAsync(createDto.Name);
+    //    if (existingBrand != null)
+    //    {
+    //        throw new InvalidOperationException("Brand with this name already exists");
+    //    }
+    //}
+
+    //protected override async Task ValidateUpdateAsync(Guid id, UpdateBrandDto updateDto)
+    //{
+    //    // Check if another brand with the same name exists
+    //    var brandWithSameName = await _brandRepository.GetBrandByNameAsync(updateDto.Name);
+    //    if (brandWithSameName != null && brandWithSameName.Id != id)
+    //    {
+    //        throw new InvalidOperationException("Another brand with this name already exists");
+    //    }
+    //}
+
+    //protected override async Task BeforeCreateAsync(Brand entity)
+    //{
+    //    entity.CreatedAt = DateTime.UtcNow;
+    //    entity.UpdatedAt = DateTime.UtcNow;
+    //    entity.IsActive = true;
+    //    entity.IsDeleted = false;
+    //}
+
+    //protected override async Task BeforeUpdateAsync(Brand entity)
+    //{
+    //    entity.UpdatedAt = DateTime.UtcNow;
+    //}
+
+    //#endregion
+
+    //#region Brand-Specific Methods
+
+    //public async Task<BrandResponseDto?> GetBrandByNameAsync(string name)
+    //{
+    //    try
+    //    {
+    //        _logger.LogInformation("Getting brand by name: {BrandName}", name);
+    //        var brand = await _brandRepository.GetBrandByNameAsync(name);
+
+    //        if (brand == null)
+    //        {
+    //            _logger.LogWarning("Brand not found with name: {BrandName}", name);
+    //            return null;
+    //        }
+
+    //        return _mapper.Map<BrandResponseDto>(brand);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error retrieving brand with name: {BrandName}", name);
+    //        throw;
+    //    }
+    //}
+
+    //public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
+    //{
+    //    try
+    //    {
+    //        _logger.LogInformation("Getting active brands");
+    //        var brands = await _brandRepository.FindAsync(b => !b.IsDeleted && b.IsActive);
+    //        return _mapper.Map<IEnumerable<BrandDto>>(brands);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error retrieving active brands");
+    //        throw;
+    //    }
+    //}
+
+    //public async Task<IEnumerable<BrandDto>> GetPopularBrandsAsync()
+    //{
+    //    try
+    //    {
+    //        _logger.LogInformation("Getting popular brands");
+    //        var brands = await _brandRepository.GetPopularBrandsAsync();
+    //        return _mapper.Map<IEnumerable<BrandDto>>(brands);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error retrieving popular brands");
+    //        throw;
+    //    }
+    //}
+
+    //public async Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize)
+    //{
+    //    try
+    //    {
+    //        _logger.LogInformation("Getting paginated brand list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
+    //        var (brands, totalCount) = await _brandRepository.GetPagedAsync(pageNumber, pageSize, b => !b.IsDeleted);
+    //        var brandList = _mapper.Map<IEnumerable<BrandDto>>(brands);
+
+    //        return new PagedResultDto<BrandDto>
+    //        {
+    //            Items = brandList,
+    //            TotalCount = totalCount,
+    //            PageNumber = pageNumber,
+    //            PageSize = pageSize,
+    //            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error retrieving paginated brand list");
+    //        throw;
+    //    }
+    //}
+
+    //#endregion
+
+
+ 
+
+
+
+
+

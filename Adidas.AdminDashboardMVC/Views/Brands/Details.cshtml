@@ -8,21 +8,26 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">Brand Details</h2>
-        <a asp-action="Index" class="btn btn-secondary">Back to Brands List</a>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">Edit</a>
+            <a asp-action="Index" class="btn btn-secondary">Back to Brands List</a>
+        </div>
     </div>
 
-    <div class="card shadow-sm rounded-lg">
+    <div class="card shadow-sm rounded-4 border-0">
         <div class="card-body">
             <div class="row">
                 <!-- Brand Logo Section -->
-                <div class="col-md-4 text-center">
+                <div class="col-md-4 text-center mb-4 mb-md-0">
                     @if (!string.IsNullOrEmpty(Model.LogoUrl))
                     {
-                        <img src="@Model.LogoUrl" alt="Brand Logo" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" />
+                        <img src="@Model.LogoUrl" alt="Brand Logo" class="img-thumbnail rounded-circle mb-3"
+                             style="width: 150px; height: 150px; object-fit: cover;" />
                     }
                     else
                     {
-                        <div class="d-flex justify-content-center align-items-center bg-light rounded-circle mb-3" style="width: 150px; height: 150px;">
+                        <div class="d-flex justify-content-center align-items-center bg-light rounded-circle mb-3"
+                             style="width: 150px; height: 150px;">
                             <span class="text-muted">No Logo</span>
                         </div>
                     }
@@ -50,10 +55,45 @@
                     </dl>
                 </div>
             </div>
-        </div>
-        <div class="card-footer d-flex justify-content-end">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">Edit</a>
-            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+
+            <hr class="my-4" />
+
+            <h4 class="mb-3">Products</h4>
+
+            @if (Model.Products == null || !Model.Products.Any())
+            {
+                <p class="text-muted">No products available for this brand.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model.Products)
+                            {
+                                <tr>
+                                    <td>@product.Name</td>
+                                    <td>@(string.IsNullOrEmpty(product.Description) ? "N/A" : product.Description)</td>
+                                    <td>$@product.Price</td>
+                                    <td>
+                                        <span class="badge @(product.IsActive ? "bg-success" : "bg-danger")">
+                                            @(product.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
         </div>
     </div>
 </div>

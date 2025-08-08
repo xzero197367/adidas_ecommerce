@@ -15,7 +15,7 @@ namespace Adidas.DTOs.Separator.Brand_DTOs
 
         [StringLength(500, ErrorMessage = "Logo URL cannot exceed 500 characters")]
         public string? LogoUrl { get; set; }
-
+        [Required]
         public string? Description { get; set; }
     }
 }

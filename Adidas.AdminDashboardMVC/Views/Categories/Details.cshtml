@@ -75,111 +75,158 @@
                         }
                     </dd>
                 </dl>
-
-                <hr class="my-4" />
-
-                <h4>Subcategories</h4>
-                @if (Model.SubCategories != null && Model.SubCategories.Any())
-                {
-                    <div class="table-responsive mb-4">
-                        <table class="table table-sm table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col">IMAGE</th>
-                                    <th scope="col">NAME</th>
-                                    <th scope="col">DESCRIPTION</th>
-                                    <th scope="col">SLUG</th>
-                                    <th scope="col">SORT ORDER</th>
-                                    <th scope="col">STATUS</th>
-                                    <th scope="col">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var subCategory in Model.SubCategories)
-                                {
-                                    <tr>
-                                        <td>
-                                            @if (!string.IsNullOrEmpty(subCategory.ImageUrl))
-                                            {
-                                                <img src="@subCategory.ImageUrl" alt="@subCategory.Name" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
-                                            }
-                                            else
-                                            {
-                                                <img src="https://via.placeholder.com/50" alt="No Image" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
-                                            }
-                                        </td>
-                                        <td>
-                                            <strong>@subCategory.Name</strong><br />
-                                            <small>Sub-category</small>
-                                        </td>
-                                        <td>@(string.IsNullOrEmpty(subCategory.Description) ? "N/A" : (subCategory.Description.Length > 50 ? subCategory.Description.Substring(0, 50) + "..." : subCategory.Description))</td>
-                                        <td>@subCategory.Slug</td>
-                                        <td>@subCategory.SortOrder</td>
-                                        <td class="text-success fw-bold">
-                                            @(subCategory.IsActive ? "✓" : "✗")
-                                        </td>
-                                        <td class="text-nowrap">
-                                            <a asp-action="Details" asp-controller="Categories" asp-route-id="@subCategory.Id"
-                                               class="btn btn-sm btn-outline-info me-1" title="View Details">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a asp-action="Edit" asp-controller="Categories" asp-route-id="@subCategory.Id"
-                                               class="btn btn-sm btn-outline-warning me-1" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="#" class="btn btn-sm btn-outline-danger"
-                                               data-bs-toggle="modal"
-                                               data-bs-target="#deleteModal-@subCategory.Id"
-                                               title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-
-                                    <div class="modal fade" id="deleteModal-@subCategory.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@subCategory.Id" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title" id="deleteModalLabel-@subCategory.Id">Confirm Delete Subcategory</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p>Are you sure you want to delete the subcategory <strong>@subCategory.Name</strong>?</p>
-                                                    @if (subCategory.SubCategories?.Count > 0)
-                                                    {
-                                                        <div class="alert alert-warning">
-                                                            <i class="fas fa-exclamation-triangle me-2"></i> This subcategory has @subCategory.SubCategories.Count nested subcategories that will also be deleted!
-                                                        </div>
-                                                    }
-                                                    <p class="text-danger">This action cannot be undone.</p>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <form asp-action="Delete" asp-controller="Categories" method="post">
-                                                        <input type="hidden" name="id" value="@subCategory.Id" />
-                                                        <button type="submit" class="btn btn-danger">
-                                                            <i class="fas fa-trash me-1"></i> Delete Subcategory
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted">No subcategories for this category.</p>
-                }
-
-                <hr class="my-4" />
-
             </div>
         </div>
     </div>
 
-    @section Scripts {
-    }
+    <hr class="my-4" />
+
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">Subcategories</h4>
+            @if (Model.SubCategories != null && Model.SubCategories.Any())
+            {
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm table-hover table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>IMAGE</th>
+                                <th>NAME</th>
+                                <th>DESCRIPTION</th>
+                                <th>SLUG</th>
+                                <th>SORT ORDER</th>
+                                <th>STATUS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var subCategory in Model.SubCategories)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(subCategory.ImageUrl))
+                                        {
+                                            <img src="@subCategory.ImageUrl" alt="@subCategory.Name" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <img src="https://via.placeholder.com/50" alt="No Image" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@subCategory.Name</strong><br />
+                                        <small>Sub-category</small>
+                                    </td>
+                                    <td>@(string.IsNullOrEmpty(subCategory.Description) ? "N/A" : (subCategory.Description.Length > 50 ? subCategory.Description.Substring(0, 50) + "..." : subCategory.Description))</td>
+                                    <td>@subCategory.Slug</td>
+                                    <td>@subCategory.SortOrder</td>
+                                    <td class="text-success fw-bold">
+                                        @(subCategory.IsActive ? "✓" : "✗")
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <a asp-action="Details" asp-controller="Categories" asp-route-id="@subCategory.Id" class="btn btn-sm btn-outline-info me-1" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-controller="Categories" asp-route-id="@subCategory.Id" class="btn btn-sm btn-outline-warning me-1" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@subCategory.Id" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                        <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@subCategory.Id" />
+                                            <button type="submit" class="btn btn-sm @(subCategory.IsActive ? "btn-outline-secondary" : "btn-outline-success")" title="@(subCategory.IsActive ? "Deactivate" : "Activate")">
+                                                <i class="@(subCategory.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModal-@subCategory.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@subCategory.Id" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title" id="deleteModalLabel-@subCategory.Id">Confirm Delete Subcategory</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete the subcategory <strong>@subCategory.Name</strong>?</p>
+                                                @if (subCategory.SubCategories?.Count > 0)
+                                                {
+                                                    <div class="alert alert-warning">
+                                                        <i class="fas fa-exclamation-triangle me-2"></i> This subcategory has @subCategory.SubCategories.Count nested subcategories that will also be deleted!
+                                                    </div>
+                                                }
+                                                <p class="text-danger">This action cannot be undone.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form asp-action="Delete" asp-controller="Categories" method="post">
+                                                    <input type="hidden" name="id" value="@subCategory.Id" />
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="fas fa-trash me-1"></i> Delete Subcategory
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No subcategories for this category.</p>
+            }
+        </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">Products</h4>
+
+            @if (Model.Products == null || !Model.Products.Any())
+            {
+                <p class="text-muted">No products available in this category.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model.Products)
+                            {
+                                <tr>
+                                    <td>@product.Name</td>
+                                    <td>@(string.IsNullOrEmpty(product.Description) ? "N/A" : product.Description)</td>
+                                    <td>$@product.Price</td>
+                                    <td>
+                                        <span class="badge @(product.IsActive ? "bg-success" : "bg-danger")">
+                                            @(product.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+}
