@@ -1,9 +1,8 @@
-﻿
-
 
 
 using Resto.Web.Helpers;
 using Adidas.Infrastructure.Repositories;
+
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +40,11 @@ using Microsoft.AspNetCore.Authentication;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Services.Operation;
 using Adidas.Application.Map.Operation;
+
+using Adidas.Infrastructure.Repositories;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.Application.Services.Separator;
+
 var builder = WebApplication.CreateBuilder(args);
 
 #region 1. EF Core
@@ -48,7 +52,9 @@ builder.Services.AddDbContext<AdidasDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 #endregion
 
+
 #region 2. Identity Configuration
+
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -144,7 +150,13 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+//Register Category
+builder.Services.AddScoped<ICategoryRepository,CategoryRepository>();
+builder.Services.AddScoped<ICategoryService,CategoryService>();
 
+// Register Brands 
+builder.Services.AddScoped<IBrandService,BrandService>();
+builder.Services.AddScoped<IBrandRepository,BrandRepository>();
 builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
 #endregion
 

@@ -9,6 +9,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
 {
     public class UpdateCategoryDto
     {
+        public Guid Id { get; set; }
         [Required]
         [StringLength(100, ErrorMessage = "Category name cannot exceed 100 characters")]
         public string Name { get; set; }
@@ -16,7 +17,8 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         [Required]
         [StringLength(100, ErrorMessage = "Slug cannot exceed 100 characters")]
         public string Slug { get; set; }
-
+        [Required]
+        [StringLength(100, ErrorMessage = "Category Description cannot exceed 100 characters")]
         public string? Description { get; set; }
 
         [StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters")]
@@ -24,7 +26,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
 
         public Guid? ParentCategoryId { get; set; }
 
-        public int SortOrder { get; set; }
+        public int? SortOrder { get; set; }
     }
 
 

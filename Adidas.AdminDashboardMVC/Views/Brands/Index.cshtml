@@ -1,0 +1,210 @@
+﻿@using Adidas.DTOs.Separator.Brand_DTOs
+@model IEnumerable<Adidas.DTOs.Separator.Brand_DTOs.BrandDto>
+
+@{
+    ViewData["Title"] = "Manage Brands";
+    Layout = "_Layout"; // Assuming a shared layout file with Bootstrap.
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Manage Brands</h2>
+        <a asp-controller="Brands" asp-action="Create" class="btn btn-dark">+ Add Brand</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+
+    <form method="get" asp-action="Index" asp-controller="Brands">
+        <div class="row mb-3">
+            <!-- Search Box -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Search Brand</label>
+                <input type="text"
+                       name="searchTerm"
+                       class="form-control"
+                       placeholder="Search by name..."
+                       value="@(ViewData["SearchTerm"] as string)" />
+            </div>
+
+            
+
+            <!-- Status Dropdown -->
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Status</label>
+                <select name="statusFilter" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentStatus"] as string))">All Status</option>
+                    <option value="Active" selected="@(ViewData["CurrentStatus"] as string == "Active")">Active</option>
+                    <option value="Inactive" selected="@(ViewData["CurrentStatus"] as string == "Inactive")">Inactive</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Full-width Apply Button -->
+        <div class="d-grid">
+            <button type="submit" class="btn btn-dark w-100">
+                <i class="fas fa-search me-2"></i> Apply Filters
+            </button>
+        </div>
+    </form>
+
+
+
+
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">IMAGE</th>
+                    <th scope="col">NAME</th>
+                    <th scope="col">DESCRIPTION</th>
+                    <th scope="col">STATUS</th>
+                    <th scope="col">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var brand in Model)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(brand.LogoUrl))
+                                {
+                                    <img src="@brand.LogoUrl" alt="@brand.Name" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="product-img-placeholder">
+                                        <img src="https://via.placeholder.com/50" alt="No Image" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <strong>@brand.Name</strong>
+                            </td>
+                            <td>@(string.IsNullOrEmpty(brand.Description) ? "N/A" : (brand.Description.Length > 50 ? brand.Description.Substring(0, 50) + "..." : brand.Description))</td>
+                            <td class="fw-bold">
+                                @(brand.IsActive ? "✓" : "✗")
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-controller="Brands" asp-route-id="@brand.Id"
+                                   class="btn btn-sm btn-outline-info me-1" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                <a href="@Url.Action("Edit", "Brands", new { id = brand.Id })"
+                                   class="btn btn-sm btn-outline-warning me-1"
+                                   title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <!-- Delete Button with Modal Trigger -->
+                                <a href="#" class="btn btn-sm btn-outline-danger"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#deleteModal-@brand.Id"
+                                   title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+
+                                <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@brand.Id" />
+                                    <button type="submit" class="btn btn-sm @(brand.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                                            title="@(brand.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="@(brand.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- Delete Confirmation Modal -->
+                        <div class="modal fade" id="deleteModal-@brand.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@brand.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title" id="deleteModalLabel-@brand.Id">Confirm Delete</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete the brand <strong>@brand.Name</strong>?</p>
+                                        <p class="text-danger">This action cannot be undone.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <form asp-action="Delete" asp-controller="Brands" method="post">
+                                            <input type="hidden" name="id" value="@brand.Id" />
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center">No brands found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <small>Showing 1 to @(Model != null ? Model.Count() : 0) of @(Model != null ? Model.Count() : 0) results</small>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination mb-0">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">Previous</span>
+                    </a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">Next</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input, select');
+
+            // Add subtle animations on focus
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+}

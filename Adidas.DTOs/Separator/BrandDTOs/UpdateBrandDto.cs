@@ -9,6 +9,7 @@ namespace Adidas.DTOs.Separator.Brand_DTOs
 {
     public class UpdateBrandDto
     {
+        public Guid Id { get; set; }
         [Required]
         [StringLength(100, ErrorMessage = "Brand name cannot exceed 100 characters")]
         public string Name { get; set; }
