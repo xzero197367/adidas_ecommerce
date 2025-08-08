@@ -150,6 +150,8 @@ namespace Adidas.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        
+
         /*
                 // POST: Activate (using UpdateAsync with IsActive = true)
                 [HttpPost]

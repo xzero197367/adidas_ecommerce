@@ -158,6 +158,14 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
+
+                                                <a href="@Url.Action("Details", "Coupon", new { id = coupon.Id })"
+                                                   class="btn btn-outline-primary btn-sm" title="Details">
+                                                    <i class="fas fa-info-circle"></i>
+
+                                                </a>
+
+
                                                 <a href="@Url.Action("Edit", "Coupon", new { id = coupon.Id })"
                                                    class="btn btn-outline-primary btn-sm" title="Edit">
                                                     <i class="fas fa-edit"></i>

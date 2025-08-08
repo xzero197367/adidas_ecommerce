@@ -4,6 +4,7 @@ using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
+using Adidas.DTOs.Feature.OrderCouponDTOs;
 using Adidas.Models.Separator;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -475,5 +476,60 @@ namespace Adidas.Application.Services.Feature
 
             return couponUpdateDto;
         }
+
+
+
+        public async Task<CouponDetailsDTO> GetCouponDetailsByIdAsync(Guid id)
+        {
+
+            var coupon = await _couponRepository.GetByIdAsync(id ,c=>c.OrderCoupons);
+
+            if (coupon == null)
+                return null;  
+
+            
+            var orderCoupons = coupon.OrderCoupons;
+
+             
+            var couponDto = new CouponDto
+            {
+                Id = coupon.Id,
+                CreatedAt = coupon.CreatedAt,
+                UpdatedAt = coupon.UpdatedAt,
+                IsActive = coupon.IsActive,
+                Code = coupon.Code,
+                Name = coupon.Name,
+                Description = coupon.Description,
+                DiscountType = coupon.DiscountType,
+                DiscountValue = coupon.DiscountValue,
+                MinimumAmount = coupon.MinimumAmount,
+                ValidFrom = coupon.ValidFrom,
+                ValidTo = coupon.ValidTo,
+                UsageLimit = coupon.UsageLimit,
+                UsedCount = coupon.UsedCount
+            };
+
+            
+            var orderCouponDtos = orderCoupons.Select(oc => new OrderCouponDto
+            {
+                Id = oc.Id,
+                CreatedAt = oc.CreatedAt,
+                UpdatedAt = oc.UpdatedAt,
+                IsActive = oc.IsActive,
+                DiscountApplied = oc.DiscountApplied,
+                CouponId = oc.CouponId,
+                OrderId = oc.OrderId
+            }).ToList();
+
+           
+            var couponDetails = new CouponDetailsDTO
+            {
+                CouponDto = couponDto,
+                orderCouponDtos = orderCouponDtos
+            };
+
+            return couponDetails;
+        }
+    
     }
 }
