@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Adidas.DTOs.Feature.CouponDTOs
 {
-    public class CouponCreateDto
+    public class CouponCreateDto : IValidatableObject
     {
         [Required(ErrorMessage = "Coupon code is required")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Code must be between 3 and 50 characters")]

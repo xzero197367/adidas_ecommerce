@@ -5,7 +5,7 @@ using Models.Feature;
 
 namespace Adidas.DTOs.Feature.CouponDTOs
 {
-    public class CouponUpdateDto
+    public class CouponUpdateDto : IValidatableObject
     {
         public Guid Id { get; set; }
         [Required(ErrorMessage = "Coupon code is required")]
@@ -36,8 +36,27 @@ namespace Adidas.DTOs.Feature.CouponDTOs
         [Range(0, int.MaxValue, ErrorMessage = "Usage limit cannot be negative")]
         public int UsageLimit { get; set; } = 0; // 0 means unlimited
 
-       
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (ValidTo <= ValidFrom)
+            {
+                yield return new ValidationResult(
+                    "Valid To date must be after Valid From date.",
+                    new[] { nameof(ValidTo) }
+                );
+            }
 
-
+            // Optional: Ensure ValidFrom is not in the past
+            if (ValidFrom < DateTime.UtcNow.Date)
+            {
+                yield return new ValidationResult(
+                    "Valid From date cannot be in the past.",
+                    new[] { nameof(ValidFrom) }
+                );
+            }
+            
+        }
     }
 }
+
+ 

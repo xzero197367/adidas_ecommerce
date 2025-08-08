@@ -79,6 +79,7 @@ namespace Adidas.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CouponUpdateDto dto)
         {
+           
             if (!ModelState.IsValid)
             {
                 ViewBag.CouponId = dto.Id;
