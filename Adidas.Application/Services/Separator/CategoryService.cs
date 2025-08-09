@@ -58,8 +58,9 @@ namespace Adidas.Application.Services.Separator
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                categories = categories.Where(c =>
-                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                string lowerSearch = searchTerm.ToLower();
+                categories = categories.Where(c => c.Name != null && c.Name.ToLower().Contains(lowerSearch));
+
             }
 
 
