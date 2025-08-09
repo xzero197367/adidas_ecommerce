@@ -1,870 +1,227 @@
-﻿@* @using Adidas.Web.Controllers *@
-@* @model ReviewsIndexViewModel *@
-@* @{ *@
-@*     ViewData["Title"] = "Product Reviews"; *@
-@*     Layout = "~/Views/Shared/_Layout.cshtml"; *@
-@* } *@
-
-@* <div class="content-wrapper"> *@
-@*     <!-- Content Header --> *@
-@*     <div class="content-header"> *@
-@*         <div class="container-fluid"> *@
-@*             <div class="row mb-2"> *@
-@*                 <div class="col-sm-6"> *@
-@*                     <h1 class="m-0">Product Reviews</h1> *@
-@*                     <p class="text-muted">Moderate and manage customer reviews</p> *@
-@*                 </div> *@
-@*                 <div class="col-sm-6"> *@
-@*                     <ol class="breadcrumb float-sm-right"> *@
-@*                         <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li> *@
-@*                         <li class="breadcrumb-item active">Reviews</li> *@
-@*                     </ol> *@
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-
-@*     <!-- Main content --> *@
-@*     <section class="content"> *@
-@*         <div class="container-fluid"> *@
-@*             <!-- Stats Cards --> *@
-@*             <div class="row mb-4"> *@
-@*                 <div class="col-lg-3 col-6"> *@
-@*                     <div class="small-box bg-info"> *@
-@*                         <div class="inner"> *@
-@*                             <h3>@Model.Stats.TotalReviews.ToString("N0")</h3> *@
-@*                             <p>Total Reviews</p> *@
-@*                         </div> *@
-@*                         <div class="icon"> *@
-@*                             <i class="fas fa-star"></i> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </div> *@
-@*                 <div class="col-lg-3 col-6"> *@
-@*                     <div class="small-box bg-warning"> *@
-@*                         <div class="inner"> *@
-@*                             <h3>@Model.Stats.PendingReviews</h3> *@
-@*                             <p>Pending</p> *@
-@*                         </div> *@
-@*                         <div class="icon"> *@
-@*                             <i class="fas fa-clock"></i> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </div> *@
-@*                 <div class="col-lg-3 col-6"> *@
-@*                     <div class="small-box bg-success"> *@
-@*                         <div class="inner"> *@
-@*                             <h3>@Model.Stats.ApprovedReviews.ToString("N0")</h3> *@
-@*                             <p>Approved</p> *@
-@*                         </div> *@
-@*                         <div class="icon"> *@
-@*                             <i class="fas fa-check-circle"></i> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </div> *@
-@*                 <div class="col-lg-3 col-6"> *@
-@*                     <div class="small-box bg-danger"> *@
-@*                         <div class="inner"> *@
-@*                             <h3>@((Model.Stats.TotalReviews - Model.Stats.ApprovedReviews - Model.Stats.PendingReviews))</h3> *@
-@*                             <p>Rejected</p> *@
-@*                         </div> *@
-@*                         <div class="icon"> *@
-@*                             <i class="fas fa-times-circle"></i> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </div> *@
-@*             </div> *@
-
-@*             <!-- Reviews Table Card --> *@
-@*             <div class="card"> *@
-@*                 <div class="card-header"> *@
-@*                     <h3 class="card-title">Recent Reviews</h3> *@
-@*                     <div class="card-tools"> *@
-@*                         <div class="input-group input-group-sm" style="width: 250px;"> *@
-@*                             <div class="dropdown mr-2"> *@
-@*                                 <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="statusFilter" data-toggle="dropdown"> *@
-@*                                     All Reviews *@
-@*                                 </button> *@
-@*                                 <div class="dropdown-menu"> *@
-@*                                     <a class="dropdown-item filter-status" href="#" data-status="">All Reviews</a> *@
-@*                                     <a class="dropdown-item filter-status" href="#" data-status="pending">Pending</a> *@
-@*                                     <a class="dropdown-item filter-status" href="#" data-status="approved">Approved</a> *@
-@*                                     <a class="dropdown-item filter-status" href="#" data-status="rejected">Rejected</a> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <button type="button" class="btn btn-info btn-sm" id="filterBtn"> *@
-@*                                 <i class="fas fa-filter"></i> Filter *@
-@*                             </button> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </div> *@
-@*                 <div class="card-body"> *@
-@*                     <!-- Bulk Actions --> *@
-@*                     <div class="row mb-3" id="bulkActions" style="display: none;"> *@
-@*                         <div class="col-12"> *@
-@*                             <div class="alert alert-info"> *@
-@*                                 <span id="selectedCount">0</span> reviews selected *@
-@*                                 <div class="float-right"> *@
-@*                                     <button class="btn btn-success btn-sm" id="bulkApprove"> *@
-@*                                         <i class="fas fa-check"></i> Approve Selected *@
-@*                                     </button> *@
-@*                                     <button class="btn btn-warning btn-sm" id="bulkReject"> *@
-@*                                         <i class="fas fa-times"></i> Reject Selected *@
-@*                                     </button> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                         </div> *@
-@*                     </div> *@
-
-@*                     <!-- DataTable --> *@
-@*                     <table id="reviewsTable" class="table table-bordered table-striped" style="width:100%"> *@
-@*                         <thead> *@
-@*                             <tr> *@
-@*                                 <th style="width: 20px;"> *@
-@*                                     <input type="checkbox" id="selectAll" aria-label="Select all reviews"> *@
-@*                                 </th> *@
-@*                                 <th>Customer</th> *@
-@*                                 <th>Product</th> *@
-@*                                 <th>Rating</th> *@
-@*                                 <th>Review</th> *@
-@*                                 <th>Date</th> *@
-@*                                 <th>Status</th> *@
-@*                                 <th>Actions</th> *@
-@*                             </tr> *@
-@*                         </thead> *@
-@*                         <tbody> *@
-@*                             <!-- DataTable will populate this --> *@
-@*                         </tbody> *@
-@*                     </table> *@
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*     </section> *@
-@* </div> *@
-
-@* <!-- Filter Modal --> *@
-@* <div class="modal fade" id="filterModal" tabindex="-1" role="dialog" aria-labelledby="filterModalLabel" aria-hidden="true"> *@
-@*     <div class="modal-dialog" role="document"> *@
-@*         <div class="modal-content"> *@
-@*             <div class="modal-header"> *@
-@*                 <h5 class="modal-title" id="filterModalLabel">Filter Reviews</h5> *@
-@*                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"> *@
-@*                     <span aria-hidden="true">&times;</span> *@
-@*                 </button> *@
-@*             </div> *@
-@*             <div class="modal-body"> *@
-@*                 <form id="filterForm"> *@
-@*                     <div class="form-group"> *@
-@*                         <label for="statusSelect">Status</label> *@
-@*                         <select class="form-control" id="statusSelect" name="status"> *@
-@*                             <option value="">All Reviews</option> *@
-@*                             <option value="pending">Pending</option> *@
-@*                             <option value="approved">Approved</option> *@
-@*                             <option value="rejected">Rejected</option> *@
-@*                         </select> *@
-@*                     </div> *@
-@*                     <div class="form-group"> *@
-@*                         <label for="ratingSelect">Rating</label> *@
-@*                         <select class="form-control" id="ratingSelect" name="rating"> *@
-@*                             <option value="">All Ratings</option> *@
-@*                             <option value="5">5 Stars</option> *@
-@*                             <option value="4">4 Stars</option> *@
-@*                             <option value="3">3 Stars</option> *@
-@*                             <option value="2">2 Stars</option> *@
-@*                             <option value="1">1 Star</option> *@
-@*                         </select> *@
-@*                     </div> *@
-@*                     <div class="form-group"> *@
-@*                         <label for="searchInput">Search</label> *@
-@*                         <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search reviews, customers, products..."> *@
-@*                     </div> *@
-@*                     <div class="row"> *@
-@*                         <div class="col-md-6"> *@
-@*                             <div class="form-group"> *@
-@*                                 <label for="startDate">Start Date</label> *@
-@*                                 <input type="date" class="form-control" id="startDate" name="startDate"> *@
-@*                             </div> *@
-@*                         </div> *@
-@*                         <div class="col-md-6"> *@
-@*                             <div class="form-group"> *@
-@*                                 <label for="endDate">End Date</label> *@
-@*                                 <input type="date" class="form-control" id="endDate" name="endDate"> *@
-@*                             </div> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </form> *@
-@*             </div> *@
-@*             <div class="modal-footer"> *@
-@*                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button> *@
-@*                 <button type="button" class="btn btn-primary" id="applyFilter">Apply Filter</button> *@
-@*                 <button type="button" class="btn btn-outline-secondary" id="clearFilter">Clear All</button> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* </div> *@
-
-@* <!-- Reject Modal --> *@
-@* <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true"> *@
-@*     <div class="modal-dialog" role="document"> *@
-@*         <div class="modal-content"> *@
-@*             <div class="modal-header"> *@
-@*                 <h5 class="modal-title" id="rejectModalLabel">Reject Review</h5> *@
-@*                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"> *@
-@*                     <span aria-hidden="true">&times;</span> *@
-@*                 </button> *@
-@*             </div> *@
-@*             <div class="modal-body"> *@
-@*                 <form id="rejectForm"> *@
-@*                     <div class="form-group"> *@
-@*                         <label for="rejectReason">Reason for rejection</label> *@
-@*                         <textarea class="form-control" id="rejectReason" rows="3" placeholder="Please provide a reason for rejecting this review..." required></textarea> *@
-@*                     </div> *@
-@*                 </form> *@
-@*             </div> *@
-@*             <div class="modal-footer"> *@
-@*                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button> *@
-@*                 <button type="button" class="btn btn-danger" id="confirmReject">Reject Review</button> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* </div> *@
-
-@* @section Scripts { *@
-@*     <!-- DataTables --> *@
-@*     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/dataTables.bootstrap4.min.css"> *@
-@*     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script> *@
-@*     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script> *@
-
-@*     <script> *@
-@*         $(document).ready(function() { *@
-@*             let table; *@
-@*             let selectedReviews = []; *@
-@*             let currentReviewId = null; *@
-
-@*             // Initialize DataTable *@
-@*             initializeDataTable(); *@
-
-@*             // Event Handlers *@
-@*             $('#filterBtn').click(() => $('#filterModal').modal('show')); *@
-@*             $('#applyFilter').click(applyFilters); *@
-@*             $('#clearFilter').click(clearFilters); *@
-@*             $('#selectAll').change(handleSelectAll); *@
-@*             $('#bulkApprove').click(() => performBulkAction('approve')); *@
-@*             $('#bulkReject').click(() => showBulkRejectModal()); *@
-@*             $('#confirmReject').click(handleRejectConfirm); *@
-
-@*             // Filter by status dropdown *@
-@*             $('.filter-status').click(function(e) { *@
-@*                 e.preventDefault(); *@
-@*                 const status = $(this).data('status'); *@
-@*                 const text = $(this).text(); *@
-@*                 $('#statusFilter').text(text); *@
-@*                 table.column(6).search(status).draw(); *@
-@*             }); *@
-
-@*             function initializeDataTable() { *@
-@*                 table = $('#reviewsTable').DataTable({ *@
-@*                     processing: true, *@
-@*                     serverSide: true, *@
-@*                     ajax: { *@
-@*                         url: '@Url.Action("GetReviewsData", "Reviews")', *@
-@*                         type: 'GET', *@
-@*                         data: function(d) { *@
-@*                             d.status = $('#statusSelect').val(); *@
-@*                             d.rating = $('#ratingSelect').val(); *@
-@*                             d.searchValue = $('#searchInput').val(); *@
-@*                             d.startDate = $('#startDate').val(); *@
-@*                             d.endDate = $('#endDate').val(); *@
-@*                         } *@
-@*                     }, *@
-@*                     columns: [ *@
-@*                         { *@
-@*                             data: null, *@
-@*                             orderable: false, *@
-@*                             render: function(data, type, row) { *@
-@*                                 return `<input type="checkbox" class="review-checkbox" data-id="${row.id}" aria-label="Select review">`; *@
-@*                             } *@
-@*                         }, *@
-@*                         { *@
-@*                             data: 'customer', *@
-@*                             render: function(data, type, row) { *@
-@*                                 return ` *@
-@*                                     <div class="d-flex align-items-center"> *@
-@*                                         <img src="/images/default-avatar.png" alt="Avatar" class="img-circle img-size-32 mr-2"> *@
-@*                                         <div> *@
-@*                                             <div class="font-weight-bold">${data.name}</div> *@
-@*                                             <small class="text-muted">${data.email}</small> *@
-@*                                         </div> *@
-@*                                     </div> *@
-@*                                 `; *@
-@*                             } *@
-@*                         }, *@
-@*                         { *@
-@*                             data: 'product', *@
-@*                             render: function(data, type, row) { *@
-@*                                 return ` *@
-@*                                     <div class="d-flex align-items-center"> *@
-@*                                         <img src="/images/products/default.jpg" alt="Product" class="img-size-32 mr-2"> *@
-@*                                         <div> *@
-@*                                             <div class="font-weight-bold">${data.name}</div> *@
-@*                                             <small class="text-muted">ID: ${data.id.substring(0, 8)}...</small> *@
-@*                                         </div> *@
-@*                                     </div> *@
-@*                                 `; *@
-@*                             } *@
-@*                         }, *@
-@*                         { *@
-@*                             data: 'rating', *@
-@*                             render: function(data, type, row) { *@
-@*                                 let stars = ''; *@
-@*                                 for (let i = 1; i <= 5; i++) { *@
-@*                                     stars += i <= data *@
-@*                                         ? '<i class="fas fa-star text-warning"></i>' *@
-@*                                         : '<i class="far fa-star text-muted"></i>'; *@
-@*                                 } *@
-@*                                 return `<div>${stars} <span class="ml-1">${data}.0</span></div>`; *@
-@*                             } *@
-@*                         }, *@
-@*                         { *@
-@*                             data: 'review', *@
-@*                             render: function(data, type, row) { *@
-@*                                 if (!data) return '<span class="text-muted">No comment</span>'; *@
-@*                                 return `<span title="${data}">${data}</span>`; *@
-@*                             } *@
-@*                         }, *@
-@*                         { *@
-@*                             data: 'date', *@
-@*                             render: function(data, type, row) { *@
-@*                                 return `<span class="text-nowrap">${data}</span>`; *@
-@*                             } *@
-@*                         }, *@
-@*                         { *@
-@*                             data: 'status', *@
-@*                             render: function(data, type, row) { *@
-@*                                 const badgeClass = row.isApproved *@
-@*                                     ? 'badge-success' *@
-@*                                     : 'badge-warning'; *@
-@*                                 const icon = row.isApproved *@
-@*                                     ? 'fas fa-check-circle' *@
-@*                                     : 'fas fa-clock'; *@
-
-@*                                 let badges = `<span class="badge ${badgeClass}"><i class="${icon}"></i> ${data}</span>`; *@
-
-@*                                 if (row.isVerifiedPurchase) { *@
-@*                                     badges += '<br><small class="badge badge-info mt-1"><i class="fas fa-shield-alt"></i> Verified</small>'; *@
-@*                                 } *@
-
-@*                                 return badges; *@
-@*                             } *@
-@*                         }, *@
-@*                         { *@
-@*                             data: null, *@
-@*                             orderable: false, *@
-@*                             render: function(data, type, row) { *@
-@*                                 let actions = ` *@
-@*                                     <div class="btn-group" role="group" aria-label="Review actions"> *@
-@*                                         <button class="btn btn-sm btn-outline-info view-btn" data-id="${row.id}" title="View Details"> *@
-@*                                             <i class="fas fa-eye"></i> *@
-@*                                         </button> *@
-@*                                 `; *@
-
-@*                                 if (!row.isApproved) { *@
-@*                                     actions += ` *@
-@*                                         <button class="btn btn-sm btn-success approve-btn" data-id="${row.id}" title="Approve"> *@
-@*                                             <i class="fas fa-check"></i> *@
-@*                                         </button> *@
-@*                                         <button class="btn btn-sm btn-warning reject-btn" data-id="${row.id}" title="Reject"> *@
-@*                                             <i class="fas fa-times"></i> *@
-@*                                         </button> *@
-@*                                     `; *@
-@*                                 } *@
-
-@*                                 actions += ` *@
-@*                                         <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${row.id}" title="Delete"> *@
-@*                                             <i class="fas fa-trash"></i> *@
-@*                                         </button> *@
-@*                                     </div> *@
-@*                                 `; *@
-
-@*                                 return actions; *@
-@*                             } *@
-@*                         } *@
-@*                     ], *@
-@*                     order: [[5, 'desc']], *@
-@*                     pageLength: 10, *@
-@*                     responsive: true, *@
-@*                     language: { *@
-@*                         processing: "Loading reviews...", *@
-@*                         emptyTable: "No reviews found", *@
-@*                         info: "Showing _START_ to _END_ of _TOTAL_ reviews", *@
-@*                         infoEmpty: "Showing 0 to 0 of 0 reviews", *@
-@*                         infoFiltered: "(filtered from _MAX_ total reviews)" *@
-@*                     } *@
-@*                 }); *@
-
-@*                 // Bind action handlers *@
-@*                 bindActionHandlers(); *@
-@*             } *@
-
-@*             function bindActionHandlers() { *@
-@*                 // Individual checkbox handler *@
-@*                 $(document).on('change', '.review-checkbox', function() { *@
-@*                     const reviewId = $(this).data('id'); *@
-@*                     if ($(this).is(':checked')) { *@
-@*                         selectedReviews.push(reviewId); *@
-@*                     } else { *@
-@*                         selectedReviews = selectedReviews.filter(id => id !== reviewId); *@
-@*                     } *@
-@*                     updateBulkActionsVisibility(); *@
-@*                 }); *@
-
-@*                 // Action button handlers *@
-@*                 $(document).on('click', '.approve-btn', function() { *@
-@*                     const reviewId = $(this).data('id'); *@
-@*                     performAction('approve', reviewId); *@
-@*                 }); *@
-
-@*                 $(document).on('click', '.reject-btn', function() { *@
-@*                     currentReviewId = $(this).data('id'); *@
-@*                     $('#rejectModal').modal('show'); *@
-@*                 }); *@
-
-@*                 $(document).on('click', '.view-btn', function() { *@
-@*                     const reviewId = $(this).data('id'); *@
-@*                     window.location.href = `@Url.Action("Details", "Reviews")/${reviewId}`; *@
-@*                 }); *@
-
-@*                 $(document).on('click', '.delete-btn', function() { *@
-@*                     const reviewId = $(this).data('id'); *@
-@*                     if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) { *@
-@*                         performDelete(reviewId); *@
-@*                     } *@
-@*                 }); *@
-@*             } *@
-
-@*             function handleSelectAll() { *@
-@*                 const isChecked = $('#selectAll').is(':checked'); *@
-@*                 $('.review-checkbox').prop('checked', isChecked); *@
-
-@*                 if (isChecked) { *@
-@*                     selectedReviews = []; *@
-@*                     $('.review-checkbox').each(function() { *@
-@*                         selectedReviews.push($(this).data('id')); *@
-@*                     }); *@
-@*                 } else { *@
-@*                     selectedReviews = []; *@
-@*                 } *@
-
-@*                 updateBulkActionsVisibility(); *@
-@*             } *@
-
-@*             function updateBulkActionsVisibility() { *@
-@*                 const count = selectedReviews.length; *@
-@*                 if (count > 0) { *@
-@*                     $('#bulkActions').show(); *@
-@*                     $('#selectedCount').text(count); *@
-@*                 } else { *@
-@*                     $('#bulkActions').hide(); *@
-@*                 } *@
-
-@*                 // Update select all checkbox state *@
-@*                 const totalCheckboxes = $('.review-checkbox').length; *@
-@*                 if (count === 0) { *@
-@*                     $('#selectAll').prop('indeterminate', false).prop('checked', false); *@
-@*                 } else if (count === totalCheckboxes) { *@
-@*                     $('#selectAll').prop('indeterminate', false).prop('checked', true); *@
-@*                 } else { *@
-@*                     $('#selectAll').prop('indeterminate', true); *@
-@*                 } *@
-@*             } *@
-
-@*             function performAction(action, reviewId) { *@
-@*                 const url = `@Url.Action("", "Reviews")${action}/${reviewId}`; *@
-
-@*                 $.ajax({ *@
-@*                     url: url, *@
-@*                     type: 'POST', *@
-@*                     headers: { *@
-@*                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() *@
-@*                     }, *@
-@*                     success: function(response) { *@
-@*                         if (response.success) { *@
-@*                             showToast('success', response.message); *@
-@*                             table.ajax.reload(null, false); *@
-@*                             updateStats(); *@
-@*                         } else { *@
-@*                             showToast('error', response.message); *@
-@*                         } *@
-@*                     }, *@
-@*                     error: function() { *@
-@*                         showToast('error', 'An error occurred. Please try again.'); *@
-@*                     } *@
-@*                 }); *@
-@*             } *@
-
-@*             function performDelete(reviewId) { *@
-@*                 $.ajax({ *@
-@*                     url: `@Url.Action("Delete", "Reviews")/${reviewId}`, *@
-@*                     type: 'DELETE', *@
-@*                     headers: { *@
-@*                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() *@
-@*                     }, *@
-@*                     success: function(response) { *@
-@*                         if (response.success) { *@
-@*                             showToast('success', response.message); *@
-@*                             table.ajax.reload(null, false); *@
-@*                             updateStats(); *@
-@*                         } else { *@
-@*                             showToast('error', response.message); *@
-@*                         } *@
-@*                     }, *@
-@*                     error: function() { *@
-@*                         showToast('error', 'An error occurred while deleting the review.'); *@
-@*                     } *@
-@*                 }); *@
-@*             } *@
-
-@*             function performBulkAction(action) { *@
-@*                 if (selectedReviews.length === 0) { *@
-@*                     showToast('warning', 'Please select reviews to perform bulk action.'); *@
-@*                     return; *@
-@*                 } *@
-
-@*                 const data = { *@
-@*                     reviewIds: selectedReviews, *@
-@*                     action: action, *@
-@*                     reason: action === 'reject' ? 'Bulk rejection' : null *@
-@*                 }; *@
-
-@*                 $.ajax({ *@
-@*                     url: '@Url.Action("BulkAction", "Reviews")', *@
-@*                     type: 'POST', *@
-@*                     contentType: 'application/json', *@
-@*                     data: JSON.stringify(data), *@
-@*                     headers: { *@
-@*                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() *@
-@*                     }, *@
-@*                     success: function(response) { *@
-@*                         if (response.success) { *@
-@*                             showToast('success', response.message); *@
-@*                             table.ajax.reload(null, false); *@
-@*                             selectedReviews = []; *@
-@*                             updateBulkActionsVisibility(); *@
-@*                             updateStats(); *@
-@*                         } else { *@
-@*                             showToast('error', response.message); *@
-@*                         } *@
-@*                     }, *@
-@*                     error: function() { *@
-@*                         showToast('error', 'An error occurred during bulk operation.'); *@
-@*                     } *@
-@*                 }); *@
-@*             } *@
-
-@*             function showBulkRejectModal() { *@
-@*                 if (selectedReviews.length === 0) { *@
-@*                     showToast('warning', 'Please select reviews to reject.'); *@
-@*                     return; *@
-@*                 } *@
-
-@*                 $('#rejectModalLabel').text(`Reject ${selectedReviews.length} Reviews`); *@
-@*                 currentReviewId = 'bulk'; *@
-@*                 $('#rejectModal').modal('show'); *@
-@*             } *@
-
-@*             function handleRejectConfirm() { *@
-@*                 const reason = $('#rejectReason').val().trim(); *@
-@*                 if (!reason) { *@
-@*                     showToast('error', 'Please provide a reason for rejection.'); *@
-@*                     return; *@
-@*                 } *@
-
-@*                 if (currentReviewId === 'bulk') { *@
-@*                     const data = { *@
-@*                         reviewIds: selectedReviews, *@
-@*                         action: 'reject', *@
-@*                         reason: reason *@
-@*                     }; *@
-
-@*                     $.ajax({ *@
-@*                         url: '@Url.Action("BulkAction", "Reviews")', *@
-@*                         type: 'POST', *@
-@*                         contentType: 'application/json', *@
-@*                         data: JSON.stringify(data), *@
-@*                         headers: { *@
-@*                             'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() *@
-@*                         }, *@
-@*                         success: function(response) { *@
-@*                             $('#rejectModal').modal('hide'); *@
-@*                             if (response.success) { *@
-@*                                 showToast('success', response.message); *@
-@*                                 table.ajax.reload(null, false); *@
-@*                                 selectedReviews = []; *@
-@*                                 updateBulkActionsVisibility(); *@
-@*                                 updateStats(); *@
-@*                             } else { *@
-@*                                 showToast('error', response.message); *@
-@*                             } *@
-@*                         }, *@
-@*                         error: function() { *@
-@*                             $('#rejectModal').modal('hide'); *@
-@*                             showToast('error', 'An error occurred during bulk rejection.'); *@
-@*                         } *@
-@*                     }); *@
-@*                 } else { *@
-@*                     $.ajax({ *@
-@*                         url: `@Url.Action("Reject", "Reviews")/${currentReviewId}`, *@
-@*                         type: 'POST', *@
-@*                         contentType: 'application/json', *@
-@*                         data: JSON.stringify({ reason: reason }), *@
-@*                         headers: { *@
-@*                             'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() *@
-@*                         }, *@
-@*                         success: function(response) { *@
-@*                             $('#rejectModal').modal('hide'); *@
-@*                             if (response.success) { *@
-@*                                 showToast('success', response.message); *@
-@*                                 table.ajax.reload(null, false); *@
-@*                                 updateStats(); *@
-@*                             } else { *@
-@*                                 showToast('error', response.message); *@
-@*                             } *@
-@*                         }, *@
-@*                         error: function() { *@
-@*                             $('#rejectModal').modal('hide'); *@
-@*                             showToast('error', 'An error occurred while rejecting the review.'); *@
-@*                         } *@
-@*                     }); *@
-@*                 } *@
-
-@*                 $('#rejectReason').val(''); *@
-@*                 currentReviewId = null; *@
-@*             } *@
-
-@*             function applyFilters() { *@
-@*                 table.ajax.reload(); *@
-@*                 $('#filterModal').modal('hide'); *@
-@*             } *@
-
-@*             function clearFilters() { *@
-@*                 $('#filterForm')[0].reset(); *@
-@*                 table.ajax.reload(); *@
-@*                 $('#filterModal').modal('hide'); *@
-@*             } *@
-
-@*             function updateStats() { *@
-@*                 // Reload stats from server *@
-@*                 location.reload(); // Simple approach, could be optimized with AJAX *@
-@*             } *@
-
-@*             function showToast(type, message) { *@
-@*                 const toastClass = { *@
-@*                     'success': 'alert-success', *@
-@*                     'error': 'alert-danger', *@
-@*                     'warning': 'alert-warning', *@
-@*                     'info': 'alert-info' *@
-@*                 }[type] || 'alert-info'; *@
-
-@*                 const toast = $(` *@
-@*                     <div class="alert ${toastClass} alert-dismissible fade show position-fixed" *@
-@*                          style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert"> *@
-@*                         <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> *@
-@*                         ${message} *@
-@*                         <button type="button" class="close" data-dismiss="alert" aria-label="Close"> *@
-@*                             <span aria-hidden="true">&times;</span> *@
-@*                         </button> *@
-@*                     </div> *@
-@*                 `); *@
-
-@*                 $('body').append(toast); *@
-
-@*                 setTimeout(() => { *@
-@*                     toast.alert('close'); *@
-@*                 }, 5000); *@
-@*             } *@
-
-@*             // Keyboard shortcuts *@
-@*             $(document).keydown(function(e) { *@
-@*                 // Ctrl+A to select all (when focused on table) *@
-@*                 if (e.ctrlKey && e.keyCode === 65 && $('#reviewsTable').is(':focus-within')) { *@
-@*                     e.preventDefault(); *@
-@*                     $('#selectAll').trigger('click'); *@
-@*                 } *@
-
-@*                 // Escape to clear selection *@
-@*                 if (e.keyCode === 27) { *@
-@*                     selectedReviews = []; *@
-@*                     $('.review-checkbox').prop('checked', false); *@
-@*                     $('#selectAll').prop('checked', false); *@
-@*                     updateBulkActionsVisibility(); *@
-@*                 } *@
-@*             }); *@
-
-@*             // Auto-refresh every 5 minutes *@
-@*             setInterval(function() { *@
-@*                 table.ajax.reload(null, false); *@
-@*             }, 300000); *@
-@*         }); *@
-@*     </script> *@
-
-@*     <!-- Anti-forgery token --> *@
-@*     @Html.AntiForgeryToken() *@
-@* } *@
-
-                                   @using Adidas.Web.Controllers
+﻿@using Adidas.Web.Controllers
 @model ReviewsIndexViewModel
 @{
     ViewData["Title"] = "Product Reviews";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="content-wrapper">
-    <!-- Content Header -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Product Reviews</h1>
-                    <p class="text-muted">Moderate and manage customer reviews</p>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Reviews</li>
-                    </ol>
-                </div>
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Product Reviews</h1>
+                <p class="text-muted">Moderate and manage customer reviews</p>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item active">Reviews</li>
+                </ol>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
-            <!-- Stats Cards -->
-            <div class="row mb-4">
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-info stats-card" data-filter="">
-                        <div class="inner">
-                            <h3 id="totalReviews">@Model.Stats.TotalReviews.ToString("N0")</h3>
-                            <p>All Reviews</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <div class="small-box-footer">
-                            <span class="text-white">Click to filter <i class="fas fa-arrow-circle-right"></i></span>
-                        </div>
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info stats-card">
+                    <div class="inner">
+                        <h3>@Model.Stats.TotalReviews.ToString("N0")</h3>
+                        <p>All Reviews</p>
                     </div>
-                </div>
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-warning stats-card" data-filter="pending">
-                        <div class="inner">
-                            <h3 id="pendingReviews">@Model.Stats.PendingReviews</h3>
-                            <p>Pending</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="small-box-footer">
-                            <span class="text-white">Click to filter <i class="fas fa-arrow-circle-right"></i></span>
-                        </div>
+                    <div class="icon">
+                        <i class="fas fa-star"></i>
                     </div>
-                </div>
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-success stats-card" data-filter="approved">
-                        <div class="inner">
-                            <h3 id="approvedReviews">@Model.Stats.ApprovedReviews.ToString("N0")</h3>
-                            <p>Approved</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="small-box-footer">
-                            <span class="text-white">Click to filter <i class="fas fa-arrow-circle-right"></i></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-danger stats-card" data-filter="rejected">
-                        <div class="inner">
-                            <h3 id="rejectedReviews">@Model.Stats.RejectedReviews</h3>
-                            <p>Rejected</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                        <div class="small-box-footer">
-                            <span class="text-white">Click to filter <i class="fas fa-arrow-circle-right"></i></span>
-                        </div>
-                    </div>
+                    <a asp-action="Index" asp-route-status="" class="small-box-footer text-white">
+                        View All Reviews <i class="fas fa-arrow-circle-right"></i>
+                    </a>
                 </div>
             </div>
-
-            <!-- Reviews Table Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <span id="currentFilterText">Recent Reviews</span>
-                        <span id="filterBadge" class="badge badge-secondary ml-2" style="display: none;"></span>
-                    </h3>
-                    <div class="card-tools">
-                        <div class="input-group input-group-sm d-flex" style="width: auto;">
-                            <div class="dropdown mr-2">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="statusFilter" data-toggle="dropdown">
-                                    <i class="fas fa-filter mr-1"></i>All Reviews
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item filter-status" href="#" data-status="" data-text="All Reviews">
-                                        <i class="fas fa-list mr-2"></i>All Reviews
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item filter-status" href="#" data-status="pending" data-text="Pending Reviews">
-                                        <i class="fas fa-clock mr-2 text-warning"></i>Pending
-                                    </a>
-                                    <a class="dropdown-item filter-status" href="#" data-status="approved" data-text="Approved Reviews">
-                                        <i class="fas fa-check-circle mr-2 text-success"></i>Approved
-                                    </a>
-                                    <a class="dropdown-item filter-status" href="#" data-status="rejected" data-text="Rejected Reviews">
-                                        <i class="fas fa-times-circle mr-2 text-danger"></i>Rejected
-                                    </a>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-info btn-sm mr-2" id="advancedFilterBtn">
-                                <i class="fas fa-search"></i> Advanced Filter
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-sm" id="refreshBtn">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning stats-card">
+                    <div class="inner">
+                        <h3>@Model.Stats.PendingReviews</h3>
+                        <p>Pending</p>
                     </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <a asp-action="Index" asp-route-status="pending" class="small-box-footer text-white">
+                        View Pending <i class="fas fa-arrow-circle-right"></i>
+                    </a>
                 </div>
-                <div class="card-body">
-                    <!-- Bulk Actions -->
-                    <div class="row mb-3" id="bulkActions" style="display: none;">
-                        <div class="col-12">
-                            <div class="alert alert-info d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-info-circle mr-2"></i><span id="selectedCount">0</span> reviews selected</span>
-                                <div class="btn-group">
-                                    <button class="btn btn-success btn-sm" id="bulkApprove">
-                                        <i class="fas fa-check mr-1"></i> Approve Selected
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success stats-card">
+                    <div class="inner">
+                        <h3>@Model.Stats.ApprovedReviews.ToString("N0")</h3>
+                        <p>Approved</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <a asp-action="Index" asp-route-status="approved" class="small-box-footer text-white">
+                        View Approved <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger stats-card">
+                    <div class="inner">
+                        <h3>@Model.Stats.RejectedReviews</h3>
+                        <p>Rejected</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <a asp-action="Index" asp-route-status="rejected" class="small-box-footer text-white">
+                        View Rejected <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-filter mr-2"></i>Filter Reviews
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <form asp-action="Index" method="get" id="filterForm">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label asp-for="Status"><i class="fas fa-list mr-1"></i>Status</label>
+                                <select asp-for="Status" class="form-control">
+                                    <option value="">All Reviews</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label asp-for="Rating"><i class="fas fa-star mr-1"></i>Rating</label>
+                                <select asp-for="Rating" class="form-control">
+                                    <option value="">All Ratings</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                                    <option value="3">⭐⭐⭐ 3 Stars</option>
+                                    <option value="2">⭐⭐ 2 Stars</option>
+                                    <option value="1">⭐ 1 Star</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label asp-for="SearchTerm"><i class="fas fa-search mr-1"></i>Search</label>
+                                <input asp-for="SearchTerm" class="form-control" placeholder="Search reviews..." />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div class="d-flex">
+                                    <button type="submit" class="btn btn-primary mr-2">
+                                        <i class="fas fa-filter mr-1"></i> Apply Filter
                                     </button>
-                                    <button class="btn btn-warning btn-sm" id="bulkReject">
-                                        <i class="fas fa-times mr-1"></i> Reject Selected
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" id="bulkDelete">
-                                        <i class="fas fa-trash mr-1"></i> Delete Selected
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" id="clearSelection">
+                                    <a asp-action="Index" class="btn btn-secondary">
                                         <i class="fas fa-times mr-1"></i> Clear
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label asp-for="StartDate"><i class="fas fa-calendar-alt mr-1"></i>From Date</label>
+                                <input asp-for="StartDate" type="date" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label asp-for="EndDate"><i class="fas fa-calendar-check mr-1"></i>To Date</label>
+                                <input asp-for="EndDate" type="date" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label asp-for="PageSize"><i class="fas fa-list-ol mr-1"></i>Items per page</label>
+                                <select asp-for="PageSize" class="form-control">
+                                    <option value="10">10 per page</option>
+                                    <option value="25">25 per page</option>
+                                    <option value="50">50 per page</option>
+                                    <option value="100">100 per page</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox mt-4">
+                                    <input type="checkbox" class="custom-control-input" id="verifiedOnly" name="verifiedOnly" />
+                                    <label class="custom-control-label" for="verifiedOnly">
+                                        <i class="fas fa-shield-alt mr-1"></i>Verified purchases only
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Hidden field to maintain current page -->
+                    <input asp-for="CurrentPage" type="hidden" />
+                </form>
+            </div>
+        </div>
 
-                    <!-- DataTable -->
+        <!-- Reviews Table Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <span>Reviews (@Model.Reviews.TotalCount total)</span>
+                    @if (!string.IsNullOrEmpty(Model.Status))
+                    {
+                        <span class="badge badge-secondary ml-2">
+                            @(Model.Status.Substring(0, 1).ToUpper() + Model.Status.Substring(1)) Reviews
+                        </span>
+                    }
+                </h3>
+                <div class="card-tools">
+                    <form asp-action="BulkAction" method="post" id="bulkActionForm" style="display: none;">
+                        <div class="btn-group">
+                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm" id="bulkApprove">
+                                <i class="fas fa-check mr-1"></i> Approve Selected
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" id="bulkRejectBtn">
+                                <i class="fas fa-times mr-1"></i> Reject Selected
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="clearSelection">
+                                <i class="fas fa-times mr-1"></i> Clear
+                            </button>
+                        </div>
+                        <span class="ml-2 text-muted"><span id="selectedCount">0</span> selected</span>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Reviews.Items.Any())
+                {
                     <div class="table-responsive">
-                        <table id="reviewsTable" class="table table-bordered table-striped table-hover" style="width:100%">
+                        <table class="table table-striped table-hover mb-0">
                             <thead class="thead-light">
                                 <tr>
                                     <th style="width: 20px;">
@@ -880,444 +237,476 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- DataTable will populate this -->
+                                @foreach (var review in Model.Reviews.Items)
+                                {
+                                    <tr>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="review-checkbox" value="@review.Id" aria-label="Select review">
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar mr-2">
+                                                    <i class="fas fa-user-circle fa-2x text-muted"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-weight-bold">@review.UserId</div>
+                                                    <small class="text-muted">@review.UserId</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="product-thumb mr-2">
+                                                    <i class="fas fa-cube fa-2x text-muted"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-weight-bold">Product Name</div>
+                                                    <small class="text-muted">ID: @review.ProductId.ToString().Substring(0, 8)...</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="rating-display">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= review.Rating)
+                                                    {
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star text-muted"></i>
+                                                    }
+                                                }
+                                                <br>
+                                                <span class="badge badge-info">@review.Rating.0</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (string.IsNullOrEmpty(review.ReviewText))
+                                            {
+                                                <span class="text-muted font-italic">No comment provided</span>
+                                            }
+                                            else
+                                            {
+                                                var truncated = review.ReviewText.Length > 80 ?
+                                                review.ReviewText.Substring(0, 80) + "..." : review.ReviewText;
+                                                <span class="review-text" title="@review.ReviewText">@truncated</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="text-nowrap">
+                                                <i class="fas fa-calendar-alt text-muted mr-1"></i>
+                                                @((review.CreatedAt ).ToString("MMM dd, yyyy"))
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            @{
+                                                string badgeClass = "";
+                                                string icon = "";
+                                                string statusText = "";
+
+                                                if (review.IsDeleted)
+                                                {
+                                                    badgeClass = "badge-dark";
+                                                    icon = "fas fa-trash";
+                                                    statusText = "Deleted";
+                                                }
+                                                else if (review.IsApproved)
+                                                {
+                                                    badgeClass = "badge-success";
+                                                    icon = "fas fa-check-circle";
+                                                    statusText = "Approved";
+                                                }
+                                                else if (!review.IsActive)
+                                                {
+                                                    badgeClass = "badge-danger";
+                                                    icon = "fas fa-times-circle";
+                                                    statusText = "Rejected";
+                                                }
+                                                else
+                                                {
+                                                    badgeClass = "badge-warning";
+                                                    icon = "fas fa-clock";
+                                                    statusText = "Pending";
+                                                }
+                                            }
+                                            <span class="badge @badgeClass">
+                                                <i class="@icon"></i> @statusText
+                                            </span>
+                                            @if (review.IsVerifiedPurchase)
+                                            {
+                                                <br>
+                                                <small class="badge badge-info mt-1">
+                                                    <i class="fas fa-shield-alt"></i> Verified
+                                                </small>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group" aria-label="Review actions">
+                                                <a asp-action="Details" asp-route-id="@review.Id"
+                                                   class="btn btn-sm btn-outline-info" title="View Details" data-toggle="tooltip">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @if (!review.IsApproved && !review.IsDeleted && review.IsActive)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-success approve-btn"
+                                                            data-id="@review.Id" title="Approve" data-toggle="tooltip">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-warning reject-btn"
+                                                            data-id="@review.Id" title="Reject" data-toggle="tooltip">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                }
+                                                @if (!review.IsDeleted)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+                                                            data-id="@review.Id" title="Delete" data-toggle="tooltip">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
                             </tbody>
                         </table>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No reviews found</h5>
+                        <p class="text-muted">
+                            @if (!string.IsNullOrEmpty(Model.Status) || !string.IsNullOrEmpty(Model.SearchTerm))
+                            {
+                                <text>Try adjusting your filters or </text>
+                                <a asp-action="Index">clear all filters</a>
+                            }
+                            else
+                            {
+                                <text>There are no reviews to display at the moment.</text>
+                            }
+                        </p>
+                    </div>
+                }
             </div>
-        </div>
-    </section>
-</div>
+            @if (Model.Reviews.Items.Any())
+            {
+                <!-- Pagination -->
+                <div class="card-footer">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                Showing @((Model.CurrentPage - 1) * Model.PageSize + 1) to
+                                @Math.Min(Model.CurrentPage * Model.PageSize, Model.Reviews.TotalCount)
+                                of @Model.Reviews.TotalCount reviews
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            @{
+                                var totalPages = Model.Reviews.TotalPages;
+                                var currentPage = Model.CurrentPage;
+                                var startPage = Math.Max(1, currentPage - 2);
+                                var endPage = Math.Min(totalPages, currentPage + 2);
+                            }
 
-<!-- Advanced Filter Modal -->
-<div class="modal fade" id="advancedFilterModal" tabindex="-1" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="advancedFilterModalLabel">
-                    <i class="fas fa-search mr-2"></i>Advanced Filter Options
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="advancedFilterForm">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="statusSelect"><i class="fas fa-list mr-1"></i>Status</label>
-                                <select class="form-control" id="statusSelect" name="status">
-                                    <option value="">All Reviews</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="ratingSelect"><i class="fas fa-star mr-1"></i>Rating</label>
-                                <select class="form-control" id="ratingSelect" name="rating">
-                                    <option value="">All Ratings</option>
-                                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
-                                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
-                                    <option value="3">⭐⭐⭐ 3 Stars</option>
-                                    <option value="2">⭐⭐ 2 Stars</option>
-                                    <option value="1">⭐ 1 Star</option>
-                                </select>
-                            </div>
+                            @if (totalPages > 1)
+                            {
+                                <nav aria-label="Reviews pagination">
+                                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                                        <!-- Previous Page -->
+                                        @if (currentPage > 1)
+                                        {
+                                            <li class="page-item">
+                                                <a asp-action="Index"
+                                                   asp-route-page="@(currentPage - 1)"
+                                                   asp-route-pageSize="@Model.PageSize"
+                                                   asp-route-status="@Model.Status"
+                                                   asp-route-searchTerm="@Model.SearchTerm"
+                                                   asp-route-rating="@Model.Rating"
+                                                   asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                                   asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                                   class="page-link" aria-label="Previous">
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                                            </li>
+                                        }
+
+                                        <!-- First Page -->
+                                        @if (startPage > 1)
+                                        {
+                                            <li class="page-item">
+                                                <a asp-action="Index"
+                                                   asp-route-page="1"
+                                                   asp-route-pageSize="@Model.PageSize"
+                                                   asp-route-status="@Model.Status"
+                                                   asp-route-searchTerm="@Model.SearchTerm"
+                                                   asp-route-rating="@Model.Rating"
+                                                   asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                                   asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                                   class="page-link">1</a>
+                                            </li>
+                                            @if (startPage > 2)
+                                            {
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">...</span>
+                                                </li>
+                                            }
+                                        }
+
+                                        <!-- Page Numbers -->
+                                        @for (int i = startPage; i <= endPage; i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                @if (i == currentPage)
+                                                {
+                                                    <span class="page-link">@i <span class="sr-only">(current)</span></span>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-action="Index"
+                                                       asp-route-page="@i"
+                                                       asp-route-pageSize="@Model.PageSize"
+                                                       asp-route-status="@Model.Status"
+                                                       asp-route-searchTerm="@Model.SearchTerm"
+                                                       asp-route-rating="@Model.Rating"
+                                                       asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                                       asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                                       class="page-link">@i</a>
+                                                }
+                                            </li>
+                                        }
+
+                                        <!-- Last Page -->
+                                        @if (endPage < totalPages)
+                                        {
+                                            @if (endPage < totalPages - 1)
+                                            {
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">...</span>
+                                                </li>
+                                            }
+                                            <li class="page-item">
+                                                <a asp-action="Index"
+                                                   asp-route-page="@totalPages"
+                                                   asp-route-pageSize="@Model.PageSize"
+                                                   asp-route-status="@Model.Status"
+                                                   asp-route-searchTerm="@Model.SearchTerm"
+                                                   asp-route-rating="@Model.Rating"
+                                                   asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                                   asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                                   class="page-link">@totalPages</a>
+                                            </li>
+                                        }
+
+                                        <!-- Next Page -->
+                                        @if (currentPage < totalPages)
+                                        {
+                                            <li class="page-item">
+                                                <a asp-action="Index"
+                                                   asp-route-page="@(currentPage + 1)"
+                                                   asp-route-pageSize="@Model.PageSize"
+                                                   asp-route-status="@Model.Status"
+                                                   asp-route-searchTerm="@Model.SearchTerm"
+                                                   asp-route-rating="@Model.Rating"
+                                                   asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                                   asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                                   class="page-link" aria-label="Next">
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </nav>
+                            }
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="searchInput"><i class="fas fa-search mr-1"></i>Search</label>
-                        <input type="text" class="form-control" id="searchInput" name="search"
-                               placeholder="Search reviews, customers, products...">
-                        <small class="form-text text-muted">Search in review text, customer ID, or product information</small>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="startDate"><i class="fas fa-calendar-alt mr-1"></i>Start Date</label>
-                                <input type="date" class="form-control" id="startDate" name="startDate">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="endDate"><i class="fas fa-calendar-check mr-1"></i>End Date</label>
-                                <input type="date" class="form-control" id="endDate" name="endDate">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="verifiedOnly">
-                            <label class="custom-control-label" for="verifiedOnly">
-                                <i class="fas fa-shield-alt mr-1"></i>Verified purchases only
-                            </label>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times mr-1"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-outline-secondary" id="clearAdvancedFilter">
-                    <i class="fas fa-eraser mr-1"></i>Clear All
-                </button>
-                <button type="button" class="btn btn-primary" id="applyAdvancedFilter">
-                    <i class="fas fa-filter mr-1"></i>Apply Filter
-                </button>
-            </div>
+                </div>
+            }
         </div>
     </div>
-</div>
+</section>
 
 <!-- Reject Modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-white" id="rejectModalLabel">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>Reject Review
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>Important:</strong> Please provide a clear reason for rejecting this review. This action will be logged for audit purposes.
+            <form id="rejectForm">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-white" id="rejectModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Reject Review
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <form id="rejectForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Important:</strong> Please provide a clear reason for rejecting this review.
+                    </div>
                     <div class="form-group">
-                        <label for="rejectReason"><i class="fas fa-comment-alt mr-1"></i>Reason for rejection <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="rejectReason" rows="4"
+                        <label for="rejectReason">
+                            <i class="fas fa-comment-alt mr-1"></i>Reason for rejection
+                            <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="rejectReason" name="reason" rows="4"
                                   placeholder="Please provide a detailed reason for rejecting this review..." required></textarea>
                         <small class="form-text text-muted">
                             Common reasons: Inappropriate content, spam, fake review, off-topic, etc.
                         </small>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times mr-1"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-danger" id="confirmReject">
-                    <i class="fas fa-times mr-1"></i>Reject Review
-                </button>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times mr-1"></i>Reject Review
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <!-- DataTables -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/dataTables.bootstrap4.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script>
-
     <script>
         $(document).ready(function() {
-            let table;
             let selectedReviews = [];
             let currentReviewId = null;
-            let currentFilter = '';
 
-            // Initialize DataTable
-            initializeDataTable();
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
 
-            // Event Handlers
-            $('#advancedFilterBtn').click(() => $('#advancedFilterModal').modal('show'));
-            $('#applyAdvancedFilter').click(applyAdvancedFilters);
-            $('#clearAdvancedFilter').click(clearAdvancedFilters);
-            $('#selectAll').change(handleSelectAll);
-            $('#bulkApprove').click(() => performBulkAction('approve'));
-            $('#bulkReject').click(() => showBulkRejectModal());
-            $('#bulkDelete').click(() => confirmBulkDelete());
-            $('#clearSelection').click(clearSelection);
-            $('#confirmReject').click(handleRejectConfirm);
-            $('#refreshBtn').click(() => refreshData());
-
-            // Stats card click handlers
-            $('.stats-card').click(function() {
-                currentFilter = $(this).data('filter');
-                updateFilterDisplay(currentFilter);
-                table.ajax.reload();
+            // Select All functionality
+            $('#selectAll').change(function() {
+                const isChecked = $(this).is(':checked');
+                $('.review-checkbox').prop('checked', isChecked);
+                updateSelectedReviews();
             });
 
-            // Filter by status dropdown
-            $('.filter-status').click(function(e) {
-                e.preventDefault();
-                currentFilter = $(this).data('status');
-                const text = $(this).data('text');
-                $('#statusFilter').html(`<i class="fas fa-filter mr-1"></i>${text}`);
-                updateFilterDisplay(currentFilter);
-                table.ajax.reload();
+            // Individual checkbox change
+            $(document).on('change', '.review-checkbox', function() {
+                updateSelectedReviews();
+                updateSelectAllState();
             });
 
-            function initializeDataTable() {
-                table = $('#reviewsTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: '@Url.Action("FilterReviews", "Reviews")',
-                        type: 'GET',
-                        data: function(d) {
-                            d.status = currentFilter;
-                            d.start = d.start;
-                            d.length = d.length;
-                        },
-                        error: function(xhr, error, code) {
-                            console.error('DataTable AJAX error:', error);
-                            showToast('error', 'Failed to load reviews data. Please try again.');
-                        }
-                    },
-                    columns: [
-                        {
-                            data: null,
-                            orderable: false,
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                return `<input type="checkbox" class="review-checkbox" data-id="${row.id}" aria-label="Select review">`;
-                            }
-                        },
-                        {
-                            data: 'customer',
-                            render: function(data, type, row) {
-                                return `
-                                    <div class="d-flex align-items-center">
-                                        <div class="user-avatar mr-2">
-                                            <i class="fas fa-user-circle fa-2x text-muted"></i>
-                                        </div>
-                                        <div>
-                                            <div class="font-weight-bold">${data.name}</div>
-                                            <small class="text-muted">${data.email}</small>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        },
-                        {
-                            data: 'product',
-                            render: function(data, type, row) {
-                                return `
-                                    <div class="d-flex align-items-center">
-                                        <div class="product-thumb mr-2">
-                                            <i class="fas fa-cube fa-2x text-muted"></i>
-                                        </div>
-                                        <div>
-                                            <div class="font-weight-bold">${data.name}</div>
-                                            <small class="text-muted">ID: ${data.id.substring(0, 8)}...</small>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        },
-                        {
-                            data: 'rating',
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                let stars = '';
-                                for (let i = 1; i <= 5; i++) {
-                                    stars += i <= data
-                                        ? '<i class="fas fa-star text-warning"></i>'
-                                        : '<i class="far fa-star text-muted"></i>';
-                                }
-                                return `<div class="rating-display">${stars}<br><span class="badge badge-info">${data}.0</span></div>`;
-                            }
-                        },
-                        {
-                            data: 'review',
-                            render: function(data, type, row) {
-                                if (!data) return '<span class="text-muted font-italic">No comment provided</span>';
-                                const truncated = data.length > 80 ? data.substring(0, 80) + '...' : data;
-                                return `<span class="review-text" title="${data}">${truncated}</span>`;
-                            }
-                        },
-                        {
-                            data: 'date',
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                return `<span class="text-nowrap"><i class="fas fa-calendar-alt text-muted mr-1"></i>${data}</span>`;
-                            }
-                        },
-                        {
-                            data: 'status',
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                let badgeClass, icon;
-                                if (row.isDeleted) {
-                                    badgeClass = 'badge-dark';
-                                    icon = 'fas fa-trash';
-                                    data = 'Deleted';
-                                } else if (row.isApproved) {
-                                    badgeClass = 'badge-success';
-                                    icon = 'fas fa-check-circle';
-                                    data = 'Approved';
-                                } else if (!row.isActive) {
-                                    badgeClass = 'badge-danger';
-                                    icon = 'fas fa-times-circle';
-                                    data = 'Rejected';
-                                } else {
-                                    badgeClass = 'badge-warning';
-                                    icon = 'fas fa-clock';
-                                    data = 'Pending';
-                                }
-
-                                let badges = `<span class="badge ${badgeClass}"><i class="${icon}"></i> ${data}</span>`;
-                                if (row.isVerifiedPurchase) {
-                                    badges += '<br><small class="badge badge-info mt-1"><i class="fas fa-shield-alt"></i> Verified</small>';
-                                }
-                                return badges;
-                            }
-                        },
-                        {
-                            data: null,
-                            orderable: false,
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                let actions = `
-                                    <div class="btn-group" role="group" aria-label="Review actions">
-                                        <button class="btn btn-sm btn-outline-info view-btn" data-id="${row.id}" title="View Details" data-toggle="tooltip">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                `;
-                                if (!row.isApproved && !row.isDeleted && row.isActive) {
-                                    actions += `
-                                        <button class="btn btn-sm btn-success approve-btn" data-id="${row.id}" title="Approve" data-toggle="tooltip">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-warning reject-btn" data-id="${row.id}" title="Reject" data-toggle="tooltip">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    `;
-                                }
-                                if (!row.isDeleted) {
-                                    actions += `
-                                        <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${row.id}" title="Delete" data-toggle="tooltip">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    `;
-                                }
-                                actions += `</div>`;
-                                return actions;
-                            }
-                        }
-                    ],
-                    order: [[5, 'desc']],
-                    pageLength: 10,
-                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                    responsive: true,
-                    language: {
-                        processing: '<i class="fas fa-spinner fa-spin"></i> Loading reviews...',
-                        emptyTable: "No reviews found",
-                        info: "Showing _START_ to _END_ of _TOTAL_ reviews",
-                        infoEmpty: "Showing 0 to 0 of 0 reviews",
-                        infoFiltered: "(filtered from _MAX_ total reviews)",
-                        lengthMenu: "Show _MENU_ reviews per page",
-                        search: "Search reviews:",
-                        paginate: {
-                            first: "First",
-                            last: "Last",
-                            next: "Next",
-                            previous: "Previous"
-                        }
-                    },
-                    drawCallback: function() {
-                        $('[data-toggle="tooltip"]').tooltip();
-                        updateBulkActionsVisibility();
-                    }
-                });
-
-                bindActionHandlers();
-            }
-
-            function bindActionHandlers() {
-                $(document).on('change', '.review-checkbox', function() {
-                    const reviewId = $(this).data('id');
-                    if ($(this).is(':checked')) {
-                        selectedReviews.push(reviewId);
-                    } else {
-                        selectedReviews = selectedReviews.filter(id => id !== reviewId);
-                    }
-                    updateBulkActionsVisibility();
-                });
-
-                $(document).on('click', '.approve-btn', function() {
-                    const reviewId = $(this).data('id');
-                    performAction('approve', reviewId, 'Are you sure you want to approve this review?');
-                });
-
-                $(document).on('click', '.reject-btn', function() {
-                    currentReviewId = $(this).data('id');
-                    $('#rejectModalLabel').html('<i class="fas fa-exclamation-triangle mr-2"></i>Reject Review');
-                    $('#rejectModal').modal('show');
-                });
-
-                $(document).on('click', '.view-btn', function() {
-                    const reviewId = $(this).data('id');
-                    window.location.href = `@Url.Action("Details", "Reviews")/${reviewId}`;
-                });
-
-                $(document).on('click', '.delete-btn', function() {
-                    const reviewId = $(this).data('id');
-                    if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
-                        performDelete(reviewId);
-                    }
-                });
-            }
-
-            function updateFilterDisplay(status) {
-                const filterTexts = {
-                    '': 'All Reviews',
-                    'pending': 'Pending Reviews',
-                    'approved': 'Approved Reviews',
-                    'rejected': 'Rejected Reviews'
-                };
-                $('#currentFilterText').text(filterTexts[status] || 'Filtered Reviews');
-                $('#filterBadge').text(filterTexts[status]).toggle(status !== '');
-                $('.stats-card').removeClass('active-filter');
-                $(`.stats-card[data-filter="${status || ''}"]`).addClass('active-filter');
-            }
-
-            function handleSelectAll() {
-                const isChecked = $('#selectAll').is(':checked');
-                $('.review-checkbox:visible').prop('checked', isChecked);
-                selectedReviews = isChecked ? $('.review-checkbox:visible').map(function() { return $(this).data('id'); }).get() : [];
-                updateBulkActionsVisibility();
-            }
-
-            function clearSelection() {
-                selectedReviews = [];
+            // Clear selection
+            $('#clearSelection').click(function() {
                 $('.review-checkbox').prop('checked', false);
                 $('#selectAll').prop('checked', false);
-                updateBulkActionsVisibility();
+                updateSelectedReviews();
+            });
+
+            // Approve button
+            $(document).on('click', '.approve-btn', function() {
+                const reviewId = $(this).data('id');
+                if (confirm('Are you sure you want to approve this review?')) {
+                    approveReview(reviewId);
+                }
+            });
+
+            // Reject button
+            $(document).on('click', '.reject-btn', function() {
+                currentReviewId = $(this).data('id');
+                $('#rejectModal').modal('show');
+            });
+
+            // Delete button
+            $(document).on('click', '.delete-btn', function() {
+                const reviewId = $(this).data('id');
+                if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+                    deleteReview(reviewId);
+                }
+            });
+
+            // Bulk reject button
+            $('#bulkRejectBtn').click(function() {
+                if (selectedReviews.length === 0) {
+                    showToast('warning', 'Please select reviews to reject.');
+                    return;
+                }
+                currentReviewId = 'bulk';
+                $('#rejectModal').modal('show');
+            });
+
+            // Reject form submission
+            $('#rejectForm').submit(function(e) {
+                e.preventDefault();
+                const reason = $('#rejectReason').val().trim();
+
+                if (!reason) {
+                    showToast('error', 'Please provide a reason for rejection.');
+                    return;
+                }
+
+                if (currentReviewId === 'bulk') {
+                    bulkRejectReviews(reason);
+                } else {
+                    rejectReview(currentReviewId, reason);
+                }
+
+                $('#rejectModal').modal('hide');
+                $('#rejectReason').val('');
+                currentReviewId = null;
+            });
+
+            // Bulk approve
+            $('#bulkApprove').click(function(e) {
+                e.preventDefault();
+                if (selectedReviews.length === 0) {
+                    showToast('warning', 'Please select reviews to approve.');
+                    return;
+                }
+                if (confirm(`Are you sure you want to approve ${selectedReviews.length} selected reviews?`)) {
+                    bulkApproveReviews();
+                }
+            });
+
+            function updateSelectedReviews() {
+                selectedReviews = $('.review-checkbox:checked').map(function() {
+                    return $(this).val();
+                }).get();
+
+                $('#selectedCount').text(selectedReviews.length);
+                $('#bulkActionForm').toggle(selectedReviews.length > 0);
             }
 
-            function updateBulkActionsVisibility() {
-                const count = selectedReviews.length;
-                $('#bulkActions').toggle(count > 0);
-                $('#selectedCount').text(count);
-                $('#selectAll').prop('indeterminate', count > 0 && count < $('.review-checkbox:visible').length)
-                    .prop('checked', count === $('.review-checkbox:visible').length);
+            function updateSelectAllState() {
+                const totalCheckboxes = $('.review-checkbox').length;
+                const checkedCheckboxes = $('.review-checkbox:checked').length;
+
+                $('#selectAll').prop('indeterminate', checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+                $('#selectAll').prop('checked', checkedCheckboxes === totalCheckboxes && totalCheckboxes > 0);
             }
 
-            function performAction(action, reviewId, confirmMessage) {
-                if (confirmMessage && !confirm(confirmMessage)) return;
+            function approveReview(reviewId) {
                 $.ajax({
-                    url: `@Url.Action("", "Reviews")${action}/${reviewId}`,
+                    url: '@Url.Action("Approve", "Reviews")/' + reviewId,
                     type: 'POST',
-                    headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
                     success: function(response) {
                         if (response.success) {
                             showToast('success', response.message);
-                            table.ajax.reload(null, false);
-                            updateStats();
+                            setTimeout(() => window.location.reload(), 1000);
                         } else {
                             showToast('error', response.message);
                         }
@@ -1328,16 +717,40 @@
                 });
             }
 
-            function performDelete(reviewId) {
+            function rejectReview(reviewId, reason) {
                 $.ajax({
-                    url: `@Url.Action("Delete", "Reviews")/${reviewId}`,
-                    type: 'DELETE',
-                    headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                    url: '@Url.Action("Reject", "Reviews")/' + reviewId,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ reason: reason }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
                     success: function(response) {
                         if (response.success) {
                             showToast('success', response.message);
-                            table.ajax.reload(null, false);
-                            updateStats();
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showToast('error', response.message);
+                        }
+                    },
+                    error: function() {
+                        showToast('error', 'An error occurred while rejecting the review.');
+                    }
+                });
+            }
+
+            function deleteReview(reviewId) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Reviews")/' + reviewId,
+                    type: 'DELETE',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('success', response.message);
+                            setTimeout(() => window.location.reload(), 1000);
                         } else {
                             showToast('error', response.message);
                         }
@@ -1348,148 +761,74 @@
                 });
             }
 
-            function performBulkAction(action) {
-                if (!selectedReviews.length) {
-                    showToast('warning', 'Please select reviews to perform bulk action.');
-                    return;
-                }
-                const data = { reviewIds: selectedReviews, action: action, reason: action === 'reject' ? 'Bulk rejection' : null };
+            function bulkApproveReviews() {
                 $.ajax({
                     url: '@Url.Action("BulkAction", "Reviews")',
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify(data),
-                    headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                    data: JSON.stringify({
+                        reviewIds: selectedReviews,
+                        action: 'approve'
+                    }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
                     success: function(response) {
                         if (response.success) {
                             showToast('success', response.message);
-                            table.ajax.reload(null, false);
-                            clearSelection();
-                            updateStats();
+                            setTimeout(() => window.location.reload(), 1000);
                         } else {
                             showToast('error', response.message);
                         }
                     },
                     error: function() {
-                        showToast('error', 'An error occurred during bulk operation.');
+                        showToast('error', 'An error occurred during bulk approval.');
                     }
                 });
             }
 
-            function showBulkRejectModal() {
-                if (!selectedReviews.length) {
-                    showToast('warning', 'Please select reviews to reject.');
-                    return;
-                }
-                $('#rejectModalLabel').html(`<i class="fas fa-exclamation-triangle mr-2"></i>Reject ${selectedReviews.length} Reviews`);
-                currentReviewId = 'bulk';
-                $('#rejectModal').modal('show');
-            }
-
-            function confirmBulkDelete() {
-                if (!selectedReviews.length) {
-                    showToast('warning', 'Please select reviews to delete.');
-                    return;
-                }
-                if (confirm(`Are you sure you want to delete ${selectedReviews.length} selected reviews? This action cannot be undone.`)) {
-                    showToast('info', 'Bulk delete functionality needs to be implemented.');
-                }
-            }
-
-            function handleRejectConfirm() {
-                const reason = $('#rejectReason').val().trim();
-                if (!reason) {
-                    showToast('error', 'Please provide a reason for rejection.');
-                    return;
-                }
-                if (currentReviewId === 'bulk') {
-                    const data = { reviewIds: selectedReviews, action: 'reject', reason: reason };
-                    $.ajax({
-                        url: '@Url.Action("BulkAction", "Reviews")',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(data),
-                        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
-                        success: function(response) {
-                            $('#rejectModal').modal('hide');
-                            if (response.success) {
-                                showToast('success', response.message);
-                                table.ajax.reload(null, false);
-                                clearSelection();
-                                updateStats();
-                            } else {
-                                showToast('error', response.message);
-                            }
-                        },
-                        error: function() {
-                            $('#rejectModal').modal('hide');
-                            showToast('error', 'An error occurred during bulk rejection.');
+            function bulkRejectReviews(reason) {
+                $.ajax({
+                    url: '@Url.Action("BulkAction", "Reviews")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        reviewIds: selectedReviews,
+                        action: 'reject',
+                        reason: reason
+                    }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('success', response.message);
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showToast('error', response.message);
                         }
-                    });
-                } else {
-                    $.ajax({
-                        url: `@Url.Action("Reject", "Reviews")/${currentReviewId}`,
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ reason: reason }),
-                        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
-                        success: function(response) {
-                            $('#rejectModal').modal('hide');
-                            if (response.success) {
-                                showToast('success', response.message);
-                                table.ajax.reload(null, false);
-                                updateStats();
-                            } else {
-                                showToast('error', response.message);
-                            }
-                        },
-                        error: function() {
-                            $('#rejectModal').modal('hide');
-                            showToast('error', 'An error occurred while rejecting the review.');
-                        }
-                    });
-                }
-                $('#rejectReason').val('');
-                currentReviewId = null;
-            }
-
-            function applyAdvancedFilters() {
-                table.ajax.reload();
-                $('#advancedFilterModal').modal('hide');
-                showToast('info', 'Advanced filters applied successfully.');
-            }
-
-            function clearAdvancedFilters() {
-                $('#advancedFilterForm')[0].reset();
-                currentFilter = '';
-                $('#statusFilter').html('<i class="fas fa-filter mr-1"></i>All Reviews');
-                updateFilterDisplay('');
-                table.ajax.reload();
-                $('#advancedFilterModal').modal('hide');
-                showToast('info', 'All filters cleared.');
-            }
-
-            function refreshData() {
-                table.ajax.reload(function() {
-                    updateStats();
-                    showToast('success', 'Data refreshed successfully.');
-                });
-            }
-
-            function updateStats() {
-                $.get('@Url.Action("GetStats", "Reviews")', function(stats) {
-                    $('#totalReviews').text(stats.totalReviews.toLocaleString());
-                    $('#pendingReviews').text(stats.pendingReviews);
-                    $('#approvedReviews').text(stats.approvedReviews.toLocaleString());
-                    $('#rejectedReviews').text(stats.rejectedReviews);
-                }).fail(function() {
-                    console.warn('Failed to update statistics');
+                    },
+                    error: function() {
+                        showToast('error', 'An error occurred during bulk rejection.');
+                    }
                 });
             }
 
             function showToast(type, message) {
-                const toastClass = { 'success': 'alert-success', 'error': 'alert-danger', 'warning': 'alert-warning', 'info': 'alert-info' }[type] || 'alert-info';
-                const iconClass = { 'success': 'fa-check-circle', 'error': 'fa-exclamation-circle', 'warning': 'fa-exclamation-triangle', 'info': 'fa-info-circle' }[type] || 'fa-info-circle';
+                const toastClass = {
+                    'success': 'alert-success',
+                    'error': 'alert-danger',
+                    'warning': 'alert-warning',
+                    'info': 'alert-info'
+                }[type] || 'alert-info';
+
+                const iconClass = {
+                    'success': 'fa-check-circle',
+                    'error': 'fa-exclamation-circle',
+                    'warning': 'fa-exclamation-triangle',
+                    'info': 'fa-info-circle'
+                }[type] || 'fa-info-circle';
+
                 const toast = $(`
                     <div class="alert ${toastClass} alert-dismissible fade show position-fixed shadow-lg"
                          style="top: 20px; right: 20px; z-index: 10000; min-width: 350px; max-width: 500px;" role="alert">
@@ -1500,32 +839,24 @@
                         </button>
                     </div>
                 `);
+
                 $('body').append(toast);
                 setTimeout(() => toast.alert('close'), 5000);
             }
 
-            $(document).keydown(function(e) {
-                if (e.ctrlKey && e.keyCode === 65 && $('#reviewsTable').is(':focus-within')) {
-                    e.preventDefault();
-                    $('#selectAll').trigger('click');
-                }
-                if (e.keyCode === 27) clearSelection();
-                if (e.keyCode === 116) {
-                    e.preventDefault();
-                    refreshData();
-                }
+            // Initialize page state
+            updateSelectedReviews();
+            updateSelectAllState();
+
+            // Auto-submit form when changing page size
+            $('select[name="PageSize"]').change(function() {
+                $('#filterForm').submit();
             });
 
-            setInterval(function() {
-                if (document.visibilityState === 'visible') {
-                    table.ajax.reload(null, false);
-                    updateStats();
-                }
-            }, 300000);
-
-            $('[data-toggle="tooltip"]').tooltip();
-            $('#rejectModal').on('hidden.bs.modal', function() { $('#rejectReason').val(''); currentReviewId = null; });
-            $('#advancedFilterModal').on('shown.bs.modal', function() { $('#searchInput').focus(); });
+            // Reset page to 1 when changing filters
+            $('#filterForm input, #filterForm select').not('input[name="PageSize"]').change(function() {
+                $('input[name="CurrentPage"]').val(1);
+            });
         });
     </script>
 

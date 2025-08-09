@@ -68,7 +68,7 @@ public class ReviewConfig : IEntityTypeConfiguration<Review>
         builder.HasOne(r => r.User)
             .WithMany(u => u.Reviews)
             .HasForeignKey(r => r.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         // Indexes for better performance
         builder.HasIndex(r => r.ProductId);

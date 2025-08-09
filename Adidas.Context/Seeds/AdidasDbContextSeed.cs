@@ -161,6 +161,16 @@ namespace Adidas.Context.Seeds
     {
         public static void Seed(ModelBuilder modelBuilder)
         {
+            // ✅ Admin Role Seed
+            var adminRoleId = "99999999-aaaa-bbbb-cccc-111111111111";
+            var adminRole = new IdentityRole
+            {
+                Id = adminRoleId,
+                Name = "Admin",
+                NormalizedName = "ADMIN"
+            };
+            modelBuilder.Entity<IdentityRole>().HasData(adminRole);
+
             // ✅ Admin User Seed
             var adminId = "aaaaaaaa-1111-2222-3333-444444444444";
             var hasher = new PasswordHasher<User>();
@@ -180,6 +190,14 @@ namespace Adidas.Context.Seeds
             };
             adminUser.PasswordHash = hasher.HashPassword(adminUser, "Admin@123");
             modelBuilder.Entity<User>().HasData(adminUser);
+
+            // ✅ Link Admin User to Admin Role
+            modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
+            {
+                UserId = adminId,
+                RoleId = adminRoleId
+            });
+
 
             // ✅ Brands
             modelBuilder.Entity<Brand>().HasData(
@@ -288,13 +306,89 @@ namespace Adidas.Context.Seeds
                 }
             );
 
-            // ✅ Reviews
+
+            // ✅ Customer Role Seed
+            var customerRoleId = "88888888-cccc-dddd-eeee-ffffffffffff";
+            var customerRole = new IdentityRole
+            {
+                Id = customerRoleId,
+                Name = "Customer",
+                NormalizedName = "CUSTOMER"
+            };
+            modelBuilder.Entity<IdentityRole>().HasData(customerRole);
+
+            // ✅ Create Customers
+            var customer1Id = "11111111-aaaa-bbbb-cccc-111111111111";
+            var customer1 = new User
+            {
+                Id = customer1Id,
+                Email = "customer1@adidas.com",
+                UserName = "customer1@adidas.com",
+                NormalizedEmail = "CUSTOMER1@ADIDAS.COM",
+                NormalizedUserName = "CUSTOMER1@ADIDAS.COM",
+                EmailConfirmed = true,
+                IsActive = true,
+                Phone = "0100000001",
+                Role = UserRole.Customer,
+                CreatedAt = DateTime.UtcNow,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+            customer1.PasswordHash = hasher.HashPassword(customer1, "Customer@123");
+
+            var customer2Id = "22222222-aaaa-bbbb-cccc-222222222222";
+            var customer2 = new User
+            {
+                Id = customer2Id,
+                Email = "customer2@adidas.com",
+                UserName = "customer2@adidas.com",
+                NormalizedEmail = "CUSTOMER2@ADIDAS.COM",
+                NormalizedUserName = "CUSTOMER2@ADIDAS.COM",
+                EmailConfirmed = true,
+                IsActive = true,
+                Phone = "0100000002",
+                Role = UserRole.Customer,
+                CreatedAt = DateTime.UtcNow,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+            customer2.PasswordHash = hasher.HashPassword(customer2, "Customer@123");
+
+            var customer3Id = "33333333-aaaa-bbbb-cccc-333333333333";
+            var customer3 = new User
+            {
+                Id = customer3Id,
+                Email = "customer3@adidas.com",
+                UserName = "customer3@adidas.com",
+                NormalizedEmail = "CUSTOMER3@ADIDAS.COM",
+                NormalizedUserName = "CUSTOMER3@ADIDAS.COM",
+                EmailConfirmed = true,
+                IsActive = true,
+                Phone = "0100000003",
+                Role = UserRole.Customer,
+                CreatedAt = DateTime.UtcNow,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+            customer3.PasswordHash = hasher.HashPassword(customer3, "Customer@123");
+
+            // ✅ Add Customers to DB
+            modelBuilder.Entity<User>().HasData(customer1, customer2, customer3);
+
+            // ✅ Link Customers to Customer Role
+            modelBuilder.Entity<IdentityUserRole<string>>().HasData(
+                new IdentityUserRole<string> { UserId = customer1Id, RoleId = customerRoleId },
+                new IdentityUserRole<string> { UserId = customer2Id, RoleId = customerRoleId },
+                new IdentityUserRole<string> { UserId = customer3Id, RoleId = customerRoleId }
+            );
+
+
+
+
+
+            // ✅ Reviews assigned to customers
             modelBuilder.Entity<Review>().HasData(
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000c"),
-                    //UserId = "user1@example.com",
-                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
+                    UserId = customer1Id,
                     ProductId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
                     Title = "Fresh Review - Pending",
                     Rating = 4,
@@ -306,8 +400,7 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000d"),
-                    //UserId = "user2@example.com",
-                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
+                    UserId = customer2Id,
                     ProductId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
                     Title = "New Review - Pending",
                     Rating = 3,
@@ -319,8 +412,7 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000e"),
-                    //UserId = "user3@example.com",
-                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
+                    UserId = customer3Id,
                     ProductId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
                     Title = "Approved Feedback",
                     Rating = 5,
@@ -328,45 +420,6 @@ namespace Adidas.Context.Seeds
                     CreatedAt = DateTime.SpecifyKind(new DateTime(2025, 8, 4, 10, 00, 0), DateTimeKind.Utc),
                     IsApproved = true,
                     IsVerifiedPurchase = true
-                },
-                new Review
-                {
-                    Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000f"),
-                    //UserId = "user4@example.com",
-                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
-                    ProductId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
-                    Title = "Approved Comment",
-                    Rating = 4,
-                    ReviewText = "",
-                    CreatedAt = DateTime.SpecifyKind(new DateTime(2025, 8, 4, 9, 30, 0), DateTimeKind.Utc),
-                    IsApproved = true,
-                    IsVerifiedPurchase = false
-                },
-                new Review
-                {
-                    Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440010"),
-                    //UserId = "user5@example.com",
-                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
-                    ProductId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
-                    Title = "Rejected Feedback",
-                    Rating = 2,
-                    ReviewText = "Rejected due to bad words.",
-                    CreatedAt = DateTime.SpecifyKind(new DateTime(2025, 8, 4, 11, 15, 0), DateTimeKind.Utc),
-                    IsApproved = false,
-                    IsVerifiedPurchase = true
-                },
-                new Review
-                {
-                    Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440011"),
-                    //UserId = "user6@example.com",
-                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
-                    ProductId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
-                    Title = "Rejected Comment",
-                    Rating = 1,
-                    ReviewText = "Rejected for spam content.",
-                    CreatedAt = DateTime.SpecifyKind(new DateTime(2025, 8, 4, 11, 30, 0), DateTimeKind.Utc),
-                    IsApproved = false,
-                    IsVerifiedPurchase = false
                 }
             );
         }
