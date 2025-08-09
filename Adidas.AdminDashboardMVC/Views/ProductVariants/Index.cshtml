@@ -1,0 +1,686 @@
+﻿@model IEnumerable<Adidas.DTOs.Main.Product_Variant_DTOs.ProductVariantDto>
+@{
+    ViewData["Title"] = "Product Variants Management";
+}
+<!-- Custom CSS -->
+<style>
+    .variants-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .variants-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .variants-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
+    .stats-cards {
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: center;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-bottom: 3px solid #dee2e6;
+    }
+
+    .search-filter-row {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .search-input {
+        border-radius: 25px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-1px);
+        }
+
+    .filter-select {
+        border-radius: 20px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        background: white;
+        min-width: 150px;
+        transition: all 0.3s ease;
+    }
+
+        .filter-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+    .modern-table {
+        margin: 0;
+        border: none;
+    }
+
+        .modern-table thead th {
+            background: #f8f9fa;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modern-table tbody tr {
+            border: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+            .modern-table tbody tr:hover {
+                background: #f8f9fa;
+                transform: scale(1.01);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+
+        .modern-table tbody td {
+            padding: 1rem;
+            border: none;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: middle;
+        }
+
+    .variant-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
+    }
+
+        .variant-image:hover {
+            transform: scale(1.1);
+        }
+
+    .color-swatch {
+        width: 60px;
+        height: 40px;
+        border-radius: 20px;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
+    }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+    .product-name {
+        font-weight: 600;
+        color: #495057;
+        font-size: 1rem;
+    }
+
+    .variant-detail {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .stock-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+        min-width: 80px;
+        display: inline-block;
+    }
+
+    .stock-high {
+        background: #d1edff;
+        color: #0c5aa0;
+    }
+
+    .stock-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .stock-low {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .stock-out {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .price-tag {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #28a745;
+    }
+
+    .sku-code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 0.3rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #6c757d;
+        border: 1px solid #e9ecef;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-modern {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+    }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+    .btn-create {
+        background: linear-gradient(135deg, #55a3ff 0%, #003d82 100%);
+        color: white;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 8px 25px rgba(85, 163, 255, 0.3);
+    }
+
+        .btn-create:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(85, 163, 255, 0.4);
+            color: white;
+        }
+
+    .no-variants {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+
+    .no-variants-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .alert-modern {
+        border: none;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        font-weight: 500;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+    }
+
+   (max-width: 768px) {
+        .variants-title
+
+    {
+        font-size: 2rem;
+    }
+
+    .search-filter-row {
+        flex-direction: column;
+    }
+
+    .search-box {
+        min-width: 100%;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .modern-table {
+        font-size: 0.85rem;
+    }
+
+    .variant-image, .color-swatch {
+        width: 40px;
+        height: 40px;
+    }
+
+    }
+</style>
+
+<div class="variants-header">
+    <div class="container">
+        <h1 class="variants-title">@ViewData["Title"]</h1>
+        <p class="variants-subtitle">Manage your product variants efficiently</p>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Alert Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-modern">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-modern">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+        </div>
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row stats-cards">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-primary">@Model.Count()</div>
+                <div class="stat-label">Total Variants</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-success">@Model.Count(v => v.StockQuantity > 0)</div>
+                <div class="stat-label">In Stock</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-warning">@Model.Count(v => v.StockQuantity <= 5 && v.StockQuantity > 0)</div>
+                <div class="stat-label">Low Stock</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-danger">@Model.Count(v => v.StockQuantity == 0)</div>
+                <div class="stat-label">Out of Stock</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table Container -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="search-filter-row">
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="form-control search-input" placeholder="🔍 Search variants by product, color, size, or SKU...">
+                </div>
+                <select id="stockFilter" class="form-select filter-select">
+                    <option value="">All Stock Levels</option>
+                    <option value="high">High Stock (>10)</option>
+                    <option value="medium">Medium Stock (6-10)</option>
+                    <option value="low">Low Stock (1-5)</option>
+                    <option value="out">Out of Stock</option>
+                </select>
+                <select id="colorFilter" class="form-select filter-select">
+                    <option value="">All Colors</option>
+                    @foreach (var color in Model.Select(v => v.Color).Distinct().OrderBy(c => c))
+                    {
+                        <option value="@color">@color</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table modern-table" id="variantsTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th>SKU</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var variant in Model)
+                        {
+                            <tr class="variant-row"
+                                data-product="@variant.Product.Name.ToLower()"
+                                data-color="@variant.Color.ToLower()"
+                                data-size="@variant.Size.ToLower()"
+                                data-sku="@variant.Sku.ToLower()"
+                                data-stock="@variant.StockQuantity">
+                                <td>
+                                    @if (variant.Images != null && variant.Images.Any() && !string.IsNullOrEmpty(variant.Images.First().ImageUrl))
+                                    {
+                                        <img src="@variant.Images.First().ImageUrl" alt="@variant.Product.Name - @variant.Color" class="variant-image" loading="lazy" />
+                                    }
+                                    else if (!string.IsNullOrEmpty(variant.ColorHex))
+                                    {
+                                        <div class="color-swatch" style="background-color:@variant.ColorHex;" title="@variant.Color"></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="color-swatch" style="background: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0px;" title="No Image"></div>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="product-name">@variant.Product.Name</div>
+                                </td>
+                                <td>
+                                    <span class="variant-detail">@variant.Color</span>
+                                </td>
+                                <td>
+                                    <span class="variant-detail">@variant.Size</span>
+                                </td>
+                                <td>
+                                    <span class="stock-badge @(variant.StockQuantity > 10 ? "stock-high" : variant.StockQuantity > 5 ? "stock-medium" : variant.StockQuantity > 0 ? "stock-low" : "stock-out")">
+                                        @variant.StockQuantity
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="price-tag">@variant.PriceAdjustment.ToString("C")</span>
+                                </td>
+                                <td>
+                                    <code class="sku-code">@variant.Sku</code>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@variant.Id" class="btn-modern btn-edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <button type="button" class="btn-modern btn-delete" onclick="confirmDelete('@variant.Id', '@variant.Product.Name', '@variant.Color', '@variant.Size')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="no-variants">
+                <div class="no-variants-icon">📦</div>
+                <h3>No Product Variants Found</h3>
+                <p>Start by creating your first product variant to see it listed here.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Create Button -->
+    <div class="text-center mb-4">
+        <a asp-action="Create" class="btn-create">
+            <i class="fas fa-plus"></i> Create New Variant
+        </a>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+@Html.AntiForgeryToken()
+
+<script>
+    // Enhanced delete confirmation with variant details
+    function confirmDelete(id, productName, color, size) {
+        Swal.fire({
+            title: 'Delete Product Variant?',
+            html: `
+                <div style="text-align: left; margin: 1rem 0;">
+                    <p><strong>Product:</strong> ${productName}</p>
+                    <p><strong>Color:</strong> ${color}</p>
+                    <p><strong>Size:</strong> ${size}</p>
+                </div>
+                <p style="color: #dc3545; margin-top: 1rem;">This action cannot be undone!</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash"></i> Yes, Delete It!',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+            reverseButtons: true,
+            customClass: {
+                confirmButton: 'btn btn-danger me-2',
+                cancelButton: 'btn btn-secondary'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Deleting...',
+                    text: 'Please wait while we delete the variant.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Create and submit form
+                var form = document.createElement('form');
+                form.method = 'post';
+                form.action = '/ProductVariants/Delete/' + id;
+                var token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = '__RequestVerificationToken';
+                    input.value = token.value;
+                    form.appendChild(input);
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    // Search and filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const stockFilter = document.getElementById('stockFilter');
+        const colorFilter = document.getElementById('colorFilter');
+        const table = document.getElementById('variantsTable');
+        const rows = table ? table.getElementsByClassName('variant-row') : [];
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const stockValue = stockFilter.value;
+            const colorValue = colorFilter.value.toLowerCase();
+
+            Array.from(rows).forEach(row => {
+                const productName = row.dataset.product;
+                const color = row.dataset.color;
+                const size = row.dataset.size;
+                const sku = row.dataset.sku;
+                const stock = parseInt(row.dataset.stock);
+
+                // Search filter
+                const matchesSearch = !searchTerm ||
+                    productName.includes(searchTerm) ||
+                    color.includes(searchTerm) ||
+                    size.includes(searchTerm) ||
+                    sku.includes(searchTerm);
+
+                // Stock filter
+                let matchesStock = true;
+                if (stockValue) {
+                    switch(stockValue) {
+                        case 'high': matchesStock = stock > 10; break;
+                        case 'medium': matchesStock = stock >= 6 && stock <= 10; break;
+                        case 'low': matchesStock = stock >= 1 && stock <= 5; break;
+                        case 'out': matchesStock = stock === 0; break;
+                    }
+                }
+
+                // Color filter
+                const matchesColor = !colorValue || color.includes(colorValue);
+
+                // Show/hide row
+                row.style.display = matchesSearch && matchesStock && matchesColor ? '' : 'none';
+            });
+
+            // Update result count
+            const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none').length;
+            updateResultCount(visibleRows, rows.length);
+        }
+
+        function updateResultCount(visible, total) {
+            let countElement = document.getElementById('resultCount');
+            if (!countElement) {
+                countElement = document.createElement('div');
+                countElement.id = 'resultCount';
+                countElement.className = 'text-muted mt-2';
+                document.querySelector('.table-header').appendChild(countElement);
+            }
+            countElement.textContent = visible === total ?
+                `Showing all ${total} variants` :
+                `Showing ${visible} of ${total} variants`;
+        }
+
+        // Add event listeners
+        if (searchInput) searchInput.addEventListener('input', filterTable);
+        if (stockFilter) stockFilter.addEventListener('change', filterTable);
+        if (colorFilter) colorFilter.addEventListener('change', filterTable);
+
+        // Initialize result count
+        if (rows.length > 0) {
+            updateResultCount(rows.length, rows.length);
+        }
+
+        // Add row click animation
+        Array.from(rows).forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.01)';
+            });
+            row.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    });
+
+    // Auto-hide alerts after 5 seconds
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            alert.style.transition = 'opacity 0.5s ease-out';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 5000);
+</script>

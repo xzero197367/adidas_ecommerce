@@ -1,11 +1,21 @@
-﻿
+﻿using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Adidas.DTOs.CommonDTOs;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Adidas.DTOs.Main.Product_Variant_DTOs
 {
-    public class ProductVariantUpdateDto: BaseUpdateDto
+    public class UpdateProductVariantDto
     {
+        [Required]
+        public Guid Id { get; set; }  
+
+        [Required]
+        public Guid ProductId { get; set; }  
+
         [Required, MaxLength(50)]
         public string Color { get; set; } = string.Empty;
 
@@ -18,5 +28,9 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
         public decimal PriceAdjustment { get; set; } = 0;
         public string? ColorHex { get; set; }
         public int SortOrder { get; set; }
+
+        public IFormFile? ImageFile { get; set; }  
+
+        public string? ImageUrl { get; set; }
     }
 }

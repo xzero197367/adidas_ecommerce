@@ -1,0 +1,415 @@
+﻿@model Adidas.DTOs.Main.Product_Variant_DTOs.CreateProductVariantDto
+@{
+    ViewData["Title"] = "Create Product Variant";
+}
+
+<!-- Enhanced CSS -->
+<style>
+    .create-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .create-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .create-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .wizard-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .wizard-steps {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+    }
+
+    .step-indicators {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 0;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+        .step.active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+    .step-number {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .step.active .step-number {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #28a745;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-icon {
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .form-control-enhanced {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+        .form-control-enhanced:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.25);
+            transform: translateY(-1px);
+        }
+
+    .btn-create {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+            color: white;
+        }
+
+    .progress-bar-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        transition: width 0.3s ease;
+    }
+
+     (max-width: 768px) {
+        .step-indicators
+
+    {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .create-title {
+        font-size: 2rem;
+    }
+
+    }
+</style>
+
+<div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progressBar"></div>
+</div>
+
+<div class="create-header">
+    <div class="container">
+        <h1 class="create-title">
+            <i class="fas fa-plus-circle"></i>
+            @ViewData["Title"]
+        </h1>
+        <p class="create-subtitle">Add a new product variant to expand your inventory</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="card wizard-card">
+                <!-- Wizard Steps -->
+                <div class="wizard-steps">
+                    <div class="step-indicators">
+                        <div class="step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <span>Product Selection</span>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <span>Variant Details</span>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <span>Inventory</span>
+                        </div>
+                        <div class="step" data-step="4">
+                            <div class="step-number">4</div>
+                            <span>Image Upload</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="variantForm">
+                        <!-- Product Selection Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                Product Selection
+                            </h4>
+
+                            <div class="mb-3">
+                                <label asp-for="ProductId" class="form-label fw-bold">
+                                    <i class="fas fa-box me-1"></i>
+                                    Choose Product <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="ProductId" class="form-select form-control-enhanced" id="productSelect">
+                                    <option value="">-- Select a Product --</option>
+                                    @if (ViewBag.Products != null)
+                                    {
+                                        @foreach (var item in ViewBag.Products)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="ProductId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Variant Details Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                Variant Details
+                            </h4>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Color" class="form-label fw-bold">
+                                            <i class="fas fa-palette me-1"></i>
+                                            Color <span class="text-danger">*</span>
+                                        </label>
+                                        <input asp-for="Color" class="form-control form-control-enhanced" placeholder="e.g., Red, Blue, Black" />
+                                        <span asp-validation-for="Color" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Size" class="form-label fw-bold">
+                                            <i class="fas fa-ruler me-1"></i>
+                                            Size <span class="text-danger">*</span>
+                                        </label>
+                                        <input asp-for="Size" class="form-control form-control-enhanced" placeholder="e.g., S, M, L, XL" />
+                                        <span asp-validation-for="Size" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inventory Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                Inventory & Pricing
+                            </h4>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="StockQuantity" class="form-label fw-bold">
+                                            <i class="fas fa-boxes me-1"></i>
+                                            Stock Quantity <span class="text-danger">*</span>
+                                        </label>
+                                        <input asp-for="StockQuantity" type="number" min="0" class="form-control form-control-enhanced" id="stockInput" />
+                                        <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="PriceAdjustment" class="form-label fw-bold">
+                                            <i class="fas fa-dollar-sign me-1"></i>
+                                            Price Adjustment
+                                        </label>
+                                        <input asp-for="PriceAdjustment" type="number" step="0.01" class="form-control form-control-enhanced" />
+                                        <small class="form-text text-muted">Additional cost (+) or discount (-)</small>
+                                        <span asp-validation-for="PriceAdjustment" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="SortOrder" class="form-label fw-bold">
+                                            <i class="fas fa-sort me-1"></i>
+                                            Sort Order
+                                        </label>
+                                        <input asp-for="SortOrder" type="number" class="form-control form-control-enhanced" />
+                                        <span asp-validation-for="SortOrder" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="form-section">
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                Product Image
+                            </h4>
+
+                            <div class="mb-3">
+                                <label asp-for="ImageFile" class="form-label fw-bold">
+                                    <i class="fas fa-image me-1"></i>
+                                    Upload Variant Image
+                                </label>
+                                <input asp-for="ImageFile" type="file" class="form-control form-control-enhanced" accept="image/*" />
+                                <small class="form-text text-muted">Supports: JPG, PNG, GIF • Max size: 5MB</small>
+                                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer bg-light text-center py-3">
+                    <button type="submit" form="variantForm" class="btn-create me-2" id="createBtn">
+                        <i class="fas fa-plus me-2"></i> Create Product Variant
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('variantForm');
+        const progressBar = document.getElementById('progressBar');
+        const steps = document.querySelectorAll('.step');
+        const requiredFields = ['ProductId', 'Color', 'Size', 'StockQuantity'];
+
+        // Update progress bar
+        function updateProgress() {
+            let filledFields = 0;
+            requiredFields.forEach(fieldName => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field && field.value.trim() !== '') {
+                    filledFields++;
+                }
+            });
+
+            const percentage = (filledFields / requiredFields.length) * 100;
+            progressBar.style.width = percentage + '%';
+
+            // Update active steps
+            const activeSteps = Math.ceil(filledFields / requiredFields.length * 4);
+            steps.forEach((step, index) => {
+                if (index < activeSteps) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            });
+        }
+
+        // Add event listeners
+        requiredFields.forEach(fieldName => {
+            const field = form.querySelector(`[name="${fieldName}"]`);
+            if (field) {
+                field.addEventListener('input', updateProgress);
+                field.addEventListener('change', updateProgress);
+            }
+        });
+
+        // Form submission
+        const createBtn = document.getElementById('createBtn');
+        form.addEventListener('submit', function(e) {
+            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Creating...';
+            createBtn.disabled = true;
+            progressBar.style.width = '100%';
+        });
+
+        // Initialize
+        updateProgress();
+    });
+</script>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

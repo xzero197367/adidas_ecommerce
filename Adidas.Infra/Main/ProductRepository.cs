@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
+using Adidas.Context;
+using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.Models.Main;
+using Models.People;
+using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore; 
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Adidas.Application.Contracts.RepositoriesContracts.Main;
-using Adidas.Context;
-using Adidas.Models.Main;
-using Models.People;
 
 namespace Adidas.Infra.Main
 {
@@ -125,11 +126,51 @@ namespace Adidas.Infra.Main
 
             var totalCount = await query.CountAsync();
             var products = await query
-                .Skip((pageNumber - 1) * pageSize)
+                .Skip((pageNumber - 1) *pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
             return (products, totalCount);
         }
+
+        public async Task<(IEnumerable<Product> products, int totalCount)> GetFilteredProductsAsync(ProductFilterDto filter)
+        {
+            var query = _dbSet
+     .Include(p => p.Category)
+     .Include(p => p.Brand)
+     .Include(p => p.Images)
+       .Include(p => p.Variants)
+     .AsQueryable(); 
+
+
+            if (filter.CategoryId.HasValue)
+                query = query.Where(p => p.CategoryId == filter.CategoryId);
+
+            if (filter.BrandId.HasValue)
+                query = query.Where(p => p.BrandId == filter.BrandId);
+
+            if (filter.Gender.HasValue)
+                query = query.Where(p => p.GenderTarget == filter.Gender.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var products = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return (products, totalCount);
+        }
+        public async Task<Product?> GetProductWithVariantsAsync(Guid productId)
+        {
+            return await _context.Products
+                .Include(p => p.Variants)
+                    .ThenInclude(v => v.Images)
+                .Include(p => p.Images)
+                .Include(p => p.Reviews)
+                .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
+        }
+
+
     }
 }

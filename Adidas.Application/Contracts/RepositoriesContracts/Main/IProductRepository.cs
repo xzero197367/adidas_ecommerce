@@ -1,16 +1,19 @@
-﻿using System;
+﻿using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.Models.Main;
+using Models.People;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Adidas.Models.Main;
-using Models.People;
 
 namespace Adidas.Application.Contracts.RepositoriesContracts.Main
 {
     public interface IProductRepository : IGenericRepository<Product>
     {
         Task<IEnumerable<Product>> GetProductsByCategoryAsync(Guid categoryId);
+        Task<Product?> GetProductWithVariantsAsync(Guid productId);
+
         Task<IEnumerable<Product>> GetProductsByBrandAsync(Guid brandId);
         Task<IEnumerable<Product>> GetProductsByGenderAsync(Gender gender);
         Task<IEnumerable<Product>> GetFeaturedProductsAsync();
@@ -21,5 +24,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Main
             int pageNumber, int pageSize, Guid? categoryId = null, Guid? brandId = null,
             Gender? gender = null, decimal? minPrice = null, decimal? maxPrice = null,
             string? searchTerm = null);
+        Task<(IEnumerable<Product> products, int totalCount)> GetFilteredProductsAsync(ProductFilterDto filter);
+
     }
 }

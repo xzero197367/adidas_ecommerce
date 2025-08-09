@@ -1,0 +1,785 @@
+﻿@model Adidas.DTOs.Main.Product_Variant_DTOs.UpdateProductVariantDto
+@{
+    ViewData["Title"] = "Edit Product Variant";
+}
+
+<!-- Custom CSS -->
+<style>
+    .edit-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .edit-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="20" cy="80" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+
+    .edit-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+    }
+
+    .edit-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .breadcrumb-nav {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 0.5rem 1rem;
+        margin-top: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+        .breadcrumb-nav a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+            .breadcrumb-nav a:hover {
+                color: white;
+            }
+
+    .form-container {
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .form-content {
+        padding: 2.5rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+        border-left: 4px solid #667eea;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control-modern {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+        .form-control-modern:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-1px);
+            background: white;
+        }
+
+        .form-control-modern:hover {
+            border-color: #ced4da;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .form-control-modern[readonly] {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+    .input-group-modern {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .form-control-modern.with-icon {
+        padding-left: 2.5rem;
+    }
+
+    .current-image-container {
+        background: white;
+        border: 2px dashed #e9ecef;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+    }
+
+        .current-image-container:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+    .current-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
+    }
+
+        .current-image:hover {
+            transform: scale(1.05);
+        }
+
+    .no-image-placeholder {
+        color: #6c757d;
+        font-size: 1.1rem;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 2px dashed #dee2e6;
+    }
+
+    .file-upload-area {
+        border: 2px dashed #e9ecef;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        background: white;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .file-upload-area.drag-over {
+            border-color: #28a745;
+            background: #d1edff;
+        }
+
+    .upload-icon {
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    .upload-text {
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .upload-subtext {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .file-input-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .validation-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        border-left: 3px solid #dc3545;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-actions {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-modern {
+        padding: 0.875rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+        .btn-primary-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .btn-secondary-modern {
+        background: #6c757d;
+        color: white;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+
+        .btn-secondary-modern:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+            color: white;
+        }
+
+    .btn-loading {
+        position: relative;
+    }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: button-loading-spinner 1s ease infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+    button-loading-spinner {
+        from
+
+    {
+        transform: translate(-50%, -50%) rotate(0turn);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(1turn);
+    }
+
+    }
+
+    .helper-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .stock-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .stock-high {
+        background: #d1edff;
+        color: #0c5aa0;
+    }
+
+    .stock-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .stock-low {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .stock-out {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .price-preview {
+        background: #e7f3ff;
+        border: 1px solid #b8daff;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        color: #004085;
+        font-weight: 500;
+    }
+
+    (max-width: 768px) {
+        .edit-title
+
+    {
+        font-size: 2rem;
+    }
+
+    .form-content {
+        padding: 1.5rem;
+    }
+
+    .form-section {
+        padding: 1rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn-modern {
+        width: 100%;
+        justify-content: center;
+    }
+
+    }
+</style>
+
+<div class="edit-header">
+    <div class="container">
+        <h1 class="edit-title">✏️ @ViewData["Title"]</h1>
+        <p class="edit-subtitle">Update product variant details and specifications</p>
+        <nav class="breadcrumb-nav">
+            <a href="/" class="text-decoration-none">🏠 Home</a> /
+            <a asp-action="Index" class="text-decoration-none">📦 Product Variants</a> /
+            <span>Edit Variant</span>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="form-container">
+                <form asp-action="Edit" asp-controller="ProductVariants" method="post" enctype="multipart/form-data" id="editVariantForm">
+                    <div class="form-content">
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Product Information Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-tag"></i>
+                                Product Information
+                            </h3>
+
+                            <div class="form-group">
+                                <label asp-for="ProductId" class="form-label">
+                                    <i class="fas fa-barcode"></i>
+                                    Product ID
+                                </label>
+                                <div class="input-group-modern">
+                                    <i class="input-icon fas fa-barcode"></i>
+                                    <input asp-for="ProductId" class="form-control form-control-modern with-icon" readonly />
+                                </div>
+                                <div class="helper-text">
+                                    <i class="fas fa-info-circle"></i>
+                                    Product identifier (read-only)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Variant Details Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-palette"></i>
+                                Variant Details
+                            </h3>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Color" class="form-label">
+                                            <i class="fas fa-palette"></i>
+                                            Color
+                                        </label>
+                                        <div class="input-group-modern">
+                                            <i class="input-icon fas fa-palette"></i>
+                                            <input asp-for="Color" class="form-control form-control-modern with-icon"  />
+                                        </div>
+                                       
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Size" class="form-label">
+                                            <i class="fas fa-ruler"></i>
+                                            Size
+                                        </label>
+                                        <div class="input-group-modern">
+                                            <i class="input-icon fas fa-ruler"></i>
+                                            <input asp-for="Size" class="form-control form-control-modern with-icon"" />
+                                        </div>
+                                     
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inventory & Pricing Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-warehouse"></i>
+                                Inventory & Pricing
+                            </h3>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="StockQuantity" class="form-label">
+                                            <i class="fas fa-boxes"></i>
+                                            Stock Quantity
+                                        </label>
+                                        <div class="input-group-modern">
+                                            <i class="input-icon fas fa-boxes"></i>
+                                            <input asp-for="StockQuantity" class="form-control form-control-modern with-icon" type="number" min="0" id="stockInput" />
+                                        </div>
+                                        <div id="stockIndicator" class="stock-indicator" style="display: none;"></div>
+                                   
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="PriceAdjustment" class="form-label">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Price Adjustment
+                                        </label>
+                                        <div class="input-group-modern">
+                                            <i class="input-icon fas fa-dollar-sign"></i>
+                                            <input asp-for="PriceAdjustment" class="form-control form-control-modern with-icon" type="number" step="0.01" id="priceInput" />
+                                        </div>
+                                        <div class="helper-text">
+                                            <i class="fas fa-info-circle"></i>
+                                            Additional cost or discount for this variant
+                                        </div>
+                                        <div id="pricePreview" class="price-preview" style="display: none;"></div>
+                                   
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="SortOrder" class="form-label">
+                                    <i class="fas fa-sort"></i>
+                                    Sort Order
+                                </label>
+                                <div class="input-group-modern">
+                                    <i class="input-icon fas fa-sort"></i>
+                                    <input asp-for="SortOrder" class="form-control form-control-modern with-icon" type="number" />
+                                </div>
+                                <div class="helper-text">
+                                    <i class="fas fa-info-circle"></i>
+                                    Display order (lower numbers appear first)
+                                </div>
+                            
+                            </div>
+                        </div>
+
+                        <!-- Image Management Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-image"></i>
+                                Image Management
+                            </h3>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-eye"></i>
+                                    Current Image
+                                </label>
+                                <div class="current-image-container">
+                                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                    {
+                                        <img src="@Model.ImageUrl" alt="Current variant image" class="current-image" />
+                                        <div class="mt-2 text-muted">
+                                            <small>Current variant image</small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image-placeholder">
+                                            <i class="fas fa-image fa-3x mb-3" style="color: #dee2e6;"></i>
+                                            <p class="mb-0">No image available</p>
+                                            <small>Upload an image below to add a visual representation</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-upload"></i>
+                                    Upload New Image (Optional)
+                                </label>
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <input asp-for="ImageFile" type="file" class="file-input-hidden" id="imageFileInput" accept="image/*" />
+                                    <i class="upload-icon fas fa-cloud-upload-alt"></i>
+                                    <div class="upload-text">Click to browse or drag and drop</div>
+                                    <div class="upload-subtext">Supports: JPG, PNG, GIF (Max 5MB)</div>
+                                </div>
+                        
+                                <div id="imagePreview" style="display: none; margin-top: 1rem;">
+                                    <img id="previewImg" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <div>
+                            <button type="submit" class="btn-modern btn-primary-modern" id="saveButton">
+                                <i class="fas fa-save"></i>
+                                Save Changes
+                            </button>
+                            <a asp-action="Index" class="btn-modern btn-secondary-modern">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </a>
+                        </div>
+                        <div class="helper-text">
+                            <i class="fas fa-info-circle"></i>
+                            All changes will be saved immediately
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Stock quantity indicator
+        const stockInput = document.getElementById('stockInput');
+        const stockIndicator = document.getElementById('stockIndicator');
+
+        function updateStockIndicator() {
+            const stock = parseInt(stockInput.value) || 0;
+            let className = '';
+            let text = '';
+            let icon = '';
+
+            if (stock > 10) {
+                className = 'stock-high';
+                text = 'High Stock Level';
+                icon = 'fas fa-check-circle';
+            } else if (stock > 5) {
+                className = 'stock-medium';
+                text = 'Medium Stock Level';
+                icon = 'fas fa-exclamation-circle';
+            } else if (stock > 0) {
+                className = 'stock-low';
+                text = 'Low Stock Level - Consider Restocking';
+                icon = 'fas fa-exclamation-triangle';
+            } else {
+                className = 'stock-out';
+                text = 'Out of Stock';
+                icon = 'fas fa-times-circle';
+            }
+
+            stockIndicator.className = `stock-indicator ${className}`;
+            stockIndicator.innerHTML = `<i class="${icon}"></i> ${text}`;
+            stockIndicator.style.display = 'flex';
+        }
+
+        if (stockInput) {
+            stockInput.addEventListener('input', updateStockIndicator);
+            updateStockIndicator(); // Initialize
+        }
+
+        // Price adjustment preview
+        const priceInput = document.getElementById('priceInput');
+        const pricePreview = document.getElementById('pricePreview');
+
+        function updatePricePreview() {
+            const adjustment = parseFloat(priceInput.value) || 0;
+            if (adjustment !== 0) {
+                const type = adjustment > 0 ? 'surcharge' : 'discount';
+                const amount = Math.abs(adjustment);
+                pricePreview.innerHTML = `
+                    <i class="fas fa-${adjustment > 0 ? 'plus' : 'minus'}-circle"></i>
+                    ${adjustment > 0 ? '+' : '-'}$${amount.toFixed(2)} ${type} will be applied
+                `;
+                pricePreview.style.display = 'block';
+            } else {
+                pricePreview.style.display = 'none';
+            }
+        }
+
+        if (priceInput) {
+            priceInput.addEventListener('input', updatePricePreview);
+            updatePricePreview(); // Initialize
+        }
+
+        // File upload handling
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('imageFileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('drag-over');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('drag-over');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB.');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+
+                // Update upload area text
+                fileUploadArea.innerHTML = `
+                    <i class="upload-icon fas fa-check-circle" style="color: #28a745;"></i>
+                    <div class="upload-text" style="color: #28a745;">File selected: ${file.name}</div>
+                    <div class="upload-subtext">Click to change or drag a new file</div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Form submission with loading state
+        const form = document.getElementById('editVariantForm');
+        const saveButton = document.getElementById('saveButton');
+
+        form.addEventListener('submit', function() {
+            saveButton.classList.add('btn-loading');
+            saveButton.innerHTML = '<span style="opacity: 0;">Saving Changes...</span>';
+            saveButton.disabled = true;
+        });
+
+        // Auto-save indication (visual feedback only)
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.type !== 'hidden' && input.type !== 'file') {
+                input.addEventListener('change', function() {
+                    // Add subtle visual feedback for changes
+                    this.style.borderColor = '#28a745';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 2000);
+                });
+            }
+        });
+    });
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

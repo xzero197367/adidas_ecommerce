@@ -1,165 +1,116 @@
-﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
+﻿
+using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.CommonDTOs;
-using Adidas.DTOs.Main.ProductDTOs;
+using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.Product_Variant_DTOs;
 using Adidas.Models.Main;
-using Mapster;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Models.People;
 
 namespace Adidas.Application.Services.Main
 {
-    public class ProductService : GenericService<Product, ProductDto, ProductCreateDto, ProductUpdateDto>,
-        IProductService
+    public class ProductService : GenericService<Product, ProductDto, CreateProductDto, UpdateProductDto>, IProductService
     {
         private readonly IProductRepository _productRepository;
         private readonly IProductVariantRepository _variantRepository;
         private readonly ICouponService _couponService;
-        private readonly ILogger<ProductService> _logger;
 
         public ProductService(
             IProductRepository productRepository,
             IProductVariantRepository variantRepository,
             ICouponService couponService,
-            ILogger<ProductService> logger) : base(productRepository, logger)
+            IMapper mapper,
+            ILogger<ProductService> logger)
+            : base(productRepository, mapper, logger)
         {
             _productRepository = productRepository;
             _variantRepository = variantRepository;
             _couponService = couponService;
-            _logger = logger;
         }
 
-        public async Task<OperationResult<IEnumerable<ProductDto>>> GetProductsByCategoryAsync(Guid categoryId)
+        public async Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(Guid categoryId)
         {
-            try
-            {
-                var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting products by category");
-                return OperationResult<IEnumerable<ProductDto>>.Fail(ex.Message);
-            }
+            var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public async Task<OperationResult<IEnumerable<ProductDto>>> GetProductsByBrandAsync(Guid brandId)
+        public async Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(Guid brandId)
         {
-            try
-            {
-                var products = await _productRepository.GetProductsByBrandAsync(brandId);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting products by brand");
-                return OperationResult<IEnumerable<ProductDto>>.Fail(ex.Message);
-            }
+            var products = await _productRepository.GetProductsByBrandAsync(brandId);
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
-
-        public async Task<OperationResult<IEnumerable<ProductDto>>> GetProductsByGenderAsync(Gender gender)
+        public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId)
         {
-            try
-            {
-                var products = await _productRepository.GetProductsByGenderAsync(gender);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting products by gender");
-                return OperationResult<IEnumerable<ProductDto>>.Fail(ex.Message);
-            }
+            var product = await _productRepository.GetProductWithVariantsAsync(productId);
+            if (product == null) return null;
+            return _mapper.Map<ProductDto>(product);
         }
 
-        public async Task<OperationResult<IEnumerable<ProductDto>>> GetFeaturedProductsAsync()
+        public async Task<IEnumerable<ProductDto>> GetProductsByGenderAsync(Gender gender)
         {
-            try
-            {
-                var products = await _productRepository.GetFeaturedProductsAsync();
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting featured products");
-                return OperationResult<IEnumerable<ProductDto>>.Fail(ex.Message);
-            }
+            var products = await _productRepository.GetProductsByGenderAsync(gender);
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public async Task<OperationResult<IEnumerable<ProductDto>>> GetProductsOnSaleAsync()
+        public async Task<IEnumerable<ProductDto>> GetFeaturedProductsAsync()
         {
-            try
-            {
-                var products = await _productRepository.GetProductsOnSaleAsync();
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting products on sale");
-                return OperationResult<IEnumerable<ProductDto>>.Fail(ex.Message);
-            }
+            var products = await _productRepository.GetFeaturedProductsAsync();
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
-
-        public async Task<OperationResult<ProductDto>> GetProductBySkuAsync(string sku)
+        public async Task<ProductVariantDto?> GetVariantByIdAsync(Guid id)
         {
-            try
-            {
-                var product = await _productRepository.GetProductBySkuAsync(sku);
-                return product == null
-                    ? OperationResult<ProductDto>.Fail("Product not found")
-                    : OperationResult<ProductDto>.Success(product.Adapt<ProductDto>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting product by sku");
-                return OperationResult<ProductDto>.Fail(ex.Message);
-            }
+            var variant = await _variantRepository.GetByIdAsync(id);
+            if (variant == null) return null;
+            return _mapper.Map<ProductVariantDto>(variant);
         }
 
-        public async Task<OperationResult<IEnumerable<ProductDto>>> SearchProductsAsync(string searchTerm)
+        public async Task DeleteVariantAsync(Guid id)
         {
-            try
-            {
-                var products = await _productRepository.SearchProductsAsync(searchTerm);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error searching products");
-                return OperationResult<IEnumerable<ProductDto>>.Fail(ex.Message);
-            }
+            var variant = await _variantRepository.GetByIdAsync(id);
+            if (variant == null) return;
+
+            _variantRepository.Remove(variant);
+            await _variantRepository.SaveChangesAsync();
         }
 
-        public async Task<OperationResult<PagedResultDto<ProductDto>>> GetProductsWithFiltersAsync(
-            ProductFilterDto filters)
+        public async Task<IEnumerable<ProductDto>> GetProductsOnSaleAsync()
         {
-            try
-            {
-                var (products, totalCount) = await _productRepository.GetProductsWithFiltersAsync(
-                    filters.PageNumber, filters.PageSize, filters.CategoryId, filters.BrandId,
-                    filters.Gender, filters.MinPrice, filters.MaxPrice, filters.SearchTerm);
-
-                var PagedResultDto = new PagedResultDto<ProductDto>
-                {
-                    Items = products.Adapt<IEnumerable<ProductDto>>(),
-                    TotalCount = totalCount,
-                    PageNumber = filters.PageNumber,
-                    PageSize = filters.PageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / filters.PageSize)
-                };
-
-                return OperationResult<PagedResultDto<ProductDto>>.Success(PagedResultDto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting products with filters");
-                return OperationResult<PagedResultDto<ProductDto>>.Fail(ex.Message);
-            }
+            var products = await _productRepository.GetProductsOnSaleAsync();
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public async Task<OperationResult<bool>> UpdateInventoryAsync(Guid productId,
-            Dictionary<Guid, int> variantStockUpdates)
+        public async Task<ProductDto?> GetProductBySkuAsync(string sku)
+        {
+            var product = await _productRepository.GetProductBySkuAsync(sku);
+            return product == null ? null : _mapper.Map<ProductDto>(product);
+        }
+
+        public async Task<IEnumerable<ProductDto>> SearchProductsAsync(string searchTerm)
+        {
+            var products = await _productRepository.SearchProductsAsync(searchTerm);
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
+        }
+
+        public async Task<PagedResultDto<ProductDto>> GetProductsWithFiltersAsync(ProductFilterDto filters)
+        {
+            var (products, totalCount) = await _productRepository.GetProductsWithFiltersAsync(
+                filters.PageNumber, filters.PageSize, filters.CategoryId, filters.BrandId,
+                filters.Gender, filters.MinPrice, filters.MaxPrice, filters.SearchTerm);
+
+            return new PagedResultDto<ProductDto>
+            {
+                Items = _mapper.Map<IEnumerable<ProductDto>>(products),
+                TotalCount = totalCount,
+                PageNumber = filters.PageNumber,
+                PageSize = filters.PageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / filters.PageSize)
+            };
+        }
+
+        public async Task<bool> UpdateInventoryAsync(Guid productId, Dictionary<Guid, int> variantStockUpdates)
         {
             try
             {
@@ -167,56 +118,55 @@ namespace Adidas.Application.Services.Main
                 {
                     await _variantRepository.UpdateStockAsync(update.Key, update.Value);
                 }
-
-                return OperationResult<bool>.Success(true);
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating inventory for product {ProductId}", productId);
-                return OperationResult<bool>.Fail(ex.Message);
+                return false;
             }
         }
 
-        public async Task<OperationResult<decimal>> CalculateDiscountedPriceAsync(Guid productId,
-            string? discountCode = null)
+        public async Task<decimal> CalculateDiscountedPriceAsync(Guid productId, string? discountCode = null)
         {
-            try
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) return 0;
+
+            var basePrice = product.SalePrice ?? product.Price;
+
+            if (string.IsNullOrEmpty(discountCode))
+                return basePrice;
+
+            var discountAmount = await _couponService.CalculateCouponAmountAsync(discountCode, basePrice);
+            return Math.Max(0, basePrice - discountAmount);
+        }
+        public async Task<PagedResultDto<ProductDto>> GetProductsFilteredByCategoryBrandGenderAsync(ProductFilterDto filters)
+        {
+            var (products, totalCount) = await _productRepository.GetFilteredProductsAsync(filters);
+
+            return new PagedResultDto<ProductDto>
             {
-                var product = await _productRepository.GetByIdAsync(productId);
-                if (product == null)
-                {
-                    return OperationResult<decimal>.Fail("Product not found");
-                }
-
-                var basePrice = product.SalePrice ?? product.Price;
-
-                if (string.IsNullOrEmpty(discountCode))
-                {
-                    return OperationResult<decimal>.Success(basePrice);
-                }
-
-                var discountAmount = await _couponService.CalculateCouponAmountAsync(discountCode, basePrice);
-                return OperationResult<decimal>.Success(discountAmount);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating discounted price for product {ProductId}", productId);
-                return OperationResult<decimal>.Fail(ex.Message);
-            }
+                Items = _mapper.Map<IEnumerable<ProductDto>>(products),
+                TotalCount = totalCount,
+                PageNumber = filters.PageNumber,
+                PageSize = filters.PageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / filters.PageSize)
+            };
         }
 
-        protected Task ValidateCreateAsync(ProductCreateDto productCreateDto)
+
+        protected override Task ValidateCreateAsync(CreateProductDto createDto)
         {
-            if (string.IsNullOrWhiteSpace(productCreateDto.Name))
+            if (string.IsNullOrWhiteSpace(createDto.Name))
                 throw new ArgumentException("Product name is required");
 
-            if (productCreateDto.Price <= 0)
+            if (createDto.Price <= 0)
                 throw new ArgumentException("Product price must be greater than 0");
 
             return Task.CompletedTask;
         }
 
-        protected async Task BeforeCreateAsync(Product entity)
+        protected override async Task BeforeCreateAsync(Product entity)
         {
             // Generate SKU if not provided
             if (string.IsNullOrEmpty(entity.Sku))
@@ -227,6 +177,7 @@ namespace Adidas.Application.Services.Main
             // Create slug from name
             //entity.Slug = CreateSlug(entity.Name);
         }
+
 
         private async Task<string> GenerateSkuAsync(string productName)
         {

@@ -1,41 +1,52 @@
-﻿using Adidas.DTOs.Common_DTOs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
+using Adidas.DTOs.Operation.ReviewDTOs.Query;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Models.People;
 
-namespace Adidas.DTOs.Main.ProductDTOs
+namespace Adidas.DTOs.Main.Product_DTOs
 {
     public class ProductDto : BaseDto
     {
-        public required string Name { get; set; }
-        public required string Description { get; set; }
-        public required string ShortDescription { get; set; }
-        public required decimal Price { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string ShortDescription { get; set; } = string.Empty;
+        public string Sku { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
+        public decimal Price { get; set; }
         public decimal? SalePrice { get; set; }
-        public required Gender GenderTarget { get; set; }
-    
+        public Gender GenderTarget { get; set; }
+        public int SortOrder { get; set; }
         public string? MetaTitle { get; set; }
-
         public string? MetaDescription { get; set; }
-        public required string Sku { get; set; }
+        public string? Keywords { get; set; }
+        public string CategoryName { get; set; } = "No Category";
+        public string BrandName { get; set; } = "No Brand";
+        public bool InStock { get; set; }
+        public bool ComputedInStock => Variants != null && Variants.Any(v => v.StockQuantity > 0);
+        public Guid CategoryId { get; set; }
+        public Guid BrandId { get; set; }
 
-        public string? Specifications { get; set; }
-        
-        // calculated properties
-        public double AverageRating { get; set; }
-        public int ReviewCount { get; set; }
 
-        // foreign keys
-        public required Guid CategoryId { get; set; }
-        public required Guid BrandId { get; set; }
-        
-        // navigations
-        public CategoryDto Category { get; set; }
-        public BrandDto Brand { get; set; }
-        
+        // Navigation properties
+        public CategoryDto Category { get; set; } = new();
+        public BrandDto Brand { get; set; } = new();
         public ICollection<ProductImageDto> Images { get; set; } = new List<ProductImageDto>();
         public ICollection<ProductVariantDto> Variants { get; set; } = new List<ProductVariantDto>();
+        public ICollection<ReviewDto> Reviews { get; set; } = new List<ReviewDto>();
+
+        // Computed properties
+        public decimal DisplayPrice => SalePrice ?? Price;
+        public bool IsOnSale => SalePrice.HasValue && SalePrice < Price;
+        public double AverageRating => Reviews.Any() ? Reviews.Average(r => r.Rating) : 0;
+        public int ReviewCount => Reviews.Count;
     }
 }

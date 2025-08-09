@@ -17,5 +17,10 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Main
         Task<bool> UpdateStockAsync(Guid variantId, int newStock);
         Task<bool> ReserveStockAsync(Guid variantId, int quantity);
         Task<bool> ReleaseStockAsync(Guid variantId, int quantity);
+        Task<ProductVariant?> GetByIdWithImagesAsync(Guid id);
+        void Remove(ProductVariant entity);
+        Task<IEnumerable<ProductVariant>> GetAllWithProductAndImagesAsync();
+
+
     }
 }

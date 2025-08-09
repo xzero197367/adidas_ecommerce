@@ -20,6 +20,9 @@ namespace Adidas.DTOs.Main.ProductDTOs
 
         [Required, Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
         public decimal Price { get; set; }
+        public bool InStock { get; set; }
+        public bool Sale { get; set; }
+
 
         [Range(0.01, double.MaxValue, ErrorMessage = "Sale price must be greater than 0")]
         public decimal? SalePrice { get; set; }
