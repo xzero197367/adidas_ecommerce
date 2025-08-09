@@ -1,14 +1,8 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
-using Adidas.Context;
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.Models.Main;
 using Models.People;
-using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore; 
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.Infra.Main
 {

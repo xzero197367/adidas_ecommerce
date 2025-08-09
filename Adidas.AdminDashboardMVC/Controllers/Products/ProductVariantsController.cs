@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Models.People;
 using System;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
@@ -25,7 +26,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             ICategoryService categoryService,
             IBrandService brandService, ICategoryRepository categoryRepository, IBrandRepository brandRepository)
         {
-
             _productVariantService = productVariantService;
             _productService = productService;
             _categoryService = categoryService;
@@ -33,6 +33,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _categoryRepository = categoryRepository;
             _brandRepository = brandRepository;
         }
+
         // GET: /ProductVariants?searchSku=XXXX
         public async Task<IActionResult> Index(string? searchSku)
         {
@@ -53,7 +54,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
             else
             {
-                variants = await _productVariantService.GetAllAsync();
+                var result = await _productVariantService.GetAllAsync();
+                variants = result.Data;
             }
 
             return View(variants);
@@ -69,7 +71,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([FromForm] CreateProductVariantDto createDto)
+        public async Task<IActionResult> Create([FromForm] ProductVariantCreateDto createDto)
         {
             if (!ModelState.IsValid)
             {
@@ -104,29 +106,29 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 TempData["Error"] = $"Error deleting variant: {ex.Message}";
             }
+
             return RedirectToAction(nameof(Index));
         }
 
 
-
-
         private async Task PopulateDropdownsAsync()
         {
-            var products = await _productService.GetAllAsync();
+            var results = await _productService.GetAllAsync();
+            var products = results.Data;
             ViewBag.Products = products.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
                 Text = p.Name
             }).ToList();
 
-            var categories = await _categoryRepository.GetAllAsync();
+            var categories = await _categoryRepository.GetAll().ToListAsync();
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             }).ToList();
 
-            var brands = await _brandRepository.GetAllAsync();
+            var brands = await _brandRepository.GetAll().ToListAsync();
             ViewBag.Brands = brands.Select(b => new SelectListItem
             {
                 Value = b.Id.ToString(),
@@ -141,15 +143,22 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     Text = g.ToString()
                 }).ToList();
         }
+
         // GET: /ProductVariants/Edit/{id}
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
-            var variant = await _productVariantService.GetByIdAsync(id);
-            if (variant == null)
+            var result = await _productVariantService.GetByIdAsync(id);
+            if (result.IsSuccess == false)
+            {
+                TempData["Error"] = result.ErrorMessage;
+                // return RedirectToAction(nameof(Index));
                 return NotFound();
+            }
 
-            var updateDto = new UpdateProductVariantDto
+            var variant = result.Data;
+
+            var updateDto = new ProductVariantUpdateDto
             {
                 Id = variant.Id,
                 ProductId = variant.ProductId,
@@ -162,7 +171,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 ImageUrl = variant.Images.FirstOrDefault()?.ImageUrl
             };
 
-            var products = await _productService.GetAllAsync();
+            var productsResult = await _productService.GetAllAsync();
+            var products = productsResult.Data;
             ViewBag.Products = products.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
@@ -176,14 +186,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         // POST: /ProductVariants/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, UpdateProductVariantDto model)
+        public async Task<IActionResult> Edit(Guid id, ProductVariantUpdateDto model)
         {
             if (id != model.Id)
                 return BadRequest();
 
             if (!ModelState.IsValid)
             {
-                var products = await _productService.GetAllAsync();
+                var productResult = await _productService.GetAllAsync();
+                var products = productResult.Data;
                 ViewBag.Products = products.Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
@@ -194,14 +205,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             try
             {
-                await _productVariantService.UpdateAsync(id, model);
+                await _productVariantService.UpdateAsync(model);
                 TempData["Success"] = "Product variant updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", $"Error updating product variant: {ex.Message}");
-                var products = await _productService.GetAllAsync();
+                var productResult = await _productService.GetAllAsync();
+                var products = productResult.Data;
                 ViewBag.Products = products.Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
@@ -210,6 +222,5 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return View(model);
             }
         }
-
     }
 }

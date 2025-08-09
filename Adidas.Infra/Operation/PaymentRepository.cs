@@ -1,8 +1,5 @@
-﻿using Adidas.Application.Contracts.RepositoriesContracts.Operation;
-
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using Adidas.DTOs.Common_DTOs;
-using Mapster;
 
 namespace Adidas.Infra.Operation
 {
@@ -48,16 +45,16 @@ namespace Adidas.Infra.Operation
             return await GetAll(q => q.Where(p => p.PaymentStatus == "Failed" && !p.IsDeleted)).ToListAsync();
         }
 
-        public async Task<PagedResultDto<OrderItem>> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null)
+        public async Task<PagedResultDto<Payment>> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null)
         {
             if (!string.IsNullOrEmpty(status))
             {
                 var payments1 = await GetPagedAsync(pageNumber, pageSize, q=>q.Where(p => p.PaymentStatus == status && !p.IsDeleted));
-                return payments1.Adapt<PagedResultDto<OrderItem>>();
+                return payments1;
             }
             var payments = await GetPagedAsync(pageNumber, pageSize, q => q.Where(p => !p.IsDeleted));
             
-            return payments.Adapt<PagedResultDto<OrderItem>>();
+            return payments;
         }
     }
 }

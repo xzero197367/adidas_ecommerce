@@ -195,7 +195,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
         return await query.FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public IQueryable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
+    public  IQueryable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
     {
         var query = _dbSet.AsQueryable();
         if (queryFunc != null) query = queryFunc(query);

@@ -10,5 +10,5 @@ public interface IPaymentRepository : IGenericRepository<Payment>
     Task<Payment?> GetPaymentByTransactionIdAsync(string transactionId);
     Task<decimal> GetTotalPaymentsAsync(DateTime? startDate = null, DateTime? endDate = null);
     Task<IEnumerable<Payment>> GetFailedPaymentsAsync();
-    Task<PagedResultDto<OrderItem>> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null);
+    Task<PagedResultDto<Payment>> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null);
 }

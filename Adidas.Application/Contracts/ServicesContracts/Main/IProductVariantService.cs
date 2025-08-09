@@ -11,9 +11,8 @@ using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Main
 {
-    public interface IProductVariantService :IGenericService<ProductVariant, ProductVariantDto, CreateProductVariantDto, UpdateProductVariantDto>
+    public interface IProductVariantService :IGenericService<ProductVariant, ProductVariantDto, ProductVariantCreateDto, ProductVariantUpdateDto>
     {
-        Task<ProductVariantDto> CreateAsync(CreateProductVariantDto createDto);
 
         Task<bool> AddImageAsync(Guid variantId, IFormFile imageFile);
         Task<ProductVariantDto?> GetBySkuAsync(string sku);

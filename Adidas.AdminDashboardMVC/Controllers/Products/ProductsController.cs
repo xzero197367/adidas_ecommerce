@@ -2,8 +2,10 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Models.People;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
@@ -29,8 +31,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         public async Task<IActionResult> Index(ProductFilterDto filter)
         {
-
-            var categories = await _categoryRepository.GetAllAsync();
+            var categories = await _categoryRepository.GetAll().ToListAsync();
             ViewBag.Categories = categories
                 .Select(c => new SelectListItem
                 {
@@ -38,7 +39,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     Text = c.Name
                 }).ToList();
 
-            var brands = await _brandRepository.GetAllAsync();
+            var brands = await _brandRepository.GetAll().ToListAsync();
             ViewBag.Brands = brands
                 .Select(b => new SelectListItem
                 {
@@ -63,14 +64,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Create()
         {
             await PopulateDropdownsAsync();
-            return View(new CreateProductDto());
+            return View(new ProductCreateDto());
         }
-
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateProductDto model)
+        public async Task<IActionResult> Create(ProductCreateDto model)
         {
             if (!ModelState.IsValid)
             {
@@ -86,13 +86,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null) return NotFound();
+            var result = await _productService.GetByIdAsync(id);
+            if (result.IsSuccess == false) return NotFound();
+            var product = result.Data;
 
             await PopulateDropdownsAsync();
-            var updateDto = new UpdateProductDto
+            var updateDto = new ProductUpdateDto
             {
-                ID = product.Id,
+                Id = product.Id,
                 Name = product.Name,
                 Price = product.Price,
                 SalePrice = product.SalePrice,
@@ -100,17 +101,16 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 BrandId = product.BrandId,
                 GenderTarget = product.GenderTarget,
                 Description = product.Description,
-                InStock = product.InStock 
+                InStock = product.InStock
             };
 
             return View(updateDto);
         }
 
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UpdateProductDto model)
+        public async Task<IActionResult> Edit(ProductUpdateDto model)
         {
             if (!ModelState.IsValid)
             {
@@ -118,21 +118,21 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return View(model);
             }
 
-            await _productService.UpdateAsync(model.ID, model);
+            await _productService.UpdateAsync(model);
             return RedirectToAction(nameof(Index));
         }
 
 
         private async Task PopulateDropdownsAsync()
         {
-            var categories = await _categoryRepository.GetAllAsync();
+            var categories = await _categoryRepository.GetAll().ToListAsync();
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             }).ToList();
 
-            var brands = await _brandRepository.GetAllAsync();
+            var brands = await _brandRepository.GetAll().ToListAsync();
             ViewBag.Brands = brands.Select(b => new SelectListItem
             {
                 Value = b.Id.ToString(),
@@ -153,12 +153,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null)
+            var result = await _productService.GetByIdAsync(id);
+            if (result.IsSuccess = false)
             {
-                TempData["Error"] = "Product not found.";
+                TempData["Error"] = "Product not found." + result.ErrorMessage;
                 return RedirectToAction(nameof(Index));
             }
+
+            var product = result.Data;
 
             try
             {
@@ -166,7 +168,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
                 if (product.Variants != null && product.Variants.Any())
                 {
-                    TempData["Success"] = $"Product and its {product.Variants.Count()} variant(s) deleted successfully.";
+                    TempData["Success"] =
+                        $"Product and its {product.Variants.Count()} variant(s) deleted successfully.";
                 }
                 else
                 {
@@ -200,8 +203,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteVariant(Guid id, Guid productId)
         {
-
-            var variant = await _productService.GetVariantByIdAsync(id); 
+            var variant = await _productService.GetVariantByIdAsync(id);
             if (variant == null)
             {
                 TempData["Error"] = "Variant not found.";
@@ -213,12 +215,5 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             TempData["Success"] = "Variant deleted successfully.";
             return RedirectToAction("Details", new { id = productId });
         }
-
-
-
-
-
-
-
     }
 }

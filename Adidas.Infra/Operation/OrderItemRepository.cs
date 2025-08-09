@@ -1,6 +1,5 @@
 ﻿using System.Data.Entity;
 using Adidas.DTOs.Common_DTOs;
-using Mapster;
 
 namespace Adidas.Infra.Operation
 {
@@ -54,7 +53,7 @@ namespace Adidas.Infra.Operation
             var orderItems = await GetPagedAsync(pageNumber, pageSize,
                 q => q.Where(oi => oi.OrderId == orderId && !oi.IsDeleted));
 
-            return orderItems.Adapt<PagedResultDto<OrderItem>>();
+            return orderItems;
         }
     }
 }

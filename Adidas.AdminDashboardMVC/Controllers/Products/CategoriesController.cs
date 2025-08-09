@@ -1,5 +1,5 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
-using Adidas.DTOs.Main.ProductDTOs;
+using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

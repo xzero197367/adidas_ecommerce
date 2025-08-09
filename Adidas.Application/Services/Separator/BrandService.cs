@@ -2,7 +2,7 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.ProductDTOs;
+using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.Models.Separator;
 using Microsoft.EntityFrameworkCore;

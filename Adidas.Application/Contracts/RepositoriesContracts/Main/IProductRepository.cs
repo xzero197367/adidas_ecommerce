@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Adidas.DTOs.Main.ProductDTOs;
 
 namespace Adidas.Application.Contracts.RepositoriesContracts.Main
 {

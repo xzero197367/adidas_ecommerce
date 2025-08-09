@@ -1,17 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Adidas.DTOs.CommonDTOs;
 
 namespace Adidas.DTOs.Main.Product_Variant_DTOs
 {
-    public class UpdateProductVariantDto
+    public class ProductVariantUpdateDto: BaseUpdateDto
     {
-        [Required]
-        public Guid Id { get; set; }  
 
         [Required]
         public Guid ProductId { get; set; }  

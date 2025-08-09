@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Adidas.DTOs.Main.Product_Variant_DTOs

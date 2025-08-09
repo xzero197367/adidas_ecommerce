@@ -1,6 +1,6 @@
 ﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.ProductAttributeDTOs;
-using Adidas.DTOs.Main.ProductDTOs;
 
 namespace Adidas.DTOs.Main.ProductAttributeValueDTOs
 {
