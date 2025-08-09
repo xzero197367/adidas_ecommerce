@@ -2,7 +2,6 @@
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
-using Adidas.DTOs.Operation.PaymentDTOs.Result;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {

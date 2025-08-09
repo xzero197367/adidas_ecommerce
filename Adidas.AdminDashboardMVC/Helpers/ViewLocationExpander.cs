@@ -15,8 +15,8 @@ public class ViewLocationExpander: IViewLocationExpander
         // Custom locations for partials under /Areas/Admin/Views/Partial/**
         var customLocations = new[]
         {
-            "/Views/OrderViews/{1}/{0}.cshtml", 
-            "/Views/OrderViews/{1}/Sections/{0}.cshtml",
+            "/Views/Operation/{1}/{0}.cshtml", 
+            "/Views/Operation/{1}/Sections/{0}.cshtml",
 
         };
 

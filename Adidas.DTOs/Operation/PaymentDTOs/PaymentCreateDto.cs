@@ -8,14 +8,14 @@ namespace Adidas.DTOs.Operation.PaymentDTOs
     {
         [Required]
         [MaxLength(50)]
-        public required string PaymentMethod { get; set; }
+        public string PaymentMethod { get; set; }
 
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
-        public required decimal Amount { get; set; }
+        public decimal Amount { get; set; }
 
         [Required]
-        public required Guid OrderId { get; set; }
+        public Guid OrderId { get; set; }
 
         [MaxLength(500)]
         public string? GatewayResponse { get; set; }

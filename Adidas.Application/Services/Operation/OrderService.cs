@@ -6,7 +6,6 @@ using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
-using Adidas.DTOs.Operation.PaymentDTOs.Result;
 using Microsoft.Extensions.Logging;
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;

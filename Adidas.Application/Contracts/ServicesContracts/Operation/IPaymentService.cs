@@ -1,11 +1,12 @@
 ﻿
 
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.PaymentDTOs;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {
 
-    public interface IPaymentService //: IGenericService<Payment, PaymentDto, PaymentCreateDto, PaymentUpdateDto>
+    public interface IPaymentService 
     {
         // Payment-specific Query Operations
         // Task<OperationResult<IEnumerable<OperationResult<PaymentDto>>>> GetPaymentsByOrderIdAsync(Guid orderId);
@@ -25,8 +26,9 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         // Task<OperationResult<IEnumerable<PaymentDto>>> GetPaymentsByDateRangeAsync(DateTime startDate, DateTime endDate);
         //
         // // Business Logic
-        // Task<OperationResult<PaymentDto>> ProcessPaymentAsync(CreatePaymentDto paymentDto);
-        // Task<OperationResult<PaymentDto>> RefundPaymentAsync(Guid paymentId, decimal? refundAmount = null);
+        Task<OperationResult<PaymentDto>> GetPaymentByIdAsync(Guid id);
+        Task<OperationResult<PaymentDto>> ProcessPaymentAsync(PaymentCreateDto paymentDto);
+        Task<OperationResult<PaymentDto>> RefundPaymentAsync(Guid paymentId, decimal? refundAmount = null);
         // Task<OperationResult<bool>> ValidatePaymentAsync(Guid paymentId);
         // Task<OperationResult<IEnumerable<PaymentDto>>> GetPendingPaymentsAsync();
         // Task<OperationResult<bool>> MarkPaymentAsSuccessfulAsync(Guid paymentId, string transactionId);

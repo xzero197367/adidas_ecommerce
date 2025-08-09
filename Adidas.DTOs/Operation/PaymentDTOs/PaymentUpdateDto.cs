@@ -1,9 +1,10 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
+using Adidas.DTOs.CommonDTOs;
 
 namespace Adidas.DTOs.Operation.PaymentDTOs
 {
-    public class PaymentUpdateDto
+    public class PaymentUpdateDto: BaseUpdateDto
     {
         [MaxLength(50)]
         public string? PaymentMethod { get; set; }

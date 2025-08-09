@@ -115,6 +115,7 @@ public static class MyDependancyInjection
         // Payment
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IPaymentReportService, PaymentReportService>();
 
         // Review
         services.AddScoped<IReviewRepository, ReviewRepository>();
