@@ -9,8 +9,8 @@ public class ProductVariantMappingProfile : BaseMappingProfile
     {
         // ProductVariant <=> DTOs
         CreateMap<ProductVariant, ProductVariantDto>()
-            .ForMember(dest => dest.ColorHex,
-                opt => opt.MapFrom(src => src.ImageUrl)); // Assuming ImageUrl might store ColorHex
+             .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images))
+    .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
         CreateMap<CreateProductVariantDto, ProductVariant>()
             .ForMember(dest => dest.Sku, opt => opt.Ignore()); // SKU may be generated
         CreateMap<UpdateProductVariantDto, ProductVariant>()

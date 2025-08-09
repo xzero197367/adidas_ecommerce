@@ -1,640 +1,686 @@
-﻿@model Adidas.DTOs.Main.Product_Variant_DTOs.ProductVariantDto
+﻿@model IEnumerable<Adidas.DTOs.Main.Product_Variant_DTOs.ProductVariantDto>
 @{
-    ViewData["Title"] = "Product Variant Details";
+    ViewData["Title"] = "Product Variants Management";
 }
-
+<!-- Custom CSS -->
 <style>
-    .variant-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        min-height: 100vh;
-    }
-
-    .page-header {
-        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    .variants-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 2rem;
-        border-radius: 15px;
+        padding: 2rem 0;
         margin-bottom: 2rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        position: relative;
-        overflow: hidden;
+        border-radius: 0 0 20px 20px;
     }
 
-        .page-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
-        }
+    .variants-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
 
-        .page-header h2 {
-            margin: 0;
-            font-size: 2.2rem;
-            font-weight: 700;
-            position: relative;
-            z-index: 1;
-        }
+    .variants-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
 
-        .page-header .breadcrumb {
-            color: #bdc3c7;
-            margin: 0.5rem 0 0 0;
-            font-size: 1rem;
-            position: relative;
-            z-index: 1;
-        }
+    .stats-cards {
+        margin-bottom: 2rem;
+    }
 
-    .search-section {
+    .stat-card {
         background: white;
+        border-radius: 15px;
         padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        margin-bottom: 2rem;
-        border: 1px solid #e9ecef;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: center;
     }
 
-        .search-section h4 {
-            margin: 0 0 1rem 0;
-            color: #495057;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
         }
 
-    .search-form {
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-bottom: 3px solid #dee2e6;
+    }
+
+    .search-filter-row {
         display: flex;
         gap: 1rem;
-        max-width: 500px;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
-        .search-form input {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+    .search-box {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .search-input {
+        border-radius: 25px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-1px);
         }
 
-            .search-form input:focus {
-                outline: none;
-                border-color: #007bff;
-                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
+    .filter-select {
+        border-radius: 20px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        background: white;
+        min-width: 150px;
+        transition: all 0.3s ease;
+    }
+
+        .filter-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+    .modern-table {
+        margin: 0;
+        border: none;
+    }
+
+        .modern-table thead th {
+            background: #f8f9fa;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modern-table tbody tr {
+            border: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+            .modern-table tbody tr:hover {
+                background: #f8f9fa;
+                transform: scale(1.01);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             }
 
-    .variant-details-card {
-        background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
-        border: 1px solid #e9ecef;
+        .modern-table tbody td {
+            padding: 1rem;
+            border: none;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: middle;
+        }
+
+    .variant-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
     }
 
-    .variant-image-section {
-        position: relative;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 300px;
+        .variant-image:hover {
+            transform: scale(1.1);
+        }
+
+    .color-swatch {
+        width: 60px;
+        height: 40px;
+        border-radius: 20px;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
     }
 
-    .variant-main-image {
-        max-width: 100%;
-        max-height: 300px;
-        object-fit: contain;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+    .product-name {
+        font-weight: 600;
+        color: #495057;
+        font-size: 1rem;
     }
 
-    .no-image-placeholder {
-        width: 200px;
-        height: 200px;
-        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
+    .variant-detail {
         color: #6c757d;
-    }
-
-    .variant-info {
-        padding: 2rem;
-    }
-
-    .sku-badge {
-        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
         font-size: 0.9rem;
-        display: inline-block;
-        margin-bottom: 1rem;
     }
 
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        margin: 1.5rem 0;
-    }
-
-    .info-item {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #007bff;
-    }
-
-        .info-item strong {
-            color: #495057;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        .info-item span {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-    .price-highlight {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-        border-left-color: #20c997;
-    }
-
-        .price-highlight strong {
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .price-highlight span {
-            color: white;
-        }
-
-    .stock-status {
-        padding: 0.5rem 1rem;
+    .stock-badge {
+        padding: 0.4rem 0.8rem;
         border-radius: 20px;
+        font-size: 0.85rem;
         font-weight: 600;
-        font-size: 0.9rem;
+        text-align: center;
+        min-width: 80px;
         display: inline-block;
     }
 
     .stock-high {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
+        background: #d1edff;
+        color: #0c5aa0;
     }
 
     .stock-medium {
         background: #fff3cd;
         color: #856404;
-        border: 1px solid #ffeaa7;
     }
 
     .stock-low {
         background: #f8d7da;
         color: #721c24;
-        border: 1px solid #f5c6cb;
     }
 
-    .action-section {
-        padding: 1.5rem 2rem;
+    .stock-out {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .price-tag {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #28a745;
+    }
+
+    .sku-code {
+        font-family: 'Courier New', monospace;
         background: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-    }
-
-    .upload-section {
-        background: white;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        margin-bottom: 2rem;
-        border: 2px dashed #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-        .upload-section:hover {
-            border-color: #007bff;
-            background: #f8f9ff;
-        }
-
-        .upload-section h4 {
-            margin: 0 0 1rem 0;
-            color: #495057;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-    .upload-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        max-width: 500px;
-    }
-
-    .file-input-wrapper {
-        position: relative;
-        overflow: hidden;
-        display: inline-block;
-        cursor: pointer;
-        background: #f8f9fa;
-        border: 2px solid #dee2e6;
+        padding: 0.3rem 0.6rem;
         border-radius: 8px;
-        padding: 2rem;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-
-        .file-input-wrapper:hover {
-            background: #e9ecef;
-            border-color: #007bff;
-        }
-
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: -9999px;
-        }
-
-    .gallery-section {
-        background: white;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        font-size: 0.85rem;
+        color: #6c757d;
         border: 1px solid #e9ecef;
     }
 
-        .gallery-section h4 {
-            margin: 0 0 1.5rem 0;
-            color: #495057;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-    .image-gallery {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 1rem;
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
     }
 
-    .gallery-image {
-        position: relative;
-        aspect-ratio: 1;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-    }
-
-        .gallery-image:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .gallery-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .btn {
-        padding: 0.75rem 1.5rem;
+    .btn-modern {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
         font-weight: 600;
-        border-radius: 8px;
+        font-size: 0.85rem;
+        text-decoration: none;
         border: none;
         cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+    }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+    .btn-create {
+        background: linear-gradient(135deg, #55a3ff 0%, #003d82 100%);
+        color: white;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        border-radius: 25px;
         text-decoration: none;
+        font-weight: 600;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         transition: all 0.3s ease;
-        font-size: 0.95rem;
+        border: none;
+        box-shadow: 0 8px 25px rgba(85, 163, 255, 0.3);
     }
 
-    .btn-primary {
-        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-        color: white;
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-    }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0, 123, 255, 0.4);
+        .btn-create:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(85, 163, 255, 0.4);
+            color: white;
         }
 
-    .btn-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-    }
-
-        .btn-success:hover {
-            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
-        }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
-        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-    }
-
-        .btn-danger:hover {
-            background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(220, 53, 69, 0.4);
-        }
-
-    .no-images-message {
+    .no-variants {
         text-align: center;
-        padding: 3rem;
+        padding: 4rem 2rem;
         color: #6c757d;
-        font-size: 1.1rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border: 2px dashed #dee2e6;
+    }
+
+    .no-variants-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .alert-modern {
+        border: none;
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        font-weight: 500;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #721c24;
+        border-left: 4px solid #dc3545;
     }
 
    (max-width: 768px) {
-        .variant-container
+        .variants-title
 
     {
-        padding: 1rem;
+        font-size: 2rem;
     }
 
-    .page-header {
-        padding: 1.5rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.8rem;
-        }
-
-    .variant-details-card .row {
+    .search-filter-row {
         flex-direction: column;
     }
 
-    .info-grid {
-        grid-template-columns: 1fr;
+    .search-box {
+        min-width: 100%;
     }
 
-    .search-form {
+    .action-buttons {
         flex-direction: column;
     }
 
-    .image-gallery {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    .modern-table {
+        font-size: 0.85rem;
+    }
+
+    .variant-image, .color-swatch {
+        width: 40px;
+        height: 40px;
     }
 
     }
 </style>
 
-<div class="variant-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h2>🎯 Product Variant Details</h2>
-        <div class="breadcrumb">
-            @Model.Product.Name → Variant Management
+<div class="variants-header">
+    <div class="container">
+        <h1 class="variants-title">@ViewData["Title"]</h1>
+        <p class="variants-subtitle">Manage your product variants efficiently</p>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Alert Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-modern">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
         </div>
-    </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-modern">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+        </div>
+    }
 
-    <!-- Search Section -->
-    <div class="search-section">
-        <h4>🔍 Quick SKU Search</h4>
-        <form method="get" asp-action="SearchBySku" class="search-form">
-            <input type="text" name="sku" class="form-control" placeholder="Enter SKU to search..." />
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-search"></i> Search
-            </button>
-        </form>
-    </div>
-
-    <!-- Variant Details Card -->
-    <div class="variant-details-card">
-        <div class="row g-0">
-            <div class="col-md-5">
-                <div class="variant-image-section">
-                    @if (Model.Images != null && Model.Images.Any())
-                    {
-                        <img src="@Model.Images.First().ImageUrl" class="variant-main-image" alt="@Model.Product.Name - @Model.Color" />
-                    }
-                    else
-                    {
-                        <div class="no-image-placeholder">
-                            <i class="fas fa-image fa-3x mb-2"></i>
-                            <p>No Image Available</p>
-                        </div>
-                    }
-                </div>
+    <!-- Statistics Cards -->
+    <div class="row stats-cards">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-primary">@Model.Count()</div>
+                <div class="stat-label">Total Variants</div>
             </div>
-            <div class="col-md-7">
-                <div class="variant-info">
-                    <div class="sku-badge">
-                        SKU: @Model.Sku
-                    </div>
-
-                    <h3 style="margin: 0 0 1rem 0; color: #2c3e50;">@Model.Product.Name</h3>
-
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <strong>👟 Size</strong>
-                            <span>@Model.Size</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>🎨 Color</strong>
-                            <span>@Model.Color</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>📦 Stock</strong>
-                            <span>
-                                @Model.StockQuantity units
-                                @if (Model.StockQuantity > 50)
-                                {
-                                    <span class="stock-status stock-high">High Stock</span>
-                                }
-                                else if (Model.StockQuantity > 10)
-                                {
-                                    <span class="stock-status stock-medium">Medium Stock</span>
-                                }
-                                else
-                                {
-                                    <span class="stock-status stock-low">Low Stock</span>
-                                }
-                            </span>
-                        </div>
-                        <div class="info-item price-highlight">
-                            <strong>💰 Price Adjustment</strong>
-                            <span>@Model.PriceAdjustment.ToString("C")</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="action-section">
-                    <form asp-action="Delete" method="post" onsubmit="return confirm('⚠️ Are you sure you want to delete this variant? This action cannot be undone.');">
-                        <input type="hidden" name="variantId" value="@Model.Id" />
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash-alt"></i> Delete Variant
-                        </button>
-                    </form>
-                </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-success">@Model.Count(v => v.StockQuantity > 0)</div>
+                <div class="stat-label">In Stock</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-warning">@Model.Count(v => v.StockQuantity <= 5 && v.StockQuantity > 0)</div>
+                <div class="stat-label">Low Stock</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="stat-number text-danger">@Model.Count(v => v.StockQuantity == 0)</div>
+                <div class="stat-label">Out of Stock</div>
             </div>
         </div>
     </div>
 
-    <!-- Upload Section -->
-    <div class="upload-section">
-        <h4>📸 Add New Image</h4>
-        <form asp-action="AddImage" method="post" enctype="multipart/form-data" class="upload-form">
-            <input type="hidden" name="variantId" value="@Model.Id" />
-
-            <div class="file-input-wrapper">
-                <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #6c757d;"></i>
-                <p style="margin: 0; color: #6c757d;">Click to select image or drag & drop</p>
-                <input type="file" name="imageFile" accept="image/*" />
+    <!-- Main Table Container -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="search-filter-row">
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="form-control search-input" placeholder="🔍 Search variants by product, color, size, or SKU...">
+                </div>
+                <select id="stockFilter" class="form-select filter-select">
+                    <option value="">All Stock Levels</option>
+                    <option value="high">High Stock (>10)</option>
+                    <option value="medium">Medium Stock (6-10)</option>
+                    <option value="low">Low Stock (1-5)</option>
+                    <option value="out">Out of Stock</option>
+                </select>
+                <select id="colorFilter" class="form-select filter-select">
+                    <option value="">All Colors</option>
+                    @foreach (var color in Model.Select(v => v.Color).Distinct().OrderBy(c => c))
+                    {
+                        <option value="@color">@color</option>
+                    }
+                </select>
             </div>
+        </div>
 
-            <button type="submit" class="btn btn-success">
-                <i class="fas fa-upload"></i> Upload Image
-            </button>
-        </form>
-    </div>
-
-    <!-- Image Gallery -->
-    <div class="gallery-section">
-        @if (Model.Images != null && Model.Images.Any())
+        @if (Model.Any())
         {
-            <h4>🖼️ Variant Image Gallery (@Model.Images.Count() images)</h4>
-            <div class="image-gallery">
-                @foreach (var img in Model.Images)
-                {
-                    <div class="gallery-image">
-                        <img src="@img.ImageUrl" alt="@Model.Product.Name - @Model.Color"
-                             onclick="openImageModal('@img.ImageUrl')" style="cursor: pointer;" />
-                    </div>
-                }
+            <div class="table-responsive">
+                <table class="table modern-table" id="variantsTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th>SKU</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var variant in Model)
+                        {
+                            <tr class="variant-row"
+                                data-product="@variant.Product.Name.ToLower()"
+                                data-color="@variant.Color.ToLower()"
+                                data-size="@variant.Size.ToLower()"
+                                data-sku="@variant.Sku.ToLower()"
+                                data-stock="@variant.StockQuantity">
+                                <td>
+                                    @if (variant.Images != null && variant.Images.Any() && !string.IsNullOrEmpty(variant.Images.First().ImageUrl))
+                                    {
+                                        <img src="@variant.Images.First().ImageUrl" alt="@variant.Product.Name - @variant.Color" class="variant-image" loading="lazy" />
+                                    }
+                                    else if (!string.IsNullOrEmpty(variant.ColorHex))
+                                    {
+                                        <div class="color-swatch" style="background-color:@variant.ColorHex;" title="@variant.Color"></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="color-swatch" style="background: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0px;" title="No Image"></div>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="product-name">@variant.Product.Name</div>
+                                </td>
+                                <td>
+                                    <span class="variant-detail">@variant.Color</span>
+                                </td>
+                                <td>
+                                    <span class="variant-detail">@variant.Size</span>
+                                </td>
+                                <td>
+                                    <span class="stock-badge @(variant.StockQuantity > 10 ? "stock-high" : variant.StockQuantity > 5 ? "stock-medium" : variant.StockQuantity > 0 ? "stock-low" : "stock-out")">
+                                        @variant.StockQuantity
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="price-tag">@variant.PriceAdjustment.ToString("C")</span>
+                                </td>
+                                <td>
+                                    <code class="sku-code">@variant.Sku</code>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@variant.Id" class="btn-modern btn-edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <button type="button" class="btn-modern btn-delete" onclick="confirmDelete('@variant.Id', '@variant.Product.Name', '@variant.Color', '@variant.Size')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
         else
         {
-            <h4>🖼️ Image Gallery</h4>
-            <div class="no-images-message">
-                <i class="fas fa-images fa-3x mb-3" style="color: #dee2e6;"></i>
-                <p>No images available for this variant yet.</p>
-                <p>Upload some images to showcase this product variant!</p>
+            <div class="no-variants">
+                <div class="no-variants-icon">📦</div>
+                <h3>No Product Variants Found</h3>
+                <p>Start by creating your first product variant to see it listed here.</p>
             </div>
         }
     </div>
-</div>
 
-<!-- Image Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Product Image</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img id="modalImage" src="" alt="Product Image" style="max-width: 100%; height: auto;" />
-            </div>
-        </div>
+    <!-- Create Button -->
+    <div class="text-center mb-4">
+        <a asp-action="Create" class="btn-create">
+            <i class="fas fa-plus"></i> Create New Variant
+        </a>
     </div>
 </div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+@Html.AntiForgeryToken()
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // File input enhancement
-        const fileInput = document.querySelector('input[type="file"]');
-        const wrapper = document.querySelector('.file-input-wrapper');
+    // Enhanced delete confirmation with variant details
+    function confirmDelete(id, productName, color, size) {
+        Swal.fire({
+            title: 'Delete Product Variant?',
+            html: `
+                <div style="text-align: left; margin: 1rem 0;">
+                    <p><strong>Product:</strong> ${productName}</p>
+                    <p><strong>Color:</strong> ${color}</p>
+                    <p><strong>Size:</strong> ${size}</p>
+                </div>
+                <p style="color: #dc3545; margin-top: 1rem;">This action cannot be undone!</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash"></i> Yes, Delete It!',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+            reverseButtons: true,
+            customClass: {
+                confirmButton: 'btn btn-danger me-2',
+                cancelButton: 'btn btn-secondary'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Deleting...',
+                    text: 'Please wait while we delete the variant.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
 
-        if (fileInput && wrapper) {
-            wrapper.addEventListener('click', function() {
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', function() {
-                const fileName = this.files[0] ? this.files[0].name : 'No file selected';
-                wrapper.querySelector('p').textContent = fileName;
-            });
-
-            // Drag and drop functionality
-            wrapper.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.style.background = '#e3f2fd';
-                this.style.borderColor = '#2196f3';
-            });
-
-            wrapper.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                this.style.background = '#f8f9fa';
-                this.style.borderColor = '#dee2e6';
-            });
-
-            wrapper.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.style.background = '#f8f9fa';
-                this.style.borderColor = '#dee2e6';
-
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    this.querySelector('p').textContent = files[0].name;
+                // Create and submit form
+                var form = document.createElement('form');
+                form.method = 'post';
+                form.action = '/ProductVariants/Delete/' + id;
+                var token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = '__RequestVerificationToken';
+                    input.value = token.value;
+                    form.appendChild(input);
                 }
-            });
-        }
-
-        // Search input focus enhancement
-        const searchInput = document.querySelector('input[name="sku"]');
-        if (searchInput) {
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    this.closest('form').submit();
-                }
-            });
-        }
-
-        // Stock quantity color coding
-        const stockElement = document.querySelector('.info-item span');
-        if (stockElement) {
-            const stockValue = parseInt(stockElement.textContent);
-            if (stockValue <= 5) {
-                stockElement.style.color = '#dc3545';
-            } else if (stockValue <= 20) {
-                stockElement.style.color = '#ffc107';
-            } else {
-                stockElement.style.color = '#28a745';
+                document.body.appendChild(form);
+                form.submit();
             }
+        });
+    }
+
+    // Search and filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const stockFilter = document.getElementById('stockFilter');
+        const colorFilter = document.getElementById('colorFilter');
+        const table = document.getElementById('variantsTable');
+        const rows = table ? table.getElementsByClassName('variant-row') : [];
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const stockValue = stockFilter.value;
+            const colorValue = colorFilter.value.toLowerCase();
+
+            Array.from(rows).forEach(row => {
+                const productName = row.dataset.product;
+                const color = row.dataset.color;
+                const size = row.dataset.size;
+                const sku = row.dataset.sku;
+                const stock = parseInt(row.dataset.stock);
+
+                // Search filter
+                const matchesSearch = !searchTerm ||
+                    productName.includes(searchTerm) ||
+                    color.includes(searchTerm) ||
+                    size.includes(searchTerm) ||
+                    sku.includes(searchTerm);
+
+                // Stock filter
+                let matchesStock = true;
+                if (stockValue) {
+                    switch(stockValue) {
+                        case 'high': matchesStock = stock > 10; break;
+                        case 'medium': matchesStock = stock >= 6 && stock <= 10; break;
+                        case 'low': matchesStock = stock >= 1 && stock <= 5; break;
+                        case 'out': matchesStock = stock === 0; break;
+                    }
+                }
+
+                // Color filter
+                const matchesColor = !colorValue || color.includes(colorValue);
+
+                // Show/hide row
+                row.style.display = matchesSearch && matchesStock && matchesColor ? '' : 'none';
+            });
+
+            // Update result count
+            const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none').length;
+            updateResultCount(visibleRows, rows.length);
         }
+
+        function updateResultCount(visible, total) {
+            let countElement = document.getElementById('resultCount');
+            if (!countElement) {
+                countElement = document.createElement('div');
+                countElement.id = 'resultCount';
+                countElement.className = 'text-muted mt-2';
+                document.querySelector('.table-header').appendChild(countElement);
+            }
+            countElement.textContent = visible === total ?
+                `Showing all ${total} variants` :
+                `Showing ${visible} of ${total} variants`;
+        }
+
+        // Add event listeners
+        if (searchInput) searchInput.addEventListener('input', filterTable);
+        if (stockFilter) stockFilter.addEventListener('change', filterTable);
+        if (colorFilter) colorFilter.addEventListener('change', filterTable);
+
+        // Initialize result count
+        if (rows.length > 0) {
+            updateResultCount(rows.length, rows.length);
+        }
+
+        // Add row click animation
+        Array.from(rows).forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.01)';
+            });
+            row.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
     });
 
-    // Image modal functionality
-    function openImageModal(imageUrl) {
-        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-        document.getElementById('modalImage').src = imageUrl;
-        modal.show();
-    }
-
-    // Enhanced delete confirmation
-    function confirmDelete() {
-        return confirm('⚠️ WARNING: This will permanently delete the variant and all its associated images. This action cannot be undone. Are you sure you want to continue?');
-    }
+    // Auto-hide alerts after 5 seconds
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            alert.style.transition = 'opacity 0.5s ease-out';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 5000);
 </script>

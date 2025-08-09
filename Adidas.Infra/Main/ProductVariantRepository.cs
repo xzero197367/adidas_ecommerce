@@ -93,5 +93,15 @@ namespace Adidas.Infra.Main
             await UpdateAsync(variant);
             return true;
         }
+
+        public async Task<IEnumerable<ProductVariant>> GetAllWithProductAndImagesAsync()
+        {
+            return await _dbSet
+                .Include(v => v.Product)
+                .Include(v => v.Images)
+                .ToListAsync();
+        }
+
+
     }
 }

@@ -162,7 +162,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (product.Variants != null && product.Variants.Any())
             {
-                TempData["Error"] = "Cannot delete this product because it has variant items.";
                 return RedirectToAction(nameof(Index));
             }
 

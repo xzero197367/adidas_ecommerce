@@ -167,8 +167,24 @@
                                     foreach (var product in Model.Items)
                                     {
                                         <tr>
-                                            <td class="product-name" title="@product.Name">@product.Name</td>
-                                            <td class="price-display">@product.DisplayPrice.ToString("C")</td>
+                                            <td class="product-name" title="@product.Name">
+                                                <div>@product.Name</div>
+                                                <div class="text-muted small text-center">
+                                                    @product.Description
+                                                </div>
+                                            </td>
+
+
+                                            <td class="price-display">
+                                                @product.DisplayPrice.ToString("C")
+                                                <br />
+                                                @if (product.IsOnSale)
+                                                {
+                                                    <small class="text-muted"><s>@product.Price.ToString("C")</s></small>
+                                                }
+                                            </td>
+
+
                                             <td class="d-none d-md-table-cell">@product.CategoryName</td>
                                             <td class="d-none d-lg-table-cell">@product.BrandName</td>
                                             <td class="d-none d-lg-table-cell">@product.GenderTarget</td>
@@ -196,9 +212,7 @@
                                                        title="Edit Product">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <button class="btn-action btn-delete"
-                                                            title="Delete Product"
-                                                            onclick="deleteProduct(@product.Id, '@product.Name')">
+                                                    <button class="btn-action btn-delete" title="Delete Product" onclick="confirmDelete('@product.Id', '@product.Name')">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -329,67 +343,67 @@
     </div>
 </div>
 
-<script>
-    // Action Functions
-    function viewProduct(id) {
-        // Add your view product logic here
-        console.log('View product:', id);
-        // Example: window.location.href = '/Products/Details/' + id;
-    }
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 
-    function deleteProduct(id, name) {
-        if (confirm(`Are you sure you want to delete "${name}"?`)) {
-            // Add your delete logic here
-            console.log('Delete product:', id);
-            // Example:
-            // fetch(`/Products/Delete/${id}`, { method: 'POST' })
-            //     .then(() => location.reload());
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          @* Show success message from TempData *@
+          @if (TempData["Success"] != null)
+          {
+                      <text>
+                      Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: '@TempData["Success"]'
+                      });
+                      </text>
+          }
+          @* Show error message from TempData *@
+          @if (TempData["Error"] != null)
+          {
+                      <text>
+                      Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: '@TempData["Error"]'
+                      });
+                      </text>
+          }
+        });
+
+        function confirmDelete(id, name) {
+          Swal.fire({
+            title: `Are you sure you want to delete "${name}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Create and submit form with antiforgery token
+              var form = document.createElement('form');
+              form.method = 'post';
+              form.action = '@Url.Action("Delete")';
+
+              var token = document.createElement('input');
+              token.type = 'hidden';
+              token.name = '__RequestVerificationToken';
+        token.value = '@Antiforgery.GetAndStoreTokens(ViewContext.HttpContext).RequestToken';
+                      form.appendChild(token);
+
+              var input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = 'id';
+              input.value = id;
+              form.appendChild(input);
+
+              document.body.appendChild(form);
+              form.submit();
+            }
+          });
         }
-    }
-
-    function loadOnSaleProducts() {
-       const saleDiv = document.getElementById('on-sale-content');
-    }
-
-    function loadOutOfStockProducts() {
-        const outOfStockDiv = document.getElementById('out-of-stock-content');
-        console.log('Loading out of stock products...');
-    }
-
-    function loadAnalytics() {
-        // Add logic to load analytics
-        console.log('Loading analytics...');
-    }
-
-    // Mobile menu handling for tabs
-    document.addEventListener('DOMContentLoaded', function() {
-        const navTabs = document.querySelector('.nav-tabs');
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-
-        if (navTabs) {
-            navTabs.addEventListener('mousedown', (e) => {
-                isDown = true;
-                startX = e.pageX - navTabs.offsetLeft;
-                scrollLeft = navTabs.scrollLeft;
-            });
-
-            navTabs.addEventListener('mouseleave', () => {
-                isDown = false;
-            });
-
-            navTabs.addEventListener('mouseup', () => {
-                isDown = false;
-            });
-
-            navTabs.addEventListener('mousemove', (e) => {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - navTabs.offsetLeft;
-                const walk = (x - startX) * 2;
-                navTabs.scrollLeft = scrollLeft - walk;
-            });
-        }
-    });
-</script>
+    </script>
+}

@@ -132,6 +132,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 //Register Category
@@ -146,6 +147,8 @@ builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+
 builder.Services.AddScoped<IClaimsTransformation, CustomClaimsTransformation>();
 #endregion
 var app = builder.Build();
