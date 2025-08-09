@@ -344,66 +344,69 @@
 </div>
 
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-          @* Show success message from TempData *@
           @if (TempData["Success"] != null)
           {
-                      <text>
-                      Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: '@TempData["Success"]'
-                      });
-                      </text>
+                          <text>
+                          Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: '@TempData["Success"]'
+                          });
+                          </text>
           }
-          @* Show error message from TempData *@
           @if (TempData["Error"] != null)
           {
-                      <text>
-                      Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: '@TempData["Error"]'
-                      });
-                      </text>
+                          <text>
+                          Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: '@TempData["Error"]'
+                          });
+                          </text>
           }
         });
 
         function confirmDelete(id, name) {
           Swal.fire({
             title: `Are you sure you want to delete "${name}"?`,
+            text: "This action cannot be undone!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, delete it!',
             cancelButtonText: 'Cancel',
-            reverseButtons: true
+            reverseButtons: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6'
           }).then((result) => {
             if (result.isConfirmed) {
-              // Create and submit form with antiforgery token
-              var form = document.createElement('form');
-              form.method = 'post';
-              form.action = '@Url.Action("Delete")';
-
-              var token = document.createElement('input');
-              token.type = 'hidden';
-              token.name = '__RequestVerificationToken';
-        token.value = '@Antiforgery.GetAndStoreTokens(ViewContext.HttpContext).RequestToken';
-                      form.appendChild(token);
-
-              var input = document.createElement('input');
-              input.type = 'hidden';
-              input.name = 'id';
-              input.value = id;
-              form.appendChild(input);
-
-              document.body.appendChild(form);
-              form.submit();
+              // Use Ajax instead of form submission
+              fetch('@Url.Action("Delete")', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `id=${id}&__RequestVerificationToken=${document.querySelector('input[name="__RequestVerificationToken"]').value}`
+              })
+              .then(response => {
+                if (response.ok) {
+                  window.location.reload(); // Reload to see the result
+                } else {
+                  Swal.fire('Error', 'Failed to delete product', 'error');
+                }
+              })
+              .catch(error => {
+                Swal.fire('Error', 'An error occurred', 'error');
+              });
             }
           });
         }
     </script>
+
+    @Html.AntiForgeryToken()
 }

@@ -1,117 +1,187 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.ProductAttributeValueDTOs;
 using Adidas.Models.Main;
-using AutoMapper;
+using Mapster;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Adidas.Application.Contracts.RepositoriesContracts.Main;
+using EntityState = Microsoft.EntityFrameworkCore.EntityState;
 
 
-namespace Adidas.Application.Services.Main
+namespace Adidas.Application.Services.Main;
+
+public class ProductAttributeValueService :
+    GenericService<ProductAttributeValue, ProductAttributeValueDto, ProductAttributeValueCreateDto,
+        ProductAttributeValueUpdateDto>, IProductAttributeValueService
 {
-    public class ProductAttributeValueService :
-        GenericService<ProductAttributeValue, ProductAttributeValueDto, CreateProductAttributeValueDto, UpdateProductAttributeValueDto>,
-        IProductAttributeValueService
+    private readonly IProductAttributeValueRepository _repository;
+    private readonly ILogger<ProductAttributeValueService> _logger;
+
+    public ProductAttributeValueService(
+        IProductAttributeValueRepository repository,
+        ILogger<ProductAttributeValueService> logger) : base(repository, logger)
     {
-        private readonly IAttributeValueRepository _repository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<ProductAttributeValueService> _logger;
+        _repository = repository;
+        _logger = logger;
+    }
 
-        public ProductAttributeValueService(
-            IAttributeValueRepository repository,
-            IMapper mapper,
-            ILogger<ProductAttributeValueService> logger)
-            : base(repository, mapper, logger)
+    public async Task<OperationResult<ProductAttributeValueDto>> CreateAsync(
+        ProductAttributeValueCreateDto productAttributeValueCreateDto)
+    {
+        try
         {
-            _repository = repository;
-            _mapper = mapper;
-            _logger = logger;
-        }
+            await ValidateCreateAsync(productAttributeValueCreateDto);
 
-        public async Task<ProductAttributeValueDto> CreateAsync(CreateProductAttributeValueDto createDto)
-        {
-            await ValidateCreateAsync(createDto);
-
-            var entity = _mapper.Map<ProductAttributeValue>(createDto);
+            var entity = productAttributeValueCreateDto.Adapt<ProductAttributeValue>();
             await BeforeCreateAsync(entity);
 
             var created = await _repository.AddAsync(entity);
-            return _mapper.Map<ProductAttributeValueDto>(created);
+            await _repository.SaveChangesAsync();
+            created.State = EntityState.Detached;
+            return OperationResult<ProductAttributeValueDto>.Success(
+                created.Entity.Adapt<ProductAttributeValueDto>());
         }
-
-        public async Task<IEnumerable<ProductAttributeValueDto>> CreateRangeAsync(IEnumerable<CreateProductAttributeValueDto> createDtos)
+        catch (Exception ex)
         {
-            var entities = _mapper.Map<IEnumerable<ProductAttributeValue>>(createDtos);
-            await _repository.AddRangeAsync(entities);
-            return _mapper.Map<IEnumerable<ProductAttributeValueDto>>(entities);
+            _logger.LogError(ex, "Error creating product attribute value");
+            return OperationResult<ProductAttributeValueDto>.Fail(ex.Message);
         }
+    }
 
-        public async Task<ProductAttributeValue?> GetValueAsync(Guid valueId)
+    public async Task<OperationResult<IEnumerable<ProductAttributeValueDto>>> CreateRangeAsync(
+        IEnumerable<ProductAttributeValueCreateDto> createDtos)
+    {
+        try
         {
-            return await _repository.GetByIdAsync(valueId);
+            var entities = createDtos.Adapt<IEnumerable<ProductAttributeValue>>();
+            var created = await _repository.AddRangeAsync(entities);
+            await _repository.SaveChangesAsync();
+            var createdEntities = created.Select(x =>
+            {
+                x.State = EntityState.Detached;
+                return x.Entity;
+            });
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Success(
+                createdEntities.Adapt<IEnumerable<ProductAttributeValueDto>>());
         }
-
-        public async Task<IEnumerable<ProductAttributeValue>> GetValuesByAttributeIdAsync(Guid attributeId)
+        catch (Exception ex)
         {
-            return await _repository.GetValuesByAttributeIdAsync(attributeId);
+            _logger.LogError(ex, "Error creating product attribute values");
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Fail(ex.Message);
         }
+    }
 
-        public async Task<IEnumerable<ProductAttributeValue>> GetValuesByProductIdAsync(Guid productId)
+    public async Task<OperationResult<ProductAttributeValueDto>> GetValueAsync(Guid valueId)
+    {
+        try
         {
-            return await _repository.GetValuesByProductIdAsync(productId);
+            var value = await _repository.GetByIdAsync(valueId);
+            return OperationResult<ProductAttributeValueDto>.Success(value.Adapt<ProductAttributeValueDto>());
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting product attribute value");
+            return OperationResult<ProductAttributeValueDto>.Fail(ex.Message);
+        }
+    }
 
-        public async Task<ProductAttributeValueDto> UpdateAsync(Guid id, UpdateProductAttributeValueDto updateDto)
+    public async Task<OperationResult<IEnumerable<ProductAttributeValueDto>>> GetValuesByAttributeIdAsync(
+        Guid attributeId)
+    {
+        try
+        {
+            var result = await _repository.GetValuesByAttributeIdAsync(attributeId);
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Success(
+                result.Adapt<IEnumerable<ProductAttributeValueDto>>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting product attribute values");
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<OperationResult<IEnumerable<ProductAttributeValueDto>>> GetValuesByProductIdAsync(
+        Guid productId)
+    {
+        try
+        {
+            var result = await _repository.GetValuesByProductIdAsync(productId);
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Success(
+                result.Adapt<IEnumerable<ProductAttributeValueDto>>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting product attribute values");
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<OperationResult<ProductAttributeValueDto>> UpdateAsync(Guid id,
+        ProductAttributeValueUpdateDto productAttributeValueUpdateDto)
+    {
+        try
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
                 throw new KeyNotFoundException($"Product attribute value with ID {id} not found.");
 
-            _mapper.Map(updateDto, entity);
-            await _repository.UpdateAsync(entity);
-
-            return _mapper.Map<ProductAttributeValueDto>(entity);
+            var updateElement = productAttributeValueUpdateDto.Adapt<ProductAttributeValue>();
+            var result = await _repository.UpdateAsync(updateElement);
+            await _repository.SaveChangesAsync();
+            result.State = EntityState.Detached;
+            return OperationResult<ProductAttributeValueDto>.Success(
+                result.Entity.Adapt<ProductAttributeValueDto>());
         }
-
-        public async Task<IEnumerable<ProductAttributeValueDto>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, UpdateProductAttributeValueDto>> updates)
+        catch (Exception ex)
         {
-            var result = new List<ProductAttributeValueDto>();
+            _logger.LogError(ex, "Error updating product attribute value");
+            return OperationResult<ProductAttributeValueDto>.Fail(ex.Message);
+        }
+    }
 
-            foreach (var pair in updates)
+    public async Task<OperationResult<IEnumerable<ProductAttributeValueDto>>> UpdateRangeAsync(
+        IEnumerable<ProductAttributeValueUpdateDto> updates)
+    {
+        try
+        {
+            var elementsToUpdate = updates.Adapt<IEnumerable<ProductAttributeValue>>();
+            var result = await _repository.UpdateRangeAsync(elementsToUpdate);
+            var updatedEntities = result.Select(x =>
             {
-                var entity = await _repository.GetByIdAsync(pair.Key);
-                if (entity == null) continue;
+                x.State = EntityState.Detached;
+                return x.Entity;
+            });
 
-                _mapper.Map(pair.Value, entity);
-                await _repository.UpdateAsync(entity);
-                result.Add(_mapper.Map<ProductAttributeValueDto>(entity));
-            }
-
-            return result;
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Success(
+                updatedEntities.Adapt<IEnumerable<ProductAttributeValueDto>>());
         }
-
-        protected override Task ValidateCreateAsync(CreateProductAttributeValueDto createDto)
+        catch (Exception ex)
         {
-            if (string.IsNullOrWhiteSpace(createDto.Value))
-                throw new ArgumentException("Attribute value is required.");
-
-            if (createDto.ProductId == Guid.Empty)
-                throw new ArgumentException("Product ID must be specified.");
-
-            if (createDto.AttributeId == Guid.Empty)
-                throw new ArgumentException("Attribute ID must be specified.");
-
-            return Task.CompletedTask;
+            _logger.LogError(ex, "Error updating product attribute values");
+            return OperationResult<IEnumerable<ProductAttributeValueDto>>.Fail(ex.Message);
         }
+    }
 
-        protected override Task BeforeCreateAsync(ProductAttributeValue entity)
-        {
-            // You can add logic like trimming value or checking uniqueness if needed
-            entity.Value = entity.Value.Trim();
-            return Task.CompletedTask;
-        }
+    public Task ValidateCreateAsync(ProductAttributeValueCreateDto productAttributeValueCreateDto)
+    {
+        if (string.IsNullOrWhiteSpace(productAttributeValueCreateDto.Value))
+            throw new ArgumentException("Attribute value is required.");
+
+        if (productAttributeValueCreateDto.ProductId == Guid.Empty)
+            throw new ArgumentException("Product ID must be specified.");
+
+        if (productAttributeValueCreateDto.AttributeId == Guid.Empty)
+            throw new ArgumentException("Attribute ID must be specified.");
+
+        return Task.CompletedTask;
+    }
+
+    public Task BeforeCreateAsync(ProductAttributeValue entity)
+    {
+        // You can add logic like trimming value or checking uniqueness if needed
+        entity.Value = entity.Value.Trim();
+        return Task.CompletedTask;
     }
 }

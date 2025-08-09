@@ -8,12 +8,12 @@ namespace Adidas.Models.Feature;
 public class ShoppingCart : BaseAuditableEntity
 {
     //fields
-    public int Quantity { get; set; }
+    public required int Quantity { get; set; }
     public DateTime AddedAt { get; set; } = DateTime.UtcNow;
     
     // foreign keys
-    public string UserId { get; set; }
-    public Guid VariantId { get; set; }
+    public required string UserId { get; set; }
+    public required Guid VariantId { get; set; }
     
     // navigation properties
     public User User { get; set; }

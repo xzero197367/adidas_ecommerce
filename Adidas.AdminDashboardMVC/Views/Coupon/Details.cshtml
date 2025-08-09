@@ -1,0 +1,163 @@
+﻿@model Adidas.DTOs.Feature.CouponDTOs.CouponDetailsDTO
+
+@{
+    ViewData["Title"] = $"Coupon Details";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10 p-4 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Coupon Details: <span class="text-primary">@Model.CouponDto.Code</span></h2>
+                </div>
+                <div>
+                   
+                    <a href="@Url.Action("Index", "Coupon")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+
+            <hr />
+
+
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Total Usage</h6>
+                                    <h3 class="mb-0">@Model.TotalUsage.ToString("N0")</h3>
+                                </div>
+                                <i class="fas fa-chart-line fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Total Savings</h6>
+                                    <h3 class="mb-0">@Model.TotalSavings.ToString("C")</h3>
+                                </div>
+                                <i class="fas fa-dollar-sign fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Usage Limit</h6>
+                                    <h3 class="mb-0">@(Model.CouponDto.UsageLimit == 0 ? "Unlimited" : Model.CouponDto.UsageLimit.ToString("N0"))</h3>
+                                </div>
+                                <i class="fas fa-ticket-alt fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Coupon Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Code:</dt>
+                                <dd class="col-sm-8"><strong>@Model.CouponDto.Code</strong></dd>
+
+                                <dt class="col-sm-4">Name:</dt>
+                                <dd class="col-sm-8">@Model.CouponDto.Name</dd>
+                                 
+                                <dt class="col-sm-4">Discount Type:</dt>
+                                <dd class="col-sm-8">@Model.CouponDto.DiscountType</dd>
+
+                                <dt class="col-sm-4">Discount Value:</dt>
+                                <dd class="col-sm-8">@Model.CouponDto.DiscountDisplayText</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Minimum Amount:</dt>
+                                <dd class="col-sm-8">@Model.CouponDto.MinimumAmount.ToString("C")</dd>
+
+                                <dt class="col-sm-4">Valid From:</dt>
+                                <dd class="col-sm-8">@Model.CouponDto.ValidFrom.ToString("MMM dd, yyyy h:mm tt")</dd>
+
+                                <dt class="col-sm-4">Valid To:</dt>
+                                <dd class="col-sm-8">@Model.CouponDto.ValidTo.ToString("MMM dd, yyyy h:mm tt")</dd>
+
+                                <dt class="col-sm-4">Status:</dt>
+                                <dd class="col-sm-8">
+                                    @{
+                                        string statusClass = "badge bg-secondary";
+                                        if (Model.CouponDto.StatusText == "Active")
+                                        {
+                                            statusClass = "badge bg-success";
+                                        }
+                                        else if (Model.CouponDto.StatusText == "Expired" || Model.CouponDto.StatusText == "Limit Reached")
+                                        {
+                                            statusClass = "badge bg-danger";
+                                        }
+                                    }
+                                    <span class="@statusClass">@Model.CouponDto.StatusText</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+          
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Usage History (@Model.TotalUsage)</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.orderCouponDtos != null && Model.orderCouponDtos.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ORDER ID</th>
+                                        <th>DISCOUNT APPLIED</th>
+                                        <th>USED AT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var orderCoupon in Model.orderCouponDtos)
+                                    {
+                                        <tr>
+                                            <td>@orderCoupon.OrderId</td>
+                                            <td>@orderCoupon.DiscountApplied.ToString("C")</td>
+                                            <td>@orderCoupon.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-info-circle me-2"></i> No usage history found for this coupon.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

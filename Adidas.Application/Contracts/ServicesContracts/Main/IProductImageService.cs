@@ -1,17 +1,14 @@
-﻿using Adidas.DTOs.Main.ProductImageDTOs;
+﻿
+using Adidas.DTOs.CommonDTOs;
+using Adidas.DTOs.Main.ProductImageDTOs;
 using Adidas.Models.Main;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Main
 {
-    public interface IProductImageService : IGenericService<ProductImage, ProductImageDto, CreateProductImageDto, UpdateProductImageDto>
+    public interface IProductImageService : IGenericService<ProductImage, ProductImageDto, ProductImageCreateDto, ProductImageUpdateDto>
     {
-        Task<IEnumerable<ProductImage>> GetImagesByProductIdAsync(Guid productId);
-        Task<IEnumerable<ProductImage>> GetImagesByVariantIdAsync(Guid variantId);
-        Task<ProductImage?> GetPrimaryImageAsync(Guid productId);
+        Task<OperationResult<IEnumerable<ProductImageDto>>> GetImagesByProductIdAsync(Guid productId);
+        Task<OperationResult<IEnumerable<ProductImageDto>>> GetImagesByVariantIdAsync(Guid variantId);
+        Task<OperationResult<ProductImageDto>> GetPrimaryImageAsync(Guid productId);
     }
 }

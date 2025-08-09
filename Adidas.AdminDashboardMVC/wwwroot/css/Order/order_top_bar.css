@@ -1,0 +1,52 @@
+﻿
+.order_top_bar {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    margin: 20px 0px;
+    background-color: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+
+    .left {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .right {
+        margin: auto 20px;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+
+        .admin_user_btn {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: none;
+            font-weight: 500;
+            background-color: transparent;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+
+            i {
+                font-size: 20px;
+            }
+
+            span {
+                font-size: 15px;
+                font-weight: 500;
+            }
+
+            &:hover {
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.4);
+                
+            }
+        }
+    }
+}

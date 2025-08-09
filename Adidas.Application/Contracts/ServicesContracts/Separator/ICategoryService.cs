@@ -1,23 +1,20 @@
 ﻿using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
-using Adidas.Models.Separator;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
     public interface ICategoryService 
     {
         // Category-specific methods
         Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();
-        Task<Result> CreateAsync(CreateCategoryDto createCategoryDto);
+        Task<Result> CreateAsync(CategoryCreateDto createCategoryDto);
         Task<Result>DeleteAsync(Guid id);
-        Task<Result> UpdateAsync(UpdateCategoryDto updateCategoryDto);
-        Task<UpdateCategoryDto> GetCategoryToEditByIdAsync(Guid id);
+        Task<Result> UpdateAsync(CategoryUpdateDto updateCategoryDto);
+        Task<CategoryUpdateDto> GetCategoryToEditByIdAsync(Guid id);
         Task<CategoryDto> GetCategoryDetailsAsync(Guid id);
+        Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter, string searchTerm);
+        Task<Result> ToggleCategoryStatusAsync(Guid categoryId);
+
+
         //Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId);
         //Task<CategoryResponseDto?> GetCategoryBySlugAsync(string slug);
         //Task<List<CategoryHierarchyDto>> GetCategoryHierarchyAsync(Guid categoryId);

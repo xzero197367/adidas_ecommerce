@@ -23,7 +23,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
             var result = await _customerService.GetCustomersAsync(filter);
 
             ViewBag.CurrentFilter = filter;
-            return View(result);
+            return View(result.Data);
         }
 
         [HttpGet]
@@ -33,10 +33,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
                 return NotFound();
 
             var customer = await _customerService.GetCustomerByIdAsync(id);
-            if (customer == null)
+            if (customer.IsSuccess == false)
                 return NotFound();
 
-            return View(customer);
+            return View(customer.Data);
         }
 
         [HttpGet]
@@ -46,27 +46,27 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
                 return NotFound();
 
             var customer = await _customerService.GetCustomerByIdAsync(id);
-            if (customer == null)
+            if (customer.IsSuccess == false)
                 return NotFound();
 
-            var updateDto = new UpdateCustomerDto
+            var updateDto = new CustomerUpdateDto
             {
-                Phone = customer.Phone,
-                Gender = customer.Gender,
-                DateOfBirth = customer.DateOfBirth,
-                PreferredLanguage = customer.PreferredLanguage
+                Phone = customer.Data.Phone,
+                Gender = customer.Data.Gender,
+                DateOfBirth = customer.Data.DateOfBirth,
+                PreferredLanguage = customer.Data.PreferredLanguage
             };
 
             ViewBag.CustomerId = id;
-            ViewBag.CustomerName = customer.Name;
-            ViewBag.CustomerEmail = customer.Email;
+            ViewBag.CustomerName = customer.Data.Name;
+            ViewBag.CustomerEmail = customer.Data.Email;
 
             return View(updateDto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, UpdateCustomerDto updateDto)
+        public async Task<IActionResult> Edit(string id, CustomerUpdateDto customerUpdateDto)
         {
             if (string.IsNullOrEmpty(id))
                 return NotFound();
@@ -75,21 +75,21 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
             {
                 var customer = await _customerService.GetCustomerByIdAsync(id);
                 ViewBag.CustomerId = id;
-                ViewBag.CustomerName = customer?.Name;
-                ViewBag.CustomerEmail = customer?.Email;
-                return View(updateDto);
+                ViewBag.CustomerName = customer?.Data.Name;
+                ViewBag.CustomerEmail = customer?.Data.Email;
+                return View(customerUpdateDto);
             }
 
-            var success = await _customerService.UpdateCustomerAsync(id, updateDto);
+            var success = await _customerService.UpdateCustomerAsync(id, customerUpdateDto);
 
-            if (success)
+            if (success.IsSuccess)
             {
                 TempData["Success"] = "Customer updated successfully.";
                 return RedirectToAction(nameof(Details), new { id });
             }
 
             TempData["Error"] = "Failed to update customer.";
-            return View(updateDto);
+            return View(customerUpdateDto);
         }
 
         [HttpPost]
@@ -103,7 +103,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
             return Json(new
             {
                 success = success,
-                message = success ? "Customer status updated successfully." : "Failed to update customer status."
+                message = success.IsSuccess ? "Customer status updated successfully." : "Failed to update customer status."
             });
         }
 
@@ -118,7 +118,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
             return Json(new
             {
                 success = success,
-                message = success ? "Customer deleted successfully." : "Failed to delete customer."
+                message = success.IsSuccess ? "Customer deleted successfully." : "Failed to delete customer."
             });
         }
 
@@ -127,7 +127,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
         {
             var csvData = await _customerService.ExportCustomersAsync(filter);
 
-            return File(csvData, "text/csv", $"customers_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
+            return File(csvData.Data, "text/csv", $"customers_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
         }
 
         // AJAX endpoint for filtered data
@@ -135,7 +135,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
         public async Task<IActionResult> GetCustomersData(CustomerFilterDto filter)
         {
             var result = await _customerService.GetCustomersAsync(filter);
-            return PartialView("_CustomerListPartial", result);
+            return PartialView("_CustomerListPartial", result.Data);
         }
     }
 }

@@ -1,10 +1,11 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
-{
+{ 
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
@@ -17,10 +18,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string categoryType, string statusFilter, string searchTerm)
         {
-            var mainCategories = await _categoryService.GetMainCategoriesAsync();
-            return View(mainCategories);
+            var categories = await _categoryService.GetFilteredCategoriesAsync(categoryType, statusFilter, searchTerm);
+
+            ViewData["CurrentType"] = categoryType;
+            ViewData["CurrentStatus"] = statusFilter;
+            ViewData["SearchTerm"] = searchTerm;
+
+            return View(categories);
         }
 
 
@@ -28,13 +34,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Create()
         {
             await PopulateParentCategoriesDropdown();
-            return View();
+            return View(new CategoryCreateDto());
         }
 
         // POST: /Category/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateCategoryDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Create(CategoryCreateDto model, IFormFile ImageFile)
         {
             if (!ModelState.IsValid)
             {
@@ -91,15 +97,16 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Edit(Guid id)
         {
             var category = await _categoryService.GetCategoryToEditByIdAsync(id);
-            await PopulateParentCategoriesDropdown();
+            await PopulateParentCategoriesDropdown(id);
             return View(category);
         }
 
         // POST: /Category/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit( UpdateCategoryDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Edit(CategoryUpdateDto model, IFormFile? ImageFile)
         {
+         
             if (!ModelState.IsValid)
             {
                 ViewBag.CategoryId = model.Id;
@@ -149,12 +156,38 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             return RedirectToAction("Index");
         }
 
-
-
-        private async Task PopulateParentCategoriesDropdown()
+        [HttpPost]
+        public async Task<IActionResult> ToggleStatus(Guid id)
         {
-            var parentCategories = await _categoryService.GetMainCategoriesAsync(); // Use method that fetches only main/active ones if needed
+            var result = await _categoryService.ToggleCategoryStatusAsync(id);
 
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Category status updated successfully.";
+            }
+            var referer = Request.Headers["Referer"].ToString();
+            if (!string.IsNullOrEmpty(referer))
+            {
+                return Redirect(referer);
+            }
+
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        private async Task PopulateParentCategoriesDropdown(Guid? currentCategoryId = null)
+        {
+            var parentCategories = await _categoryService.GetMainCategoriesAsync();
+            if (currentCategoryId.HasValue)
+            {
+                parentCategories = parentCategories
+                    .Where(c => c.Id != currentCategoryId.Value)
+                    .ToList();
+            }
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
         }
 
@@ -173,16 +206,31 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 TempData["Success"] = "Category deleted successfully!";
             }
+            var referer = Request.Headers["Referer"].ToString();
+           
+            if (!string.IsNullOrEmpty(referer))
+            {
+                return Redirect(referer);
+            }
+
 
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Details(Guid id)
         {
+            var referer = Request.Headers["Referer"].ToString();
             if (id == Guid.Empty)
             {
-                TempData["ErrorMessage"] = "Invalid category ID provided.";  
-                return RedirectToAction(nameof(Index));  
+                TempData["ErrorMessage"] = "Invalid category ID provided.";
+               
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    return Redirect(referer);
+                }
+
+                return RedirectToAction($"{nameof(Index)}");
+
             }
 
             try
@@ -191,61 +239,49 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
                 if (categoryDto == null)
                 {
-                    TempData["ErrorMessage"] = $"Category with ID '{id}' not found."; 
-                    return RedirectToAction(nameof(Index));  
+                    TempData["ErrorMessage"] = $"Category with ID '{id}' not found.";
+                    if (!string.IsNullOrEmpty(referer))
+                    {
+                        return Redirect(referer);
+                    }
+                    return RedirectToAction($"{nameof(Index)}");
+
                 }
 
-                return View(categoryDto); 
+
+                return View(categoryDto);
             }
             catch (Exception ex)
             {
-                
+
                 TempData["ErrorMessage"] = $"An unexpected error occurred while retrieving category details: {ex.Message}";
-                return RedirectToAction(nameof(Index));  
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    return Redirect(referer);
+                }
+
+                return RedirectToAction($"{nameof(Index)}");
+
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProductsByCategoryId(Guid id)
+        {
+            try
+            {
+                var categoryDto = await _categoryService.GetCategoryDetailsAsync(id);
+                if (categoryDto == null || categoryDto.Products == null)
+                    return PartialView("_CategoryProductsPartial", new List<ProductDto>());
+
+                return PartialView("_CategoryProductsPartial", categoryDto.Products);
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred while loading products.");
             }
         }
 
 
-        [HttpGet]
-        public IActionResult FilterCategories(string search, string categoryType, string status)
-        {
-            // 1. Get all categories from your database
-            var categories = _categoryService.GetMainCategoriesAsync(); // Assuming you have a service
-
-            // 2. Apply filtering logic
-            //if (!string.IsNullOrEmpty(search))
-            //{
-            //    categories = categories.(c => c.Name.Contains(search) || c.Description.Contains(search));
-            //}
-
-            //if (categoryType != "all")
-            //{
-            //    switch (categoryType)
-            //    {
-            //        case "main":
-            //            categories = categories.Where(c => !c.ParentCategoryId.HasValue);
-            //            break;
-            //        case "sub":
-            //            categories = categories.Where(c => c.ParentCategoryId.HasValue);
-            //            break;
-            //        case "uncategorized":
-            //            // Assuming you have a way to identify uncategorized products
-            //            break;
-            //    }
-            //}
-
-            //if (status != "all")
-            //{
-            //    bool isActive = (status == "active");
-            //    categories = categories.Where(c => c.IsActive == isActive);
-            //}
-
-            // 3. Return a partial view with the filtered data
-            return Json(categories);
-        }
     }
-
-
-
 }
-

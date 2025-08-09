@@ -1,17 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Adidas.DTOs.CommonDTOs;
 
 namespace Adidas.DTOs.Feature.OrderCouponDTOs;
 
-public class OrderCouponUpdateDto
+public class OrderCouponUpdateDto: BaseUpdateDto
 {
-    public Guid Id { get; set; }
     // fields
-    [Required]
-    public decimal DiscountApplied { get; set; }
-    
-    // foreign key
-    [Required]
-    public Guid CouponId { get; set; }
-    [Required]
-    public Guid OrderId { get; set; }
+    public decimal? DiscountApplied { get; set; }
 }

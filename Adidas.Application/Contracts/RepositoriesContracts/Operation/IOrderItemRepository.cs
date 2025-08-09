@@ -1,5 +1,6 @@
 ﻿using Adidas.Models.Operation;
 using System;
+using Adidas.DTOs.Common_DTOs;
 
 namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
 {
@@ -10,7 +11,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<decimal> GetTotalSalesForVariantAsync(Guid variantId);
         Task<IEnumerable<OrderItem>> GetBestSellingItemsAsync(int count);
         Task<int> GetTotalQuantitySoldAsync(Guid variantId);
-        Task<(IEnumerable<OrderItem> items, int totalCount)> GetOrderItemsPagedAsync(Guid orderId, int pageNumber, int pageSize);
+        Task<PagedResultDto<OrderItem>> GetOrderItemsPagedAsync(Guid orderId, int pageNumber, int pageSize);
     }
 }
  

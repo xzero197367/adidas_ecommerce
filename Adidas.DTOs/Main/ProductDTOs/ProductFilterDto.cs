@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Models.People;
+﻿using Models.People;
 
-namespace Adidas.DTOs.Main.Product_DTOs
+namespace Adidas.DTOs.Main.ProductDTOs
 {
     public class ProductFilterDto
     {

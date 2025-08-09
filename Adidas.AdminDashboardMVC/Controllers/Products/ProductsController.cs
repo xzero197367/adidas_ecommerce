@@ -160,16 +160,26 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return RedirectToAction(nameof(Index));
             }
 
-            if (product.Variants != null && product.Variants.Any())
+            try
             {
-                return RedirectToAction(nameof(Index));
+                await _productService.DeleteAsync(id);
+
+                if (product.Variants != null && product.Variants.Any())
+                {
+                    TempData["Success"] = $"Product and its {product.Variants.Count()} variant(s) deleted successfully.";
+                }
+                else
+                {
+                    TempData["Success"] = "Product deleted successfully.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while deleting the product.";
             }
 
-            await _productService.DeleteAsync(id);
-            TempData["Success"] = "Product deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
-
 
         public async Task<IActionResult> Details(Guid id, string? sku)
         {

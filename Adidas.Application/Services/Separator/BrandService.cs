@@ -2,12 +2,10 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
-using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Separator;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Separator
 {
@@ -25,23 +23,27 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<Result> DeleteAsync(Guid id)
         {
-            var brand = await _brandRepository.GetByIdAsync(id);
+            var brand = await _brandRepository.GetByIdAsync(id,
+                  c => c.Products            
+                );
             if (brand == null)
                 return Result.Failure("Brand not found.");
+            if (brand.Products.Count() != 0)
+                return Result.Failure("Cannot delete a brand that has products.");
 
-            await _brandRepository.SoftDeleteAsync(id);
+            await _brandRepository.HardDeleteAsync(id);
             var result = await _brandRepository.SaveChangesAsync();
 
-            return result == null ? Result.Failure("Failed to Create Brand.") : Result.Success();
+            return result == null ? Result.Failure("Failed to Delete Brand.") : Result.Success();
         }
 
         public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
         {
 
-            var brands = await _brandRepository.GetAllAsync();
+            var brands =  _brandRepository.GetAll();
 
 
-            var activeBrands = brands.Where(b => b.IsActive && !b.IsDeleted);
+            var activeBrands = await brands.Where(b => b.IsActive && !b.IsDeleted).ToListAsync();
 
             var brandDtos = activeBrands.Select(b => new BrandDto
             {
@@ -58,7 +60,7 @@ namespace Adidas.Application.Services.Separator
             return brandDtos;
         }
 
-        public async Task<Result> CreateAsync(CreateBrandDto createBrandDto)
+        public async Task<Result> CreateAsync(BrandCreateDto createBrandDto)
         {
 
             if (await _brandRepository.GetBrandByNameAsync(createBrandDto.Name) != null)
@@ -92,7 +94,7 @@ namespace Adidas.Application.Services.Separator
         }
 
 
-        public async Task<Result> UpdateAsync(UpdateBrandDto dto)
+        public async Task<Result> UpdateAsync(BrandUpdateDto dto)
         {
             var brandToUpdate = await _brandRepository.GetByIdAsync(dto.Id);
 
@@ -127,7 +129,7 @@ namespace Adidas.Application.Services.Separator
             }
         }
 
-        public async Task<UpdateBrandDto> GetBrandToEditByIdAsync(Guid id)
+        public async Task<BrandUpdateDto> GetBrandToEditByIdAsync(Guid id)
         {
             var brand = await _brandRepository.GetByIdAsync(id);
 
@@ -135,7 +137,7 @@ namespace Adidas.Application.Services.Separator
              {
                 return null;
              }
-            var updateBrandDto = new UpdateBrandDto
+            var updateBrandDto = new BrandUpdateDto
             {
                 Id = brand.Id,
                 Name = brand.Name,
@@ -149,26 +151,96 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<BrandDto?> GetDetailsByIdAsync(Guid id)
         {
-            var brand = await _brandRepository.GetByIdAsync(id);
+            var brand = await _brandRepository.GetByIdAsync(id, b => b.Products);
 
             if (brand == null)
-            {
                 return null;
-            }
 
-          var brandDto = new BrandDto
+            var brandDto = new BrandDto
             {
                 Id = brand.Id,
                 IsActive = brand.IsActive,
                 Name = brand.Name,
                 Description = brand.Description,
                 LogoUrl = brand.LogoUrl,
+                Products = brand.Products.Select(product => new ProductDto
+                {
+                    Id = product.Id,
+                    IsActive= product.IsActive,
+                    Name = product.Name,
+                    Description = product.Description,
+                    ShortDescription = product.ShortDescription,
+                    Sku = product.Sku,
+                    Price = product.Price,
+                    SalePrice = product.SalePrice,
+                    GenderTarget = product.GenderTarget,
+                    MetaDescription = product.MetaDescription,
+                    CategoryId = product.CategoryId,
+                    BrandId = product.BrandId
+                }).ToList()
             };
 
             return brandDto;
         }
- 
-    
+
+
+        public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
+        {
+            var brandsQuery =  _brandRepository.GetAll();
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                bool isActive = statusFilter == "Active";
+                brandsQuery =  brandsQuery.Where(c => c.IsActive == isActive);
+            }
+
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                brandsQuery = brandsQuery.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+            var brandList = await brandsQuery.ToListAsync();
+            var brandDtos = brandList.Select(b => new BrandDto
+            {
+
+                Id = b.Id,
+                UpdatedAt = b.UpdatedAt,
+                IsActive = b.IsActive,
+
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+            }).ToList();
+
+            return brandDtos;
+        }
+
+        public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
+        {
+            var brand = await _brandRepository.GetByIdAsync(categoryId);
+            if (brand == null)
+                return Result.Failure("brand not found.");
+
+            brand.IsActive = !brand.IsActive;
+
+            try
+            {
+                await _brandRepository.UpdateAsync(brand);
+                var result = await _brandRepository.SaveChangesAsync();
+
+                if (result > 0)
+                    return Result.Success();
+                else
+                    return Result.Failure("No changes were made to the database.");
+            }
+            catch (Exception ex)
+            {
+
+                return Result.Failure("An error occurred while updating the brand status.");
+            }
+        }
+
     }
 }
  //#region Generic Service Overrides

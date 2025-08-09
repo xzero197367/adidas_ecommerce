@@ -206,6 +206,7 @@
             type: 'GET',
             beforeSend: function() {
                 showLoading();
+                console.log('Fetching data from 1 ' + url);
             },
             success: function(data) {
                 hideLoading();
@@ -229,6 +230,7 @@
             data: data,
             beforeSend: function() {
                 showLoading();
+                console.log('Fetching data from 2 ' + url);
             },
             success: function(response) {
                 hideLoading();

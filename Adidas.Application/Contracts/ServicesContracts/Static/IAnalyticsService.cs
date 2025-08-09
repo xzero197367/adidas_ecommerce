@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Static;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Static
@@ -10,13 +7,13 @@ namespace Adidas.Application.Contracts.ServicesContracts.Static
 
     public interface IAnalyticsService
     {
-        Task<DashboardStatsDto> GetDashboardStatsAsync();
-        Task<SalesReportDto> GenerateSalesReportAsync(DateTime startDate, DateTime endDate);
-        Task<IEnumerable<PopularProductDto>> GetPopularProductsAsync(int count = 10);
-        Task<IEnumerable<CategoryPerformanceDto>> GetCategoryPerformanceAsync();
-        Task<CustomerInsightsDto> GetCustomerInsightsAsync();
+        Task<OperationResult<DashboardStatsDto>> GetDashboardStatsAsync();
+        Task<OperationResult<SalesReportDto>> GenerateSalesReportAsync(DateTime startDate, DateTime endDate);
+        Task<OperationResult<IEnumerable<PopularProductDto>>> GetPopularProductsAsync(int count = 10);
+        Task<OperationResult<IEnumerable<CategoryPerformanceDto>>> GetCategoryPerformanceAsync();
+        Task<OperationResult<CustomerInsightsDto>> GetCustomerInsightsAsync();
         // New methods for dashboard functionality
-        Task<IEnumerable<RecentOrderDto>> GetRecentOrdersAsync(int count = 5);
-        Task<IEnumerable<NotificationDto>> GetDashboardNotificationsAsync();
+        Task<OperationResult<IEnumerable<RecentOrderDto>>> GetRecentOrdersAsync(int count = 5);
+        Task<OperationResult<IEnumerable<NotificationDto>>> GetDashboardNotificationsAsync();
     }
 }

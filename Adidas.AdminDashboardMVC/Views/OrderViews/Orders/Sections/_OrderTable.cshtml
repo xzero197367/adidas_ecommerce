@@ -1,0 +1,102 @@
+﻿@using Adidas.DTOs.Common_DTOs;
+@using Adidas.DTOs.Operation.OrderDTOs;
+@model PagedResultDto<OrderDto>
+
+<section class="order_table">
+    <div class="table_header">
+        <h1>Orders List</h1>
+        <div>
+            showing 1 - 10 of 100 orders
+        </div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th><input type="checkbox"></th>
+            <th>ORDER ID</th>
+            <th>CUSTOMER</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+            <th>DATE</th>
+            <th>ACTIONS</th>
+        </tr>
+        </thead>
+        <tbody id="orderTableBody">
+        @{
+            int count = 0;
+        }
+        @{
+            foreach (var order in Model?.Items)
+            {
+                count = count + 1;
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>@count</td>
+                    <td>
+                        <img src="" alt="">
+                        <div>
+                            <h3>@order.</h3>
+                        </div>
+                    </td>
+                    <td>@order.TotalAmount</td>
+                    <td>@order.OrderStatus</td>
+                    <td>@order.OrderDate</td>
+                    <td>
+                        <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a asp-controller="Orders" asp-action="Edit" asp-route-id="@order.Id">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a onclick="window.orderTable.showDeleteAlertMessage(@order.Id)">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+      
+        </tbody>
+
+    </table>
+
+    @{
+        var previousLinkEnabled = Model.PageNumber > 1;
+        var nextLinkEnabled = Model.PageNumber < Model.TotalPages;
+    }
+
+    @* <button onclick="window.orderTable.showDeleteAlertMessage(1)">show confirm message</button> *@
+
+    <div class="pagination" id="pagination">
+
+        <div class="left">
+            Showing @Model.PageNumber to @Model.PageSize of @Model.TotalCount entries
+        </div>
+
+        <div class="right">
+            @if (previousLinkEnabled)
+            {
+                <a asp-controller="Orders" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber - 1)"
+                   asp-route-pageSize="@(Model.PageSize)">Previous</a>
+            }
+
+            @{
+                var pageNumber = Model.PageNumber;
+                var startPage = Math.Max(1, Model.PageNumber - 2);
+                var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+            }
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <a asp-controller="Orders" asp-action="Index" asp-route-pageNumber="@(i)"
+                   asp-route-pageSize="@(Model.PageSize)">@i</a>
+            }
+            @if (nextLinkEnabled)
+            {
+                <a asp-controller="Orders" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                asp-route-pageSize="@(Model.PageSize)">Next</a>
+            }
+
+        </div>
+
+    </div>
+</section>

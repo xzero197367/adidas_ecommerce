@@ -4,6 +4,7 @@ using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.DTOs.Static;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
 {
@@ -50,11 +51,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 // Create view model
                 var viewModel = new DashboardViewModel
                 {
-                    Stats = dashboardStats,
-                    SalesReport = salesReport,
-                    PopularProducts = popularProducts.ToList(),
-                    CategoryPerformance = categoryPerformance.Take(6).ToList(),
-                    CustomerInsights = customerInsights,
+                    Stats = dashboardStats.Data ?? new DashboardStatsDto(),
+                    SalesReport = salesReport.Data ?? new SalesReportDto(),
+                    PopularProducts = popularProducts.Data != null
+                        ? popularProducts.Data.ToList()
+                        : new List<PopularProductDto>(),
+                    CategoryPerformance = categoryPerformance.Data != null
+                        ? categoryPerformance.Data.Take(6).ToList()
+                        : new List<CategoryPerformanceDto>(),
+                    CustomerInsights = customerInsights.Data != null ? customerInsights.Data : new CustomerInsightsDto(),
                     CurrentTimeRange = "Last 30 days",
                     LastUpdated = DateTime.UtcNow
                 };
@@ -79,7 +84,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 var startDate = endDate.AddDays(-days);
                 var salesReport = await _analyticsService.GenerateSalesReportAsync(startDate, endDate);
 
-                var chartData = salesReport.DailySales.Select(d => new
+                var chartData = salesReport?.Data?.DailySales.Select(d => new
                 {
                     date = d.Date.ToString("yyyy-MM-dd"),
                     sales = d.Sales,
@@ -99,7 +104,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
         {
             try
             {
-                var recentOrders = await _orderRepository.GetAllAsync();
+                var recentOrders = await _orderRepository.GetAll().ToListAsync();
                 var orderDtos = recentOrders.Select(o => new RecentOrderDto
                 {
                     OrderId = o.Id,
@@ -127,13 +132,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 var stats = await _analyticsService.GetDashboardStatsAsync();
 
                 // Low stock notification
-                if (stats.LowStockProducts > 0)
+                if (stats?.Data?.LowStockProducts > 0)
                 {
                     notifications.Add(new NotificationDto
                     {
                         Type = "warning",
                         Title = "Low Stock Alert",
-                        Message = $"{stats.LowStockProducts} products are running low on stock",
+                        Message = $"{stats.Data.LowStockProducts} products are running low on stock",
                         //ActionUrl = Url.Action("LowStock", "Product"),
                         ActionText = "View Products",
                         CreatedAt = DateTime.UtcNow
@@ -141,13 +146,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 }
 
                 // Pending orders notification
-                if (stats.PendingOrders > 0)
+                if (stats?.Data?.PendingOrders > 0)
                 {
                     notifications.Add(new NotificationDto
                     {
                         Type = "info",
                         Title = "Pending Orders",
-                        Message = $"{stats.PendingOrders} orders are waiting for processing",
+                        Message = $"{stats.Data.PendingOrders} orders are waiting for processing",
                         //ActionUrl = Url.Action("Pending", "Order"),
                         ActionText = "Process Orders",
                         CreatedAt = DateTime.UtcNow

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.Models;
 
 namespace Adidas.Application.Contracts.ServicesContracts
@@ -16,32 +13,33 @@ namespace Adidas.Application.Contracts.ServicesContracts
         where TUpdateDto : class
     {
         // Read operations
-        Task<TDto?> GetByIdAsync(Guid id);
-        Task<TDto?> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includes);
-        Task<IEnumerable<TDto>> GetAllAsync();
-        Task<IEnumerable<TDto>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes);
-        Task<IEnumerable<TDto>> FindAsync(Expression<Func<TEntity, bool>> predicate);
-        Task<PagedResultDto<TDto>> GetPagedAsync(int pageNumber, int pageSize);
-        Task<PagedResultDto<TDto>> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<TEntity, bool>>? predicate = null);
+
+        Task<OperationResult<TDto>> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includes);
+
+        Task<OperationResult<IEnumerable<TDto>>>
+            GetAllAsync(Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryFunc = null);
+
+        Task<OperationResult<IEnumerable<TDto>>> FindAsync(Func<IQueryable<TEntity>,IQueryable<TEntity>> queryFunc);
+       
+
+        Task<OperationResult<PagedResultDto<TDto>>>
+            GetPagedAsync(int pageNumber, int pageSize,
+                Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryFunc = null);
 
         // Count operations
-        Task<int> CountAsync();
-        Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate);
-        Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<OperationResult<int>> CountAsync(Expression<Func<TEntity, bool>>? predicate = null);
+        Task<OperationResult<bool>> ExistsAsync(Expression<Func<TEntity, bool>> predicate);
 
         // Write operations
-        Task<TDto> CreateAsync(TCreateDto createDto);
-        Task<IEnumerable<TDto>> CreateRangeAsync(IEnumerable<TCreateDto> createDtos);
-        Task<TDto> UpdateAsync(Guid id, TUpdateDto updateDto);
-        Task<IEnumerable<TDto>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, TUpdateDto>> updates);
+        Task<OperationResult<TDto>> CreateAsync(TCreateDto createDto);
+        Task<OperationResult<IEnumerable<TDto>>> CreateRangeAsync(IEnumerable<TCreateDto> createDtos);
+        Task<OperationResult<TDto>> UpdateAsync(TUpdateDto updateDto);
+        Task<OperationResult<IEnumerable<TDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, TUpdateDto>> updates);
 
         // Delete operations
-        Task<bool> DeleteAsync(Guid id);
-        Task<bool> DeleteAsync(TEntity entity);
-        Task<int> DeleteRangeAsync(IEnumerable<Guid> ids);
-
-        // Active/Inactive operations
-        Task<bool> SetActiveStatusAsync(Guid id, bool isActive);
-        Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive);
+        Task<OperationResult<TEntity>> DeleteAsync(Guid id);
+        Task<OperationResult<TEntity>> DeleteAsync(TEntity entity);
+        Task<OperationResult<IEnumerable<TEntity>>> DeleteRangeAsync(IEnumerable<Guid> ids);
+        
     }
 }

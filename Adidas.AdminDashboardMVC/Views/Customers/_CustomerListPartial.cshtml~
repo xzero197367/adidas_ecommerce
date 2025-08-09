@@ -1,0 +1,115 @@
+﻿@using Adidas.DTOs.Common_DTOs
+@using Adidas.DTOs.People.Customer_DTOs
+<!-- Views/Customers/_CustomerListPartial.cshtml -->
+@model PagedResultDto<CustomerDto>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>CUSTOMER</th>
+                <th>EMAIL</th>
+                <th>PREFERRED LANGUAGE</th>
+                <th>DATE OF BIRTH</th>
+                <th>CREATED AT</th>
+                <th>TOTAL ORDERS</th>
+                <th>TOTAL SPENT</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model.Items)
+            {
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <strong>@customer.Name</strong><br>
+                                <small class="text-muted">Customer since @customer.JoinDate.ToString("yyyy")</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@customer.Email</td>
+                    <td>
+                        @(string.IsNullOrEmpty(customer.PreferredLanguage) ? "Not Set" : customer.PreferredLanguage)
+                    </td>
+
+                    <td>
+                        @(customer.DateOfBirth.HasValue ? customer.DateOfBirth.Value.ToString("dd MMM yyyy") : "Not Set")
+                    </td>
+                    <td>@customer.JoinDate.ToString("dd MMM yyyy HH:mm")</td>
+
+            
+
+                    <!-- ✅ Total Orders -->
+                    <td>@customer.TotalOrders</td>
+
+                    <!-- ✅ Total Spent -->
+                    <td>@customer.TotalSpent.ToString("C")</td>
+
+                    <td>
+                        <span class="badge badge-@(customer.IsActive ? "success" : "danger")">
+                            @customer.Status
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-info btn-sm" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-warning btn-sm" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-@(customer.IsActive ? "secondary" : "success") btn-sm toggle-status"
+                                    data-id="@customer.Id" title="@(customer.IsActive ? "Suspend" : "Activate")">
+                                <i class="fas fa-@(customer.IsActive ? "ban" : "check")"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalCount > 0)
+{
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="dataTables_info">
+                    Showing @((Model.PageNumber - 1) * Model.PageSize + 1) to @Math.Min(Model.Page * Model.PageSize, Model.TotalCount) of @Model.TotalCount customers
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="dataTables_paginate paging_simple_numbers float-right">
+                    <ul class="pagination">
+                        <li class="paginate_button page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                            <a href="@(Model.PageNumber > 1 ? Url.Action("GetCustomersData", new { page = Model.PageNumber - 1 }) : "#")" class="page-link">Previous</a>
+                        </li>
+
+                        @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                        {
+                            <li class="paginate_button page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a href="@Url.Action("GetCustomersData", new { page = i })" class="page-link">@i</a>
+                            </li>
+                        }
+
+                        <li class="paginate_button page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                            <a href="@(Model.PageNumber < Model.TotalPages ? Url.Action("GetCustomersData", new { page = Model.PageNumber + 1 }) : "#")" class="page-link">Next</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card-body text-center">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <h4>No customers found</h4>
+        <p class="text-muted">Try adjusting your search criteria.</p>
+    </div>
+}

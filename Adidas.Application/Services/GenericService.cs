@@ -1,205 +1,151 @@
-﻿
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Adidas.Application.Contracts.RepositoriesContracts;
 using Adidas.Application.Contracts.ServicesContracts;
 using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.Models;
-using AutoMapper;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services
 {
-    public abstract class GenericService<TEntity, TDto, TCreateDto, TUpdateDto> : IGenericService<TEntity, TDto, TCreateDto, TUpdateDto>
-         where TEntity : BaseAuditableEntity
-         where TDto : class
-         where TCreateDto : class
-         where TUpdateDto : class
+    public class
+        GenericService<TEntity, TDto, TCreateDto, TUpdateDto> : IGenericService<TEntity, TDto, TCreateDto, TUpdateDto>
+        where TEntity : BaseAuditableEntity
+        where TDto : class
+        where TCreateDto : class
+        where TUpdateDto : BaseUpdateDto
     {
-        protected readonly IGenericRepository<TEntity> _repository;
-        protected readonly IMapper _mapper;
-        protected readonly ILogger _logger;
+        public readonly IGenericRepository<TEntity> _repository;
+        public readonly ILogger _logger;
 
-        protected GenericService(IGenericRepository<TEntity> repository, IMapper mapper, ILogger logger)
+        public GenericService(IGenericRepository<TEntity> repository, ILogger logger)
         {
             _repository = repository;
-            _mapper = mapper;
             _logger = logger;
         }
 
-        public virtual async Task<TDto?> GetByIdAsync(Guid id)
-        {
-            try
-            {
-                var entity = await _repository.GetByIdAsync(id);
-                return entity == null ? null : _mapper.Map<TDto>(entity);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting entity by id {Id}", id);
-                throw;
-            }
-        }
-
-        public virtual async Task<TDto?> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includes)
+        public virtual async Task<OperationResult<TDto>> GetByIdAsync(Guid id,
+            params Expression<Func<TEntity, object>>[] includes)
         {
             try
             {
                 var entity = await _repository.GetByIdAsync(id, includes);
-                return entity == null ? null : _mapper.Map<TDto>(entity);
+
+                if (entity == null)
+                    return OperationResult<TDto>.Fail("Entity not found");
+
+                return OperationResult<TDto>.Success(entity.Adapt<TDto>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting entity by id {Id} with includes", id);
-                throw;
+                return OperationResult<TDto>.Fail("Error getting entity by id: " + ex.Message);
             }
         }
 
-        public virtual async Task<IEnumerable<TDto>> GetAllAsync()
+        public virtual async Task<OperationResult<IEnumerable<TDto>>> GetAllAsync(
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryFunc = null)
         {
             try
             {
-                var entities = await _repository.GetAllAsync();
-                return _mapper.Map<IEnumerable<TDto>>(entities);
+                var entities = await _repository.GetAll(queryFunc).ToListAsync();
+                return OperationResult<IEnumerable<TDto>>.Success(entities.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all entities");
-                throw;
+                return OperationResult<IEnumerable<TDto>>.Fail("Error getting all entities: " + ex.Message);
             }
         }
 
-        public virtual async Task<IEnumerable<TDto>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
-        {
-            try
-            {
-                var entities = await _repository.GetAllAsync(includes);
-                return _mapper.Map<IEnumerable<TDto>>(entities);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all entities with includes");
-                throw;
-            }
-        }
 
-        public virtual async Task<IEnumerable<TDto>> FindAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<OperationResult<IEnumerable<TDto>>> FindAsync(
+            Func<IQueryable<TEntity>, IQueryable<TEntity>> queryFunc)
         {
             try
             {
-                var entities = await _repository.FindAsync(predicate);
-                return _mapper.Map<IEnumerable<TDto>>(entities);
+                var entities = await _repository.FindAsync(queryFunc);
+                return OperationResult<IEnumerable<TDto>>.Success(entities.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding entities with predicate");
-                throw;
+                return OperationResult<IEnumerable<TDto>>.Fail("Error finding entities with predicate: " + ex.Message);
             }
         }
 
-        public virtual async Task<PagedResultDto<TDto>> GetPagedAsync(int pageNumber, int pageSize)
+        public virtual async Task<OperationResult<PagedResultDto<TDto>>> GetPagedAsync(int pageNumber, int pageSize,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? queryFunc = null)
         {
             try
             {
-                var (items, totalCount) = await _repository.GetPagedAsync(pageNumber, pageSize);
-                return new PagedResultDto<TDto>
-                {
-                    Items = _mapper.Map<IEnumerable<TDto>>(items),
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                };
+                var itemPaged = await _repository.GetPagedAsync(pageNumber, pageSize, queryFunc);
+
+                return OperationResult<PagedResultDto<TDto>>.Success(itemPaged.Adapt<PagedResultDto<TDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting paged entities");
-                throw;
+                return OperationResult<PagedResultDto<TDto>>.Fail("Error getting paged entities: " + ex.Message);
             }
         }
 
-        public virtual async Task<PagedResultDto<TDto>> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<TEntity, bool>>? predicate = null)
-        {
-            try
-            {
-                var (items, totalCount) = await _repository.GetPagedAsync(pageNumber, pageSize, predicate);
-                return new PagedResultDto<TDto>
-                {
-                    Items = _mapper.Map<IEnumerable<TDto>>(items),
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting paged entities with predicate");
-                throw;
-            }
-        }
 
-        public virtual async Task<int> CountAsync()
+        public virtual async Task<OperationResult<int>> CountAsync(Expression<Func<TEntity, bool>>? predicate = null)
         {
             try
             {
-                return await _repository.CountAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error counting entities");
-                throw;
-            }
-        }
-
-        public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
-        {
-            try
-            {
-                return await _repository.CountAsync(predicate);
+                var count = await _repository.CountAsync(predicate);
+                return OperationResult<int>.Success(count);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error counting entities with predicate");
-                throw;
+                return OperationResult<int>.Fail("Error counting entities with predicate: " + ex.Message);
             }
         }
 
-        public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<OperationResult<bool>> ExistsAsync(Expression<Func<TEntity, bool>> predicate)
         {
             try
             {
-                return await _repository.ExistsAsync(predicate);
+                var exists = await _repository.ExistsAsync(predicate);
+                return OperationResult<bool>.Success(exists);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking entity existence");
-                throw;
+                return OperationResult<bool>.Fail("Error checking entity existence: " + ex.Message);
             }
         }
 
-        public virtual async Task<TDto> CreateAsync(TCreateDto createDto)
+        public virtual async Task<OperationResult<TDto>> CreateAsync(TCreateDto createDto)
         {
             try
             {
                 await ValidateCreateAsync(createDto);
 
-                var entity = _mapper.Map<TEntity>(createDto);
+                var entity = createDto.Adapt<TEntity>();
                 await BeforeCreateAsync(entity);
 
                 var createdEntityEntry = await _repository.AddAsync(entity);
                 var createdEntity = createdEntityEntry.Entity; // Extract the entity from EntityEntry
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
                 await AfterCreateAsync(createdEntity);
-                return _mapper.Map<TDto>(createdEntity);
+
+                return OperationResult<TDto>.Success(createdEntity.Adapt<TDto>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating entity");
-                throw;
+                return OperationResult<TDto>.Fail("Error creating entity: " + ex.Message);
             }
         }
 
-        public virtual async Task<IEnumerable<TDto>> CreateRangeAsync(IEnumerable<TCreateDto> createDtos)
+        public virtual async Task<OperationResult<IEnumerable<TDto>>> CreateRangeAsync(
+            IEnumerable<TCreateDto> createDtos)
         {
             try
             {
@@ -209,7 +155,7 @@ namespace Adidas.Application.Services
                     await ValidateCreateAsync(createDto);
                 }
 
-                var entities = _mapper.Map<IEnumerable<TEntity>>(createDtoList);
+                var entities = createDtoList.Adapt<IEnumerable<TEntity>>();
                 var entityList = entities.ToList();
 
                 foreach (var entity in entityList)
@@ -218,53 +164,61 @@ namespace Adidas.Application.Services
                 }
 
                 var createdEntityEntries = await _repository.AddRangeAsync(entityList);
-                var createdEntityList = createdEntityEntries.Select(entry => entry.Entity).ToList(); // Extract entities from EntityEntry collection
+
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
+                // Detached tracking for the created entities
+                var createdEntityList =
+                    createdEntityEntries.Select(entry =>
+                    {
+                        entry.State = EntityState.Detached;
+                        return entry.Entity;
+                    }).ToList(); // Extract entities from EntityEntry collection
 
                 foreach (var createdEntity in createdEntityList)
                 {
-
                     await AfterCreateAsync(createdEntity);
-
                 }
 
-                return _mapper.Map<IEnumerable<TDto>>(createdEntityList);
+                return OperationResult<IEnumerable<TDto>>.Success(createdEntityList.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating entities");
-                throw;
+                return OperationResult<IEnumerable<TDto>>.Fail("Error creating entities: " + ex.Message);
             }
         }
 
-        public virtual async Task<TDto> UpdateAsync(Guid id, TUpdateDto updateDto)
+        public virtual async Task<OperationResult<TDto>> UpdateAsync(TUpdateDto updateDto)
         {
             try
             {
-                var existingEntity = await _repository.GetByIdAsync(id);
+                var existingEntity = await _repository.GetByIdAsync(updateDto.Id);
                 if (existingEntity == null)
-                    throw new KeyNotFoundException($"Entity with id {id} not found");
+                    throw new KeyNotFoundException($"Entity with id {updateDto.Id} not found");
 
-                await ValidateUpdateAsync(id, updateDto);
+                await ValidateUpdateAsync(updateDto.Id, updateDto);
 
-                _mapper.Map(updateDto, existingEntity);
+                existingEntity = existingEntity.Adapt<TEntity>();
                 await BeforeUpdateAsync(existingEntity);
 
                 var updatedEntityEntry = await _repository.UpdateAsync(existingEntity);
                 var updatedEntity = updatedEntityEntry.Entity; // Extract the entity from EntityEntry
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
+                // Detached tracking
+                updatedEntityEntry.State = EntityState.Detached;
                 await AfterUpdateAsync(updatedEntity);
 
-                return _mapper.Map<TDto>(updatedEntity);
+                return OperationResult<TDto>.Success(updatedEntity.Adapt<TDto>());
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating entity with id {Id}", id);
-                throw;
+                _logger.LogError(ex, "Error updating entity with id {Id}", updateDto.Id);
+                return OperationResult<TDto>.Fail("Error updating entity: " + ex.Message);
             }
         }
 
-        public virtual async Task<IEnumerable<TDto>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, TUpdateDto>> updates)
+        public virtual async Task<OperationResult<IEnumerable<TDto>>> UpdateRangeAsync(
+            IEnumerable<KeyValuePair<Guid, TUpdateDto>> updates)
         {
             try
             {
@@ -278,75 +232,78 @@ namespace Adidas.Application.Services
                         throw new KeyNotFoundException($"Entity with id {update.Key} not found");
 
                     await ValidateUpdateAsync(update.Key, update.Value);
-                    _mapper.Map(update.Value, existingEntity);
+                    existingEntity = existingEntity.Adapt<TEntity>();
+                    // _mapper.Map(update.Value, existingEntity);
                     await BeforeUpdateAsync(existingEntity);
                     entities.Add(existingEntity);
                 }
 
                 var updatedEntityEntries = await _repository.UpdateRangeAsync(entities);
-                var updatedEntityList = updatedEntityEntries.Select(entry => entry.Entity).ToList(); // Extract entities from EntityEntry collection
+
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
+                // Detached tracking for the updated entities
+                var updatedEntityList =
+                    updatedEntityEntries.Select(entry =>
+                        {
+                            entry.State = EntityState.Detached;
+                            return entry.Entity;
+                        })
+                        .ToList(); // Extract entities from EntityEntry collection
 
                 foreach (var updatedEntity in updatedEntityList)
                 {
                     await AfterUpdateAsync(updatedEntity);
                 }
 
-                return _mapper.Map<IEnumerable<TDto>>(updatedEntityList);
+                return OperationResult<IEnumerable<TDto>>.Success(updatedEntityList.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating entities");
-                throw;
+                return OperationResult<IEnumerable<TDto>>.Fail("Error updating entities: " + ex.Message);
             }
         }
 
-        public virtual async Task<bool> DeleteAsync(Guid id)
+        public virtual async Task<OperationResult<TEntity>> DeleteAsync(Guid id)
         {
             try
             {
                 var entity = await _repository.GetByIdAsync(id);
-                if (entity == null) return false;
+                if (entity == null) return OperationResult<TEntity>.Fail("Entity not found");
 
                 await BeforeDeleteAsync(entity);
                 var result = await _repository.SoftDeleteAsync(id);
-                if (result)
-                {
-                    await _repository.SaveChangesAsync(); // Ensure changes are saved
-                    await AfterDeleteAsync(entity);
-                }
+                await _repository.SaveChangesAsync(); // Ensure changes are saved
+                await AfterDeleteAsync(entity);
 
-                return result;
+                return OperationResult<TEntity>.Success(result.Entity);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting entity with id {Id}", id);
-                throw;
+                return OperationResult<TEntity>.Fail("Error deleting entity: " + ex.Message);
             }
         }
 
-        public virtual async Task<bool> DeleteAsync(TEntity entity)
+        public virtual async Task<OperationResult<TEntity>> DeleteAsync(TEntity entity)
         {
             try
             {
                 await BeforeDeleteAsync(entity);
                 var result = await _repository.SoftDeleteAsync(entity.Id);
-                if (result)
-                {
-                    await _repository.SaveChangesAsync(); // Ensure changes are saved
-                    await AfterDeleteAsync(entity);
-                }
+                await _repository.SaveChangesAsync(); // Ensure changes are saved
+                await AfterDeleteAsync(entity);
 
-                return result;
+                return OperationResult<TEntity>.Success(result.Entity);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting entity");
-                throw;
+                return OperationResult<TEntity>.Fail("Error deleting entity: " + ex.Message);
             }
         }
 
-        public virtual async Task<int> DeleteRangeAsync(IEnumerable<Guid> ids)
+        public virtual async Task<OperationResult<IEnumerable<TEntity>>> DeleteRangeAsync(IEnumerable<Guid> ids)
         {
             try
             {
@@ -361,56 +318,30 @@ namespace Adidas.Application.Services
                     }
                 }
 
-                var result = await _repository.SoftDeleteRangeAsync(entities);
+                var result = _repository.SoftDeleteRange(entities);
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
                 foreach (var entity in entities)
                 {
                     await AfterDeleteAsync(entity);
                 }
 
-                return result;
+                return OperationResult<IEnumerable<TEntity>>.Success(result.Select(x => x.Entity).ToList());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting entities");
-                throw;
-            }
-        }
-
-        public virtual async Task<bool> SetActiveStatusAsync(Guid id, bool isActive)
-        {
-            try
-            {
-                return await _repository.SetActiveStatusAsync(id, isActive);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error setting active status for entity {Id}", id);
-                throw;
-            }
-        }
-
-        public virtual async Task<int> SetActiveStatusRangeAsync(IEnumerable<Guid> ids, bool isActive)
-        {
-            try
-            {
-                return await _repository.SetActiveStatusRangeAsync(ids, isActive);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error setting active status for entities");
-                throw;
+                return OperationResult<IEnumerable<TEntity>>.Fail("Error deleting entities: " + ex.Message);
             }
         }
 
         // Virtual methods for customization in derived classes
-        protected virtual Task ValidateCreateAsync(TCreateDto createDto) => Task.CompletedTask;
-        protected virtual Task ValidateUpdateAsync(Guid id, TUpdateDto updateDto) => Task.CompletedTask;
-        protected virtual Task BeforeCreateAsync(TEntity entity) => Task.CompletedTask;
-        protected virtual Task AfterCreateAsync(TEntity entity) => Task.CompletedTask;
-        protected virtual Task BeforeUpdateAsync(TEntity entity) => Task.CompletedTask;
-        protected virtual Task AfterUpdateAsync(TEntity entity) => Task.CompletedTask;
-        protected virtual Task BeforeDeleteAsync(TEntity entity) => Task.CompletedTask;
-        protected virtual Task AfterDeleteAsync(TEntity entity) => Task.CompletedTask;
+        public virtual Task ValidateCreateAsync(TCreateDto createDto) => Task.CompletedTask;
+        public virtual Task ValidateUpdateAsync(Guid id, TUpdateDto updateDto) => Task.CompletedTask;
+        public virtual Task BeforeCreateAsync(TEntity entity) => Task.CompletedTask;
+        public virtual Task AfterCreateAsync(TEntity entity) => Task.CompletedTask;
+        public virtual Task BeforeUpdateAsync(TEntity entity) => Task.CompletedTask;
+        public virtual Task AfterUpdateAsync(TEntity entity) => Task.CompletedTask;
+        public virtual Task BeforeDeleteAsync(TEntity entity) => Task.CompletedTask;
+        public virtual Task AfterDeleteAsync(TEntity entity) => Task.CompletedTask;
     }
 }

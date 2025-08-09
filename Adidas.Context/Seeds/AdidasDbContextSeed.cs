@@ -293,7 +293,8 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000c"),
-                    UserId = "user1@example.com",
+                    //UserId = "user1@example.com",
+                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
                     ProductId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
                     Title = "Fresh Review - Pending",
                     Rating = 4,
@@ -305,7 +306,8 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000d"),
-                    UserId = "user2@example.com",
+                    //UserId = "user2@example.com",
+                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
                     ProductId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
                     Title = "New Review - Pending",
                     Rating = 3,
@@ -317,7 +319,8 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000e"),
-                    UserId = "user3@example.com",
+                    //UserId = "user3@example.com",
+                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
                     ProductId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
                     Title = "Approved Feedback",
                     Rating = 5,
@@ -329,7 +332,8 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-44665544000f"),
-                    UserId = "user4@example.com",
+                    //UserId = "user4@example.com",
+                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
                     ProductId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
                     Title = "Approved Comment",
                     Rating = 4,
@@ -341,7 +345,8 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440010"),
-                    UserId = "user5@example.com",
+                    //UserId = "user5@example.com",
+                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
                     ProductId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
                     Title = "Rejected Feedback",
                     Rating = 2,
@@ -353,7 +358,8 @@ namespace Adidas.Context.Seeds
                 new Review
                 {
                     Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440011"),
-                    UserId = "user6@example.com",
+                    //UserId = "user6@example.com",
+                    UserId = "aaaaaaaa-1111-2222-3333-444444444444",
                     ProductId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
                     Title = "Rejected Comment",
                     Rating = 1,

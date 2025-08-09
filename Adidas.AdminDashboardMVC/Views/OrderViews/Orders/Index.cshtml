@@ -1,0 +1,28 @@
+@model Adidas.AdminDashboardMVC.Models.Order.OrderModel
+
+@{
+    ViewData["Title"] = "All Orders";
+}
+
+@Html.Partial("_OrderTopBar")
+@Html.Partial("_OrderFilter", Model.Filter)
+@Html.Partial("_OrderTable", Model.OrderPaged)
+
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Order/order_top_bar.css">
+    <link rel="stylesheet" href="~/css/Order/order_filter.css">
+    <link rel="stylesheet" href="~/css/Order/order_table.css">
+}
+
+@section Scripts {
+    <script src="~/js/Order/order_top_bar.js"></script>
+    <script src="~/js/Order/order_table.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            window.orderTable = new OrderTable();
+          
+        });
+    </script>
+}

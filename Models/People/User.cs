@@ -37,8 +37,8 @@ namespace Models.People
         public DateTime? DateOfBirth { get; set; }
 
         public Gender? Gender { get; set; }
-
-        [MaxLength(20)]
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
         public string? Phone { get; set; }
 
         [Required]
@@ -48,6 +48,7 @@ namespace Models.People
 
         [Required]
         public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
 
         [MaxLength(10)]
         public string? PreferredLanguage { get; set; }
