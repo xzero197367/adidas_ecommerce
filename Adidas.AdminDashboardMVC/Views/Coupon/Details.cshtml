@@ -83,7 +83,7 @@
                                 <dd class="col-sm-8">@Model.CouponDto.DiscountType</dd>
 
                                 <dt class="col-sm-4">Discount Value:</dt>
-                                <dd class="col-sm-8">@Model.CouponDto.DiscountDisplayText</dd>
+                                <dd class="col-sm-8">@Model.CouponDto.DiscountValue</dd>
                             </dl>
                         </div>
                         <div class="col-md-6">
@@ -100,18 +100,16 @@
                                 <dt class="col-sm-4">Status:</dt>
                                 <dd class="col-sm-8">
                                     @{
-                                        string statusClass = "badge bg-secondary";
-                                        if (Model.CouponDto.StatusText == "Active")
+                                        string statusClass = Model.CouponDto.StatusText switch
                                         {
-                                            statusClass = "badge bg-success";
-                                        }
-                                        else if (Model.CouponDto.StatusText == "Expired" || Model.CouponDto.StatusText == "Limit Reached")
-                                        {
-                                            statusClass = "badge bg-danger";
-                                        }
+                                            "Active" => "badge bg-success",
+                                            "Expired" or "Limit Reached" => "badge bg-danger",
+                                            _ => "badge bg-secondary"
+                                        };
                                     }
                                     <span class="@statusClass">@Model.CouponDto.StatusText</span>
                                 </dd>
+
                             </dl>
                         </div>
                     </div>
