@@ -97,7 +97,6 @@ namespace Adidas.Application.Services.Feature
             var dtoList = allCoupons.Select(c => new CouponDto
             {
                 Id = c.Id,
-                //CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 IsActive = c.IsActive,
                 Code = c.Code,
@@ -109,6 +108,8 @@ namespace Adidas.Application.Services.Feature
                 ValidTo = c.ValidTo,
                 UsageLimit = c.UsageLimit,
                 UsedCount = c.UsedCount,
+                IsValidNow = DateTime.UtcNow >= c.ValidFrom && DateTime.UtcNow <= c.ValidTo,
+                IsExpired = DateTime.UtcNow > c.ValidTo
             });
 
             return dtoList;
