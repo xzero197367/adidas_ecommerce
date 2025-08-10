@@ -1,0 +1,544 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Inventory.InventoryReportViewModel
+@{
+    ViewData["Title"] = "Inventory Report";
+    ViewData["PageHeader"] = "Full Inventory Report";
+    ViewData["Breadcrumb"] = "Report";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">@ViewData["PageHeader"]</h1>
+                <small class="text-muted">Generated on @Model.GeneratedAt.ToString("MMM dd, yyyy 'at' hh:mm tt")</small>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Inventory</a></li>
+                    <li class="breadcrumb-item active">@ViewData["Breadcrumb"]</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+
+        
+
+        <!-- Summary Cards -->
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@Model.Report.TotalProducts</h3>
+                        <p>Total Products</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.Report.TotalVariants</h3>
+                        <p>Total Variants</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.Report.LowStockVariants</h3>
+                        <p>Low Stock Items</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@Model.Report.OutOfStockVariants</h3>
+                        <p>Out of Stock</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Inventory Value -->
+        <div class="row">
+            <div class="col-12">
+                <div class="info-box bg-gradient-success">
+                    <span class="info-box-icon"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total Inventory Value</span>
+                        <span class="info-box-number">$@Model.Report.TotalInventoryValue.ToString("N2")</span>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: 100%"></div>
+                        </div>
+                        <span class="progress-description">
+                            Current inventory worth across all products
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group mr-2" role="group">
+                                <button type="button" class="btn btn-primary" onclick="printReport()">
+                                    <i class="fas fa-print"></i> Print Report
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                                    <i class="fas fa-file-excel"></i> Export Excel
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="exportToPDF()">
+                                    <i class="fas fa-file-pdf"></i> Export PDF
+                                </button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-secondary" onclick="location.reload()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Stock Details -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-table"></i>
+                            Product Stock Details
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Report.ProductStocks.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped" id="productStockTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Product Name</th>
+                                            <th>Total Variants</th>
+                                            <th>Total Stock</th>
+                                            <th>Inventory Value</th>
+                                            <th>Avg. Stock per Variant</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var product in Model.Report.ProductStocks.OrderByDescending(p => p.InventoryValue))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@product.ProductName</strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-info">@product.VariantCount</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(product.TotalStock == 0 ? "badge-danger" : product.TotalStock <= 50 ? "badge-warning" : "badge-success") badge-lg">
+                                                        @product.TotalStock
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <strong class="text-success">$@product.InventoryValue.ToString("N2")</strong>
+                                                </td>
+                                                <td>
+                                                    @Math.Round((double)product.TotalStock / product.VariantCount, 1)
+                                                </td>
+                                                <td>
+                                                    @if (product.TotalStock == 0)
+                                                    {
+                                                        <span class="badge badge-danger">
+                                                            <i class="fas fa-times-circle"></i> Out of Stock
+                                                        </span>
+                                                    }
+                                                    else if (product.TotalStock <= 50)
+                                                    {
+                                                        <span class="badge badge-warning">
+                                                            <i class="fas fa-exclamation-triangle"></i> Low Stock
+                                                        </span>
+                                                    }
+                                                    else if (product.TotalStock <= 100)
+                                                    {
+                                                        <span class="badge badge-info">
+                                                            <i class="fas fa-info-circle"></i> Moderate
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-success">
+                                                            <i class="fas fa-check-circle"></i> Well Stocked
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                onclick="viewProductDetails('@product.ProductId')"
+                                                                title="View Details">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-success"
+                                                                onclick="bulkUpdateProduct('@product.ProductId')"
+                                                                title="Bulk Update">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="bg-light">
+                                            <th><strong>TOTALS</strong></th>
+                                            <th><strong>@Model.Report.ProductStocks.Sum(p => p.VariantCount)</strong></th>
+                                            <th><strong>@Model.Report.ProductStocks.Sum(p => p.TotalStock)</strong></th>
+                                            <th><strong class="text-success">$@Model.Report.ProductStocks.Sum(p => p.InventoryValue).ToString("N2")</strong></th>
+                                            <th>-</th>
+                                            <th>-</th>
+                                            <th>-</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="fas fa-inbox text-muted fa-4x mb-3"></i>
+                                <h4 class="text-muted">No Products Found</h4>
+                                <p class="text-muted">There are no products in the inventory system.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Distribution Chart -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Stock Status Distribution
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="stockStatusChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Top 10 Products by Value
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="topProductsChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Key Performance Indicators
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-info"><i class="fas fa-percentage"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Stock Coverage</span>
+                                        <span class="info-box-number">
+                                            @(Model.Report.TotalVariants > 0 ?
+                                                Math.Round((double)(Model.Report.TotalVariants - Model.Report.OutOfStockVariants) / Model.Report.TotalVariants * 100, 1).ToString("F1") + "%" :
+                                                "0%")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Alert Rate</span>
+                                        <span class="info-box-number">
+                                            @(Model.Report.TotalVariants > 0 ?
+                                                Math.Round((double)Model.Report.LowStockVariants / Model.Report.TotalVariants * 100, 1).ToString("F1") + "%" :
+                                                "0%")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-dollar-sign"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Avg. Value/Product</span>
+                                        <span class="info-box-number">
+                                            $@(Model.Report.TotalProducts > 0 ?
+                                               Math.Round(Model.Report.TotalInventoryValue / Model.Report.TotalProducts, 2).ToString("F2") :
+                                               "0.00")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-primary"><i class="fas fa-boxes"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Avg. Stock/Variant</span>
+                                        <span class="info-box-number">
+                                            @(Model.Report.TotalVariants > 0 ?
+                                                Math.Round((double)Model.Report.ProductStocks.Sum(p => p.TotalStock) / Model.Report.TotalVariants, 1).ToString("F1") :
+                                                "0")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            $('#productStockTable').DataTable({
+                "responsive": true,
+                "lengthChange": true,
+                "autoWidth": false,
+                "order": [[3, "desc"]], // Sort by inventory value descending
+                "pageLength": 25,
+                "columnDefs": [
+                    { "orderable": false, "targets": [6] } // Actions column not orderable
+                ]
+            });
+
+            // Initialize charts
+            initializeCharts();
+        });
+
+        function initializeCharts() {
+            // Stock Status Distribution Chart
+            var statusCtx = document.getElementById('stockStatusChart').getContext('2d');
+            var wellStocked = @(Model.Report.TotalVariants - Model.Report.LowStockVariants - Model.Report.OutOfStockVariants);
+
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Well Stocked', 'Low Stock', 'Out of Stock'],
+                    datasets: [{
+                        data: [wellStocked, @Model.Report.LowStockVariants, @Model.Report.OutOfStockVariants],
+                        backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Top Products Chart
+            var productsCtx = document.getElementById('topProductsChart').getContext('2d');
+            var topProducts = @Html.Raw(Json.Serialize(Model.Report.ProductStocks.OrderByDescending(p => p.InventoryValue).Take(10).Select(p => new { name = p.ProductName, value = p.InventoryValue })));
+
+            new Chart(productsCtx, {
+                type: 'bar',
+                data: {
+                    labels: topProducts.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name),
+                    datasets: [{
+                        label: 'Inventory Value ($)',
+                        data: topProducts.map(p => p.value),
+                        backgroundColor: '#007bff',
+                        borderColor: '#0056b3',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return ' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function exportToExcel() {
+            // Simple CSV export that can be opened in Excel
+            var csv = 'Product Name,Total Variants,Total Stock,Inventory Value,Average Stock per Variant,Status\n';
+
+        @foreach (var product in Model.Report.ProductStocks.OrderByDescending(p => p.InventoryValue))
+        {
+            <text>
+                    csv += '@Html.Raw(product.ProductName.Replace("\"", "\"\"")),' +
+                           '@product.VariantCount,' +
+                           '@product.TotalStock,' +
+                           '@product.InventoryValue.ToString("F2"),' +
+                           '@Math.Round((double)product.TotalStock / product.VariantCount, 1),' +
+                           '@(product.TotalStock == 0 ? "Out of Stock" : product.TotalStock <= 50 ? "Low Stock" : product.TotalStock <= 100 ? "Moderate" : "Well Stocked")\n';
+            </text>
+        }
+
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            if (link.download !== undefined) {
+                var url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'inventory_report_' + new Date().toISOString().split('T')[0] + '.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        function exportToPDF() {
+            // This would typically integrate with a PDF library like jsPDF
+            alert('PDF export feature would be implemented with a PDF library like jsPDF or server-side PDF generation.');
+        }
+
+        function viewProductDetails(productId) {
+            // Navigate to product details page
+            window.location.href = '/Products/Details/' + productId;
+        }
+
+        function bulkUpdateProduct(productId) {
+            // Navigate to bulk update page for product variants
+            window.location.href = '/Products/BulkUpdateVariants/' + productId;
+        }
+
+        // Print styles
+        window.addEventListener('beforeprint', function() {
+            // Hide action buttons and other non-essential elements when printing
+            $('.btn-toolbar, .card-tools, td:last-child').hide();
+        });
+
+        window.addEventListener('afterprint', function() {
+            // Show elements again after printing
+            $('.btn-toolbar, .card-tools, td:last-child').show();
+        });
+    </script>
+
+    @* <style> *@
+    @*     @media print { *@
+    @*         .btn-toolbar, .card-tools, .breadcrumb, .content-header .btn, table td:last-child *@
+
+    @*     { *@
+    @*         display: none !important; *@
+    @*     } *@
+
+    @*     .card { *@
+    @*         border: 1px solid #dee2e6 !important; *@
+    @*         box-shadow: none !important; *@
+    @*     } *@
+
+    @*     .small-box { *@
+    @*         border: 1px solid #dee2e6 !important; *@
+    @*         box-shadow: none !important; *@
+    @*     } *@
+
+    @*     body { *@
+    @*         font-size: 12px; *@
+    @*     } *@
+
+    @*     h1, h2, h3, h4, h5, h6 { *@
+    @*         color: #000 !important; *@
+    @*     } *@
+
+    @*     } *@
+    @* </style> *@
+}
