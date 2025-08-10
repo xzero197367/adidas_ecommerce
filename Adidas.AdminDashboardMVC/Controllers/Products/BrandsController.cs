@@ -14,11 +14,12 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string statusFilter, string searchTerm)
         {
-            var brands = await _brandService.GetActiveBrandsAsync();
+            var brands = await _brandService.GetFilteredBrandsAsync(statusFilter, searchTerm);
 
+            ViewData["CurrentStatus"] = statusFilter;
+            ViewData["SearchTerm"] = searchTerm;
             return View(brands);
         }
 
@@ -177,6 +178,22 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
 
             return View(brandDetails);
+        }
+
+        public async Task<IActionResult> ToggleStatus(Guid id)
+        {
+            var result = await _brandService.ToggleBrandStatusAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Brands status updated successfully.";
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

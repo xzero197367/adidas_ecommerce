@@ -214,5 +214,21 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
         return _context.Set<T>().AnyAsync(predicate);
     }
 
+    public async Task<IEnumerable<T>> GetAllAsync()
+    {
+        return await _dbSet.ToListAsync();
+    }
+
+    public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
+    {
+        var query = _dbSet.AsQueryable();
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+        return await query.ToListAsync();
+    }
+
+
     #endregion
 }
