@@ -183,25 +183,23 @@ namespace Adidas.Application.Services.Separator
             return brandDto;
         }
 
-
         public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
         {
-            var brandsQuery =  _brandRepository.GetAll();
+            var brands = await _brandRepository.GetAllAsync();
 
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 bool isActive = statusFilter == "Active";
-                brandsQuery =  brandsQuery.Where(c => c.IsActive == isActive);
+                brands = brands.Where(c => c.IsActive == isActive).ToList();
             }
 
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                brandsQuery = brandsQuery.Where(c =>
-                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                brands = brands.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
             }
-            var brandList = await brandsQuery.ToListAsync();
-            var brandDtos = brandList.Select(b => new BrandDto
+            var brandDtos = brands.Select(b => new BrandDto
             {
 
                 Id = b.Id,
@@ -215,6 +213,7 @@ namespace Adidas.Application.Services.Separator
 
             return brandDtos;
         }
+
 
         public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
         {
