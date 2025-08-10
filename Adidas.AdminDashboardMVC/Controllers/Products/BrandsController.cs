@@ -182,7 +182,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         public async Task<IActionResult> ToggleStatus(Guid id)
         {
-            var result = await _brandService.ToggleCategoryStatusAsync(id);
+            var result = await _brandService.ToggleBrandStatusAsync(id);
 
             if (!result.IsSuccess)
             {

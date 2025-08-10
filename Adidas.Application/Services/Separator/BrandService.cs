@@ -215,9 +215,9 @@ namespace Adidas.Application.Services.Separator
         }
 
 
-        public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
+        public async Task<Result> ToggleBrandStatusAsync(Guid brandId)
         {
-            var brand = await _brandRepository.GetByIdAsync(categoryId);
+            var brand = await _brandRepository.GetByIdAsync(brandId);
             if (brand == null)
                 return Result.Failure("brand not found.");
 

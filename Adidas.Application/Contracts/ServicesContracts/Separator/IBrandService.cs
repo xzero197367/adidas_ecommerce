@@ -17,7 +17,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
         Task<IEnumerable<BrandDto>> GetActiveBrandsAsync();
         Task<BrandDto> GetDetailsByIdAsync(Guid id);
         Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm);
-        Task<Result> ToggleCategoryStatusAsync(Guid categoryId);
+        Task<Result> ToggleBrandStatusAsync(Guid categoryId);
 
         //Task<IEnumerable<BrandDto>> GetPopularBrandsAsync();
         //Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize);
