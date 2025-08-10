@@ -305,6 +305,66 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
             return View(viewModel);
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> EditProfile()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return RedirectToAction("Login");
+
+            var viewModel = new EditUserProfileViewModel
+            {
+                Email = currentUser.Email,
+                PhoneNumber = currentUser.PhoneNumber,
+                DateOfBirth = currentUser.DateOfBirth,
+                PreferredLanguage = currentUser.PreferredLanguage,
+                Gender = currentUser.Gender?.ToString()
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(EditUserProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return RedirectToAction("Login");
+
+            // Update user fields
+            currentUser.Email = model.Email;
+            currentUser.UserName = model.Email; // keep UserName in sync
+            currentUser.PhoneNumber = model.PhoneNumber;
+            currentUser.DateOfBirth = model.DateOfBirth;
+            currentUser.PreferredLanguage = model.PreferredLanguage;
+
+            if (!string.IsNullOrEmpty(model.Gender) &&
+                Enum.TryParse<Gender>(model.Gender, out var genderValue))
+            {
+                currentUser.Gender = genderValue;
+            }
+
+            var result = await _userManager.UpdateAsync(currentUser);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Profile updated successfully.";
+                return RedirectToAction("Profile");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
 
 
         [HttpGet]
