@@ -69,6 +69,7 @@ namespace Adidas.Application.Services.Feature
                 allCoupons = allCoupons
                     .Where(c => c.Code.Contains(search, StringComparison.OrdinalIgnoreCase));
             }
+            var now = DateTime.Now;
 
             if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "all")
             {
@@ -78,13 +79,13 @@ namespace Adidas.Application.Services.Feature
                         allCoupons = allCoupons.Where(c =>
                             c.IsActive &&
                             !c.IsDeleted &&
-                            c.ValidFrom <= DateTime.UtcNow &&
-                            c.ValidTo >= DateTime.UtcNow);
+                            c.ValidFrom <= now &&
+                            c.ValidTo >= now);
                         break;
 
                     case "expired":
                         allCoupons = allCoupons.Where(c =>
-                            c.ValidTo < DateTime.UtcNow);
+                            c.ValidTo < now);
                         break;
 
                     case "inactive":
@@ -108,8 +109,8 @@ namespace Adidas.Application.Services.Feature
                 ValidTo = c.ValidTo,
                 UsageLimit = c.UsageLimit,
                 UsedCount = c.UsedCount,
-                IsValidNow = DateTime.UtcNow >= c.ValidFrom && DateTime.UtcNow <= c.ValidTo,
-                IsExpired = DateTime.UtcNow > c.ValidTo
+                IsValidNow = now >= c.ValidFrom && now <= c.ValidTo,
+                IsExpired = now > c.ValidTo
             });
 
             return dtoList;
@@ -172,7 +173,7 @@ namespace Adidas.Application.Services.Feature
             if (coupon == null)
                 return Result.Failure("coupon not found.");
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             if (now < coupon.ValidFrom || now > coupon.ValidTo)
             {
@@ -226,7 +227,7 @@ namespace Adidas.Application.Services.Feature
             coupon.ValidTo = dto.ValidTo;
             coupon.UsageLimit = dto.UsageLimit;
             //coupon.IsActive = dto.IsActive;
-            coupon.UpdatedAt = DateTime.UtcNow;
+            //coupon.UpdatedAt = DateTime.UtcNow;
 
             try
             {
@@ -269,8 +270,8 @@ namespace Adidas.Application.Services.Feature
                 UsageLimit = dto.UsageLimit,
                 UsedCount = 0,
                 IsActive = dto.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                //CreatedAt = DateTime.UtcNow,
+                //UpdatedAt = DateTime.UtcNow
             };
 
             try
@@ -319,7 +320,7 @@ namespace Adidas.Application.Services.Feature
         public async Task<CouponDetailsDTO> GetCouponDetailsByIdAsync(Guid id)
         {
             var coupon = await _couponRepository.GetByIdAsync(id, c => c.OrderCoupons);
-
+            var now = DateTime.Now;
             if (coupon == null)
                 return new CouponDetailsDTO();
 
@@ -328,9 +329,9 @@ namespace Adidas.Application.Services.Feature
             string statusText;
             if (coupon.UsedCount >= coupon.UsageLimit)
                 statusText = "Limit Reached";
-            else if (DateTime.UtcNow > coupon.ValidTo)
+            else if (now > coupon.ValidTo)
                 statusText = "Expired";
-            else if (coupon.IsActive && DateTime.UtcNow >= coupon.ValidFrom && DateTime.UtcNow <= coupon.ValidTo)
+            else if (coupon.IsActive && now >= coupon.ValidFrom && now <= coupon.ValidTo)
                 statusText = "Active";
             else
                 statusText = "Inactive";
@@ -349,8 +350,8 @@ namespace Adidas.Application.Services.Feature
                 ValidTo = coupon.ValidTo,
                 UsageLimit = coupon.UsageLimit,
                 UsedCount = coupon.UsedCount,
-                IsValidNow = DateTime.UtcNow >= coupon.ValidFrom && DateTime.UtcNow <= coupon.ValidTo,
-                IsExpired = DateTime.UtcNow > coupon.ValidTo,
+                IsValidNow = now >= coupon.ValidFrom && now <= coupon.ValidTo,
+                IsExpired = now > coupon.ValidTo,
                 StatusText = statusText
             };
 
@@ -420,7 +421,7 @@ namespace Adidas.Application.Services.Feature
             if (coupon == null || !(coupon.IsActive && !coupon.IsDeleted))
                 return CouponApplicationResult.Fail("Coupon not found or inactive.");
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             if (now < coupon.ValidFrom || now > coupon.ValidTo)
                 return CouponApplicationResult.Fail("Coupon is not valid at this time.");
 
