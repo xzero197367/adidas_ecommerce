@@ -27,7 +27,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.System
         public async Task<IActionResult> Index(string searchTerm = "", string roleFilter = "All", int page = 1, int pageSize = 10)
         {
             // Only admins can access this page - get all users including clients
-            var query = _userManager.Users.AsQueryable();
+            var query = _userManager.Users
+    .Where(u => u.Role == UserRole.Admin || u.Role == UserRole.Employee)
+    .AsQueryable();
+
 
             // Apply search filter
             if (!string.IsNullOrEmpty(searchTerm))

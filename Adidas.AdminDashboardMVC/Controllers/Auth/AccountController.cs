@@ -295,11 +295,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
                 Role = roles.FirstOrDefault() ?? "N/A",
                 CreatedAt = currentUser.CreatedAt,
                 IsActive = currentUser.IsActive,
-
-                EmailConfirmed = currentUser.EmailConfirmed,
+                EmailConfirmed = currentUser.EmailConfirmed ,
                 DateOfBirth = currentUser.DateOfBirth,
                 PhoneNumber = currentUser.PhoneNumber,
-                Gender = currentUser.Gender?.ToString(),
+                Gender = currentUser.Gender?.ToString() ?? "Not Specified",
                 PreferredLanguage = currentUser.PreferredLanguage
             };
 
