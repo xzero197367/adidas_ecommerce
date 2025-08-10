@@ -1,4 +1,5 @@
 ﻿@using Adidas.Web.Controllers
+@using static Adidas.Web.Controllers.ReviewsController
 @model ReviewsIndexViewModel
 @{
     ViewData["Title"] = "Product Reviews";
@@ -354,18 +355,18 @@
                                                             data-id="@review.Id" title="Approve" data-toggle="tooltip">
                                                         <i class="fas fa-check"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-sm btn-warning reject-btn"
-                                                            data-id="@review.Id" title="Reject" data-toggle="tooltip">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
+                                                    @* <button type="button" class="btn btn-sm btn-warning reject-btn" *@
+                                                    @*         data-id="@review.Id" title="Reject" data-toggle="tooltip"> *@
+                                                    @*     <i class="fas fa-times"></i> *@
+                                                    @* </button> *@
                                                 }
-                                                @if (!review.IsDeleted)
-                                                {
-                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
-                                                            data-id="@review.Id" title="Delete" data-toggle="tooltip">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                }
+                                                @* @if (!review.IsDeleted) *@
+                                                @* { *@
+                                                @*     <button type="button" class="btn btn-sm btn-outline-danger delete-btn" *@
+                                                @*             data-id="@review.Id" title="Delete" data-toggle="tooltip"> *@
+                                                @*         <i class="fas fa-trash"></i> *@
+                                                @*     </button> *@
+                                                @* } *@
                                             </div>
                                         </td>
                                     </tr>
@@ -862,3 +863,4 @@
 
     @Html.AntiForgeryToken()
 }
+

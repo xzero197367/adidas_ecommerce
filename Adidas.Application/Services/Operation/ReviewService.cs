@@ -141,6 +141,9 @@ using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Operation.ReviewDTOs;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Adidas.DTOs.CommonDTOs;
+
 
 namespace Adidas.Application.Services.Operation
 {
@@ -263,6 +266,126 @@ namespace Adidas.Application.Services.Operation
                 RatingDistribution = ratingDistribution
             };
         }
+       
+
+public async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewFilterDto filter, int pageNumber, int pageSize)
+    {
+        // Start with base query (non-deleted) and include navigation props for UI mapping
+        IQueryable<Review> query = _reviewRepository.GetAll(q =>
+            q.Include(r => r.User)
+             .Include(r => r.Product)
+        ).Where(r => !r.IsDeleted);
+
+        // Apply status filter (status string or explicit booleans)
+        if (filter != null)
+        {
+            // Example: status could be represented using IsApproved and IsActive flags in DB
+            // Support explicit IsApproved or status string mapping if your UI sends it
+            if (filter.IsApproved.HasValue)
+            {
+                query = query.Where(r => r.IsApproved == filter.IsApproved.Value);
+            }
+
+            if (filter.MinRating.HasValue)
+            {
+                query = query.Where(r => r.Rating >= filter.MinRating.Value);
+            }
+
+            if (filter.MaxRating.HasValue)
+            {
+                query = query.Where(r => r.Rating <= filter.MaxRating.Value);
+            }
+
+            if (filter.IsVerifiedPurchase.HasValue)
+            {
+                query = query.Where(r => r.IsVerifiedPurchase == filter.IsVerifiedPurchase.Value);
+            }
+
+            if (filter.ProductId.HasValue)
+            {
+                query = query.Where(r => r.ProductId == filter.ProductId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.UserId))
+            {
+                query = query.Where(r => r.UserId == filter.UserId);
+            }
+
+            if (filter.StartDate.HasValue)
+            {
+                var s = filter.StartDate.Value.Date;
+                query = query.Where(r => r.CreatedAt >= s);
+            }
+
+            if (filter.EndDate.HasValue)
+            {
+                var e = filter.EndDate.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(r => r.CreatedAt <= e);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.SearchText))
+            {
+                var term = filter.SearchText.Trim();
+                // Search in title, review text, product name or user email if available
+                query = query.Where(r =>
+                    EF.Functions.Like(r.Title, $"%{term}%") ||
+                    EF.Functions.Like(r.ReviewText, $"%{term}%") ||
+                    (r.Product != null && EF.Functions.Like(r.Product.Name, $"%{term}%")) ||
+                    (r.User != null && EF.Functions.Like(r.User.Email, $"%{term}%"))
+                );
+            }
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(r => r.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        // Map to DTO and return PagedResultDto
+        var mapped = items.Adapt<IEnumerable<ReviewDto>>();
+
+        return new PagedResultDto<ReviewDto>
+        {
+            Items = mapped,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        };
+    }
+
+
+        //private async Task<ReviewStatsDto> GetReviewStatsAsync()
+        //{
+        //    // Delegate to the service which already computes Total/Approved/Pending/Rejected.
+        //    return await _reviewService.GetReviewStatsAsync();
+        //}
+
+        public async Task SoftDeleteAsync(Guid id)
+        {
+            var entity = await _reviewRepository.GetByIdAsync(id);
+            if (entity == null) throw new KeyNotFoundException("Review not found.");
+
+            // Example: extra logic before delete
+            if (entity.IsApproved )
+            {
+                throw new UnauthorizedAccessException("Only admins can delete approved reviews.");
+            }
+
+            entity.IsDeleted = true;
+            await _reviewRepository.UpdateAsync(entity);
+        }
+
+        //Optional helper
+        //private bool IsCurrentUserAdmin()
+        //{
+        //    return _httpContextAccessor.HttpContext.User.IsInRole("Admin");
+        //}
+
 
         public async Task<bool> CanUserReviewProductAsync(string userId, Guid productId)
         {
@@ -288,7 +411,37 @@ namespace Adidas.Application.Services.Operation
             }
         }
 
-        // Enhanced statistics method
+        //  Enhanced statistics method
+        //public async Task<ReviewStatsDto> GetReviewStatsAsync()
+        //{
+        //    try
+        //    {
+        //        var totalReviews = await _repository.CountAsync(r => !r.IsDeleted);
+        //        var approvedReviews = await _repository.CountAsync(r => r.IsApproved && !r.IsDeleted);
+        //        var pendingReviews = await _reviewRepository.GetPendingReviewsCountAsync();
+        //        var rejectedReviews = await _reviewRepository.GetRejectedReviewsCountAsync();
+        //        var verifiedPurchases = await _repository.CountAsync(r => r.IsVerifiedPurchase && !r.IsDeleted);
+
+        //        // Calculate average rating for all approved reviews
+        //        var allApprovedReviews = await _repository.GetAll().Where(r => r.IsApproved && !r.IsDeleted).ToListAsync();
+        //        var averageRating = allApprovedReviews.Any() ? allApprovedReviews.Average(r => r.Rating) : 0.0;
+
+        //        return new ReviewStatsDto
+        //        {
+        //            TotalReviews = totalReviews,
+        //            ApprovedReviews = approvedReviews,
+        //            PendingReviews = pendingReviews,
+        //            RejectedReviews = rejectedReviews,
+        //            AverageRating = Math.Round(averageRating, 2),
+        //            VerifiedPurchases = verifiedPurchases
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error getting review statistics");
+        //        return new ReviewStatsDto();
+        //    }
+        //}
         public async Task<ReviewStatsDto> GetReviewStatsAsync()
         {
             try
@@ -299,9 +452,12 @@ namespace Adidas.Application.Services.Operation
                 var rejectedReviews = await _reviewRepository.GetRejectedReviewsCountAsync();
                 var verifiedPurchases = await _repository.CountAsync(r => r.IsVerifiedPurchase && !r.IsDeleted);
 
-                // Calculate average rating for all approved reviews
-                var allApprovedReviews = await _repository.GetAll().Where(r => r.IsApproved && !r.IsDeleted).ToListAsync();
-                var averageRating = allApprovedReviews.Any() ? allApprovedReviews.Average(r => r.Rating) : 0.0;
+                var allApprovedReviews = await _repository.GetAll()
+                    .Where(r => r.IsApproved && !r.IsDeleted)
+                    .ToListAsync();
+                var averageRating = allApprovedReviews.Any()
+                    ? allApprovedReviews.Average(r => r.Rating)
+                    : 0.0;
 
                 return new ReviewStatsDto
                 {
@@ -319,6 +475,7 @@ namespace Adidas.Application.Services.Operation
                 return new ReviewStatsDto();
             }
         }
+
 
         public override async Task ValidateCreateAsync(ReviewCreateDto createDto)
         {
