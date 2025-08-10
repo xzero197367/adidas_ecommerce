@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Updated Account Controller - Added admin-initiated Google user creation
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Models.People;
@@ -94,80 +95,19 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register()
+        public IActionResult ExternalLogin(string provider, string returnUrl = null, string role = null, string phoneNumber = null, string dateOfBirth = null, string gender = null, bool isActive = true, string createMode = null)
         {
-            if (User.Identity.IsAuthenticated)
-                return RedirectToAction("Index", "Dashboard");
-
-            return View(new RegisterViewModel());
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var user = new User
+            // Store admin creation parameters in TempData for use after authentication
+            if (createMode == "admin" && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
-                UserName = model.Email,
-                Email = model.Email,
-                Role = UserRole.Employee, // This is your custom enum
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true
-            };
-
-            // Create the user in the Identity system
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (result.Succeeded)
-            {
-                // Ensure the "Employee" role exists
-                if (!await _roleManager.RoleExistsAsync("Employee"))
-                {
-                    var roleResult = await _roleManager.CreateAsync(new IdentityRole("Employee"));
-                    if (!roleResult.Succeeded)
-                    {
-                        foreach (var error in roleResult.Errors)
-                        {
-                            ModelState.AddModelError(string.Empty, $"Role creation error: {error.Description}");
-                        }
-                        return View(model);
-                    }
-                }
-
-                // Assign the user to the "Employee" role
-                var roleAssignResult = await _userManager.AddToRoleAsync(user, "Employee");
-                if (!roleAssignResult.Succeeded)
-                {
-                    foreach (var error in roleAssignResult.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, $"Role assignment error: {error.Description}");
-                    }
-                    return View(model);
-                }
-
-                _logger.LogInformation("User registered and assigned to Employee role.");
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Index", "Dashboard");
+                TempData["AdminCreateMode"] = "true";
+                TempData["AdminCreateRole"] = role;
+                TempData["AdminCreatePhoneNumber"] = phoneNumber;
+                TempData["AdminCreateDateOfBirth"] = dateOfBirth;
+                TempData["AdminCreateGender"] = gender;
+                TempData["AdminCreateIsActive"] = isActive.ToString();
             }
 
-            // If user creation failed, show validation errors
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-
-            return View(model);
-        }
-
-
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ExternalLogin(string provider, string returnUrl = null)
-        {
             var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
@@ -188,6 +128,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
             {
                 return RedirectToAction(nameof(Login));
             }
+
+            // Check if this is an admin-initiated user creation
+            bool isAdminCreateMode = TempData["AdminCreateMode"]?.ToString() == "true";
 
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
 
@@ -211,63 +154,121 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
             }
             else
             {
-                // If the user does not have an account, create one
-                ViewData["ReturnUrl"] = returnUrl;
-                ViewData["LoginProvider"] = info.LoginProvider;
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return View("ExternalLogin", new ExternalLoginViewModel { Email = email });
+                // Handle user creation
+                if (isAdminCreateMode)
+                {
+                    // Admin is creating a user via Google authentication
+                    return await HandleAdminGoogleUserCreation(info, returnUrl);
+                }
+                else
+                {
+                    // Regular external login - not allowed for new users
+                    ModelState.AddModelError(string.Empty, "No account found. Please contact your administrator to create an account.");
+                    return View("Login");
+                }
             }
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginViewModel model, string returnUrl = null)
+        private async Task<IActionResult> HandleAdminGoogleUserCreation(ExternalLoginInfo info, string returnUrl)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var info = await _signInManager.GetExternalLoginInfoAsync();
-                if (info == null)
+                // Get admin creation parameters
+                var roleString = TempData["AdminCreateRole"]?.ToString();
+                var phoneNumber = TempData["AdminCreatePhoneNumber"]?.ToString();
+                var dateOfBirthString = TempData["AdminCreateDateOfBirth"]?.ToString();
+                var genderString = TempData["AdminCreateGender"]?.ToString();
+                var isActiveString = TempData["AdminCreateIsActive"]?.ToString();
+                var isActive = bool.Parse(isActiveString ?? "true");
+
+                if (string.IsNullOrEmpty(roleString) || !Enum.TryParse<UserRole>(roleString, out var userRole))
                 {
-                    throw new ApplicationException("Error loading external login information during confirmation.");
+                    TempData["ErrorMessage"] = "Invalid role specified for user creation.";
+                    return RedirectToAction("Create", "Users");
                 }
 
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email))
+                {
+                    TempData["ErrorMessage"] = "Unable to get email from Google account.";
+                    return RedirectToAction("Create", "Users");
+                }
+
+                // Check if user already exists
+                var existingUser = await _userManager.FindByEmailAsync(email);
+                if (existingUser != null)
+                {
+                    TempData["ErrorMessage"] = $"A user with email {email} already exists.";
+                    return RedirectToAction("Create", "Users");
+                }
+
+                // Parse optional fields
+                DateTime? dateOfBirth = null;
+                if (!string.IsNullOrEmpty(dateOfBirthString) && DateTime.TryParse(dateOfBirthString, out var parsedDate))
+                {
+                    dateOfBirth = parsedDate;
+                }
+
+                Gender? gender = null;
+                if (!string.IsNullOrEmpty(genderString) && Enum.TryParse<Gender>(genderString, out var parsedGender))
+                {
+                    gender = parsedGender;
+                }
+
+                // Create the user
                 var user = new User
                 {
-                    UserName = model.Email,
-                    Email = model.Email,
-                    Role = UserRole.Employee,
+                    UserName = email,
+                    Email = email,
+                    PhoneNumber = phoneNumber,
+                    Role = userRole,
                     CreatedAt = DateTime.UtcNow,
-                    IsActive = true
+                    IsActive = isActive,
+                    EmailConfirmed = true, // Google users are auto-confirmed
+                    DateOfBirth = dateOfBirth,
+                    Gender = gender
                 };
 
-                var result = await _userManager.CreateAsync(user);
-                if (result.Succeeded)
+                var createResult = await _userManager.CreateAsync(user);
+                if (createResult.Succeeded)
                 {
-                    result = await _userManager.AddLoginAsync(user, info);
-                    if (result.Succeeded)
+                    // Add the external login
+                    var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                    if (addLoginResult.Succeeded)
                     {
-                        // Ensure Employee role exists and add user to it
-                        if (!await _roleManager.RoleExistsAsync("Employee"))
+                        // Ensure role exists and assign it
+                        if (!await _roleManager.RoleExistsAsync(roleString))
                         {
-                            await _roleManager.CreateAsync(new IdentityRole("Employee"));
+                            await _roleManager.CreateAsync(new IdentityRole(roleString));
                         }
-                        await _userManager.AddToRoleAsync(user, "Employee");
+                        await _userManager.AddToRoleAsync(user, roleString);
 
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
-                        return RedirectToLocal(returnUrl);
+                        _logger.LogInformation("Admin created user via Google: {Email} with role: {Role}", email, roleString);
+                        TempData["SuccessMessage"] = $"User {email} created successfully via Google with role {roleString}.";
+
+                        return RedirectToAction("Index", "Users");
+                    }
+                    else
+                    {
+                        // If adding login failed, delete the user
+                        await _userManager.DeleteAsync(user);
+                        TempData["ErrorMessage"] = "Failed to link Google account. Please try again.";
+                        return RedirectToAction("Create", "Users");
                     }
                 }
-
-                foreach (var error in result.Errors)
+                else
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                    TempData["ErrorMessage"] = $"Failed to create user: {errors}";
+                    return RedirectToAction("Create", "Users");
                 }
             }
-
-            ViewData["ReturnUrl"] = returnUrl;
-            return View(nameof(ExternalLogin), model);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating user via Google authentication");
+                TempData["ErrorMessage"] = "An error occurred while creating the user. Please try again.";
+                return RedirectToAction("Create", "Users");
+            }
         }
 
         [HttpPost]
@@ -278,6 +279,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
             _logger.LogInformation("User logged out.");
             return RedirectToAction("Login", "Account");
         }
+
         [Authorize]
         public async Task<IActionResult> Profile()
         {
@@ -292,11 +294,19 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
                 Email = currentUser.Email,
                 Role = roles.FirstOrDefault() ?? "N/A",
                 CreatedAt = currentUser.CreatedAt,
-                IsActive = currentUser.IsActive
+                IsActive = currentUser.IsActive,
+
+                EmailConfirmed = currentUser.EmailConfirmed,
+                DateOfBirth = currentUser.DateOfBirth,
+                PhoneNumber = currentUser.PhoneNumber,
+                Gender = currentUser.Gender?.ToString(),
+                PreferredLanguage = currentUser.PreferredLanguage
             };
 
             return View(viewModel);
         }
+
+
 
         [HttpGet]
         [Authorize]
@@ -333,7 +343,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
             return View(model);
         }
 
-
         [HttpGet]
         [AllowAnonymous]
         public IActionResult AccessDenied()
@@ -363,6 +372,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
             {
                 return RedirectToAction("Index", "Dashboard");
             }
+        }
+
+        private bool IsAdmin()
+        {
+            return User.IsInRole("Admin");
         }
     }
 }
