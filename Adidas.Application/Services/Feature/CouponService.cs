@@ -1,12 +1,15 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Adidas.DTOs.Feature.OrderCouponDTOs;
 using Adidas.Models.Feature;
-using Microsoft.EntityFrameworkCore;
+using Adidas.Models.Separator;
+using Microsoft.Extensions.Logging;
 using Models.Feature;
+using System.Collections.Generic;
 
 namespace Adidas.Application.Services.Feature
 {
@@ -16,14 +19,14 @@ namespace Adidas.Application.Services.Feature
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderCouponRepository _orderCouponRepository;
         public CouponService(
-            ICouponRepository couponRepository, IOrderRepository orderRepository , IOrderCouponRepository orderCouponRepository)
-      
+            ICouponRepository couponRepository, IOrderRepository orderRepository, IOrderCouponRepository orderCouponRepository)
+
         {
             _couponRepository = couponRepository;
             _orderRepository = orderRepository;
             _orderCouponRepository = orderCouponRepository;
         }
-      
+
         private async Task<decimal> CalculateDiscountAmountAsync(Coupon coupon, decimal orderAmount)
         {
             if (coupon.DiscountType == DiscountType.Percentage)
@@ -59,7 +62,7 @@ namespace Adidas.Application.Services.Feature
 
         private async Task<IEnumerable<CouponDto>> GetFilteredCouponsAsync(string search, string status)
         {
-            var allCoupons =  _couponRepository.GetAll();
+            var allCoupons = await _couponRepository.GetAllAsync();
             allCoupons = allCoupons.Where(c => !c.IsDeleted);
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -91,8 +94,7 @@ namespace Adidas.Application.Services.Feature
                 }
             }
 
-            var dtoList = await allCoupons.ToListAsync();
-            var dtoList1 = dtoList.Select(c => new CouponDto
+            var dtoList = allCoupons.Select(c => new CouponDto
             {
                 Id = c.Id,
                 //CreatedAt = c.CreatedAt,
@@ -109,7 +111,7 @@ namespace Adidas.Application.Services.Feature
                 UsedCount = c.UsedCount,
             });
 
-            return dtoList1;
+            return dtoList;
         }
 
         public async Task<Result> SoftDeletAsync(Guid id)
@@ -196,24 +198,24 @@ namespace Adidas.Application.Services.Feature
             }
 
         }
-  
+
         public async Task<Result> UpdateAsync(CouponUpdateDto dto)
         {
-             
+
             var coupon = await _couponRepository.GetByIdAsync(dto.Id);
             if (coupon == null || coupon.IsDeleted)
             {
                 return Result.Failure("Coupon not found.");
             }
 
-            
+
             var otherCoupon = await _couponRepository.GetByCodeAsync(dto.Code);
             if (otherCoupon != null && otherCoupon.Id != dto.Id)
             {
                 return Result.Failure($"Coupon code '{dto.Code}' is already in use.");
             }
 
-            
+
             coupon.Code = dto.Code;
             coupon.Name = dto.Name;
             coupon.DiscountType = dto.DiscountType;
@@ -272,7 +274,7 @@ namespace Adidas.Application.Services.Feature
 
             try
             {
-                
+
                 await _couponRepository.AddAsync(coupon);
                 var affectedRows = await _couponRepository.SaveChangesAsync();
 
@@ -305,7 +307,7 @@ namespace Adidas.Application.Services.Feature
                 ValidTo = coupon.ValidTo,
                 UsageLimit = coupon.UsageLimit,
                 //IsActive = coupon.IsActive,
-                
+
             };
 
             return couponUpdateDto;
@@ -316,15 +318,15 @@ namespace Adidas.Application.Services.Feature
         public async Task<CouponDetailsDTO> GetCouponDetailsByIdAsync(Guid id)
         {
 
-            var coupon = await _couponRepository.GetByIdAsync(id ,c=>c.OrderCoupons);
+            var coupon = await _couponRepository.GetByIdAsync(id, c => c.OrderCoupons);
 
             if (coupon == null)
-                return null;  
+                return null;
 
-            
+
             var orderCoupons = coupon.OrderCoupons;
 
-             
+
             var couponDto = new CouponDto
             {
                 Id = coupon.Id,
@@ -341,7 +343,7 @@ namespace Adidas.Application.Services.Feature
                 UsedCount = coupon.UsedCount
             };
 
-            
+
             var orderCouponDtos = orderCoupons.Select(oc => new OrderCouponDto
             {
                 Id = oc.Id,
@@ -399,7 +401,7 @@ namespace Adidas.Application.Services.Feature
             coupon.UsedCount++;
             await _couponRepository.UpdateAsync(coupon);
 
-         
+
             await _couponRepository.SaveChangesAsync();
 
             return CouponApplicationResult.Ok(discountApplied, order.TotalAmount);
@@ -451,12 +453,12 @@ namespace Adidas.Application.Services.Feature
             if (appliedCoupon == null)
                 return CouponApplicationResult.Fail("Coupon is not applied to this order.");
 
-             
+
             order.DiscountAmount -= appliedCoupon.DiscountApplied;
             if (order.DiscountAmount < 0)
-                order.DiscountAmount = 0;  
+                order.DiscountAmount = 0;
 
-            
+
             order.TotalAmount = order.Subtotal + order.TaxAmount + order.ShippingAmount - order.DiscountAmount;
 
 
@@ -487,11 +489,10 @@ namespace Adidas.Application.Services.Feature
             }
             catch (Exception ex)
             {
-               
+
                 return -1;
             }
         }
 
     }
 }
-    
