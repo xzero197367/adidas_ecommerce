@@ -179,6 +179,22 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             return View(brandDetails);
         }
+
+        public async Task<IActionResult> ToggleStatus(Guid id)
+        {
+            var result = await _brandService.ToggleCategoryStatusAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Brands status updated successfully.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
  
