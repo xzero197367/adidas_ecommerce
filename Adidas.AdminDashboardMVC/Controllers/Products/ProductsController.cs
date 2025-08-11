@@ -13,25 +13,25 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IBrandRepository _brandRepository;
-        private readonly IProductVariantRepository _productVariantRepository;
+        private readonly ICategoryRepository _categoryService;
+        private readonly IBrandRepository _brandService;
+        private readonly IProductVariantService _productVariantService;
 
         public ProductsController(
             IProductService productService,
-            ICategoryRepository categoryRepository,
-            IBrandRepository brandRepository,
-            IProductVariantRepository productVariantRepository)
+            ICategoryRepository categoryService,
+            IBrandRepository brandService,
+            IProductVariantService productVariantService)
         {
             _productService = productService;
-            _categoryRepository = categoryRepository;
-            _brandRepository = brandRepository;
-            _productVariantRepository = productVariantRepository;
+            _categoryService = categoryService;
+            _brandService = brandService;
+            _productVariantService = productVariantService;
         }
 
         public async Task<IActionResult> Index(ProductFilterDto filter)
         {
-            var categories = await _categoryRepository.GetAll().ToListAsync();
+            var categories = await _categoryService.GetAll().ToListAsync();
             ViewBag.Categories = categories
                 .Select(c => new SelectListItem
                 {
@@ -39,7 +39,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     Text = c.Name
                 }).ToList();
 
-            var brands = await _brandRepository.GetAll().ToListAsync();
+            var brands = await _brandService.GetAll().ToListAsync();
             ViewBag.Brands = brands
                 .Select(b => new SelectListItem
                 {
@@ -57,7 +57,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             var pagedResult = await _productService.GetProductsFilteredByCategoryBrandGenderAsync(filter);
 
-            return View(pagedResult);
+            return View("Index");
         }
 
         [HttpGet]
@@ -125,14 +125,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         private async Task PopulateDropdownsAsync()
         {
-            var categories = await _categoryRepository.GetAll().ToListAsync();
+            var categories = await _categoryService.GetAll().ToListAsync();
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             }).ToList();
 
-            var brands = await _brandRepository.GetAll().ToListAsync();
+            var brands = await _brandService.GetAll().ToListAsync();
             ViewBag.Brands = brands.Select(b => new SelectListItem
             {
                 Value = b.Id.ToString(),

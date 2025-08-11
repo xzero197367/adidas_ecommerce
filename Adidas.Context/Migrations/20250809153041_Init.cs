@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Adidas.Context.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -557,9 +557,9 @@ namespace Adidas.Context.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    ReviewText = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsVerifiedPurchase = table.Column<bool>(type: "bit", nullable: false),
-                    IsApproved = table.Column<bool>(type: "bit", nullable: false),
+                    ReviewText = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    IsVerifiedPurchase = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AddedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
@@ -581,14 +581,13 @@ namespace Adidas.Context.Migrations
                         name: "FK_Reviews_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Reviews_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -781,18 +780,33 @@ namespace Adidas.Context.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { "88888888-cccc-dddd-eeee-ffffffffffff", null, "Customer", "CUSTOMER" },
+                    { "99999999-aaaa-bbbb-cccc-111111111111", null, "Admin", "ADMIN" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreatedAt", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "Gender", "IsActive", "IsDeleted", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "Phone", "PhoneNumber", "PhoneNumberConfirmed", "PreferredLanguage", "Role", "SecurityStamp", "TwoFactorEnabled", "UpdatedAt", "UserName" },
-                values: new object[] { "aaaaaaaa-1111-2222-3333-444444444444", 0, "7193c71a-bc19-4231-bddb-c3fe3914ce29", new DateTime(2025, 8, 8, 6, 4, 33, 489, DateTimeKind.Utc).AddTicks(4126), null, "admin@adidas.com", true, null, null, true, false, null, false, null, "ADMIN@ADIDAS.COM", "ADMIN@ADIDAS.COM", "AQAAAAIAAYagAAAAEF4ctktiQFCauO65SFXI7Xv1ph3bzGAIP2zvXWYGh0WmvCblNvRgPiuovcTQqyilgg==", "0000000000", null, false, null, 1, "11d3e87d-0004-4ee3-a285-a93b88b90504", false, null, "admin@adidas.com" });
+                values: new object[,]
+                {
+                    { "11111111-aaaa-bbbb-cccc-111111111111", 0, "c9e2f354-ef0d-485f-9d5c-46a891db2da0", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8821), null, "customer1@adidas.com", true, null, null, true, false, null, false, null, "CUSTOMER1@ADIDAS.COM", "CUSTOMER1@ADIDAS.COM", "AQAAAAIAAYagAAAAEHokfRvv/kaRVkpsxhe8FWJp8XzXK5bT4G4ntre6GMALUMI/jJ8XxFrUsLHBD+KR2g==", "0100000001", null, false, null, 3, "29338ed4-6a45-460a-968a-5118fb87eccc", false, null, "customer1@adidas.com" },
+                    { "22222222-aaaa-bbbb-cccc-222222222222", 0, "ce95d207-9ef9-41e3-9a2f-da536d1adea8", new DateTime(2025, 8, 9, 15, 30, 39, 613, DateTimeKind.Utc).AddTicks(6346), null, "customer2@adidas.com", true, null, null, true, false, null, false, null, "CUSTOMER2@ADIDAS.COM", "CUSTOMER2@ADIDAS.COM", "AQAAAAIAAYagAAAAEIu9lDdPSD9uaGPQ0uUhF/i8wMCIUck+O8GnUyyKtxxujQPFEavidRHHHGnjjs6CAQ==", "0100000002", null, false, null, 3, "98de17c2-a1ff-465f-90ba-a5401ff50e6e", false, null, "customer2@adidas.com" },
+                    { "33333333-aaaa-bbbb-cccc-333333333333", 0, "17ad172b-8dc0-4d96-b849-2b94a81c9c8c", new DateTime(2025, 8, 9, 15, 30, 39, 740, DateTimeKind.Utc).AddTicks(556), null, "customer3@adidas.com", true, null, null, true, false, null, false, null, "CUSTOMER3@ADIDAS.COM", "CUSTOMER3@ADIDAS.COM", "AQAAAAIAAYagAAAAEM0K66Ic9zb7XQpu/HbWzmyuA+XrzVYtnLl37jW6xrniBHQL4Oc6+ON1tWl6nnkuEA==", "0100000003", null, false, null, 3, "70ea0e75-c968-4f2f-a9f1-e180cbd15289", false, null, "customer3@adidas.com" },
+                    { "aaaaaaaa-1111-2222-3333-444444444444", 0, "a9eb8735-50d4-4029-a74c-7cf8fa0bf176", new DateTime(2025, 8, 9, 15, 30, 39, 432, DateTimeKind.Utc).AddTicks(4601), null, "admin@adidas.com", true, null, null, true, false, null, false, null, "ADMIN@ADIDAS.COM", "ADMIN@ADIDAS.COM", "AQAAAAIAAYagAAAAEOUo+R1PXhSjr7KNtm0BgcokNaNfXXDnOYhdi8QHcsMcpcyZjqusjFIvT+uoQnr4xQ==", "0000000000", null, false, null, 1, "03c9f792-f5c6-4919-b25c-98c292a24d5a", false, null, "admin@adidas.com" }
+                });
 
             migrationBuilder.InsertData(
                 table: "Brands",
                 columns: new[] { "Id", "AddedById", "CreatedAt", "Description", "IsActive", "IsDeleted", "LogoUrl", "Name", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), null, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(29), "Adidas Samba is one of the most iconic Adidas shoe lines.", true, false, "/images/brands/adidas-samba.png", "Adidas", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(38) },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), null, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(94), "Adidas Samba is one of the most iconic Adidas shoe lines.", true, false, "/images/brands/adidas-samba.png", "Adidas Samba", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(94) },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), null, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(101), "Adidas Samba is one of the most iconic Adidas shoe lines.", true, false, "/images/brands/adidas-samba.png", "Adidas Originals", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(101) }
+                    { new Guid("11111111-1111-1111-1111-111111111111"), null, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8249), "Adidas Samba is one of the most iconic Adidas shoe lines.", true, false, "/images/brands/adidas-samba.png", "Adidas", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8254) },
+                    { new Guid("22222222-2222-2222-2222-222222222222"), null, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8379), "Adidas Samba is one of the most iconic Adidas shoe lines.", true, false, "/images/brands/adidas-samba.png", "Adidas Samba", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8379) },
+                    { new Guid("33333333-3333-3333-3333-333333333333"), null, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8385), "Adidas Samba is one of the most iconic Adidas shoe lines.", true, false, "/images/brands/adidas-samba.png", "Adidas Originals", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8385) }
                 });
 
             migrationBuilder.InsertData(
@@ -800,8 +814,19 @@ namespace Adidas.Context.Migrations
                 columns: new[] { "Id", "AddedById", "CreatedAt", "Description", "ImageUrl", "IsActive", "Name", "ParentCategoryId", "Slug", "SortOrder", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { new Guid("44444444-4444-4444-4444-444444444444"), null, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(182), "All types of Adidas shoes for men and women", "/images/categories/shoes.jpg", true, "Shoes", null, "shoes", 0, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(183) },
-                    { new Guid("55555555-5555-5555-5555-555555555555"), null, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(217), "Adidas clothing line including t-shirts, jackets and pants", "/images/categories/clothes.jpg", true, "Clothes", null, "clothes", 0, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(218) }
+                    { new Guid("44444444-4444-4444-4444-444444444444"), null, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8457), "All types of Adidas shoes for men and women", "/images/categories/shoes.jpg", true, "Shoes", null, "shoes", 0, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8458) },
+                    { new Guid("55555555-5555-5555-5555-555555555555"), null, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8464), "Adidas clothing line including t-shirts, jackets and pants", "/images/categories/clothes.jpg", true, "Clothes", null, "clothes", 0, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8464) }
+                });
+
+            migrationBuilder.InsertData(
+                table: "AspNetUserRoles",
+                columns: new[] { "RoleId", "UserId" },
+                values: new object[,]
+                {
+                    { "88888888-cccc-dddd-eeee-ffffffffffff", "11111111-aaaa-bbbb-cccc-111111111111" },
+                    { "88888888-cccc-dddd-eeee-ffffffffffff", "22222222-aaaa-bbbb-cccc-222222222222" },
+                    { "88888888-cccc-dddd-eeee-ffffffffffff", "33333333-aaaa-bbbb-cccc-333333333333" },
+                    { "99999999-aaaa-bbbb-cccc-111111111111", "aaaaaaaa-1111-2222-3333-444444444444" }
                 });
 
             migrationBuilder.InsertData(
@@ -809,8 +834,8 @@ namespace Adidas.Context.Migrations
                 columns: new[] { "Id", "AddedById", "BrandId", "CategoryId", "CreatedAt", "Description", "GenderTarget", "IsActive", "MetaDescription", "MetaTitle", "Name", "Price", "SalePrice", "ShortDescription", "Sku", "Specifications", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { new Guid("66666666-6666-6666-6666-666666666666"), null, new Guid("11111111-1111-1111-1111-111111111111"), new Guid("44444444-4444-4444-4444-444444444444"), new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(370), "High performance running shoes", 3, true, null, null, "Adidas Ultraboost", 120m, null, "Running Shoes", "UB-001", null, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(352) },
-                    { new Guid("77777777-7777-7777-7777-777777777777"), null, new Guid("22222222-2222-2222-2222-222222222222"), new Guid("44444444-4444-4444-4444-444444444444"), new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(382), "Iconic indoor soccer shoes", 3, true, null, null, "Adidas Samba Classic", 85m, null, "Samba Shoes", "SB-001", null, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(374) }
+                    { new Guid("66666666-6666-6666-6666-666666666666"), null, new Guid("11111111-1111-1111-1111-111111111111"), new Guid("44444444-4444-4444-4444-444444444444"), new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8542), "High performance running shoes", 3, true, null, null, "Adidas Ultraboost", 120m, null, "Running Shoes", "UB-001", null, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8533) },
+                    { new Guid("77777777-7777-7777-7777-777777777777"), null, new Guid("22222222-2222-2222-2222-222222222222"), new Guid("44444444-4444-4444-4444-444444444444"), new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8551), "Iconic indoor soccer shoes", 3, true, null, null, "Adidas Samba Classic", 85m, null, "Samba Shoes", "SB-001", null, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8544) }
                 });
 
             migrationBuilder.InsertData(
@@ -818,8 +843,8 @@ namespace Adidas.Context.Migrations
                 columns: new[] { "Id", "AddedById", "AltText", "CreatedAt", "ImageUrl", "IsActive", "IsPrimary", "ProductId", "SortOrder", "UpdatedAt", "VariantId" },
                 values: new object[,]
                 {
-                    { new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), null, "", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(586), "/images/products/ultraboost-black.jpg", true, true, new Guid("66666666-6666-6666-6666-666666666666"), 0, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(587), null },
-                    { new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), null, "", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(712), "/images/products/samba-white.jpg", true, true, new Guid("77777777-7777-7777-7777-777777777777"), 0, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(712), null }
+                    { new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), null, "", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8693), "/images/products/ultraboost-black.jpg", true, true, new Guid("66666666-6666-6666-6666-666666666666"), 0, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8693), null },
+                    { new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), null, "", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8699), "/images/products/samba-white.jpg", true, true, new Guid("77777777-7777-7777-7777-777777777777"), 0, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8699), null }
                 });
 
             migrationBuilder.InsertData(
@@ -827,22 +852,24 @@ namespace Adidas.Context.Migrations
                 columns: new[] { "Id", "AddedById", "Color", "CreatedAt", "ImageUrl", "IsActive", "PriceAdjustment", "ProductId", "Size", "Sku", "StockQuantity", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { new Guid("88888888-8888-8888-8888-888888888888"), null, "Black", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(484), "/images/products/samba-black-42.jpg", true, 0m, new Guid("66666666-6666-6666-6666-666666666666"), "42", "UB-001-BLK-42", 50, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(485) },
-                    { new Guid("99999999-9999-9999-9999-999999999999"), null, "White", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(501), "/images/products/samba-black-42.jpg", true, 0m, new Guid("77777777-7777-7777-7777-777777777777"), "41", "SB-001-WHT-41", 30, new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(502) }
+                    { new Guid("88888888-8888-8888-8888-888888888888"), null, "Black", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8623), "/images/products/samba-black-42.jpg", true, 0m, new Guid("66666666-6666-6666-6666-666666666666"), "42", "UB-001-BLK-42", 50, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8623) },
+                    { new Guid("99999999-9999-9999-9999-999999999999"), null, "White", new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8634), "/images/products/samba-black-42.jpg", true, 0m, new Guid("77777777-7777-7777-7777-777777777777"), "41", "SB-001-WHT-41", 30, new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8635) }
                 });
 
             migrationBuilder.InsertData(
                 table: "Reviews",
+                columns: new[] { "Id", "AddedById", "CreatedAt", "IsActive", "IsVerifiedPurchase", "ProductId", "Rating", "ReviewText", "Title", "UpdatedAt", "UserId" },
+                values: new object[] { new Guid("550e8400-e29b-41d4-a716-44665544000c"), null, new DateTime(2025, 8, 4, 11, 0, 0, 0, DateTimeKind.Utc), true, true, new Guid("66666666-6666-6666-6666-666666666666"), 4, "Amazing shoes, waiting for approval!", "Fresh Review - Pending", new DateTime(2025, 8, 9, 15, 30, 39, 857, DateTimeKind.Utc).AddTicks(9256), "11111111-aaaa-bbbb-cccc-111111111111" });
+
+            migrationBuilder.InsertData(
+                table: "Reviews",
+                columns: new[] { "Id", "AddedById", "CreatedAt", "IsActive", "ProductId", "Rating", "ReviewText", "Title", "UpdatedAt", "UserId" },
+                values: new object[] { new Guid("550e8400-e29b-41d4-a716-44665544000d"), null, new DateTime(2025, 8, 4, 10, 30, 0, 0, DateTimeKind.Utc), true, new Guid("77777777-7777-7777-7777-777777777777"), 3, "Good style, need to see more.", "New Review - Pending", new DateTime(2025, 8, 9, 15, 30, 39, 857, DateTimeKind.Utc).AddTicks(9320), "22222222-aaaa-bbbb-cccc-222222222222" });
+
+            migrationBuilder.InsertData(
+                table: "Reviews",
                 columns: new[] { "Id", "AddedById", "CreatedAt", "IsActive", "IsApproved", "IsVerifiedPurchase", "ProductId", "Rating", "ReviewText", "Title", "UpdatedAt", "UserId" },
-                values: new object[,]
-                {
-                    { new Guid("550e8400-e29b-41d4-a716-44665544000c"), null, new DateTime(2025, 8, 4, 11, 0, 0, 0, DateTimeKind.Utc), true, false, true, new Guid("66666666-6666-6666-6666-666666666666"), 4, "Amazing shoes, waiting for approval!", "Fresh Review - Pending", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(790), "aaaaaaaa-1111-2222-3333-444444444444" },
-                    { new Guid("550e8400-e29b-41d4-a716-44665544000d"), null, new DateTime(2025, 8, 4, 10, 30, 0, 0, DateTimeKind.Utc), true, false, false, new Guid("77777777-7777-7777-7777-777777777777"), 3, "Good style, need to see more.", "New Review - Pending", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(828), "aaaaaaaa-1111-2222-3333-444444444444" },
-                    { new Guid("550e8400-e29b-41d4-a716-44665544000e"), null, new DateTime(2025, 8, 4, 10, 0, 0, 0, DateTimeKind.Utc), true, true, true, new Guid("66666666-6666-6666-6666-666666666666"), 5, "", "Approved Feedback", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(837), "aaaaaaaa-1111-2222-3333-444444444444" },
-                    { new Guid("550e8400-e29b-41d4-a716-44665544000f"), null, new DateTime(2025, 8, 4, 9, 30, 0, 0, DateTimeKind.Utc), true, true, false, new Guid("77777777-7777-7777-7777-777777777777"), 4, "", "Approved Comment", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(844), "aaaaaaaa-1111-2222-3333-444444444444" },
-                    { new Guid("550e8400-e29b-41d4-a716-446655440010"), null, new DateTime(2025, 8, 4, 11, 15, 0, 0, DateTimeKind.Utc), true, false, true, new Guid("66666666-6666-6666-6666-666666666666"), 2, "Rejected due to bad words.", "Rejected Feedback", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(851), "aaaaaaaa-1111-2222-3333-444444444444" },
-                    { new Guid("550e8400-e29b-41d4-a716-446655440011"), null, new DateTime(2025, 8, 4, 11, 30, 0, 0, DateTimeKind.Utc), true, false, false, new Guid("77777777-7777-7777-7777-777777777777"), 1, "Rejected for spam content.", "Rejected Comment", new DateTime(2025, 8, 8, 6, 4, 33, 630, DateTimeKind.Utc).AddTicks(857), "aaaaaaaa-1111-2222-3333-444444444444" }
-                });
+                values: new object[] { new Guid("550e8400-e29b-41d4-a716-44665544000e"), null, new DateTime(2025, 8, 4, 10, 0, 0, 0, DateTimeKind.Utc), true, true, true, new Guid("66666666-6666-6666-6666-666666666666"), 5, "", "Approved Feedback", new DateTime(2025, 8, 9, 15, 30, 39, 857, DateTimeKind.Utc).AddTicks(9328), "33333333-aaaa-bbbb-cccc-333333333333" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Addresses_AddedById",
@@ -1136,19 +1163,24 @@ namespace Adidas.Context.Migrations
                 column: "AddedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_ProductId_IsApproved",
+                name: "IX_Reviews_CreatedAt",
                 table: "Reviews",
-                columns: new[] { "ProductId", "IsApproved" });
+                column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_Rating",
+                name: "IX_Reviews_IsApproved",
                 table: "Reviews",
-                column: "Rating");
+                column: "IsApproved");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_UserId_CreatedAt",
+                name: "IX_Reviews_ProductId",
                 table: "Reviews",
-                columns: new[] { "UserId", "CreatedAt" });
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_UserId",
+                table: "Reviews",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ShoppingCarts_AddedAt",

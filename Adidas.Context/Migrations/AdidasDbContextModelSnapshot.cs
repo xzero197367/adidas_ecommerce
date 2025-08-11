@@ -213,7 +213,7 @@ namespace Adidas.Context.Migrations
                             Id = new Guid("66666666-6666-6666-6666-666666666666"),
                             BrandId = new Guid("11111111-1111-1111-1111-111111111111"),
                             CategoryId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3297),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8542),
                             Description = "High performance running shoes",
                             GenderTarget = 3,
                             IsActive = true,
@@ -222,14 +222,14 @@ namespace Adidas.Context.Migrations
                             Price = 120m,
                             ShortDescription = "Running Shoes",
                             Sku = "UB-001",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3289)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8533)
                         },
                         new
                         {
                             Id = new Guid("77777777-7777-7777-7777-777777777777"),
                             BrandId = new Guid("22222222-2222-2222-2222-222222222222"),
                             CategoryId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3306),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8551),
                             Description = "Iconic indoor soccer shoes",
                             GenderTarget = 3,
                             IsActive = true,
@@ -238,7 +238,7 @@ namespace Adidas.Context.Migrations
                             Price = 85m,
                             ShortDescription = "Samba Shoes",
                             Sku = "SB-001",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3300)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8544)
                         });
                 });
 
@@ -393,27 +393,27 @@ namespace Adidas.Context.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             AltText = "",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3434),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8693),
                             ImageUrl = "/images/products/ultraboost-black.jpg",
                             IsActive = true,
                             IsDeleted = false,
                             IsPrimary = true,
                             ProductId = new Guid("66666666-6666-6666-6666-666666666666"),
                             SortOrder = 0,
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3434)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8693)
                         },
                         new
                         {
                             Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             AltText = "",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3439),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8699),
                             ImageUrl = "/images/products/samba-white.jpg",
                             IsActive = true,
                             IsDeleted = false,
                             IsPrimary = true,
                             ProductId = new Guid("77777777-7777-7777-7777-777777777777"),
                             SortOrder = 0,
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3440)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8699)
                         });
                 });
 
@@ -495,7 +495,7 @@ namespace Adidas.Context.Migrations
                         {
                             Id = new Guid("88888888-8888-8888-8888-888888888888"),
                             Color = "Black",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3376),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8623),
                             ImageUrl = "/images/products/samba-black-42.jpg",
                             IsActive = true,
                             IsDeleted = false,
@@ -504,13 +504,13 @@ namespace Adidas.Context.Migrations
                             Size = "42",
                             Sku = "UB-001-BLK-42",
                             StockQuantity = 50,
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3376)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8623)
                         },
                         new
                         {
                             Id = new Guid("99999999-9999-9999-9999-999999999999"),
                             Color = "White",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3397),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8634),
                             ImageUrl = "/images/products/samba-black-42.jpg",
                             IsActive = true,
                             IsDeleted = false,
@@ -519,7 +519,7 @@ namespace Adidas.Context.Migrations
                             Size = "41",
                             Sku = "SB-001-WHT-41",
                             StockQuantity = 30,
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3397)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8635)
                         });
                 });
 
@@ -843,7 +843,7 @@ namespace Adidas.Context.Migrations
                             Rating = 4,
                             ReviewText = "Amazing shoes, waiting for approval!",
                             Title = "Fresh Review - Pending",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 3, 9, DateTimeKind.Utc).AddTicks(3026),
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 857, DateTimeKind.Utc).AddTicks(9256),
                             UserId = "11111111-aaaa-bbbb-cccc-111111111111"
                         },
                         new
@@ -858,7 +858,7 @@ namespace Adidas.Context.Migrations
                             Rating = 3,
                             ReviewText = "Good style, need to see more.",
                             Title = "New Review - Pending",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 3, 9, DateTimeKind.Utc).AddTicks(3075),
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 857, DateTimeKind.Utc).AddTicks(9320),
                             UserId = "22222222-aaaa-bbbb-cccc-222222222222"
                         },
                         new
@@ -873,7 +873,7 @@ namespace Adidas.Context.Migrations
                             Rating = 5,
                             ReviewText = "",
                             Title = "Approved Feedback",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 3, 9, DateTimeKind.Utc).AddTicks(3092),
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 857, DateTimeKind.Utc).AddTicks(9328),
                             UserId = "33333333-aaaa-bbbb-cccc-333333333333"
                         });
                 });
@@ -920,35 +920,35 @@ namespace Adidas.Context.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3098),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8249),
                             Description = "Adidas Samba is one of the most iconic Adidas shoe lines.",
                             IsActive = true,
                             IsDeleted = false,
                             LogoUrl = "/images/brands/adidas-samba.png",
                             Name = "Adidas",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3103)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8254)
                         },
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3144),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8379),
                             Description = "Adidas Samba is one of the most iconic Adidas shoe lines.",
                             IsActive = true,
                             IsDeleted = false,
                             LogoUrl = "/images/brands/adidas-samba.png",
                             Name = "Adidas Samba",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3145)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8379)
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3148),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8385),
                             Description = "Adidas Samba is one of the most iconic Adidas shoe lines.",
                             IsActive = true,
                             IsDeleted = false,
                             LogoUrl = "/images/brands/adidas-samba.png",
                             Name = "Adidas Originals",
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3149)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8385)
                         });
                 });
 
@@ -1020,7 +1020,7 @@ namespace Adidas.Context.Migrations
                         new
                         {
                             Id = new Guid("44444444-4444-4444-4444-444444444444"),
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3206),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8457),
                             Description = "All types of Adidas shoes for men and women",
                             ImageUrl = "/images/categories/shoes.jpg",
                             IsActive = true,
@@ -1028,12 +1028,12 @@ namespace Adidas.Context.Migrations
                             Name = "Shoes",
                             Slug = "shoes",
                             SortOrder = 0,
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3206)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8458)
                         },
                         new
                         {
                             Id = new Guid("55555555-5555-5555-5555-555555555555"),
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3215),
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8464),
                             Description = "Adidas clothing line including t-shirts, jackets and pants",
                             ImageUrl = "/images/categories/clothes.jpg",
                             IsActive = true,
@@ -1041,7 +1041,7 @@ namespace Adidas.Context.Migrations
                             Name = "Clothes",
                             Slug = "clothes",
                             SortOrder = 0,
-                            UpdatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3215)
+                            UpdatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8464)
                         });
                 });
 
@@ -1558,8 +1558,8 @@ namespace Adidas.Context.Migrations
                         {
                             Id = "aaaaaaaa-1111-2222-3333-444444444444",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "2a940a38-368d-4de4-ae4b-4d18662231de",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 738, DateTimeKind.Utc).AddTicks(6046),
+                            ConcurrencyStamp = "a9eb8735-50d4-4029-a74c-7cf8fa0bf176",
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 432, DateTimeKind.Utc).AddTicks(4601),
                             Email = "admin@adidas.com",
                             EmailConfirmed = true,
                             IsActive = true,
@@ -1567,11 +1567,11 @@ namespace Adidas.Context.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ADIDAS.COM",
                             NormalizedUserName = "ADMIN@ADIDAS.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEN7cQwrm+/TfxqDa4ay3aO+ahw0eF01p6GLCZOfXCis+jtNqENrbC1dD8sYa76vv4g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOUo+R1PXhSjr7KNtm0BgcokNaNfXXDnOYhdi8QHcsMcpcyZjqusjFIvT+uoQnr4xQ==",
                             Phone = "0000000000",
                             PhoneNumberConfirmed = false,
                             Role = 1,
-                            SecurityStamp = "0ec8e85b-2695-414d-b8ab-3b8a024c4a32",
+                            SecurityStamp = "03c9f792-f5c6-4919-b25c-98c292a24d5a",
                             TwoFactorEnabled = false,
                             UserName = "admin@adidas.com"
                         },
@@ -1579,8 +1579,8 @@ namespace Adidas.Context.Migrations
                         {
                             Id = "11111111-aaaa-bbbb-cccc-111111111111",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "2cd08120-af28-4185-b601-bf96bad7e15e",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 807, DateTimeKind.Utc).AddTicks(3541),
+                            ConcurrencyStamp = "c9e2f354-ef0d-485f-9d5c-46a891db2da0",
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 521, DateTimeKind.Utc).AddTicks(8821),
                             Email = "customer1@adidas.com",
                             EmailConfirmed = true,
                             IsActive = true,
@@ -1588,11 +1588,11 @@ namespace Adidas.Context.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER1@ADIDAS.COM",
                             NormalizedUserName = "CUSTOMER1@ADIDAS.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEI4HhUm/TeqB80FAYj1hj3ed4n2ap4+4B3SmAhWSCtpyRWwtHFy180HSbSi8E/DoXw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHokfRvv/kaRVkpsxhe8FWJp8XzXK5bT4G4ntre6GMALUMI/jJ8XxFrUsLHBD+KR2g==",
                             Phone = "0100000001",
                             PhoneNumberConfirmed = false,
                             Role = 3,
-                            SecurityStamp = "4439ce47-3819-41b9-a9b4-336f12138e35",
+                            SecurityStamp = "29338ed4-6a45-460a-968a-5118fb87eccc",
                             TwoFactorEnabled = false,
                             UserName = "customer1@adidas.com"
                         },
@@ -1600,8 +1600,8 @@ namespace Adidas.Context.Migrations
                         {
                             Id = "22222222-aaaa-bbbb-cccc-222222222222",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d340f116-a3f1-41f8-98b0-31e83ba82fd2",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 879, DateTimeKind.Utc).AddTicks(1288),
+                            ConcurrencyStamp = "ce95d207-9ef9-41e3-9a2f-da536d1adea8",
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 613, DateTimeKind.Utc).AddTicks(6346),
                             Email = "customer2@adidas.com",
                             EmailConfirmed = true,
                             IsActive = true,
@@ -1609,11 +1609,11 @@ namespace Adidas.Context.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER2@ADIDAS.COM",
                             NormalizedUserName = "CUSTOMER2@ADIDAS.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEImfrPP+tJ5TLq4c5Ty+DLhNG5Q167nPl7TD4fu/ACd/inyIYGO5UGs+Q4ieBKVlEg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIu9lDdPSD9uaGPQ0uUhF/i8wMCIUck+O8GnUyyKtxxujQPFEavidRHHHGnjjs6CAQ==",
                             Phone = "0100000002",
                             PhoneNumberConfirmed = false,
                             Role = 3,
-                            SecurityStamp = "dc90c219-461f-4962-88ee-004263c830cd",
+                            SecurityStamp = "98de17c2-a1ff-465f-90ba-a5401ff50e6e",
                             TwoFactorEnabled = false,
                             UserName = "customer2@adidas.com"
                         },
@@ -1621,8 +1621,8 @@ namespace Adidas.Context.Migrations
                         {
                             Id = "33333333-aaaa-bbbb-cccc-333333333333",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "2ab0d7c8-3e8e-4700-9ef0-3a4b43ae7afc",
-                            CreatedAt = new DateTime(2025, 8, 9, 11, 41, 2, 945, DateTimeKind.Utc).AddTicks(4850),
+                            ConcurrencyStamp = "17ad172b-8dc0-4d96-b849-2b94a81c9c8c",
+                            CreatedAt = new DateTime(2025, 8, 9, 15, 30, 39, 740, DateTimeKind.Utc).AddTicks(556),
                             Email = "customer3@adidas.com",
                             EmailConfirmed = true,
                             IsActive = true,
@@ -1630,11 +1630,11 @@ namespace Adidas.Context.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER3@ADIDAS.COM",
                             NormalizedUserName = "CUSTOMER3@ADIDAS.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMFi9QRs5m/BiiuEGydWssypASelAQ1jBqxkKCGgdiji3S7KJeynLEU1PEMCfis3sw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEM0K66Ic9zb7XQpu/HbWzmyuA+XrzVYtnLl37jW6xrniBHQL4Oc6+ON1tWl6nnkuEA==",
                             Phone = "0100000003",
                             PhoneNumberConfirmed = false,
                             Role = 3,
-                            SecurityStamp = "88b0eb93-e34f-484e-9373-4b3eaca2b61c",
+                            SecurityStamp = "70ea0e75-c968-4f2f-a9f1-e180cbd15289",
                             TwoFactorEnabled = false,
                             UserName = "customer3@adidas.com"
                         });

@@ -7,6 +7,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
     public interface IBrandService //: IGenericService<Brand, BrandResponseDto, CreateBrandDto, BrandUpdateDto>
     {
+        Task<IEnumerable<BrandDto>> GetAllAsync();
         Task<Result> DeleteAsync(Guid id);
         Task<Result> CreateAsync(BrandCreateDto createBrandDto);
         Task<Result> UpdateAsync(BrandUpdateDto dto);

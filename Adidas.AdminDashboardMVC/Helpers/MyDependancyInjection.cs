@@ -89,9 +89,14 @@ public static class MyDependancyInjection
         // Product
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductService, ProductService>();
-        
+
+
+
+
         // ProductVariant
         services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+        services.AddScoped<IProductVariantService, ProductVariantService>();
+
 
         // ProductAttribute
         services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
