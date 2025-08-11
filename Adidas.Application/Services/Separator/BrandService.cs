@@ -24,7 +24,7 @@ namespace Adidas.Application.Services.Separator
         public async Task<Result> DeleteAsync(Guid id)
         {
             var brand = await _brandRepository.GetByIdAsync(id,
-                  c => c.Products            
+                  c => c.Products
                 );
             if (brand == null)
                 return Result.Failure("Brand not found.");
@@ -40,7 +40,7 @@ namespace Adidas.Application.Services.Separator
         public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
         {
 
-            var brands =  _brandRepository.GetAll();
+            var brands = _brandRepository.GetAll();
 
 
             var activeBrands = await brands.Where(b => b.IsActive && !b.IsDeleted).ToListAsync();
@@ -133,10 +133,10 @@ namespace Adidas.Application.Services.Separator
         {
             var brand = await _brandRepository.GetByIdAsync(id);
 
-             if (brand == null)
-             {
+            if (brand == null)
+            {
                 return null;
-             }
+            }
             var updateBrandDto = new BrandUpdateDto
             {
                 Id = brand.Id,
@@ -156,17 +156,17 @@ namespace Adidas.Application.Services.Separator
             if (brand == null)
                 return null;
 
-            var brandDto = new BrandDto
+            return new BrandDto
             {
                 Id = brand.Id,
                 IsActive = brand.IsActive,
                 Name = brand.Name,
                 Description = brand.Description,
                 LogoUrl = brand.LogoUrl,
-                Products = brand.Products.Select(product => new ProductDto
+                Products = brand.Products?.Select(product => new ProductDto
                 {
                     Id = product.Id,
-                    IsActive= product.IsActive,
+                    IsActive = product.IsActive,
                     Name = product.Name,
                     Description = product.Description,
                     ShortDescription = product.ShortDescription,
@@ -174,34 +174,28 @@ namespace Adidas.Application.Services.Separator
                     Price = product.Price,
                     SalePrice = product.SalePrice,
                     GenderTarget = product.GenderTarget,
-                    MetaDescription = product.MetaDescription,
-                    CategoryId = product.CategoryId,
-                    BrandId = product.BrandId
-                }).ToList()
+                    MetaDescription = product.MetaDescription
+                }).ToList() ?? new List<ProductDto>()
             };
-
-            return brandDto;
         }
-
 
         public async Task<IEnumerable<BrandDto>> GetFilteredBrandsAsync(string statusFilter, string searchTerm)
         {
-            var brandsQuery =  _brandRepository.GetAll();
+            var brands = await _brandRepository.GetAllAsync();
 
             if (!string.IsNullOrEmpty(statusFilter))
             {
                 bool isActive = statusFilter == "Active";
-                brandsQuery =  brandsQuery.Where(c => c.IsActive == isActive);
+                brands = brands.Where(c => c.IsActive == isActive).ToList();
             }
 
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                brandsQuery = brandsQuery.Where(c =>
-                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                brands = brands.Where(c =>
+                    c.Name != null && c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
             }
-            var brandList = await brandsQuery.ToListAsync();
-            var brandDtos = brandList.Select(b => new BrandDto
+            var brandDtos = brands.Select(b => new BrandDto
             {
 
                 Id = b.Id,
@@ -216,9 +210,10 @@ namespace Adidas.Application.Services.Separator
             return brandDtos;
         }
 
-        public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
+
+        public async Task<Result> ToggleBrandStatusAsync(Guid brandId)
         {
-            var brand = await _brandRepository.GetByIdAsync(categoryId);
+            var brand = await _brandRepository.GetByIdAsync(brandId);
             if (brand == null)
                 return Result.Failure("brand not found.");
 
@@ -257,125 +252,6 @@ namespace Adidas.Application.Services.Separator
 
     }
 }
- //#region Generic Service Overrides
-
-    //protected override async Task ValidateCreateAsync(CreateBrandDto createDto)
-    //{
-    //    // Check if brand name already exists
-    //    var existingBrand = await _brandRepository.GetBrandByNameAsync(createDto.Name);
-    //    if (existingBrand != null)
-    //    {
-    //        throw new InvalidOperationException("Brand with this name already exists");
-    //    }
-    //}
-
-    //protected override async Task ValidateUpdateAsync(Guid id, UpdateBrandDto updateDto)
-    //{
-    //    // Check if another brand with the same name exists
-    //    var brandWithSameName = await _brandRepository.GetBrandByNameAsync(updateDto.Name);
-    //    if (brandWithSameName != null && brandWithSameName.Id != id)
-    //    {
-    //        throw new InvalidOperationException("Another brand with this name already exists");
-    //    }
-    //}
-
-    //protected override async Task BeforeCreateAsync(Brand entity)
-    //{
-    //    entity.CreatedAt = DateTime.UtcNow;
-    //    entity.UpdatedAt = DateTime.UtcNow;
-    //    entity.IsActive = true;
-    //    entity.IsDeleted = false;
-    //}
-
-    //protected override async Task BeforeUpdateAsync(Brand entity)
-    //{
-    //    entity.UpdatedAt = DateTime.UtcNow;
-    //}
-
-    //#endregion
-
-    //#region Brand-Specific Methods
-
-    //public async Task<BrandResponseDto?> GetBrandByNameAsync(string name)
-    //{
-    //    try
-    //    {
-    //        _logger.LogInformation("Getting brand by name: {BrandName}", name);
-    //        var brand = await _brandRepository.GetBrandByNameAsync(name);
-
-    //        if (brand == null)
-    //        {
-    //            _logger.LogWarning("Brand not found with name: {BrandName}", name);
-    //            return null;
-    //        }
-
-    //        return _mapper.Map<BrandResponseDto>(brand);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error retrieving brand with name: {BrandName}", name);
-    //        throw;
-    //    }
-    //}
-
-    //public async Task<IEnumerable<BrandDto>> GetActiveBrandsAsync()
-    //{
-    //    try
-    //    {
-    //        _logger.LogInformation("Getting active brands");
-    //        var brands = await _brandRepository.FindAsync(b => !b.IsDeleted && b.IsActive);
-    //        return _mapper.Map<IEnumerable<BrandDto>>(brands);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error retrieving active brands");
-    //        throw;
-    //    }
-    //}
-
-    //public async Task<IEnumerable<BrandDto>> GetPopularBrandsAsync()
-    //{
-    //    try
-    //    {
-    //        _logger.LogInformation("Getting popular brands");
-    //        var brands = await _brandRepository.GetPopularBrandsAsync();
-    //        return _mapper.Map<IEnumerable<BrandDto>>(brands);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error retrieving popular brands");
-    //        throw;
-    //    }
-    //}
-
-    //public async Task<PagedResultDto<BrandDto>> GetPaginatedBrandListAsync(int pageNumber, int pageSize)
-    //{
-    //    try
-    //    {
-    //        _logger.LogInformation("Getting paginated brand list - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
-    //        var (brands, totalCount) = await _brandRepository.GetPagedAsync(pageNumber, pageSize, b => !b.IsDeleted);
-    //        var brandList = _mapper.Map<IEnumerable<BrandDto>>(brands);
-
-    //        return new PagedResultDto<BrandDto>
-    //        {
-    //            Items = brandList,
-    //            TotalCount = totalCount,
-    //            PageNumber = pageNumber,
-    //            PageSize = pageSize,
-    //            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-    //        };
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error retrieving paginated brand list");
-    //        throw;
-    //    }
-    //}
-
-    //#endregion
-
-
- 
 
 
 

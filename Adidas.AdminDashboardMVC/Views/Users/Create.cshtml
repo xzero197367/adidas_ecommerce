@@ -1,0 +1,304 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Users.CreateUserViewModel
+@{
+    ViewData["Title"] = "Create User";
+}
+
+<!-- Content Header (Page header) -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Create New User</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Home</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Users")">Users</a></li>
+                    <li class="breadcrumb-item active">Create User</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <!-- Info Alert about creation methods -->
+                <div class="alert alert-info alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <h5><i class="icon fas fa-info"></i> User Creation Methods</h5>
+                    You can create users in two ways:
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Manual Creation:</strong> Set email, password, and role manually</li>
+                        <li><strong>Google Integration:</strong> User gets invitation email to complete setup with Google</li>
+                    </ul>
+                </div>
+
+                <!-- Card -->
+                <div class="card card-primary card-tabs">
+                    <div class="card-header p-0 pt-1">
+                        <ul class="nav nav-tabs" id="user-creation-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="manual-tab" data-toggle="pill" href="#manual" role="tab" aria-controls="manual" aria-selected="true">
+                                    <i class="fas fa-user-plus"></i> Manual Creation
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="google-tab" data-toggle="pill" href="#google" role="tab" aria-controls="google" aria-selected="false">
+                                    <i class="fab fa-google"></i> Google Integration
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="tab-content" id="user-creation-tabsContent">
+                            <!-- Manual Creation Tab -->
+                            <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+                                <form asp-action="Create" method="post" id="manualForm">
+                                    <input type="hidden" name="CreationType" value="Manual" />
+
+                                    <!-- Email -->
+                                    <div class="form-group">
+                                        <label asp-for="Email" class="form-label"></label>
+                                        <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Password -->
+                                    <div class="form-group">
+                                        <label asp-for="Password" class="form-label"></label>
+                                        <div class="input-group">
+                                            <input asp-for="Password" class="form-control" placeholder="Enter password" />
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-outline-secondary" id="generatePassword">
+                                                    <i class="fas fa-random"></i> Generate
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <span asp-validation-for="Password" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Confirm Password -->
+                                    <div class="form-group">
+                                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm password" />
+                                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Phone Number -->
+                                    <div class="form-group">
+                                        <label asp-for="PhoneNumber" class="form-label"></label>
+                                        <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number (optional)" />
+                                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Date of Birth -->
+                                    <div class="form-group">
+                                        <label asp-for="DateOfBirth" class="form-label"></label>
+                                        <input asp-for="DateOfBirth" class="form-control" type="date" />
+                                        <small class="form-text text-muted">Optional field for user profile.</small>
+                                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Gender -->
+                                    <div class="form-group">
+                                        <label asp-for="Gender" class="form-label"></label>
+                                        <select asp-for="Gender" class="form-control">
+                                            <option value="">Select gender (optional)...</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                         
+                                        </select>
+                                        <span asp-validation-for="Gender" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Role Selection -->
+                                    <div class="form-group">
+                                        <label asp-for="Role" class="form-label"></label>
+                                        <select asp-for="Role" class="form-control" asp-items="ViewBag.Roles">
+                                            <option value="">Select a role...</option>
+                                        </select>
+                                        <span asp-validation-for="Role" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Is Active Checkbox -->
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                            <label asp-for="IsActive" class="form-check-label"></label>
+                                        </div>
+                                        <small class="form-text text-muted">Uncheck to create an inactive user account.</small>
+                                    </div>
+
+                                    <!-- Send Welcome Email -->
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="sendWelcomeEmail" name="SendWelcomeEmail" checked />
+                                            <label class="form-check-label" for="sendWelcomeEmail">
+                                                Send welcome email with login credentials
+                                            </label>
+                                        </div>
+                                        <small class="form-text text-muted">User will receive an email with their login information.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Create User Manually
+                                        </button>
+                                        <a href="@Url.Action("Index", "Users")" class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left"></i> Cancel
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Google Integration Tab -->
+                            <div class="tab-pane fade" id="google" role="tabpanel" aria-labelledby="google-tab">
+                                <div class="alert alert-info">
+                                    <h5><i class="icon fab fa-google"></i> Google Authentication Process</h5>
+                                    <p>This will redirect the admin to authenticate with Google and create a user account:</p>
+                                    <ul>
+                                        <li>You'll be redirected to Google to authenticate</li>
+                                        <li>After successful authentication, you'll set the user's role</li>
+                                        <li>The user account will be created immediately</li>
+                                        <li>User can then login using Google authentication</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Role Selection Form for Google -->
+                                <form id="googleAuthForm" method="get">
+                                    <!-- Role Selection -->
+                                    <div class="form-group">
+                                        <label for="googleRole" class="form-label">Select Role for New Google User</label>
+                                        <select id="googleRole" name="role" class="form-control" asp-items="ViewBag.Roles" required>
+                                            <option value="">Select a role...</option>
+                                        </select>
+                                        <small class="form-text text-muted">This role will be assigned to the user after Google authentication.</small>
+                                    </div>
+
+                                    <!-- Phone Number -->
+                                    <div class="form-group">
+                                        <label for="googlePhone" class="form-label">Phone Number (Optional)</label>
+                                        <input type="tel" id="googlePhone" name="phoneNumber" class="form-control" placeholder="Enter phone number" />
+                                        <small class="form-text text-muted">Optional phone number for the user account.</small>
+                                    </div>
+
+                                    <!-- Date of Birth -->
+                                    <div class="form-group">
+                                        <label for="googleDateOfBirth" class="form-label">Date of Birth (Optional)</label>
+                                        <input type="date" id="googleDateOfBirth" name="dateOfBirth" class="form-control" />
+                                        <small class="form-text text-muted">Optional birth date for the user profile.</small>
+                                    </div>
+
+                                    <!-- Gender -->
+                                    <div class="form-group">
+                                        <label for="googleGender" class="form-label">Gender (Optional)</label>
+                                        <select id="googleGender" name="gender" class="form-control">
+                                            <option value="">Select gender (optional)...</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                     
+                                        </select>
+                                        <small class="form-text text-muted">Optional gender information.</small>
+                                    </div>
+
+                                    <!-- Active Status -->
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="googleIsActive" name="isActive" value="true" checked />
+                                            <label class="form-check-label" for="googleIsActive">
+                                                Account Active
+                                            </label>
+                                        </div>
+                                        <small class="form-text text-muted">Uncheck to create an inactive account.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <button type="button" id="googleAuthBtn" class="btn btn-danger">
+                                            <i class="fab fa-google"></i> Create User with Google
+                                        </button>
+                                        <a href="@Url.Action("Index", "Users")" class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left"></i> Cancel
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Password generator function
+        function generatePassword() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@@#$%^&*';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        }
+
+        // Generate password button click
+        $('#generatePassword').click(function() {
+            const password = generatePassword();
+            $('#Password').val(password);
+            $('#ConfirmPassword').val(password);
+            
+            // Show password in a modal or alert for admin to copy
+            if (confirm('Generated password: ' + password + '\n\nPlease copy this password and share it securely with the user. Click OK to continue.')) {
+                // Password is already set in the fields
+            }
+        });
+
+        // Google Auth Button Click
+        $('#googleAuthBtn').click(function() {
+            const role = $('#googleRole').val();
+            const phoneNumber = $('#googlePhone').val();
+            const dateOfBirth = $('#googleDateOfBirth').val();
+            const gender = $('#googleGender').val();
+            const isActive = $('#googleIsActive').is(':checked');
+            
+            if (!role) {
+                alert('Please select a role for the user.');
+                return;
+            }
+            
+            // Confirm the action
+            if (confirm('You will be redirected to Google to authenticate and create a user account. Continue?')) {
+                // Build the external login URL with parameters
+                const returnUrl = '@Url.Action("Index", "Users")';
+                const externalLoginUrl = '@Url.Action("ExternalLogin", "Account")' + 
+                    '?provider=Google' +
+                    '&returnUrl=' + encodeURIComponent(returnUrl) +
+                    '&role=' + encodeURIComponent(role) +
+                    '&phoneNumber=' + encodeURIComponent(phoneNumber || '') +
+                    '&dateOfBirth=' + encodeURIComponent(dateOfBirth || '') +
+                    '&gender=' + encodeURIComponent(gender || '') +
+                    '&isActive=' + isActive +
+                    '&createMode=admin';
+                
+                // Redirect to Google authentication
+                window.location.href = externalLoginUrl;
+            }
+        });
+
+        // Tab switching validation
+        $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+            // Clear validation when switching tabs
+            $('.text-danger').empty();
+            $('.is-invalid').removeClass('is-invalid');
+        });
+    </script>
+}

@@ -1,6 +1,4 @@
 ﻿@using Adidas.AdminDashboardMVC.ViewModels.Account
-@using Azure.Core
-<!-- Views/Account/Login.cshtml -->
 @model LoginViewModel
 @{
     ViewData["Title"] = "Login";
@@ -29,32 +27,67 @@
             font-weight: 300;
             margin-bottom: 25px;
         }
-        .login-logo a {
-            color: #495057;
-            text-decoration: none;
-        }
+
+            .login-logo a {
+                color: #495057;
+                text-decoration: none;
+            }
+
         .adidas-orange {
             color: #ff6900;
         }
+
         .btn-adidas {
             background-color: #000;
             border-color: #000;
             color: white;
         }
-        .btn-adidas:hover {
-            background-color: #333;
-            border-color: #333;
-            color: white;
-        }
+
+            .btn-adidas:hover {
+                background-color: #333;
+                border-color: #333;
+                color: white;
+            }
+
         .card-outline.card-primary {
             border-top: 3px solid #ff6900;
         }
+
+        .login-page {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .admin-notice {
+            background-color: #f8f9fa;
+            border-left: 4px solid #ff6900;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+            .admin-notice h5 {
+                color: #495057;
+                margin-bottom: 5px;
+            }
+
+            .admin-notice p {
+                color: #6c757d;
+                margin-bottom: 0;
+                font-size: 14px;
+            }
     </style>
 </head>
 <body class="hold-transition login-page">
     <div class="login-box">
         <div class="login-logo">
             <a href="#"><b>Adidas</b> <span class="adidas-orange">Admin</span></a>
+        </div>
+
+        <!-- Admin Notice -->
+        <div class="admin-notice">
+            <h5><i class="fas fa-info-circle"></i> Administrator Access Only</h5>
+            <p>This system is restricted to authorized personnel. Contact your administrator for account access.</p>
         </div>
 
         <div class="card card-outline card-primary">
@@ -64,9 +97,10 @@
             <div class="card-body">
                 <form asp-action="Login" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input name="ReturnUrl" type="hidden" value="@ViewData["ReturnUrl"]" />
 
                     <div class="input-group mb-3">
-                        <input asp-for="Email" class="form-control" placeholder="Email" />
+                        <input asp-for="Email" class="form-control" placeholder="Email" autocomplete="username" />
                         <div class="input-group-append">
                             <div class="input-group-text">
                                 <i class="fas fa-envelope"></i>
@@ -76,47 +110,55 @@
                     <span asp-validation-for="Email" class="text-danger"></span>
 
                     <div class="input-group mb-3">
-                        <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
+                        <input asp-for="Password" class="form-control" placeholder="Password" autocomplete="current-password" id="passwordField" />
                         <div class="input-group-append">
-                            <div class="input-group-text">
-                                <i class="fas fa-lock"></i>
+                            <div class="input-group-text" style="cursor: pointer;" id="togglePassword">
+                                <i class="fas fa-eye"></i>
                             </div>
                         </div>
                     </div>
                     <span asp-validation-for="Password" class="text-danger"></span>
 
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="icheck-primary">
-                                <input asp-for="RememberMe" type="checkbox" id="remember">
-                                <label for="remember">
-                                    Remember Me
-                                </label>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+
+                    <div class="row d-flex flex-column px-2">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="icheck-primary">
+                                    <input asp-for="RememberMe" type="checkbox" id="remember" />
+                                    <label for="remember">
+                                        Remember Me
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-4">
-                            <button type="submit" class="btn btn-adidas btn-block">Sign In</button>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-adidas btn-block">Sign In</button>
+                            </div>
                         </div>
+
                     </div>
                 </form>
 
+                <!-- External login option (if configured) -->
                 <div class="social-auth-links text-center mt-2 mb-3">
                     <a href="@Url.Action("ExternalLogin", new { provider = "Google", returnUrl = ViewData["ReturnUrl"] })" class="btn btn-block btn-danger">
                         <i class="fab fa-google mr-2"></i> Sign in using Google
                     </a>
                 </div>
 
+                <!-- Note: Register link removed - only admins can create users -->
                 <p class="mb-0 text-center">
-                    <a asp-action="Register" class="text-center">Register a new membership</a>
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt"></i>
+                        Secure admin area - unauthorized access prohibited
+                    </small>
                 </p>
             </div>
         </div>
     </div>
-    @if (Context.Request.Query["error"] == "access_denied")
-    {
-        <div class="alert alert-warning">Google login was canceled.</div>
-    }
-
 
     <!-- jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -124,5 +166,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
     <!-- AdminLTE App -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#togglePassword').on('click', function () {
+                let passwordInput = $('#passwordField');
+                let icon = $(this).find('i');
+
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    passwordInput.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+        });
+    </script>
+
+    <!-- Validation Scripts -->
+    @if (ViewData["Scripts"] != null)
+    {
+        @Html.Raw(ViewData["Scripts"])
+    }
 </body>
 </html>
