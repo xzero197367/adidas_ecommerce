@@ -6,7 +6,7 @@
 }
 
 
-<link href="~/css/Product.css" rel="stylesheet"  />
+<link href="~/css/Product.css" rel="stylesheet" />
 <div class="main-headerr my-5 ">
     <div class="container">
         <div class="header-content text-center">
@@ -200,6 +200,8 @@
                                                     <span class="d-none d-sm-inline">@(product.InStock ? "Yes" : "No")</span>
                                                 </span>
                                             </td>
+
+
                                             <td>
                                                 <div class="action-buttons">
                                                     <a href="@Url.Action("Details", "Products", new { id = product.Id })"
@@ -212,7 +214,7 @@
                                                        title="Edit Product">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <button class="btn-action btn-delete" title="Delete Product" onclick="confirmDelete('@product.Id', '@product.Name')">
+                                                    <button class="btn-delete" onclick="confirmDelete('@product.Id', '@product.Name', @((product.Variants != null && product.Variants.Any()) ? "true" : "false"))">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -338,7 +340,7 @@
             </div>
 
 
-           
+
         </div>
     </div>
 </div>
@@ -348,30 +350,19 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          @if (TempData["Success"] != null)
-          {
-                          <text>
-                          Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: '@TempData["Success"]'
-                          });
-                          </text>
-          }
-          @if (TempData["Error"] != null)
-          {
-                          <text>
-                          Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: '@TempData["Error"]'
-                          });
-                          </text>
-          }
-        });
 
-        function confirmDelete(id, name) {
+
+        function confirmDelete(id, name, hasVariants) {
+          if (hasVariants) {
+            Swal.fire({
+              title: 'Cannot delete',
+              text: 'This product has variants and cannot be deleted.',
+              icon: 'warning',
+              confirmButtonText: 'OK'
+            });
+            return; // Prevent deletion
+          }
+
           Swal.fire({
             title: `Are you sure you want to delete "${name}"?`,
             text: "This action cannot be undone!",
@@ -384,7 +375,6 @@
             cancelButtonColor: '#3085d6'
           }).then((result) => {
             if (result.isConfirmed) {
-              // Use Ajax instead of form submission
               fetch('@Url.Action("Delete")', {
                 method: 'POST',
                 headers: {
@@ -395,9 +385,11 @@
               })
               .then(response => {
                 if (response.ok) {
-                  window.location.reload(); // Reload to see the result
+                  window.location.reload();
                 } else {
-                  Swal.fire('Error', 'Failed to delete product', 'error');
+                  response.text().then(text => {
+                    Swal.fire('Error', text || 'Failed to delete product', 'error');
+                  });
                 }
               })
               .catch(error => {

@@ -130,9 +130,11 @@ namespace Adidas.Infra.Main
         public async Task<(IEnumerable<Product> products, int totalCount)> GetFilteredProductsAsync(ProductFilterDto filter)
         {
             var query = _dbSet
-                .Include(p => p.Category)
-                .Include(p => p.Brand)
-                .AsQueryable();
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Include(p => p.Variants) 
+            .AsQueryable();
+
 
             if (filter.CategoryId.HasValue)
                 query = query.Where(p => p.CategoryId == filter.CategoryId);
