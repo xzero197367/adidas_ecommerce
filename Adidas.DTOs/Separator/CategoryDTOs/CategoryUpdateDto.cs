@@ -15,7 +15,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         public string Slug { get; set; }
 
         public string? Description { get; set; }
-
+        [Required]
         [StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters")]
         public string? ImageUrl { get; set; }
 
