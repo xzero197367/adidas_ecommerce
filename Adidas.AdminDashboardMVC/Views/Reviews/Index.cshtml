@@ -131,7 +131,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label asp-for="SearchTerm"><i class="fas fa-search mr-1"></i>Search</label>
-                                <input asp-for="SearchTerm" class="form-control" placeholder="Search reviews..." />
+                                <input asp-for="SearchTerm" class="form-control" placeholder="Search reviews by content " />
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -149,39 +149,9 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label asp-for="StartDate"><i class="fas fa-calendar-alt mr-1"></i>From Date</label>
-                                <input asp-for="StartDate" type="date" class="form-control" />
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label asp-for="EndDate"><i class="fas fa-calendar-check mr-1"></i>To Date</label>
-                                <input asp-for="EndDate" type="date" class="form-control" />
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label asp-for="PageSize"><i class="fas fa-list-ol mr-1"></i>Items per page</label>
-                                <select asp-for="PageSize" class="form-control">
-                                    <option value="10">10 per page</option>
-                                    <option value="25">25 per page</option>
-                                    <option value="50">50 per page</option>
-                                    <option value="100">100 per page</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <div class="custom-control custom-checkbox mt-4">
-                                    <input type="checkbox" class="custom-control-input" id="verifiedOnly" name="verifiedOnly" />
-                                    <label class="custom-control-label" for="verifiedOnly">
-                                        <i class="fas fa-shield-alt mr-1"></i>Verified purchases only
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                        
+                        
+                       
                     </div>
                     <!-- Hidden field to maintain current page -->
                     <input asp-for="CurrentPage" type="hidden" />
