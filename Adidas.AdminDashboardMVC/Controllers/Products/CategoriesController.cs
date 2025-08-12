@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
     [Authorize(Policy = "EmployeeOrAdmin")]
-
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
@@ -52,6 +51,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 {
                     ModelState.AddModelError("ImageUrl", "Image is Required ");
                 }
+
                 return View(model);
             }
 
@@ -113,7 +113,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CategoryUpdateDto model, IFormFile? ImageFile)
         {
-         
             if (!ModelState.IsValid)
             {
                 ViewBag.CategoryId = model.Id;
@@ -176,6 +175,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 TempData["Success"] = "Category status updated successfully.";
             }
+
             var referer = Request.Headers["Referer"].ToString();
             if (!string.IsNullOrEmpty(referer))
             {
@@ -195,6 +195,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     .Where(c => c.Id != currentCategoryId.Value)
                     .ToList();
             }
+
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
         }
 
@@ -213,8 +214,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 TempData["Success"] = "Category deleted successfully!";
             }
+
             var referer = Request.Headers["Referer"].ToString();
-           
+
             if (!string.IsNullOrEmpty(referer))
             {
                 return Redirect(referer);
@@ -230,14 +232,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             if (id == Guid.Empty)
             {
                 TempData["ErrorMessage"] = "Invalid category ID provided.";
-               
+
                 if (!string.IsNullOrEmpty(referer))
                 {
                     return Redirect(referer);
                 }
 
                 return RedirectToAction($"{nameof(Index)}");
-
             }
 
             try
@@ -251,8 +252,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     {
                         return Redirect(referer);
                     }
-                    return RedirectToAction($"{nameof(Index)}");
 
+                    return RedirectToAction($"{nameof(Index)}");
                 }
 
 
@@ -260,15 +261,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
             catch (Exception ex)
             {
-
-                TempData["ErrorMessage"] = $"An unexpected error occurred while retrieving category details: {ex.Message}";
+                TempData["ErrorMessage"] =
+                    $"An unexpected error occurred while retrieving category details: {ex.Message}";
                 if (!string.IsNullOrEmpty(referer))
                 {
                     return Redirect(referer);
                 }
 
                 return RedirectToAction($"{nameof(Index)}");
-
             }
         }
 
@@ -290,19 +290,19 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
 
         // api call to get all categories
-        
+
         [HttpGet]
         public async Task<IActionResult> GetCategoriesAjax()
         {
             try
             {
-                var result = await _categoryService.GetAllAsync();
+                var result = await _categoryService.GetFilteredCategoriesAsync("", "", "");
                 // if (!result.IsSuccess)
                 // {
                 //     return BadRequest(new { message = result.ErrorMessage });
                 // }
 
-                var categories = result.Data.Select(c => new
+                var categories = result.Select(c => new
                 {
                     c.Id,
                     c.Name,

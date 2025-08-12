@@ -33,7 +33,7 @@ namespace Adidas.Web.Controllers
             ViewBag.ActiveCount = result.ActiveCount;
             ViewBag.ExpiredCount = result.ExpiredCount;
 
-            return View(result.Coupons);
+            return View(result.Coupons.ToList());
         }
 
         // GET: Create

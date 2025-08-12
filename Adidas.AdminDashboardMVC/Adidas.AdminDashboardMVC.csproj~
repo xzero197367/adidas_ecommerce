@@ -40,6 +40,7 @@
   <ItemGroup>
     <AdditionalFiles Include="Views\Operation\Orders\Create.cshtml" />
     <AdditionalFiles Include="Views\Operation\Orders\Index.cshtml" />
+    <AdditionalFiles Include="Views\Operation\Orders\Update.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
