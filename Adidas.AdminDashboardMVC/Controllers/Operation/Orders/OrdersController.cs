@@ -3,10 +3,13 @@ using Adidas.AdminDashboardMVC.Models.Order;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Orders
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class OrdersController : Controller
     {
         private IOrderService orderService;

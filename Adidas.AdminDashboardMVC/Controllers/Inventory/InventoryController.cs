@@ -3,19 +3,25 @@ using Microsoft.AspNetCore.Authorization;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
 using Adidas.DTOs.Tracker;
 using Adidas.AdminDashboardMVC.ViewModels.Inventory;
+using Adidas.Application.Contracts.ServicesContracts.Main;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Inventory
 {
-    [Authorize]
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class InventoryController : Controller
     {
         private readonly IInventoryService _inventoryService;
         private readonly ILogger<InventoryController> _logger;
+        private readonly IProductService _productService;
+        private readonly IProductVariantService _productVariantService;
 
-        public InventoryController(IInventoryService inventoryService, ILogger<InventoryController> logger)
+        public InventoryController(IInventoryService inventoryService, ILogger<InventoryController> logger, IProductService productService, IProductVariantService productVariantService)
         {
             _inventoryService = inventoryService;
             _logger = logger;
+            _productService = productService;
+            _productVariantService = productVariantService;
         }
 
         // GET: Inventory
@@ -25,17 +31,27 @@ namespace Adidas.AdminDashboardMVC.Controllers.Inventory
             {
                 var reportResult = await _inventoryService.GenerateInventoryReportAsync();
                 var lowStockResult = await _inventoryService.GetLowStockAlertsAsync(10);
+                var allProductsResult = await _productService.GetAllAsync();
+                var allVariantsResult = await _productVariantService.GetAllAsync();
 
+                // Extract counts safely
+                //var totalProducts = (allProductsResult.IsSuccess && allProductsResult.Data != null)
+                //    ? allProductsResult.Data.Count()
+                //    : 0;
+
+                //var totalVariants = (allVariantsResult.IsSuccess && allVariantsResult.Data != null)
+                //    ? allVariantsResult.Data.Count()
+                //    : 0;
+               
                 var viewModel = new InventoryDashboardViewModel();
 
                 if (!reportResult.IsSuccess || reportResult.Data == null)
                 {
                     TempData["ErrorMessage"] = reportResult?.ErrorMessage ?? "Unable to load inventory data.";
-                    // Initialize with safe default values
                     viewModel.Report = new InventoryReportDto
                     {
-                        TotalProducts = 0,
-                        TotalVariants = 0,
+                        TotalProducts = allProductsResult.Data.Count(),
+                        TotalVariants = allVariantsResult.Data.Count(),
                         LowStockVariants = 0,
                         OutOfStockVariants = 0,
                         TotalInventoryValue = 0,
@@ -45,14 +61,17 @@ namespace Adidas.AdminDashboardMVC.Controllers.Inventory
                 else
                 {
                     viewModel.Report = reportResult.Data;
-                    // Ensure ProductStocks is never null
+
+                    // Override totals with the actual dynamic counts
+                    viewModel.Report.TotalProducts = allProductsResult.Data.Count();
+                    viewModel.Report.TotalVariants = allVariantsResult.Data.Count();
+
                     if (viewModel.Report.ProductStocks == null)
                     {
                         viewModel.Report.ProductStocks = new List<ProductStockDto>();
                     }
                 }
 
-                // Handle low stock alerts
                 if (lowStockResult.IsSuccess && lowStockResult.Data != null)
                 {
                     viewModel.LowStockAlerts = lowStockResult.Data;
@@ -69,8 +88,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Inventory
                 _logger.LogError(ex, "Error loading inventory dashboard");
                 TempData["ErrorMessage"] = "An error occurred while loading the inventory dashboard.";
 
-                // Return safe default view model
-                var safeViewModel = new InventoryDashboardViewModel
+                return View(new InventoryDashboardViewModel
                 {
                     Report = new InventoryReportDto
                     {
@@ -82,11 +100,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Inventory
                         ProductStocks = new List<ProductStockDto>()
                     },
                     LowStockAlerts = new List<LowStockAlertDto>()
-                };
-
-                return View(safeViewModel);
+                });
             }
         }
+
+
 
         // GET: Inventory/LowStock
         public async Task<IActionResult> LowStock(int threshold = 10)

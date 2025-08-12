@@ -8,9 +8,12 @@ using Models.People;
 using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class ProductVariantsController : Controller
     {
         private readonly IProductVariantService _productVariantService;

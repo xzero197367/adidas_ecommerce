@@ -10,12 +10,13 @@ public class ProductMapConfig
 {
     public static void Configure()
     {
-        // Get DTO to Model
+        // Model to DTO - ignore circular nav
+        TypeAdapterConfig.GlobalSettings.NewConfig<Product, ProductDto>()
+            .Ignore(dest => dest.Variants);
+
+        // DTO to Model
         TypeAdapterConfig.GlobalSettings.NewConfig<ProductDto, Product>()
             .IgnoreNullValues(true);
-
-        // Model to Get DTO
-        TypeAdapterConfig.GlobalSettings.NewConfig<Product, ProductDto>();
 
         // Create DTO to Model
         TypeAdapterConfig.GlobalSettings.NewConfig<ProductCreateDto, Product>()

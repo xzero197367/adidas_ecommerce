@@ -9,6 +9,8 @@ using Adidas.AdminDashboardMVC.ViewModels.Account;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Auth
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
