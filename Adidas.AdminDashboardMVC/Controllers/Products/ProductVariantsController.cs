@@ -17,21 +17,17 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IBrandService _brandService;
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IBrandRepository _brandRepository;
 
         public ProductVariantsController(
             IProductVariantService productVariantService,
             IProductService productService,
             ICategoryService categoryService,
-            IBrandService brandService, ICategoryRepository categoryRepository, IBrandRepository brandRepository)
+            IBrandService brandService, IBrandRepository brandRepository)
         {
             _productVariantService = productVariantService;
             _productService = productService;
             _categoryService = categoryService;
             _brandService = brandService;
-            _categoryRepository = categoryRepository;
-            _brandRepository = brandRepository;
         }
 
         // GET: /ProductVariants?searchSku=XXXX
@@ -121,14 +117,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 Text = p.Name
             }).ToList();
 
-            var categories = await _categoryRepository.GetAll().ToListAsync();
+            var categories = await _categoryService.GetAllAsync();
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             }).ToList();
 
-            var brands = await _brandRepository.GetAll().ToListAsync();
+            var brands = await _brandService.GetAllAsync();
             ViewBag.Brands = brands.Select(b => new SelectListItem
             {
                 Value = b.Id.ToString(),

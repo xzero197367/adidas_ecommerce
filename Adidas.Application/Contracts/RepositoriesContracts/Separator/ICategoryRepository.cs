@@ -9,6 +9,8 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Separator
 {
     public interface ICategoryRepository : IGenericRepository<Category>
     {
+        Task<IEnumerable<Category>> GetAllCategoriesAsync(); 
+
         Task<IEnumerable<Category>> GetMainCategoriesAsync();
         Task<IEnumerable<Category>> GetSubCategoriesAsync(Guid parentCategoryId);
         Task<Category?> GetCategoryBySlugAsync(string slug);

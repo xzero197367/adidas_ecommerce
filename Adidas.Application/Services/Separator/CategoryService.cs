@@ -23,6 +23,7 @@ namespace Adidas.Application.Services.Separator
         {
             _categoryRepository = categoryRepository;
         }
+
         public async Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync()
         {
             var categories = await _categoryRepository.GetAllAsync();
@@ -166,7 +167,14 @@ namespace Adidas.Application.Services.Separator
                 return Result.Failure("An unexpected error occurred.");
             }
         }
-
+        public async Task<IEnumerable<CategoryDto>> GetAllAsync()
+        {
+          
+                var categories = await _categoryRepository.GetAllCategoriesAsync();
+                return categories.Adapt<IEnumerable<CategoryDto>>();
+          
+           
+        }
         public async Task<Result> DeleteAsync(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(
