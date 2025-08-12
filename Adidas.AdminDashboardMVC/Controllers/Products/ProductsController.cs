@@ -3,6 +3,7 @@ using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ using Models.People;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;

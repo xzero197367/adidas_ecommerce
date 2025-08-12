@@ -1,9 +1,12 @@
 ﻿  using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Separator.Brand_DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class BrandsController : Controller
     {
         private readonly IBrandService _brandService;

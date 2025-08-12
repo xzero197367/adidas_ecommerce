@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Operation.Payment;
 
-[Authorize]
+[Authorize(Policy = "EmployeeOrAdmin")]
+
 public class PaymentMethodController : Controller
 {
     private readonly ILogger<PaymentMethodController> _logger;

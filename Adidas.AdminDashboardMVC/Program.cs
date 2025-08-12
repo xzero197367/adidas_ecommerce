@@ -166,7 +166,7 @@ app.UseActiveUserMiddleware(); // Custom middleware
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Products}/{action=Index}/{id?}");
+    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
 
 #endregion

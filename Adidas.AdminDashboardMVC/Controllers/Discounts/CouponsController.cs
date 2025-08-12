@@ -3,9 +3,11 @@ using Adidas.DTOs.Feature.CouponDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Adidas.Context;
 using Adidas.DTOs.Common_DTOs;
-
+using Microsoft.AspNetCore.Authorization;
 namespace Adidas.Web.Controllers
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class CouponController : Controller
     {
         private readonly ICouponService _couponService;
@@ -17,8 +19,7 @@ namespace Adidas.Web.Controllers
         }
 
         // Display all coupons with filters, search, and pagination
-        public async Task<IActionResult> Index(string search = "", string status = "All", int page = 1,
-            int pageSize = 10)
+        public async Task<IActionResult> Index(string search = "", string status = "All", int page = 1, int pageSize = 10)
         {
             var result = await _couponService.GetFilteredPagedCouponsAsync(search, status, page, pageSize);
             ViewBag.CurrentPage = page;
@@ -32,7 +33,7 @@ namespace Adidas.Web.Controllers
             ViewBag.ActiveCount = result.ActiveCount;
             ViewBag.ExpiredCount = result.ExpiredCount;
 
-            return View(result.Coupons.ToList());
+            return View(result.Coupons);
         }
 
         // GET: Create
@@ -44,6 +45,7 @@ namespace Adidas.Web.Controllers
         // POST: Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> Create(CouponCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -72,7 +74,7 @@ namespace Adidas.Web.Controllers
             if (result == null)
                 return NotFound();
 
-
+            
             return View(result);
         }
 
@@ -82,7 +84,7 @@ namespace Adidas.Web.Controllers
             if (couponUpdateDto == null)
                 return NotFound();
 
-
+            
             return View(couponUpdateDto);
         }
 
@@ -91,6 +93,7 @@ namespace Adidas.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CouponUpdateDto dto)
         {
+           
             if (!ModelState.IsValid)
             {
                 ViewBag.CouponId = dto.Id;
@@ -103,13 +106,14 @@ namespace Adidas.Web.Controllers
                 ModelState.AddModelError(string.Empty, result.Error);
                 TempData["Error"] = result.Error;
                 ViewBag.CouponId = dto.Id;
-
+                
                 return View(dto);
             }
 
             TempData["Success"] = "Coupon updated successfully!";
 
             return RedirectToAction(nameof(Index));
+             
         }
 
         // POST: Delete
@@ -127,7 +131,6 @@ namespace Adidas.Web.Controllers
             {
                 TempData["Success"] = "Category deleted successfully!";
             }
-
             var referer = Request.Headers["Referer"].ToString();
 
             if (!string.IsNullOrEmpty(referer))
@@ -137,6 +140,7 @@ namespace Adidas.Web.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
 
 
         [HttpPost]
@@ -152,7 +156,6 @@ namespace Adidas.Web.Controllers
             {
                 TempData["Success"] = "coupon status updated successfully.";
             }
-
             var referer = Request.Headers["Referer"].ToString();
             if (!string.IsNullOrEmpty(referer))
             {
@@ -162,5 +165,7 @@ namespace Adidas.Web.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        
     }
 }

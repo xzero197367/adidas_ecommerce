@@ -1,11 +1,14 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
-{ 
+{
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
