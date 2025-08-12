@@ -90,7 +90,8 @@ namespace Adidas.Application.Services.Feature
 
                     case "inactive":
                         allCoupons = allCoupons.Where(c =>
-                            c.IsActive && !c.IsDeleted);
+                            !c.IsActive && !c.IsDeleted || (!c.IsDeleted&&c.ValidFrom >= now)
+                             );
                         break;
                 }
             }
