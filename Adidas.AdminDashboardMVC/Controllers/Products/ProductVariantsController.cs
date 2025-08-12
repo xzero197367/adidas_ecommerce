@@ -119,14 +119,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }).ToList();
 
             var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = categories.Select(c => new SelectListItem
+            ViewBag.Categories = categories.Data.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             }).ToList();
 
             var brands = await _brandService.GetAllAsync();
-            ViewBag.Brands = brands.Select(b => new SelectListItem
+            ViewBag.Brands = brands.Data?.Select(b => new SelectListItem
             {
                 Value = b.Id.ToString(),
                 Text = b.Name

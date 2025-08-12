@@ -581,24 +581,26 @@
             try {
                 // Load categories and brands for filters
                 const [categoriesResponse, brandsResponse] = await Promise.all([
-                    fetch('get-categories'),
-                    fetch('get-brands')
+                    fetch('/Categories/GetCategoriesAjax'),
+                    fetch('/Brands/GetBrandsAJax')
                 ]);
 
                 const categories = await categoriesResponse.json();
                 const brands = await brandsResponse.json();
 
+                const brandSelect = document.getElementById('brandFilter');
+                brandSelect.innerHTML = '<option value="">All Brands</option>';
+                brands?.forEach(brand => {
+                    brandSelect.innerHTML += `<option value="${brand.id}">${brand.name}</option>`;
+                });
+
                 const categorySelect = document.getElementById('categoryFilter');
                 categorySelect.innerHTML = '<option value="">All Categories</option>';
-                categories.forEach(cat => {
+                categories?.forEach(cat => {
                     categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
                 });
 
-                const brandSelect = document.getElementById('brandFilter');
-                brandSelect.innerHTML = '<option value="">All Brands</option>';
-                brands.forEach(brand => {
-                    brandSelect.innerHTML += `<option value="${brand.id}">${brand.name}</option>`;
-                });
+                
             } catch (error) {
                 console.error('Error loading filters:', error);
             }

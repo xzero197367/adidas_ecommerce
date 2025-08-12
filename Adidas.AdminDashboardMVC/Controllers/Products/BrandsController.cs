@@ -197,18 +197,18 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
         
         // api calls
-        [HttpGet("get-brands")]
-        public async Task<IActionResult> GetBrands()
+        [HttpGet]
+        public async Task<IActionResult> GetBrandsAJax()
         {
             try
             {
                 var result = await _brandService.GetAllAsync();
-                if (!result.IsSuccess)
-                {
-                    return BadRequest(new { message = result.ErrorMessage });
-                }
+                // if (!result.IsSuccess)
+                // {
+                //     return BadRequest(new { message = result.ErrorMessage });
+                // }
 
-                var brands = result.Data.Select(b => new
+                var brands = result.Data?.Select(b => new
                 {
                     b.Id,
                     b.Name,

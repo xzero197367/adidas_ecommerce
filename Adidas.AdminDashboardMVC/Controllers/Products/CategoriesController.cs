@@ -288,16 +288,16 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         // api call to get all categories
         
-        [HttpGet("get-categories")]
-        public async Task<IActionResult> GetCategories()
+        [HttpGet]
+        public async Task<IActionResult> GetCategoriesAjax()
         {
             try
             {
                 var result = await _categoryService.GetAllAsync();
-                if (!result.IsSuccess)
-                {
-                    return BadRequest(new { message = result.ErrorMessage });
-                }
+                // if (!result.IsSuccess)
+                // {
+                //     return BadRequest(new { message = result.ErrorMessage });
+                // }
 
                 var categories = result.Data.Select(c => new
                 {

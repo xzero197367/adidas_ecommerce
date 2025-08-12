@@ -14,7 +14,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-        
         public async Task<IActionResult> Index(string statusFilter, string searchTerm)
         {
             var brands = await _brandService.GetFilteredBrandsAsync(statusFilter, searchTerm);
@@ -198,18 +197,18 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
         
         // api calls
-        [HttpGet("get-brands")]
+        [HttpGet]
         public async Task<IActionResult> GetBrands()
         {
             try
             {
                 var result = await _brandService.GetAllAsync();
-                if (!result.IsSuccess)
-                {
-                    return BadRequest(new { message = result.ErrorMessage });
-                }
+                // if (!result.IsSuccess)
+                // {
+                //     return BadRequest(new { message = result.ErrorMessage });
+                // }
 
-                var brands = result.Data.Select(b => new
+                var brands = result.Data?.Select(b => new
                 {
                     b.Id,
                     b.Name,
