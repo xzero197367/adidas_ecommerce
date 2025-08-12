@@ -40,11 +40,13 @@
   <ItemGroup>
     <AdditionalFiles Include="Views\Operation\Orders\Create.cshtml" />
     <AdditionalFiles Include="Views\Operation\Orders\Index.cshtml" />
-    <AdditionalFiles Include="Views\Operation\Orders\Sections\_OrderAdvancedFilter.cshtml" />
-    <AdditionalFiles Include="Views\Operation\Orders\Sections\_OrderFilter.cshtml" />
-    <AdditionalFiles Include="Views\Operation\Orders\Sections\_OrderTable.cshtml" />
-    <AdditionalFiles Include="Views\Operation\Orders\Sections\_OrderTopbar.cshtml" />
-    <AdditionalFiles Include="Views\Operation\Orders\Update.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\Operation\Orders\Sections\_OrderAdvancedFilter.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Operation\Orders\Sections\_OrderFilter.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Operation\Orders\Sections\_OrderTable.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Operation\Orders\Sections\_OrderTopbar.cshtml" />
   </ItemGroup>
 
 </Project>

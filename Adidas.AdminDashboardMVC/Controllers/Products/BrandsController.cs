@@ -1,9 +1,12 @@
 ﻿  using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Separator.Brand_DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class BrandsController : Controller
     {
         private readonly IBrandService _brandService;
@@ -194,6 +197,33 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
 
             return RedirectToAction(nameof(Index));
+        }
+        
+        // api calls
+        [HttpGet]
+        public async Task<IActionResult> GetBrandsAJax()
+        {
+            try
+            {
+                var result = await _brandService.GetAllAsync();
+                // if (!result.IsSuccess)
+                // {
+                //     return BadRequest(new { message = result.ErrorMessage });
+                // }
+
+                var brands = result.Data?.Select(b => new
+                {
+                    b.Id,
+                    b.Name,
+                    b.LogoUrl
+                }).OrderBy(b => b.Name);
+
+                return Ok(brands);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving brands", error = ex.Message });
+            }
         }
     }
 }

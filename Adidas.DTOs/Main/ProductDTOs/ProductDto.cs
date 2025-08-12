@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Adidas.DTOs.Common_DTOs;
+﻿using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Models.People;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Adidas.DTOs.Main.Product_DTOs
 {
@@ -35,7 +36,15 @@ namespace Adidas.DTOs.Main.Product_DTOs
         public Guid CategoryId { get; set; }
         public Guid BrandId { get; set; }
 
-
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (SalePrice.HasValue && SalePrice > Price)
+            {
+                yield return new ValidationResult(
+                    "Sale Price cannot be greater than the original Price.",
+                    new[] { nameof(SalePrice) });
+            }
+        }
         // Navigation properties
         public CategoryDto Category { get; set; } = new();
         public BrandDto Brand { get; set; } = new();

@@ -1,0 +1,316 @@
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Separator;
+using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.DTOs.Main.Product_Variant_DTOs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Models.People;
+using System;
+using System.Threading.Tasks;
+using Adidas.DTOs.Main.ProductDTOs;
+using Microsoft.EntityFrameworkCore;
+
+namespace Adidas.AdminDashboardMVC.Controllers.Products
+{
+    public class ProductVariantsController : Controller
+    {
+        private readonly IProductVariantService _productVariantService;
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly IBrandService _brandService;
+
+        public ProductVariantsController(
+            IProductVariantService productVariantService,
+            IProductService productService,
+            ICategoryService categoryService,
+            IBrandService brandService, IBrandRepository brandRepository)
+        {
+            _productVariantService = productVariantService;
+            _productService = productService;
+            _categoryService = categoryService;
+            _brandService = brandService;
+        }
+
+        // GET: /ProductVariants?searchSku=XXXX
+        public async Task<IActionResult> Index(string? searchSku)
+        {
+            IEnumerable<ProductVariantDto> variants;
+
+            if (!string.IsNullOrWhiteSpace(searchSku))
+            {
+                var variant = await _productVariantService.GetBySkuAsync(searchSku.Trim());
+                if (variant != null)
+                {
+                    variants = new List<ProductVariantDto> { variant };
+                }
+                else
+                {
+                    TempData["Error"] = $"No variant found with SKU: {searchSku}";
+                    variants = new List<ProductVariantDto>();
+                }
+            }
+            else
+            {
+                var result = await _productVariantService.GetAllAsync();
+                variants = result.Data;
+            }
+
+            return View(variants);
+        }
+
+
+        // GET: Create Form
+        public async Task<IActionResult> Create()
+        {
+            await PopulateDropdownsAsync();
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([FromForm] ProductVariantCreateDto createDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                await PopulateDropdownsAsync();
+                return View(createDto);
+            }
+
+            try
+            {
+                var createdVariant = await _productVariantService.CreateAsync(createDto);
+                TempData["Success"] = "Product variant created successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                await PopulateDropdownsAsync();
+                return View(createDto);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                await _productVariantService.DeleteAsync(id);
+                TempData["Success"] = "Product variant deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error deleting variant: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        private async Task PopulateDropdownsAsync()
+        {
+            var results = await _productService.GetAllAsync();
+            var products = results.Data;
+            ViewBag.Products = products.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.Name
+            }).ToList();
+
+            var categories = await _categoryService.GetAllAsync();
+            ViewBag.Categories = categories.Data.Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            }).ToList();
+
+            var brands = await _brandService.GetAllAsync();
+            ViewBag.Brands = brands.Select(b => new SelectListItem
+            {
+                Value = b.Id.ToString(),
+                Text = b.Name
+            }).ToList();
+
+            ViewBag.Genders = Enum.GetValues(typeof(Gender))
+                .Cast<Gender>()
+                .Select(g => new SelectListItem
+                {
+                    Value = ((int)g).ToString(),
+                    Text = g.ToString()
+                }).ToList();
+        }
+
+        // GET: /ProductVariants/Edit/{id}
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            var result = await _productVariantService.GetByIdAsync(id);
+            if (result.IsSuccess == false)
+            {
+                TempData["Error"] = result.ErrorMessage;
+                // return RedirectToAction(nameof(Index));
+                return NotFound();
+            }
+
+            var variant = result.Data;
+
+            var updateDto = new ProductVariantUpdateDto
+            {
+                Id = variant.Id,
+                ProductId = variant.ProductId,
+                Color = variant.Color,
+                Size = variant.Size,
+                StockQuantity = variant.StockQuantity,
+                PriceAdjustment = variant.PriceAdjustment,
+                ColorHex = variant.ColorHex,
+                SortOrder = variant.SortOrder,
+                ImageUrl = variant.Images.FirstOrDefault()?.ImageUrl
+            };
+
+            var productsResult = await _productService.GetAllAsync();
+            var products = productsResult.Data;
+            ViewBag.Products = products.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.Name
+            }).ToList();
+
+            return View(updateDto);
+        }
+
+
+        // POST: /ProductVariants/Edit/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Guid id, ProductVariantUpdateDto model)
+        {
+            if (id != model.Id)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+            {
+                var productResult = await _productService.GetAllAsync();
+                var products = productResult.Data;
+                ViewBag.Products = products.Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                }).ToList();
+                return View(model);
+            }
+
+            try
+            {
+                await _productVariantService.UpdateAsync(model);
+                TempData["Success"] = "Product variant updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error updating product variant: {ex.Message}");
+                var productResult = await _productService.GetAllAsync();
+                var products = productResult.Data;
+                ViewBag.Products = products.Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                }).ToList();
+                return View(model);
+            }
+        }
+
+
+        // api call to get all variants
+        [HttpGet("variants")]
+        public async Task<IActionResult> GetVariants(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            [FromQuery] string? search = null,
+            [FromQuery] Guid? categoryId = null,
+            [FromQuery] Guid? brandId = null,
+            [FromQuery] Gender? gender = null,
+            [FromQuery] bool inStockOnly = true)
+        {
+            try
+            {
+                var filter = new ProductFilterDto
+                {
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    SearchTerm = search,
+                    CategoryId = categoryId,
+                    BrandId = brandId,
+                    Gender = gender,
+                    InStock = inStockOnly
+                };
+
+                var result = await _productService.GetProductsWithFiltersAsync(filter);
+
+                if (!result.IsSuccess)
+                {
+                    return BadRequest(new { message = result.ErrorMessage });
+                }
+
+                // Transform products to variants for the response
+                var variants = result.Data.Items
+                    .SelectMany(p => p.Variants.Select(v => new
+                    {
+                        Id = v.Id,
+                        Sku = v.Sku,
+                        Color = v.Color,
+                        Size = v.Size,
+                        StockQuantity = v.StockQuantity,
+                        PriceAdjustment = v.PriceAdjustment,
+                        ImageUrl = v.Images.FirstOrDefault()?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl,
+                        Product = new
+                        {
+                            Id = p.Id,
+                            Name = p.Name,
+                            Price = p.Price,
+                            SalePrice = p.SalePrice,
+                            DisplayPrice = p.DisplayPrice,
+                            CategoryName = p.CategoryName,
+                            BrandName = p.BrandName
+                        }
+                    }))
+                    .Where(v => !inStockOnly || v.StockQuantity > 0)
+                    .ToList();
+
+                var response = new
+                {
+                    Items = variants,
+                    TotalCount = variants.Count,
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)variants.Count / pageSize)
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving variants", error = ex.Message });
+            }
+        }
+
+        [HttpGet("variants/{id}")]
+        public async Task<IActionResult> GetVariant(Guid id)
+        {
+            try
+            {
+                var variant = await _productVariantService.GetByIdAsync(id);
+                if (!variant.IsSuccess || variant.Data == null)
+                {
+                    return NotFound(new { message = "Variant not found" });
+                }
+
+                return Ok(variant.Data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving variant", error = ex.Message });
+            }
+        }
+    }
+}

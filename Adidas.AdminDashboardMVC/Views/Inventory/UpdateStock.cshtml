@@ -1,0 +1,396 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Inventory.UpdateStockViewModel
+@{
+    ViewData["Title"] = "Update Stock";
+    ViewData["PageHeader"] = "Update Product Stock";
+    ViewData["Breadcrumb"] = "Update Stock";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">@ViewData["PageHeader"]</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Inventory</a></li>
+                    <li class="breadcrumb-item active">@ViewData["Breadcrumb"]</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-edit"></i>
+                            Update Stock Quantity
+                        </h3>
+                    </div>
+
+                    <form asp-action="UpdateStock" method="post" id="updateStockForm">
+                        <div class="card-body">
+                            @* <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div> *@
+
+                            <input asp-for="VariantId" type="hidden" />
+
+                            <!-- Product Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="info-box bg-light">
+                                        <span class="info-box-icon bg-primary">
+                                            <i class="fas fa-box"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Product Information</span>
+                                            <span class="info-box-number">
+                                                @if (!string.IsNullOrEmpty(Model.ProductName))
+                                                {
+                                                    <text>@Model.ProductName</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>Loading...</text>
+                                                }
+                                            </span>
+                                            @if (!string.IsNullOrEmpty(Model.VariantDetails))
+                                            {
+                                                <div class="progress-description">
+                                                    Variant: @Model.VariantDetails
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Current Stock Display -->
+                            @if (Model.CurrentStock >= 0)
+                            {
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="info-box">
+                                            <span class="info-box-icon @(Model.CurrentStock == 0 ? "bg-danger" : Model.CurrentStock <= 10 ? "bg-warning" : "bg-success")">
+                                                <i class="fas @(Model.CurrentStock == 0 ? "fa-times-circle" : Model.CurrentStock <= 10 ? "fa-exclamation-triangle" : "fa-check-circle")"></i>
+                                            </span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Current Stock</span>
+                                                <span class="info-box-number">@Model.CurrentStock</span>
+                                                <div class="progress-description">
+                                                    @if (Model.CurrentStock == 0)
+                                                    {
+                                                        <span class="text-danger">Out of Stock</span>
+                                                    }
+                                                    else if (Model.CurrentStock <= 10)
+                                                    {
+                                                        <span class="text-warning">Low Stock Alert</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-success">Stock Available</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- New Stock Input -->
+                            <div class="form-group">
+                                <label asp-for="NewStock" class="form-label">
+                                    <i class="fas fa-boxes text-primary"></i>
+                                    New Stock Quantity <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-hashtag"></i>
+                                        </span>
+                                    </div>
+                                    <input asp-for="NewStock" class="form-control form-control-lg"
+                                           placeholder="Enter new stock quantity"
+                                           min="0"
+                                           max="999999"
+                                           onchange="calculateStockChange()" />
+                                </div>
+                                <span asp-validation-for="NewStock" class="text-danger"></span>
+
+                                <!-- Stock Change Display -->
+                                <div id="stockChangeDisplay" class="mt-2" style="display: none;">
+                                    <div class="alert" id="stockChangeAlert" role="alert">
+                                        <i id="stockChangeIcon"></i>
+                                        <span id="stockChangeText"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reason Input -->
+                            <div class="form-group">
+                                <label asp-for="Reason" class="form-label">
+                                    <i class="fas fa-comment-alt text-info"></i>
+                                    Reason for Update
+                                </label>
+                                <textarea asp-for="Reason" class="form-control"
+                                          rows="3"
+                                          placeholder="Enter reason for stock update (optional)..."
+                                          maxlength="500"></textarea>
+                                <span asp-validation-for="Reason" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Providing a reason helps with inventory tracking and auditing.
+                                </small>
+                            </div>
+
+                            <!-- Quick Reason Buttons -->
+                            <div class="form-group">
+                                <label class="form-label">Quick Reasons:</label><br>
+                                <div class="btn-group-toggle" data-toggle="buttons">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mr-1 mb-1"
+                                            onclick="setReason('Received new shipment')">
+                                        <i class="fas fa-truck"></i> New Shipment
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mr-1 mb-1"
+                                            onclick="setReason('Inventory count adjustment')">
+                                        <i class="fas fa-clipboard-check"></i> Count Adjustment
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mr-1 mb-1"
+                                            onclick="setReason('Damaged items removed')">
+                                        <i class="fas fa-exclamation-triangle"></i> Damaged Items
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mr-1 mb-1"
+                                            onclick="setReason('Return from customer')">
+                                        <i class="fas fa-undo"></i> Customer Return
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mr-1 mb-1"
+                                            onclick="setReason('Manual correction')">
+                                        <i class="fas fa-edit"></i> Manual Correction
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Warning Messages -->
+                            <div id="warningMessages"></div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="updateBtn">
+                                        <i class="fas fa-save"></i>
+                                        Update Stock
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-lg ml-2"
+                                            onclick="showPreview()" id="previewBtn">
+                                        <i class="fas fa-eye"></i>
+                                        Preview
+                                    </button>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                        <i class="fas fa-arrow-left"></i>
+                                        Back to Dashboard
+                                    </a>
+                                    <a asp-action="LowStock" class="btn btn-outline-warning btn-lg ml-2">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Low Stock Alerts
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Recent Stock Changes (if available) -->
+                <div class="card card-secondary">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-history"></i>
+                            Recent Stock Changes
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline" id="stockHistory">
+                            <!-- Stock history would be loaded here via AJAX -->
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Loading recent changes...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Confirm Stock Update</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="confirmationContent">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmUpdate()">
+                    <i class="fas fa-check"></i> Confirm Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        var currentStock = @Model.CurrentStock;
+
+        function calculateStockChange() {
+            var newStock = parseInt($('#NewStock').val()) || 0;
+            var change = newStock - currentStock;
+            var changeDisplay = $('#stockChangeDisplay');
+            var changeAlert = $('#stockChangeAlert');
+            var changeIcon = $('#stockChangeIcon');
+            var changeText = $('#stockChangeText');
+
+            if (isNaN(newStock) || newStock < 0) {
+                changeDisplay.hide();
+                showWarning('Please enter a valid stock quantity (0 or greater).');
+                return;
+            }
+
+            clearWarnings();
+
+            if (change === 0) {
+                changeDisplay.hide();
+                return;
+            }
+
+            changeDisplay.show();
+
+            if (change > 0) {
+                changeAlert.removeClass('alert-warning alert-danger').addClass('alert-success');
+                changeIcon.removeClass('fa-minus-circle fa-exclamation-triangle').addClass('fa-plus-circle');
+                changeText.text('Stock will increase by ' + change + ' units');
+            } else {
+                changeAlert.removeClass('alert-success alert-danger').addClass('alert-warning');
+                changeIcon.removeClass('fa-plus-circle fa-exclamation-triangle').addClass('fa-minus-circle');
+                changeText.text('Stock will decrease by ' + Math.abs(change) + ' units');
+            }
+
+            // Show warnings for significant changes
+            if (newStock === 0) {
+                showWarning('Warning: This will set the stock to zero (out of stock).');
+            } else if (change < -50) {
+                showWarning('Warning: Large stock decrease detected. Please verify this is correct.');
+            } else if (change > 1000) {
+                showWarning('Warning: Large stock increase detected. Please verify this is correct.');
+            }
+        }
+
+        function showWarning(message) {
+            var warnings = $('#warningMessages');
+            warnings.html('<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> ' + message + '</div>');
+        }
+
+        function clearWarnings() {
+            $('#warningMessages').empty();
+        }
+
+        function setReason(reason) {
+            $('#Reason').val(reason);
+            $('.btn-outline-secondary').removeClass('active');
+            event.target.classList.add('active');
+        }
+
+        function showPreview() {
+            var newStock = parseInt($('#NewStock').val()) || 0;
+            var reason = $('#Reason').val() || 'No reason provided';
+            var change = newStock - currentStock;
+
+            if (isNaN(newStock) || newStock < 0) {
+                alert('Please enter a valid stock quantity first.');
+                return;
+            }
+
+            var content = '<div class="row">' +
+                         '<div class="col-6"><strong>Current Stock:</strong></div>' +
+                         '<div class="col-6">' + currentStock + '</div>' +
+                         '<div class="col-6"><strong>New Stock:</strong></div>' +
+                         '<div class="col-6">' + newStock + '</div>' +
+                         '<div class="col-6"><strong>Change:</strong></div>' +
+                         '<div class="col-6"><span class="badge ' +
+                         (change > 0 ? 'badge-success">+' : change < 0 ? 'badge-warning">' : 'badge-secondary">') +
+                         change + '</span></div>' +
+                         '<div class="col-6"><strong>Reason:</strong></div>' +
+                         '<div class="col-6">' + reason + '</div>' +
+                         '</div>';
+
+            $('#confirmationContent').html(content);
+            $('#confirmationModal').modal('show');
+        }
+
+        function confirmUpdate() {
+            $('#confirmationModal').modal('hide');
+            $('#updateStockForm').submit();
+        }
+
+        // Form validation
+        $('#updateStockForm').on('submit', function(e) {
+            var newStock = parseInt($('#NewStock').val());
+
+            if (isNaN(newStock) || newStock < 0) {
+                e.preventDefault();
+                alert('Please enter a valid stock quantity.');
+                return false;
+            }
+
+            // Show loading state
+            $('#updateBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Updating...');
+        });
+
+        // Load stock history (placeholder - would connect to actual endpoint)
+        $(document).ready(function() {
+            // Simulate loading recent changes
+            setTimeout(function() {
+                $('#stockHistory').html(
+                    '<div class="text-center text-muted py-3">' +
+                    '<i class="fas fa-info-circle"></i> ' +
+                    'No recent changes available for this variant.' +
+                    '</div>'
+                );
+            }, 1000);
+        });
+
+        // Auto-calculate change on input
+        $('#NewStock').on('input', calculateStockChange);
+
+        // Initialize calculation if there's a pre-filled value
+        if ($('#NewStock').val()) {
+            calculateStockChange();
+        }
+    </script>
+}

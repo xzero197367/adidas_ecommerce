@@ -1,0 +1,799 @@
+﻿@using Adidas.DTOs.Operation.OrderDTOs.Create
+@using Adidas.Models.Operation
+@model OrderCreateDto
+
+@{
+    ViewData["Title"] = "Create New Order";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Create New Order</h3>
+                </div>
+
+                <form asp-action="Create" asp-controller="Orders" method="post">
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Order Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Order Information</h5>
+
+                                <div class="form-group">
+                                    <label asp-for="OrderNumber" class="form-label">Order Number</label>
+                                    <input asp-for="OrderNumber" class="form-control"
+                                           placeholder="Auto-generated if empty"/>
+                                    <span asp-validation-for="OrderNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="OrderStatus" class="form-label">Order Status</label>
+                                    <select asp-for="OrderStatus" class="form-control">
+                                        @foreach (OrderStatus status in Enum.GetValues<OrderStatus>())
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="OrderStatus" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Currency" class="form-label">Currency</label>
+                                    <select asp-for="Currency" class="form-control">
+                                        <option value="USD" selected>USD - US Dollar</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                        <option value="GBP">GBP - British Pound</option>
+                                        <option value="EGP">EGP - Egyptian Pound</option>
+                                    </select>
+                                    <span asp-validation-for="Currency" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="OrderDate" class="form-label">Order Date</label>
+                                    <input asp-for="OrderDate" type="datetime-local" class="form-control"/>
+                                    <span asp-validation-for="OrderDate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Customer Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Customer Information</h5>
+
+                                <div class="form-group">
+                                    <label asp-for="UserId" class="form-label">Customer</label>
+                                    <div class="input-group">
+                                        <input asp-for="UserId" type="hidden"/>
+                                        <input id="selectedCustomerDisplay" type="text" class="form-control"
+                                               placeholder="Click to select customer" readonly/>
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                    onclick="openCustomerModal()">
+                                                <i class="fas fa-search"></i> Select Customer
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="UserId" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Notes" class="form-label">Order Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="3"
+                                              placeholder="Any special instructions or notes..."></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Address Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Shipping Address</h5>
+                                <div class="form-group">
+                                    <label asp-for="ShippingAddress" class="form-label">Shipping Address (JSON)</label>
+                                    <textarea asp-for="ShippingAddress" class="form-control" rows="4"
+                                              placeholder='{"street": "123 Main St", "city": "New York", "state": "NY", "zip": "10001", "country": "USA"}'></textarea>
+                                    <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                                    <small class="form-text text-muted">Enter address as JSON format</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Billing Address</h5>
+                                <div class="form-group">
+                                    <label asp-for="BillingAddress" class="form-label">Billing Address (JSON)</label>
+                                    <textarea asp-for="BillingAddress" class="form-control" rows="4"
+                                              placeholder='{"street": "123 Main St", "city": "New York", "state": "NY", "zip": "10001", "country": "USA"}'></textarea>
+                                    <span asp-validation-for="BillingAddress" class="text-danger"></span>
+                                    <small class="form-text text-muted">Enter address as JSON format</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick="copyShippingToBilling()">
+                                    Copy Shipping Address
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Order Items -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="mb-3">Order Items</h5>
+                                <div id="orderItems">
+                                    <div class="order-item mb-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Product Variant</label>
+                                                <div class="input-group">
+                                                    <input name="OrderItems[0].VariantId" type="hidden" required/>
+                                                    <input class="form-control variant-display"
+                                                           placeholder="Click to select variant" readonly required/>
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                onclick="openVariantModal(0)">
+                                                            <i class="fas fa-search"></i> Select
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Quantity</label>
+                                                <input name="OrderItems[0].Quantity" type="number" class="form-control"
+                                                       min="1" value="1" required/>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Unit Price</label>
+                                                <input name="OrderItems[0].UnitPrice" type="number" step="0.01"
+                                                       class="form-control" min="0.01" placeholder="0.00" required/>
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-danger btn-sm"
+                                                        onclick="removeOrderItem(this)" disabled>
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addOrderItem()">
+                                    <i class="fas fa-plus"></i> Add Another Item
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Pricing Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Pricing Details</h5>
+
+                                <div class="form-group">
+                                    <label asp-for="Subtotal" class="form-label">Subtotal</label>
+                                    <input asp-for="Subtotal" type="number" step="0.01" class="form-control" min="0"/>
+                                    <span asp-validation-for="Subtotal" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="TaxAmount" class="form-label">Tax Amount</label>
+                                    <input asp-for="TaxAmount" type="number" step="0.01" class="form-control" min="0"/>
+                                    <span asp-validation-for="TaxAmount" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="ShippingAmount" class="form-label">Shipping Amount</label>
+                                    <input asp-for="ShippingAmount" type="number" step="0.01" class="form-control"
+                                           min="0"/>
+                                    <span asp-validation-for="ShippingAmount" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="DiscountAmount" class="form-label">Discount Amount</label>
+                                    <input asp-for="DiscountAmount" type="number" step="0.01" class="form-control"
+                                           min="0"/>
+                                    <span asp-validation-for="DiscountAmount" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="TotalAmount" class="form-label">Total Amount</label>
+                                    <input asp-for="TotalAmount" type="number" step="0.01" class="form-control"
+                                           min="0.01" required/>
+                                    <span asp-validation-for="TotalAmount" class="text-danger"></span>
+                                    <button type="button" class="btn btn-sm btn-outline-info mt-1"
+                                            onclick="calculateTotal()">
+                                        Calculate Total
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Create Order
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary ml-2">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Selection Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">Select Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <input type="text" id="customerSearch" class="form-control"
+                               placeholder="Search customers by name or email..."/>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="customerRoleFilter" class="form-control">
+                            <option value="">All Roles</option>
+                            <option value="Customer">Customer</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Employee">Employee</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-primary" onclick="searchCustomers()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+
+                <div id="customerSearchResults">
+                    <div class="text-center">
+                        <p class="text-muted">Use the search above to find customers</p>
+                    </div>
+                </div>
+
+                <div id="customerPagination" class="mt-3 d-flex justify-content-between align-items-center"
+                     style="display: none;">
+                    <div>
+                        <span id="customerResultsInfo"></span>
+                    </div>
+                    <div>
+                        <button type="button" id="prevCustomerPage" class="btn btn-sm btn-outline-secondary"
+                                onclick="changeCustomerPage(-1)">Previous
+                        </button>
+                        <span id="customerPageInfo" class="mx-2"></span>
+                        <button type="button" id="nextCustomerPage" class="btn btn-sm btn-outline-secondary"
+                                onclick="changeCustomerPage(1)">Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Variant Selection Modal -->
+<div class="modal fade" id="variantModal" tabindex="-1" role="dialog" aria-labelledby="variantModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="variantModalLabel">Select Product Variant</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <input type="text" id="variantSearch" class="form-control" placeholder="Search products..."/>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="categoryFilter" class="form-control">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="brandFilter" class="form-control">
+                            <option value="">All Brands</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="genderFilter" class="form-control">
+                            <option value="">All Genders</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Kids">Kids</option>
+                            <option value="Unisex">Unisex</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-primary" onclick="searchVariants()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+
+                <div id="variantSearchResults">
+                    <div class="text-center">
+                        <p class="text-muted">Use the search above to find product variants</p>
+                    </div>
+                </div>
+
+                <div id="variantPagination" class="mt-3 d-flex justify-content-between align-items-center"
+                     style="display: none;">
+                    <div>
+                        <span id="variantResultsInfo"></span>
+                    </div>
+                    <div>
+                        <button type="button" id="prevVariantPage" class="btn btn-sm btn-outline-secondary"
+                                onclick="changeVariantPage(-1)">Previous
+                        </button>
+                        <span id="variantPageInfo" class="mx-2"></span>
+                        <button type="button" id="nextVariantPage" class="btn btn-sm btn-outline-secondary"
+                                onclick="changeVariantPage(1)">Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+        let itemIndex = 1;
+        let currentVariantItemIndex = 0;
+
+        // Customer selection variables
+        let currentCustomerPage = 1;
+        const customerPageSize = 10;
+        let totalCustomerPages = 0;
+        let customerSearchTerm = '';
+        let customerRoleFilter = '';
+
+        // Variant selection variables
+        let currentVariantPage = 1;
+        const variantPageSize = 12;
+        let totalVariantPages = 0;
+        let variantSearchTerm = '';
+        let categoryFilter = '';
+        let brandFilter = '';
+        let genderFilter = '';
+
+        function addOrderItem() {
+            const itemsContainer = document.getElementById('orderItems');
+            const newItem = document.createElement('div');
+            newItem.className = 'order-item mb-3';
+            newItem.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Product Variant</label>
+                        <div class="input-group">
+                            <input name="OrderItems[${itemIndex}].VariantId" type="hidden" required />
+                            <input class="form-control variant-display" placeholder="Click to select variant" readonly required />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="openVariantModal(${itemIndex})">
+                                    <i class="fas fa-search"></i> Select
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Quantity</label>
+                        <input name="OrderItems[${itemIndex}].Quantity" type="number" class="form-control" min="1" value="1" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Unit Price</label>
+                        <input name="OrderItems[${itemIndex}].UnitPrice" type="number" step="0.01" class="form-control" min="0.01" placeholder="0.00" required />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeOrderItem(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            itemsContainer.appendChild(newItem);
+            itemIndex++;
+            updateRemoveButtons();
+        }
+
+        function removeOrderItem(button) {
+            button.closest('.order-item').remove();
+            updateRemoveButtons();
+        }
+
+        function updateRemoveButtons() {
+            const items = document.querySelectorAll('.order-item');
+            items.forEach((item, index) => {
+                const removeBtn = item.querySelector('.btn-danger');
+                removeBtn.disabled = items.length === 1;
+            });
+        }
+
+        function copyShippingToBilling() {
+            const shippingAddress = document.querySelector('textarea[name="ShippingAddress"]').value;
+            document.querySelector('textarea[name="BillingAddress"]').value = shippingAddress;
+        }
+
+        function calculateTotal() {
+            const subtotal = parseFloat(document.querySelector('input[name="Subtotal"]').value) || 0;
+            const tax = parseFloat(document.querySelector('input[name="TaxAmount"]').value) || 0;
+            const shipping = parseFloat(document.querySelector('input[name="ShippingAmount"]').value) || 0;
+            const discount = parseFloat(document.querySelector('input[name="DiscountAmount"]').value) || 0;
+
+            const total = subtotal + tax + shipping - discount;
+            document.querySelector('input[name="TotalAmount"]').value = total.toFixed(2);
+        }
+
+        // Customer Modal Functions
+        function openCustomerModal() {
+            $('#customerModal').modal('show');
+            // Load initial customer data or show search prompt
+        }
+
+        async function searchCustomers() {
+            customerSearchTerm = document.getElementById('customerSearch').value;
+            customerRoleFilter = document.getElementById('customerRoleFilter').value;
+            currentCustomerPage = 1;
+            await loadCustomers();
+        }
+
+        async function loadCustomers() {
+            try {
+                // Show loading state
+                document.getElementById('customerSearchResults').innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading customers...</p>
+                    </div>
+                `;
+
+                // Simulate API call - replace with actual endpoint
+                const response = await fetch(`/customers?page=${currentCustomerPage}&pageSize=${customerPageSize}&search=${encodeURIComponent(customerSearchTerm)}&role=${customerRoleFilter}`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch customers');
+                }
+
+                const data = await response.json();
+                displayCustomers(data.items);
+                updateCustomerPagination(data.totalCount);
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                document.getElementById('customerSearchResults').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error loading customers. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        function displayCustomers(customers) {
+            const resultsContainer = document.getElementById('customerSearchResults');
+
+            if (!customers || customers.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No customers found matching your criteria</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = customers.map(customer => `
+                <div class="card customer-card mb-2" style="cursor: pointer;" onclick="selectCustomer('${customer.id}', '${customer.firstName} ${customer.lastName} (${customer.email})')">
+                    <div class="card-body py-2">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-0">${customer.firstName} ${customer.lastName}</h6>
+                                <small class="text-muted">${customer.email}</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge badge-${getRoleColor(customer.role)}">${customer.role}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">ID: ${customer.id.substring(0, 8)}...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            resultsContainer.innerHTML = html;
+        }
+
+        function getRoleColor(role) {
+            switch (role) {
+                case 'Admin':
+                    return 'danger';
+                case 'Employee':
+                    return 'warning';
+                case 'Customer':
+                    return 'success';
+                default:
+                    return 'secondary';
+            }
+        }
+
+        function selectCustomer(customerId, displayText) {
+            document.querySelector('input[name="UserId"]').value = customerId;
+            document.getElementById('selectedCustomerDisplay').value = displayText;
+            $('#customerModal').modal('hide');
+        }
+
+        function updateCustomerPagination(totalCount) {
+            totalCustomerPages = Math.ceil(totalCount / customerPageSize);
+
+            document.getElementById('customerResultsInfo').textContent =
+                `Showing ${Math.min(totalCount, customerPageSize)} of ${totalCount} customers`;
+
+            document.getElementById('customerPageInfo').textContent =
+                `Page ${currentCustomerPage} of ${totalCustomerPages}`;
+
+            document.getElementById('prevCustomerPage').disabled = currentCustomerPage <= 1;
+            document.getElementById('nextCustomerPage').disabled = currentCustomerPage >= totalCustomerPages;
+
+            document.getElementById('customerPagination').style.display = totalCount > 0 ? 'flex' : 'none';
+        }
+
+        async function changeCustomerPage(direction) {
+            const newPage = currentCustomerPage + direction;
+            if (newPage >= 1 && newPage <= totalCustomerPages) {
+                currentCustomerPage = newPage;
+                await loadCustomers();
+            }
+        }
+
+        // Variant Modal Functions
+        function openVariantModal(itemIndex) {
+            currentVariantItemIndex = itemIndex;
+            $('#variantModal').modal('show');
+            loadFilters();
+        }
+
+        async function loadFilters() {
+            try {
+                // Load categories and brands for filters
+                const [categoriesResponse, brandsResponse] = await Promise.all([
+                    fetch('/Categories/GetCategoriesAjax'),
+                    fetch('/Brands/GetBrandsAJax')
+                ]);
+
+                const categories = await categoriesResponse.json();
+                const brands = await brandsResponse.json();
+
+                const brandSelect = document.getElementById('brandFilter');
+                brandSelect.innerHTML = '<option value="">All Brands</option>';
+                brands.forEach(brand => {
+                    brandSelect.innerHTML += `<option value="${brand.id}">${brand.name}</option>`;
+                });
+
+                const categorySelect = document.getElementById('categoryFilter');
+                categorySelect.innerHTML = '<option value="">All Categories</option>';
+                categories.forEach(cat => {
+                    categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+                });
+
+                
+            } catch (error) {
+                console.error('Error loading filters:', error);
+            }
+        }
+
+        async function searchVariants() {
+            variantSearchTerm = document.getElementById('variantSearch').value;
+            categoryFilter = document.getElementById('categoryFilter').value;
+            brandFilter = document.getElementById('brandFilter').value;
+            genderFilter = document.getElementById('genderFilter').value;
+            currentVariantPage = 1;
+            await loadVariants();
+        }
+
+        async function loadVariants() {
+            try {
+                document.getElementById('variantSearchResults').innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading product variants...</p>
+                    </div>
+                `;
+
+                const params = new URLSearchParams({
+                    page: currentVariantPage,
+                    pageSize: variantPageSize,
+                    search: variantSearchTerm,
+                    categoryId: categoryFilter,
+                    brandId: brandFilter,
+                    gender: genderFilter
+                });
+
+                const response = await fetch(`/variants?${params}`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch variants');
+                }
+
+                const data = await response.json();
+                displayVariants(data.items);
+                updateVariantPagination(data.totalCount);
+            } catch (error) {
+                console.error('Error loading variants:', error);
+                document.getElementById('variantSearchResults').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error loading variants. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        function displayVariants(variants) {
+            const resultsContainer = document.getElementById('variantSearchResults');
+
+            if (!variants || variants.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No product variants found matching your criteria</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="row">
+                    ${variants.map(variant => `
+                        <div class="col-md-4 mb-3">
+                            <div class="card variant-card h-100" style="cursor: pointer;" onclick="selectVariant('${variant.id}', '${variant.product.name} - ${variant.color} / ${variant.size}', ${variant.product.displayPrice})">
+                                <div class="card-img-container" style="height: 200px; overflow: hidden;">
+                                    <img src="${variant.imageUrl || '/images/no-image.png'}" class="card-img-top" style="height: 100%; object-fit: cover;" alt="${variant.product.name}">
+                                </div>
+                                <div class="card-body p-2">
+                                    <h6 class="card-title mb-1" style="font-size: 0.9rem;">${variant.product.name}</h6>
+                                    <div class="mb-1">
+                                        <span class="badge badge-primary">${variant.color}</span>
+                                        <span class="badge badge-secondary">${variant.size}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-success font-weight-bold">$${variant.product.displayPrice}</span>
+                                        <small class="text-muted">Stock: ${variant.stockQuantity}</small>
+                                    </div>
+                                    <small class="text-muted d-block">SKU: ${variant.sku}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+        }
+
+        function selectVariant(variantId, displayText, price) {
+            const orderItem = document.querySelector(`.order-item:nth-child(${currentVariantItemIndex + 1})`);
+            const variantIdInput = orderItem.querySelector('input[type="hidden"]');
+            const variantDisplay = orderItem.querySelector('.variant-display');
+            const priceInput = orderItem.querySelector('input[name*="UnitPrice"]');
+
+            variantIdInput.value = variantId;
+            variantDisplay.value = displayText;
+            priceInput.value = price.toFixed(2);
+
+            $('#variantModal').modal('hide');
+            calculateTotal();
+        }
+
+        function updateVariantPagination(totalCount) {
+            totalVariantPages = Math.ceil(totalCount / variantPageSize);
+
+            document.getElementById('variantResultsInfo').textContent =
+                `Showing ${Math.min(totalCount, variantPageSize)} of ${totalCount} variants`;
+
+            document.getElementById('variantPageInfo').textContent =
+                `Page ${currentVariantPage} of ${totalVariantPages}`;
+
+            document.getElementById('prevVariantPage').disabled = currentVariantPage <= 1;
+            document.getElementById('nextVariantPage').disabled = currentVariantPage >= totalVariantPages;
+
+            document.getElementById('variantPagination').style.display = totalCount > 0 ? 'flex' : 'none';
+        }
+
+        async function changeVariantPage(direction) {
+            const newPage = currentVariantPage + direction;
+            if (newPage >= 1 && newPage <= totalVariantPages) {
+                currentVariantPage = newPage;
+                await loadVariants();
+            }
+        }
+
+        // Auto-calculate when pricing fields change
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set default datetime
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.querySelector('input[name="OrderDate"]').value = now.toISOString().slice(0, 16);
+
+            // Add event listeners for pricing calculation
+            document.querySelectorAll('input[name="Subtotal"], input[name="TaxAmount"], input[name="ShippingAmount"], input[name="DiscountAmount"]').forEach(input => {
+                input.addEventListener('input', calculateTotal);
+            });
+
+            // Add search on Enter key for modals
+            document.getElementById('customerSearch').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    searchCustomers();
+                }
+            });
+
+            document.getElementById('variantSearch').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    searchVariants();
+                }
+            });
+        });
+
+        // Add CSS for hover effects
+        document.addEventListener('DOMContentLoaded', function () {
+            const style = document.createElement('style');
+            style.textContent = `
+                .customer-card:hover, .variant-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    transition: all 0.2s ease;
+                }
+                
+                .variant-card {
+                    transition: all 0.2s ease;
+                }
+                
+                .card-img-container img {
+                    transition: transform 0.2s ease;
+                }
+                
+                .variant-card:hover .card-img-container img {
+                    transform: scale(1.05);
+                }
+                
+                .modal-xl {
+                    max-width: 1200px;
+                }
+                
+                @@media (max-width: 768px) {
+                    .modal-xl {
+                        max-width: 95%;
+                        margin: 1rem auto;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+}

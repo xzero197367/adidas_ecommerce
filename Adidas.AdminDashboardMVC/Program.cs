@@ -168,6 +168,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
+
 #endregion
 
 #region 10. Seed Roles & Admin

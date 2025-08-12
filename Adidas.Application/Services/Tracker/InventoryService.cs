@@ -125,11 +125,18 @@ namespace Adidas.Application.Services.Tracker
         {
             try
             {
-                var allVariants = await _variantRepository.GetAll().ToListAsync();
-                var variantsList = allVariants.ToList();
+                // Ensure Product is loaded with the variants
+                var allVariants = await _variantRepository.GetAll()
+                    .Include(v => v.Product)
+                    .ToListAsync();
 
-                var lowStockVariants = variantsList.Where(v => v.StockQuantity <= 10).Count();
-                var outOfStockVariants = variantsList.Where(v => v.StockQuantity == 0).Count();
+                // Filter out any variants with missing Product to avoid null refs
+                var variantsList = allVariants
+                    .Where(v => v.Product != null)
+                    .ToList();
+
+                var lowStockVariants = variantsList.Count(v => v.StockQuantity <= 10);
+                var outOfStockVariants = variantsList.Count(v => v.StockQuantity == 0);
 
                 var productStocks = variantsList
                     .GroupBy(v => v.Product)
@@ -140,7 +147,8 @@ namespace Adidas.Application.Services.Tracker
                         TotalStock = g.Sum(v => v.StockQuantity),
                         VariantCount = g.Count(),
                         InventoryValue = g.Sum(v => v.StockQuantity * (g.Key.SalePrice ?? g.Key.Price))
-                    });
+                    })
+                    .ToList();
 
                 var result = new InventoryReportDto
                 {
@@ -151,8 +159,10 @@ namespace Adidas.Application.Services.Tracker
                     TotalInventoryValue = productStocks.Sum(ps => ps.InventoryValue),
                     ProductStocks = productStocks
                 };
+
                 return OperationResult<InventoryReportDto>.Success(result);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error generating inventory report");
                 return OperationResult<InventoryReportDto>.Fail(ex.Message);

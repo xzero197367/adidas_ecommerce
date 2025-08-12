@@ -1,0 +1,474 @@
+﻿@using Adidas.DTOs.Operation.OrderDTOs
+@using Adidas.Models.Operation
+@model IEnumerable<OrderDto>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-shopping-bag"></i> My Orders
+                    </h3>
+                    <div class="card-tools">
+                        <span class="badge badge-primary">@Model.Count() Total Orders</span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <!-- Orders Timeline -->
+                        <div class="timeline">
+                            @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+                            {
+                                <div class="time-label">
+                                    <span class="bg-info">@order.OrderDate.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                
+                                <div>
+                                    @{
+                                        string timelineIcon = order.OrderStatus switch
+                                        {
+                                            OrderStatus.Pending => "fas fa-clock bg-warning",
+                                            OrderStatus.Processing => "fas fa-cogs bg-info",
+                                            OrderStatus.Shipped => "fas fa-shipping-fast bg-primary",
+                                            OrderStatus.Delivered => "fas fa-check-circle bg-success",
+                                            OrderStatus.Cancelled => "fas fa-times-circle bg-danger",
+                                            _ => "fas fa-question bg-secondary"
+                                        };
+                                    }
+                                    <i class="@timelineIcon"></i>
+                                    
+                                    <div class="timeline-item">
+                                        <span class="time">
+                                            <i class="fas fa-clock"></i> @order.OrderDate.ToString("HH:mm")
+                                        </span>
+                                        
+                                        <h3 class="timeline-header">
+                                            <strong>Order #@order.OrderNumber</strong>
+                                            @{
+                                                string badgeClass = order.OrderStatus switch
+                                                {
+                                                    OrderStatus.Pending => "badge-warning",
+                                                    OrderStatus.Processing => "badge-info",
+                                                    OrderStatus.Shipped => "badge-primary",
+                                                    OrderStatus.Delivered => "badge-success",
+                                                    OrderStatus.Cancelled => "badge-danger",
+                                                    _ => "badge-secondary"
+                                                };
+                                            }
+                                            <span class="badge @badgeClass ml-2">@order.OrderStatus</span>
+                                        </h3>
+                                        
+                                        <div class="timeline-body">
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <strong>Total Amount:</strong> @order.TotalAmount.ToString("C") @order.Currency
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            @if (order.ShippedDate.HasValue)
+                                                            {
+                                                                <strong>Shipped:</strong> @order.ShippedDate.Value.ToString("MMM dd, yyyy")
+                                                            }
+                                                            @if (order.DeliveredDate.HasValue)
+                                                            {
+                                                                <strong>Delivered:</strong> @order.DeliveredDate.Value.ToString("MMM dd, yyyy")
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    @if (!string.IsNullOrEmpty(order.Notes))
+                                                    {
+                                                        <div class="mt-2">
+                                                            <small class="text-muted">
+                                                                <strong>Notes:</strong> @order.Notes
+                                                            </small>
+                                                        </div>
+                                                    }
+
+                                                    <!-- Order Progress Bar -->
+                                                    <div class="mt-3">
+                                                        @{
+                                                            int progressPercentage = order.OrderStatus switch
+                                                            {
+                                                                OrderStatus.Pending => 20,
+                                                                OrderStatus.Processing => 40,
+                                                                OrderStatus.Shipped => 80,
+                                                                OrderStatus.Delivered => 100,
+                                                                OrderStatus.Cancelled => 0,
+                                                                _ => 0
+                                                            };
+                                                            
+                                                            string progressColor = order.OrderStatus switch
+                                                            {
+                                                                OrderStatus.Cancelled => "bg-danger",
+                                                                OrderStatus.Delivered => "bg-success",
+                                                                _ => "bg-info"
+                                                            };
+                                                        }
+                                                        
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar @progressColor" role="progressbar" style="width: @progressPercentage%" aria-valuenow="@progressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                        <small class="text-muted">Order Progress: @progressPercentage%</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 text-right">
+                                                    <div class="btn-group-vertical">
+                                                        <a asp-action="Details" asp-controller="Orders" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i> View Details
+                                                        </a>
+                                                        @if (order.OrderStatus == OrderStatus.Pending || order.OrderStatus == OrderStatus.Processing)
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="requestCancellation('@order.Id', '@order.OrderNumber')">
+                                                                <i class="fas fa-times"></i> Request Cancel
+                                                            </button>
+                                                        }
+                                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="trackOrder('@order.OrderNumber')">
+                                                            <i class="fas fa-map-marker-alt"></i> Track Order
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Empty State -->
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-5x text-muted mb-4"></i>
+                            <h4>No Orders Yet</h4>
+                            <p class="text-muted">You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                            <a href="/" class="btn btn-primary btn-lg">
+                                <i class="fas fa-shopping-bag"></i> Start Shopping
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                @if (Model.Any())
+                {
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Orders are automatically updated. Refresh the page for the latest status.
+                                </small>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <a href="/" class="btn btn-outline-primary">
+                                    <i class="fas fa-shopping-bag"></i> Continue Shopping
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Summary Stats -->
+@if (Model.Any())
+{
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="info-box bg-info">
+                <span class="info-box-icon"><i class="fas fa-shopping-cart"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Total Orders</span>
+                    <span class="info-box-number">@Model.Count()</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box bg-success">
+                <span class="info-box-icon"><i class="fas fa-check-circle"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Delivered</span>
+                    <span class="info-box-number">@Model.Count(o => o.OrderStatus == OrderStatus.Delivered)</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box bg-warning">
+                <span class="info-box-icon"><i class="fas fa-clock"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">In Progress</span>
+                    <span class="info-box-number">@Model.Count(o => o.OrderStatus == OrderStatus.Pending || o.OrderStatus == OrderStatus.Processing || o.OrderStatus == OrderStatus.Shipped)</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box bg-secondary">
+                <span class="info-box-icon"><i class="fas fa-dollar-sign"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Total Spent</span>
+                    <span class="info-box-number">@Model.Where(o => o.OrderStatus != OrderStatus.Cancelled).Sum(o => o.TotalAmount).ToString("C")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Cancellation Request Modal -->
+<div class="modal fade" id="cancellationModal" tabindex="-1" role="dialog" aria-labelledby="cancellationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancellationModalLabel">Request Order Cancellation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="cancellationForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Important:</strong> Once cancelled, this order cannot be restored. Please make sure you want to cancel order <span id="cancelOrderNumber"></span>.
+                    </div>
+                    <div class="form-group">
+                        <label for="cancellationReason">Reason for cancellation (optional):</label>
+                        <textarea class="form-control" id="cancellationReason" rows="3" placeholder="Please tell us why you want to cancel this order..."></textarea>
+                    </div>
+                    <input type="hidden" id="cancelOrderId" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Keep Order</button>
+                    <button type="submit" class="btn btn-warning">Request Cancellation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function requestCancellation(orderId, orderNumber) {
+            document.getElementById('cancelOrderId').value = orderId;
+            document.getElementById('cancelOrderNumber').textContent = orderNumber;
+            $('#cancellationModal').modal('show');
+        }
+
+        function trackOrder(orderNumber) {
+            // This would typically integrate with a shipping provider's tracking system
+            alert(`Tracking information for order ${orderNumber} will be available once the order has been shipped.`);
+        }
+
+        // Handle cancellation form submission
+        document.getElementById('cancellationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderId = document.getElementById('cancelOrderId').value;
+            const reason = document.getElementById('cancellationReason').value;
+            
+            // Create a form to submit the cancellation request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("Cancel", "Order")';
+            
+            const idField = document.createElement('input');
+            idField.type = 'hidden';
+            idField.name = 'id';
+            idField.value = orderId;
+            form.appendChild(idField);
+            
+            const reasonField = document.createElement('input');
+            reasonField.type = 'hidden';
+            reasonField.name = 'reason';
+            reasonField.value = reason || 'Customer requested cancellation';
+            form.appendChild(reasonField);
+            
+            const tokenField = document.createElement('input');
+            tokenField.type = 'hidden';
+            tokenField.name = '__RequestVerificationToken';
+            tokenField.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            form.appendChild(tokenField);
+            
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        // Auto-refresh every 2 minutes for order status updates
+        setTimeout(function() {
+            location.reload();
+        }, 120000);
+    </script>
+}
+
+@section Styles {
+    <style>
+        .timeline {
+            position: relative;
+            margin: 0 0 30px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 25px;
+            height: 100%;
+            width: 2px;
+            background: #dee2e6;
+        }
+
+        .timeline > div {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline .time-label {
+            margin-bottom: 15px;
+        }
+
+        .timeline .time-label > span {
+            font-weight: 600;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .timeline .timeline-item {
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            margin-left: 55px;
+            margin-right: 15px;
+            padding: 0;
+            position: relative;
+        }
+
+        .timeline .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: -15px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 15px solid #fff;
+        }
+
+        .timeline > div > i {
+            position: absolute;
+            left: 18px;
+            padding: 8px;
+            color: #fff;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .timeline .timeline-header {
+            margin: 0;
+            padding: 10px 15px;
+            font-size: 16px;
+            line-height: 1.1;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .timeline .timeline-body {
+            padding: 15px;
+        }
+
+        .timeline .time {
+            font-size: 12px;
+            color: #999;
+            margin-left: 60px;
+        }
+
+        .info-box {
+            display: block;
+            min-height: 90px;
+            background: #fff;
+            width: 100%;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            border-radius: 2px;
+            margin-bottom: 15px;
+        }
+
+        .info-box-icon {
+            border-top-left-radius: 2px;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 2px;
+            display: block;
+            float: left;
+            height: 90px;
+            width: 90px;
+            text-align: center;
+            font-size: 45px;
+            line-height: 90px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .info-box-content {
+            padding: 5px 10px;
+            margin-left: 90px;
+        }
+
+        .info-box-number {
+            display: block;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .info-box-text {
+            display: block;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .info-box.bg-info {
+            color: #fff;
+        }
+
+        .info-box.bg-success {
+            color: #fff;
+        }
+
+        .info-box.bg-warning {
+            color: #fff;
+        }
+
+        .info-box.bg-secondary {
+            color: #fff;
+        }
+
+        .btn-group-vertical .btn {
+            margin-bottom: 5px;
+        }
+
+        @@media (max-width: 768px) {
+            .timeline .timeline-item {
+                margin-left: 45px;
+                margin-right: 10px;
+            }
+            
+            .timeline > div > i {
+                left: 10px;
+                padding: 6px;
+            }
+            
+            .timeline::before {
+                left: 18px;
+            }
+        }
+    </style>
+}

@@ -7,31 +7,31 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Models.People;
 using System;
 using System.Threading.Tasks;
+using Adidas.DTOs.Main.ProductDTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class ProductVariantsController : Controller
     {
         private readonly IProductVariantService _productVariantService;
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IBrandService _brandService;
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IBrandRepository _brandRepository;
 
         public ProductVariantsController(
             IProductVariantService productVariantService,
             IProductService productService,
             ICategoryService categoryService,
-            IBrandService brandService, ICategoryRepository categoryRepository, IBrandRepository brandRepository)
+            IBrandService brandService, IBrandRepository brandRepository)
         {
             _productVariantService = productVariantService;
             _productService = productService;
             _categoryService = categoryService;
             _brandService = brandService;
-            _categoryRepository = categoryRepository;
-            _brandRepository = brandRepository;
         }
 
         // GET: /ProductVariants?searchSku=XXXX
@@ -121,15 +121,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 Text = p.Name
             }).ToList();
 
-            var categories = await _categoryRepository.GetAll().ToListAsync();
-            ViewBag.Categories = categories.Select(c => new SelectListItem
+            var categories = await _categoryService.GetAllAsync();
+            ViewBag.Categories = categories.Data.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             }).ToList();
 
-            var brands = await _brandRepository.GetAll().ToListAsync();
-            ViewBag.Brands = brands.Select(b => new SelectListItem
+            var brands = await _brandService.GetAllAsync();
+            ViewBag.Brands = brands.Data?.Select(b => new SelectListItem
             {
                 Value = b.Id.ToString(),
                 Text = b.Name
@@ -220,6 +220,99 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     Text = p.Name
                 }).ToList();
                 return View(model);
+            }
+        }
+
+
+        // api call to get all variants
+        [HttpGet("variants")]
+        public async Task<IActionResult> GetVariants(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            [FromQuery] string? search = null,
+            [FromQuery] Guid? categoryId = null,
+            [FromQuery] Guid? brandId = null,
+            [FromQuery] Gender? gender = null,
+            [FromQuery] bool inStockOnly = true)
+        {
+            try
+            {
+                var filter = new ProductFilterDto
+                {
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    SearchTerm = search,
+                    CategoryId = categoryId,
+                    BrandId = brandId,
+                    Gender = gender,
+                    InStock = inStockOnly
+                };
+
+                var result = await _productService.GetProductsWithFiltersAsync(filter);
+
+                if (!result.IsSuccess)
+                {
+                    return BadRequest(new { message = result.ErrorMessage });
+                }
+
+                // Transform products to variants for the response
+                var variants = result.Data.Items
+                    .SelectMany(p => p.Variants.Select(v => new
+                    {
+                        Id = v.Id,
+                        Sku = v.Sku,
+                        Color = v.Color,
+                        Size = v.Size,
+                        StockQuantity = v.StockQuantity,
+                        PriceAdjustment = v.PriceAdjustment,
+                        ImageUrl = v.Images.FirstOrDefault()?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl,
+                        Product = new
+                        {
+                            Id = p.Id,
+                            Name = p.Name,
+                            Price = p.Price,
+                            SalePrice = p.SalePrice,
+                            DisplayPrice = p.DisplayPrice,
+                            CategoryName = p.CategoryName,
+                            BrandName = p.BrandName
+                        }
+                    }))
+                    .Where(v => !inStockOnly || v.StockQuantity > 0)
+                    .ToList();
+
+                var response = new
+                {
+                    Items = variants,
+                    TotalCount = variants.Count,
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)variants.Count / pageSize)
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving variants", error = ex.Message });
+            }
+        }
+
+        [HttpGet("variants/{id}")]
+        public async Task<IActionResult> GetVariant(Guid id)
+        {
+            try
+            {
+                var variant = await _productVariantService.GetByIdAsync(id);
+                if (!variant.IsSuccess || variant.Data == null)
+                {
+                    return NotFound(new { message = "Variant not found" });
+                }
+
+                return Ok(variant.Data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving variant", error = ex.Message });
             }
         }
     }

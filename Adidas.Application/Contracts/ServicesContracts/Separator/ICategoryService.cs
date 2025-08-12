@@ -1,10 +1,15 @@
 ﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
+using Adidas.Models.Separator;
+
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
     public interface ICategoryService 
     {
         // Category-specific methods
+        Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync(
+            Func<IQueryable<Category>, IQueryable<Category>>? queryFunc = null);
         Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();
         Task<Result> CreateAsync(CategoryCreateDto createCategoryDto);
         Task<Result>DeleteAsync(Guid id);
@@ -13,6 +18,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
         Task<CategoryDto> GetCategoryDetailsAsync(Guid id);
         Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter, string searchTerm);
         Task<Result> ToggleCategoryStatusAsync(Guid categoryId);
+
+        // Task<IEnumerable<CategoryDto>> GetAllAsync();
 
 
         //Task<IEnumerable<CategoryDto>> GetSubCategoriesAsync(Guid parentCategoryId);

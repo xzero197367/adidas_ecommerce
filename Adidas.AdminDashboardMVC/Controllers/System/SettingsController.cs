@@ -3,9 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Adidas.AdminDashboardMVC.ViewModels;
 using System.Text.Json;
 using Adidas.AdminDashboardMVC.ViewModels.Settings;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Adidas.AdminDashboardMVC.Controllers.System
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class SettingsController : BaseController
     {
         private readonly IConfiguration _configuration;

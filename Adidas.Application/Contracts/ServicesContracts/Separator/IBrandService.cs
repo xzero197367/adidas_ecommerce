@@ -1,12 +1,15 @@
 ﻿using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Separator;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Separator
 {
-    public interface IBrandService 
+    public interface IBrandService
     {
+        Task<OperationResult<IEnumerable<BrandDto>>> GetAllAsync(
+            Func<IQueryable<Brand>, IQueryable<Brand>>? queryFunc = null);
         Task<Result> DeleteAsync(Guid id);
         Task<Result> CreateAsync(BrandCreateDto createBrandDto);
         Task<Result> UpdateAsync(BrandUpdateDto dto);

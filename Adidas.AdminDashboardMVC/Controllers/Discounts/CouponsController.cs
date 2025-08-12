@@ -3,8 +3,11 @@ using Adidas.DTOs.Feature.CouponDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Adidas.Context;
 using Adidas.DTOs.Common_DTOs;
+using Microsoft.AspNetCore.Authorization;
 namespace Adidas.Web.Controllers
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class CouponController : Controller
     {
         private readonly ICouponService _couponService;
@@ -30,7 +33,7 @@ namespace Adidas.Web.Controllers
             ViewBag.ActiveCount = result.ActiveCount;
             ViewBag.ExpiredCount = result.ExpiredCount;
 
-            return View(result.Coupons);
+            return View(result.Coupons.ToList());
         }
 
         // GET: Create

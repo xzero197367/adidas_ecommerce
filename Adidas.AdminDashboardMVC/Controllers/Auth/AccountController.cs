@@ -9,6 +9,8 @@ using Adidas.AdminDashboardMVC.ViewModels.Account;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Auth
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
@@ -295,17 +297,76 @@ namespace Adidas.AdminDashboardMVC.Controllers.Auth
                 Role = roles.FirstOrDefault() ?? "N/A",
                 CreatedAt = currentUser.CreatedAt,
                 IsActive = currentUser.IsActive,
-
-                EmailConfirmed = currentUser.EmailConfirmed,
+                EmailConfirmed = currentUser.EmailConfirmed ,
                 DateOfBirth = currentUser.DateOfBirth,
                 PhoneNumber = currentUser.PhoneNumber,
-                Gender = currentUser.Gender?.ToString(),
+                Gender = currentUser.Gender?.ToString() ?? "Not Specified",
                 PreferredLanguage = currentUser.PreferredLanguage
             };
 
             return View(viewModel);
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> EditProfile()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return RedirectToAction("Login");
+
+            var viewModel = new EditUserProfileViewModel
+            {
+                Email = currentUser.Email,
+                PhoneNumber = currentUser.PhoneNumber,
+                DateOfBirth = currentUser.DateOfBirth,
+                PreferredLanguage = currentUser.PreferredLanguage,
+                Gender = currentUser.Gender?.ToString()
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(EditUserProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return RedirectToAction("Login");
+
+            // Update user fields
+            currentUser.Email = model.Email;
+            currentUser.UserName = model.Email; // keep UserName in sync
+            currentUser.PhoneNumber = model.PhoneNumber;
+            currentUser.DateOfBirth = model.DateOfBirth;
+            currentUser.PreferredLanguage = model.PreferredLanguage;
+
+            if (!string.IsNullOrEmpty(model.Gender) &&
+                Enum.TryParse<Gender>(model.Gender, out var genderValue))
+            {
+                currentUser.Gender = genderValue;
+            }
+
+            var result = await _userManager.UpdateAsync(currentUser);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Profile updated successfully.";
+                return RedirectToAction("Profile");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
 
 
         [HttpGet]

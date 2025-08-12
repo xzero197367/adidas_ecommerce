@@ -2,9 +2,11 @@
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Common_DTOs;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.Models.Separator;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Separator
@@ -19,6 +21,20 @@ namespace Adidas.Application.Services.Separator
            )
         {
             _brandRepository = brandRepository;
+        }
+        
+        public virtual async Task<OperationResult<IEnumerable<BrandDto>>> GetAllAsync(
+            Func<IQueryable<Brand>, IQueryable<Brand>>? queryFunc = null)
+        {
+            try
+            {
+                var entities = await _brandRepository.GetAll(queryFunc).ToListAsync();
+                return OperationResult<IEnumerable<BrandDto>>.Success(entities.Adapt<IEnumerable<BrandDto>>());
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<IEnumerable<BrandDto>>.Fail("Error getting all entities: " + ex.Message);
+            }
         }
 
         public async Task<Result> DeleteAsync(Guid id)
@@ -235,6 +251,20 @@ namespace Adidas.Application.Services.Separator
                 return Result.Failure("An error occurred while updating the brand status.");
             }
         }
+        public async Task<IEnumerable<BrandDto>> GetAllAsync()
+        {
+            var brands = await _brandRepository.GetAll().ToListAsync();
+            return brands.Select(b => new BrandDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+                IsActive = b.IsActive,
+                UpdatedAt = b.UpdatedAt
+            });
+        }
+
 
     }
 }

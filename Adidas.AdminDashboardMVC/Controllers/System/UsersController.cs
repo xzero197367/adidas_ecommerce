@@ -26,33 +26,39 @@ namespace Adidas.AdminDashboardMVC.Controllers.System
 
         public async Task<IActionResult> Index(string searchTerm = "", string roleFilter = "All", int page = 1, int pageSize = 10)
         {
-            // Only admins can access this page - get all users including clients
-            var query = _userManager.Users.AsQueryable();
+            var currentUserId = _userManager.GetUserId(User);
+
+            // Base query: only Admins and Employees, excluding current user
+            var query = _userManager.Users
+                .Where(u => (u.Role == UserRole.Admin || u.Role == UserRole.Employee)
+                            && u.Id != currentUserId)
+                .AsQueryable();
 
             // Apply search filter
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(u => u.Email.Contains(searchTerm) ||
-                                       u.UserName.Contains(searchTerm) ||
-                                       u.PhoneNumber.Contains(searchTerm));
+                                         u.UserName.Contains(searchTerm) ||
+                                         u.PhoneNumber.Contains(searchTerm));
             }
 
             // Apply role filter
-            if (roleFilter != "All")
+            if (roleFilter != "All" && Enum.TryParse<UserRole>(roleFilter, out var role))
             {
-                if (Enum.TryParse<UserRole>(roleFilter, out var role))
-                {
-                    query = query.Where(u => u.Role == role);
-                }
+                query = query.Where(u => u.Role == role);
             }
 
+            // Get totals after filtering
             var totalUsers = await query.CountAsync();
+
+            // Pagination
             var users = await query
                 .OrderByDescending(u => u.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
+            // Map to view models
             var userViewModels = new List<UserViewModel>();
             foreach (var user in users)
             {
@@ -71,6 +77,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.System
                 });
             }
 
+            // Stats also use the same base filter
             var viewModel = new UsersIndexViewModel
             {
                 Users = userViewModels,
@@ -80,20 +87,22 @@ namespace Adidas.AdminDashboardMVC.Controllers.System
                 PageSize = pageSize,
                 TotalUsers = totalUsers,
                 TotalPages = (int)Math.Ceiling((double)totalUsers / pageSize),
-                TotalActiveUsers = await _userManager.Users.CountAsync(u => u.IsActive),
-                AdminRolesCount = await _userManager.Users.CountAsync(u => u.Role == UserRole.Admin),
-                PendingApproval = await _userManager.Users.CountAsync(u => !u.EmailConfirmed)
+                TotalActiveUsers = await query.CountAsync(u => u.IsActive),
+                AdminRolesCount = await query.CountAsync(u => u.Role == UserRole.Admin),
+                PendingApproval = await query.CountAsync(u => !u.EmailConfirmed)
             };
 
             ViewBag.Roles = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "All", Text = "All Roles" },
-                new SelectListItem { Value = "Admin", Text = "Admin" },
-                new SelectListItem { Value = "Employee", Text = "Employee" },
-            };
+    {
+        new SelectListItem { Value = "All", Text = "All Roles" },
+        new SelectListItem { Value = "Admin", Text = "Admin" },
+        new SelectListItem { Value = "Employee", Text = "Employee" },
+    };
 
             return View(viewModel);
         }
+
+
 
         [HttpGet]
         public IActionResult Create()

@@ -2,9 +2,11 @@
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Operation.PaymentDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Operation.Payment;
+[Authorize(Policy = "EmployeeOrAdmin")]
 
 public class PaymentController : Controller
 {

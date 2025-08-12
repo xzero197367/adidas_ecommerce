@@ -45,7 +45,7 @@
                         <input type="file" name="ImageFile" id="ImageFile" class="form-control" accept="image/*" />
                         <span asp-validation-for="ImageUrl" class="text-danger"></span>
 
-                        <img id="logoPreview"
+                        <img id="imagePreview"
                              src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "#" : Url.Content(Model.ImageUrl))"
                              alt="Logo Preview"
                              class="mt-3 rounded w-100"

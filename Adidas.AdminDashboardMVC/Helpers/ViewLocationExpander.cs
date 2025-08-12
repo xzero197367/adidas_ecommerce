@@ -16,7 +16,6 @@ public class ViewLocationExpander: IViewLocationExpander
         var customLocations = new[]
         {
             "/Views/Operation/{1}/{0}.cshtml", 
-            "/Views/Operation/{1}/Sections/{0}.cshtml",
 
         };
 

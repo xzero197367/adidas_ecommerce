@@ -3,6 +3,7 @@ using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,42 +11,38 @@ using Models.People;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
+    [Authorize(Policy = "EmployeeOrAdmin")]
+
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IBrandRepository _brandRepository;
-        private readonly IProductVariantRepository _productVariantRepository;
+        private readonly ICategoryRepository _categoryService;
+        private readonly IBrandRepository _brandService;
+        private readonly IProductVariantService _productVariantService;
 
         public ProductsController(
             IProductService productService,
-            ICategoryRepository categoryRepository,
-            IBrandRepository brandRepository,
-            IProductVariantRepository productVariantRepository)
+            ICategoryRepository categoryService,
+            IBrandRepository brandService,
+            IProductVariantService productVariantService)
         {
             _productService = productService;
-            _categoryRepository = categoryRepository;
-            _brandRepository = brandRepository;
-            _productVariantRepository = productVariantRepository;
+            _categoryService = categoryService;
+            _brandService = brandService;
+            _productVariantService = productVariantService;
         }
 
         public async Task<IActionResult> Index(ProductFilterDto filter)
         {
-            var categories = await _categoryRepository.GetAll().ToListAsync();
+            var categories = await _categoryService.GetAll().ToListAsync();
             ViewBag.Categories = categories
-                .Select(c => new SelectListItem
-                {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
-                }).ToList();
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
+                .ToList();
 
-            var brands = await _brandRepository.GetAll().ToListAsync();
+            var brands = await _brandService.GetAll().ToListAsync();
             ViewBag.Brands = brands
-                .Select(b => new SelectListItem
-                {
-                    Value = b.Id.ToString(),
-                    Text = b.Name
-                }).ToList();
+                .Select(b => new SelectListItem { Value = b.Id.ToString(), Text = b.Name })
+                .ToList();
 
             ViewBag.Genders = Enum.GetValues(typeof(Gender))
                 .Cast<Gender>()
@@ -56,8 +53,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 }).ToList();
 
             var pagedResult = await _productService.GetProductsFilteredByCategoryBrandGenderAsync(filter);
+            var itemsList = pagedResult.Items.ToList(); 
 
-            return View(pagedResult);
+            ViewBag.Filter = filter; 
+
+            return View("Index", pagedResult);
         }
 
         [HttpGet]
@@ -123,16 +123,17 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
 
 
+
         private async Task PopulateDropdownsAsync()
         {
-            var categories = await _categoryRepository.GetAll().ToListAsync();
+            var categories = await _categoryService.GetAll().ToListAsync();
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             }).ToList();
 
-            var brands = await _brandRepository.GetAll().ToListAsync();
+            var brands = await _brandService.GetAll().ToListAsync();
             ViewBag.Brands = brands.Select(b => new SelectListItem
             {
                 Value = b.Id.ToString(),
@@ -148,41 +149,38 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 }).ToList();
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _productService.GetByIdAsync(id);
-            if (result.IsSuccess = false)
+            if (!result.IsSuccess)
             {
-                TempData["Error"] = "Product not found." + result.ErrorMessage;
+                TempData["Error"] = "Product not found. " + result.ErrorMessage;
                 return RedirectToAction(nameof(Index));
             }
 
             var product = result.Data;
 
+            if (product.Variants != null && product.Variants.Any())
+            {
+                TempData["Error"] = $"Cannot delete product because it has {product.Variants.Count()} variant(s).";
+                return RedirectToAction(nameof(Index));
+            }
+
             try
             {
                 await _productService.DeleteAsync(id);
-
-                if (product.Variants != null && product.Variants.Any())
-                {
-                    TempData["Success"] =
-                        $"Product and its {product.Variants.Count()} variant(s) deleted successfully.";
-                }
-                else
-                {
-                    TempData["Success"] = "Product deleted successfully.";
-                }
+                TempData["Success"] = "Product deleted successfully.";
             }
-            catch (Exception ex)
+            catch
             {
                 TempData["Error"] = "An error occurred while deleting the product.";
             }
 
             return RedirectToAction(nameof(Index));
         }
+
 
         public async Task<IActionResult> Details(Guid id, string? sku)
         {
