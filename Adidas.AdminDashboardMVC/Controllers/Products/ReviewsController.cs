@@ -1,17 +1,13 @@
-﻿//using Microsoft.AspNetCore.Mvc;
-//using Microsoft.AspNetCore.Authorization;
+﻿
+//using Microsoft.AspNetCore.Mvc;
 //using Adidas.Application.Contracts.ServicesContracts.Operation;
 //using Adidas.DTOs.Operation.ReviewDTOs.Query;
-//using Adidas.DTOs.Operation.ReviewDTOs.Create;
-//using Adidas.DTOs.Operation.ReviewDTOs.Update;
 //using Adidas.DTOs.Common_DTOs;
 //using System.ComponentModel.DataAnnotations;
 //using Adidas.DTOs.Operation.ReviewDTOs.Result;
 
 //namespace Adidas.Web.Controllers
 //{
-//    //[Authorize(Roles = "Admin,SuperAdmin")]
-//    //[Route("admin/[controller]")]
 //    public class ReviewsController : Controller
 //    {
 //        private readonly IReviewService _reviewService;
@@ -66,6 +62,92 @@
 //            }
 //        }
 
+
+
+//        // إضافة الـ Action الجديد للـ DataTable
+//        [HttpGet]
+//        public async Task<IActionResult> FilterReviews(
+//            int draw = 1,
+//            int start = 0,
+//            int length = 10,
+//            string? status = null,
+//            string? searchValue = null,
+//            int? rating = null,
+//            DateTime? startDate = null,
+//            DateTime? endDate = null)
+//        {
+//            try
+//            {
+//                var pageNumber = (start / length) + 1;
+
+//                // استخدام الـ Repository method الموجود
+//                var pagedReviews = await _reviewService.GetPagedAsync(pageNumber, length);
+
+//                // تحويل البيانات للـ DataTable format
+//                var response = new
+//                {
+//                    draw,
+//                    recordsTotal = pagedReviews.Data.TotalCount,
+//                    recordsFiltered = pagedReviews.Data.TotalCount,
+//                    data = pagedReviews.Data.Items.Select(r => new
+//                    {
+//                        id = r.Id,
+//                        customer = new
+//                        {
+//                            name = r.UserId, // يمكنك تحسين هذا بإضافة User navigation
+//                            email = r.UserId
+//                        },
+//                        product = new
+//                        {
+//                            name = "Product Name", // يحتاج تحسين بإضافة Product navigation
+//                            id = r.ProductId
+//                        },
+//                        rating = r.Rating,
+//                        review = r.ReviewText,
+//                        //date = r.CreatedAt?.ToString("MMM dd, yyyy") ?? "N/A",
+//                        //date = r != null ? r.CreatedAt.ToString("MMM dd, yyyy") : "N/A",
+//                        date = r != null ? ((DateTime)r.CreatedAt).ToString("MMM dd, yyyy") : "N/A",
+
+
+//                        status = r.IsApproved ? "Approved" : "Pending",
+//                        isApproved = r.IsApproved,
+//                        isVerifiedPurchase = r.IsVerifiedPurchase,
+//                        isDeleted = r.IsDeleted,
+//                        isActive = r.IsActive
+//                    })
+//                };
+
+//                return Json(response);
+//            }
+//            catch (Exception ex)
+//            {
+//                _logger.LogError(ex, "Error getting reviews data for DataTable");
+//                return Json(new
+//                {
+//                    draw,
+//                    recordsTotal = 0,
+//                    recordsFiltered = 0,
+//                    data = Array.Empty<object>()
+//                });
+//            }
+//        }
+
+
+//        [HttpGet]
+//        public async Task<IActionResult> GetStats()
+//        {
+//            try
+//            {
+//                var stats = await GetReviewStatsAsync();
+//                return Json(stats);
+//            }
+//            catch (Exception ex)
+//            {
+//                _logger.LogError(ex, "Error getting review statistics");
+//                return Json(new ReviewStatsDto());
+//            }
+//        }
+
 //        [HttpGet("details/{id:guid}")]
 //        public async Task<IActionResult> Details(Guid id)
 //        {
@@ -77,7 +159,7 @@
 //                    return NotFound();
 //                }
 
-//                return View(review);
+//                return View(review.Data);
 //            }
 //            catch (Exception ex)
 //            {
@@ -87,7 +169,8 @@
 //            }
 //        }
 
-//        [HttpPost("approve/{id:guid}")]
+//        [HttpPost]
+//        [Route("Reviews/approve/{id:guid}")]
 //        [ValidateAntiForgeryToken]
 //        public async Task<IActionResult> Approve(Guid id)
 //        {
@@ -113,7 +196,8 @@
 //            }
 //        }
 
-//        [HttpPost("reject/{id:guid}")]
+//        [HttpPost]
+//        [Route("Reviews/reject/{id:guid}")]
 //        [ValidateAntiForgeryToken]
 //        public async Task<IActionResult> Reject(Guid id, [FromBody] RejectReviewRequest request)
 //        {
@@ -144,6 +228,8 @@
 //                return Json(new { success = false, message = "An error occurred while rejecting the review." });
 //            }
 //        }
+
+
 
 //        [HttpPost("bulk-action")]
 //        [ValidateAntiForgeryToken]
@@ -185,56 +271,32 @@
 //            }
 //        }
 
-//        [HttpGet("api/data")]
-//        public async Task<IActionResult> GetReviewsData(
-//            int draw = 1,
-//            int start = 0,
-//            int length = 10,
-//            string? status = null,
-//            string? searchValue = null,
-//            int? rating = null)
+//        private async Task<ReviewStatsDto> GetReviewStatsAsync()
 //        {
 //            try
 //            {
-//                var pageNumber = (start / length) + 1;
-//                var viewModel = new ReviewsIndexViewModel
+//                var totalReviews = await _reviewService.CountAsync();
+//                var approvedReviews = await _reviewService.CountAsync(r => r.IsApproved);
+//                var pendingReviews = totalReviews.Data - approvedReviews.Data;
+//                // الرفض يحتاج لتعديل في الـ Repository للتمييز بين Rejected و Pending
+//                var rejectedReviews = 0; // سنحسن هذا لاحقاً
+
+//                return new ReviewStatsDto
 //                {
-//                    CurrentPage = pageNumber,
-//                    PageSize = length,
-//                    Status = status,
-//                    SearchTerm = searchValue,
-//                    Rating = rating
+//                    TotalReviews = totalReviews.Data,
+//                    ApprovedReviews = approvedReviews.Data,
+//                    PendingReviews = pendingReviews,
+//                    RejectedReviews = rejectedReviews
 //                };
-
-//                var pagedReviews = await GetFilteredReviewsAsync(viewModel);
-
-//                var response = new
-//                {
-//                    draw,
-//                    recordsTotal = pagedReviews.TotalCount,
-//                    recordsFiltered = pagedReviews.TotalCount,
-//                    data = pagedReviews.Items.Select(r => new
-//                    {
-//                        id = r.Id,
-//                        customer = new { name = r.UserId, email = "" }, // You'll need to enhance this with actual user data
-//                        product = new { name = "Product Name", id = r.ProductId }, // You'll need to enhance this
-//                        rating = r.Rating,
-//                        review = r.ReviewText?.Length > 100 ? r.ReviewText[..100] + "..." : r.ReviewText,
-//                        date = r.CreatedAt.ToString("MMM dd, yyyy"),
-//                        status = r.IsApproved ? "Approved" : "Pending",
-//                        isApproved = r.IsApproved,
-//                        isVerifiedPurchase = r.IsVerifiedPurchase
-//                    })
-//                };
-
-//                return Json(response);
 //            }
 //            catch (Exception ex)
 //            {
-//                _logger.LogError(ex, "Error getting reviews data for DataTable");
-//                return Json(new { draw, recordsTotal = 0, recordsFiltered = 0, data = Array.Empty<object>() });
+//                _logger.LogError(ex, "Error calculating review statistics");
+//                return new ReviewStatsDto();
 //            }
 //        }
+
+
 
 //        [HttpDelete("{id:guid}")]
 //        [ValidateAntiForgeryToken]
@@ -243,7 +305,7 @@
 //            try
 //            {
 //                var result = await _reviewService.DeleteAsync(id);
-//                if (result)
+//                if (result.IsSuccess)
 //                {
 //                    _logger.LogInformation("Review {ReviewId} deleted by {User}", id, User.Identity?.Name);
 //                    return Json(new { success = true, message = "Review deleted successfully." });
@@ -258,73 +320,88 @@
 //            }
 //        }
 
-//        private async Task<DTOs.Common_DTOs.PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)
-//        {
-//            // This would need to be enhanced based on your actual filtering implementation
-//            // For now, returning basic paged results
-//            return await _reviewService.GetPagedAsync(viewModel.CurrentPage, viewModel.PageSize);
-//        }
 
-//        private async Task<ReviewStatsDto> GetReviewStatsAsync()
-//        {
-//            // You'll need to implement this method in your service
-//            var totalReviews = await _reviewService.CountAsync();
-//            var approvedReviews = await _reviewService.CountAsync(r => r.IsApproved);
-//            var pendingReviews = totalReviews - approvedReviews;
 
-//            return new ReviewStatsDto
+//        // ✅ FIXED: Updated GetFilteredReviewsAsync method in ReviewsController
+//        private async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)
+//        {
+//            // Map viewModel to ReviewFilterDto
+//            var filter = new ReviewFilterDto
 //            {
-//                TotalReviews = totalReviews,
-//                ApprovedReviews = approvedReviews,
-//                PendingReviews = pendingReviews,
-//                // Add other stats as needed
+//                MinRating = viewModel.Rating,
+//                MaxRating = viewModel.Rating,
+//                IsVerifiedPurchase = null, // if you have a verifiedOnly checkbox bind it to the viewModel and set here
+//                ProductId = null,
+//                UserId = null,
+//                StartDate = viewModel.StartDate,
+//                EndDate = viewModel.EndDate,
+//                SearchText = viewModel.SearchTerm
 //            };
+
+//            // ✅ FIXED: Proper status mapping for pending, approved, and rejected
+//            if (!string.IsNullOrWhiteSpace(viewModel.Status))
+//            {
+//                var s = viewModel.Status.ToLowerInvariant();
+//                switch (s)
+//                {
+//                    case "pending":
+//                        filter.IsPending = true;        // IsApproved = false AND IsActive = true
+//                        break;
+//                    case "approved":
+//                        filter.IsApproved = true;       // IsApproved = true AND IsActive = true
+//                        break;
+//                    case "rejected":
+//                        filter.IsRejected = true;       // IsApproved = false AND IsActive = false
+//                        break;
+//                }
+//            }
+
+//            var result = await _reviewService.GetFilteredReviewsAsync(filter, viewModel.CurrentPage, viewModel.PageSize);
+//            return result;
 //        }
-//    }
 
-//    // Request models for API endpoints
-//    public class RejectReviewRequest
-//    {
-//        [Required]
-//        [StringLength(500)]
-//        public string Reason { get; set; } = string.Empty;
-//    }
 
-//    public class BulkActionRequest
-//    {
-//        [Required]
-//        public List<Guid> ReviewIds { get; set; } = new();
+//        // Request models for API endpoints
+//        public class RejectReviewRequest
+//        {
+//            [Required]
+//            [StringLength(500)]
+//            public string Reason { get; set; } = string.Empty;
+//        }
 
-//        [Required]
-//        public string Action { get; set; } = string.Empty;
+//        public class BulkActionRequest
+//        {
+//            [Required]
+//            public List<Guid> ReviewIds { get; set; } = new();
 
-//        public string? Reason { get; set; }
-//    }
+//            [Required]
+//            public string Action { get; set; } = string.Empty;
 
-//    // ViewModel for the Index view
-//    public class ReviewsIndexViewModel
-//    {
-//        public PagedResultDto<ReviewDto> Reviews { get; set; } = new();
-//        public ReviewStatsDto Stats { get; set; } = new();
-//        public int CurrentPage { get; set; } = 1;
-//        public int PageSize { get; set; } = 10;
-//        public string? Status { get; set; }
-//        public string? SearchTerm { get; set; }
-//        public int? Rating { get; set; }
-//        public DateTime? StartDate { get; set; }
-//        public DateTime? EndDate { get; set; }
+//            public string? Reason { get; set; }
+//        }
+
+//        // ViewModel for the Index view
+//        public class ReviewsIndexViewModel
+//        {
+//            public PagedResultDto<ReviewDto> Reviews { get; set; } = new();
+//            public ReviewStatsDto Stats { get; set; } = new();
+//            public int CurrentPage { get; set; } = 1;
+//            public int PageSize { get; set; } = 10;
+//            public string? Status { get; set; }
+//            public string? SearchTerm { get; set; }
+//            public int? Rating { get; set; }
+//            public DateTime? StartDate { get; set; }
+//            public DateTime? EndDate { get; set; }
+//        }
 //    }
 //}
-
-
-
-
 using Microsoft.AspNetCore.Mvc;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
 using Adidas.DTOs.Common_DTOs;
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.Operation.ReviewDTOs.Result;
+using Adidas.DTOs.Operation.ReviewDTOs;
 
 namespace Adidas.Web.Controllers
 {
@@ -368,8 +445,8 @@ namespace Adidas.Web.Controllers
                 var pagedReviews = await GetFilteredReviewsAsync(viewModel);
                 viewModel.Reviews = pagedReviews;
 
-                // Get review statistics
-                var stats = await GetReviewStatsAsync();
+                // ✅ FIXED: Get review statistics using the service method
+                var stats = await _reviewService.GetReviewStatsAsync();
                 viewModel.Stats = stats;
 
                 return View(viewModel);
@@ -382,7 +459,6 @@ namespace Adidas.Web.Controllers
             }
         }
 
-        // إضافة الـ Action الجديد للـ DataTable
         [HttpGet]
         public async Task<IActionResult> FilterReviews(
             int draw = 1,
@@ -398,36 +474,58 @@ namespace Adidas.Web.Controllers
             {
                 var pageNumber = (start / length) + 1;
 
-                // استخدام الـ Repository method الموجود
-                var pagedReviews = await _reviewService.GetPagedAsync(pageNumber, length);
+                // ✅ FIXED: Use proper filtering with status
+                var filter = new ReviewFilterDto
+                {
+                    MinRating = rating,
+                    MaxRating = rating,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    SearchText = searchValue
+                };
 
-                // تحويل البيانات للـ DataTable format
+                // Apply status filtering
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    var s = status.ToLowerInvariant();
+                    switch (s)
+                    {
+                        case "pending":
+                            filter.IsPending = true;
+                            break;
+                        case "approved":
+                            filter.IsApproved = true;
+                            break;
+                        case "rejected":
+                            filter.IsRejected = true;
+                            break;
+                    }
+                }
+
+                var pagedReviews = await _reviewService.GetFilteredReviewsAsync(filter, pageNumber, length);
+
                 var response = new
                 {
                     draw,
-                    recordsTotal = pagedReviews.Data.TotalCount,
-                    recordsFiltered = pagedReviews.Data.TotalCount,
-                    data = pagedReviews.Data.Items.Select(r => new
+                    recordsTotal = pagedReviews.TotalCount,
+                    recordsFiltered = pagedReviews.TotalCount,
+                    data = pagedReviews.Items.Select(r => new
                     {
                         id = r.Id,
                         customer = new
                         {
-                            name = r.UserId, // يمكنك تحسين هذا بإضافة User navigation
+                            name = r.UserId,
                             email = r.UserId
                         },
                         product = new
                         {
-                            name = "Product Name", // يحتاج تحسين بإضافة Product navigation
+                            name = "Product Name",
                             id = r.ProductId
                         },
                         rating = r.Rating,
                         review = r.ReviewText,
-                        //date = r.CreatedAt?.ToString("MMM dd, yyyy") ?? "N/A",
-                        //date = r != null ? r.CreatedAt.ToString("MMM dd, yyyy") : "N/A",
-                        date = r != null ? ((DateTime)r.CreatedAt).ToString("MMM dd, yyyy") : "N/A",
-
-
-                        status = r.IsApproved ? "Approved" : "Pending",
+                        date = r.CreatedAt.ToString("MMM dd, yyyy"),
+                        status = r.IsApproved ? "Approved" : (r.IsActive ? "Pending" : "Rejected"),
                         isApproved = r.IsApproved,
                         isVerifiedPurchase = r.IsVerifiedPurchase,
                         isDeleted = r.IsDeleted,
@@ -455,7 +553,8 @@ namespace Adidas.Web.Controllers
         {
             try
             {
-                var stats = await GetReviewStatsAsync();
+                // ✅ FIXED: Use the service method for statistics
+                var stats = await _reviewService.GetReviewStatsAsync();
                 return Json(stats);
             }
             catch (Exception ex)
@@ -471,7 +570,7 @@ namespace Adidas.Web.Controllers
             try
             {
                 var review = await _reviewService.GetByIdAsync(id);
-                if (review == null)
+                if (review == null || !review.IsSuccess)
                 {
                     return NotFound();
                 }
@@ -546,8 +645,6 @@ namespace Adidas.Web.Controllers
             }
         }
 
-
-
         [HttpPost("bulk-action")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BulkAction([FromBody] BulkActionRequest request)
@@ -588,33 +685,6 @@ namespace Adidas.Web.Controllers
             }
         }
 
-        private async Task<ReviewStatsDto> GetReviewStatsAsync()
-        {
-            try
-            {
-                var totalReviews = await _reviewService.CountAsync();
-                var approvedReviews = await _reviewService.CountAsync(r => r.IsApproved);
-                var pendingReviews = totalReviews.Data - approvedReviews.Data;
-                // الرفض يحتاج لتعديل في الـ Repository للتمييز بين Rejected و Pending
-                var rejectedReviews = 0; // سنحسن هذا لاحقاً
-
-                return new ReviewStatsDto
-                {
-                    TotalReviews = totalReviews.Data,
-                    ApprovedReviews = approvedReviews.Data,
-                    PendingReviews = pendingReviews,
-                    RejectedReviews = rejectedReviews
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating review statistics");
-                return new ReviewStatsDto();
-            }
-        }
-
-
-
         [HttpDelete("{id:guid}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
@@ -637,12 +707,7 @@ namespace Adidas.Web.Controllers
             }
         }
 
-        //private async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)
-        //{
-        //    // يمكنك تحسين هذه الدالة لإضافة الفلاتر
-        //    var  result = await _reviewService.GetPagedAsync(viewModel.CurrentPage, viewModel.PageSize);
-        //    return result.Data;
-        //}
+        // ✅ FIXED: Updated GetFilteredReviewsAsync method with proper status mapping
         private async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)
         {
             // Map viewModel to ReviewFilterDto
@@ -658,22 +723,20 @@ namespace Adidas.Web.Controllers
                 SearchText = viewModel.SearchTerm
             };
 
-            // If you receive status as string in viewModel.Status, map to IsApproved/IsActive:
+            // ✅ FIXED: Proper status mapping for pending, approved, and rejected
             if (!string.IsNullOrWhiteSpace(viewModel.Status))
             {
                 var s = viewModel.Status.ToLowerInvariant();
                 switch (s)
                 {
                     case "pending":
-                        filter.IsApproved = false; // pending = not approved and active
-                                                   // note: you could add an IsActive flag to filter if needed
+                        filter.IsPending = true;        // IsApproved = false AND IsActive = true
                         break;
                     case "approved":
-                        filter.IsApproved = true;
+                        filter.IsApproved = true;       // IsApproved = true AND IsActive = true
                         break;
                     case "rejected":
-                        filter.IsApproved = false;
-                        // indicate inactive in repository/service if you want to distinguish
+                        filter.IsRejected = true;       // IsApproved = false AND IsActive = false
                         break;
                 }
             }
@@ -681,33 +744,6 @@ namespace Adidas.Web.Controllers
             var result = await _reviewService.GetFilteredReviewsAsync(filter, viewModel.CurrentPage, viewModel.PageSize);
             return result;
         }
-
-        //    private async Task<ReviewStatsDto> GetReviewStatsAsync()
-        //    {
-        //        try
-        //        {
-        //            var totalReviews = await _reviewService.CountAsync();
-        //            var approvedReviews = await _reviewService.CountAsync(r => r.IsApproved);
-        //            var pendingReviews = totalReviews.Data - approvedReviews.Data;
-        //            // الرفض يحتاج لتعديل في الـ Repository للتمييز بين Rejected و Pending
-        //            var rejectedReviews = 0; // سنحسن هذا لاحقاً
-
-        //            return new ReviewStatsDto
-        //            {
-        //                TotalReviews = totalReviews.Data,
-        //                ApprovedReviews = approvedReviews.Data,
-        //                PendingReviews = pendingReviews,
-        //                RejectedReviews = rejectedReviews
-        //            };
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError(ex, "Error calculating review statistics");
-        //            return new ReviewStatsDto();
-        //        }
-        //    }
-        //}
-
 
         // Request models for API endpoints
         public class RejectReviewRequest
@@ -740,6 +776,79 @@ namespace Adidas.Web.Controllers
             public int? Rating { get; set; }
             public DateTime? StartDate { get; set; }
             public DateTime? EndDate { get; set; }
+        }
+        // ✅ Test Data Creation Script
+        // Add this method to your ReviewsController or create a separate test controller
+
+        [HttpPost]
+        public async Task<IActionResult> CreateTestReviews()
+        {
+            try
+            {
+                // Get a sample product and user (adjust IDs as needed)
+                var sampleProductId = Guid.NewGuid(); // Replace with actual product ID
+                var sampleUserId = "test-user-id"; // Replace with actual user ID
+
+                var testReviews = new List<ReviewCreateDto>
+        {
+            // Approved Review
+            new ReviewCreateDto
+            {
+                Rating = 5,
+                Title = "Great Product - Approved",
+                ReviewText = "This is an approved review for testing",
+                IsVerifiedPurchase = true,
+                ProductId = sampleProductId,
+                UserId = sampleUserId
+            },
+            // Pending Review  
+            new ReviewCreateDto
+            {
+                Rating = 4,
+                Title = "Good Product - Pending",
+                ReviewText = "This is a pending review for testing",
+                IsVerifiedPurchase = true,
+                ProductId = sampleProductId,
+                UserId = sampleUserId + "2"
+            },
+            // Another Pending Review
+            new ReviewCreateDto
+            {
+                Rating = 3,
+                Title = "Average Product - Pending",
+                ReviewText = "This is another pending review for testing",
+                IsVerifiedPurchase = false,
+                ProductId = sampleProductId,
+                UserId = sampleUserId + "3"
+            }
+        };
+
+                // Create the test reviews
+                foreach (var reviewDto in testReviews)
+                {
+                    var result = await _reviewService.CreateAsync(reviewDto);
+                    if (result.IsSuccess)
+                    {
+                        // For the first review, approve it
+                        if (reviewDto.Title.Contains("Approved"))
+                        {
+                            await _reviewService.ApproveReviewAsync(result.Data.Id);
+                        }
+                        // For one of the pending reviews, reject it
+                        else if (reviewDto.Title.Contains("Average"))
+                        {
+                            await _reviewService.RejectReviewAsync(result.Data.Id, "Test rejection for demo purposes");
+                        }
+                    }
+                }
+
+                return Json(new { success = true, message = "Test reviews created successfully!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating test reviews");
+                return Json(new { success = false, message = "Error creating test reviews: " + ex.Message });
+            }
         }
     }
 }
