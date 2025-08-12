@@ -19,6 +19,7 @@
 
     <Folder Include="Contracts\ServicesContracts\Separator\" />
     <Folder Include="Services\Feature\" />
+    <Folder Include="Services\Main\NewFolder\" />
 
     <Folder Include="Services\Separator\" />
   </ItemGroup>

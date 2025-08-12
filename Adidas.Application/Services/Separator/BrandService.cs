@@ -251,6 +251,20 @@ namespace Adidas.Application.Services.Separator
                 return Result.Failure("An error occurred while updating the brand status.");
             }
         }
+        public async Task<IEnumerable<BrandDto>> GetAllAsync()
+        {
+            var brands = await _brandRepository.GetAll().ToListAsync();
+            return brands.Select(b => new BrandDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Description = b.Description,
+                LogoUrl = b.LogoUrl,
+                IsActive = b.IsActive,
+                UpdatedAt = b.UpdatedAt
+            });
+        }
+
 
     }
 }

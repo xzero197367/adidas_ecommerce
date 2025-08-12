@@ -10,6 +10,7 @@ using Adidas.Models.Main;
 using Mapster;
 using Microsoft.Extensions.Logging;
 using Models.People;
+using System.Linq.Expressions;
 
 namespace Adidas.Application.Services.Main
 {
@@ -32,18 +33,80 @@ namespace Adidas.Application.Services.Main
             _couponService = couponService;
             _logger = logger;
         }
+        private ProductDto MapToProductDto(Product p)
+        {
+            return new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                SalePrice = p.SalePrice,
+                Sku = p.Sku,
+                CategoryId = p.CategoryId,
+                BrandId = p.BrandId,
+                GenderTarget = p.GenderTarget,
+                UpdatedAt = p.UpdatedAt,
+                CategoryName = p.Category?.Name,
+                BrandName = p.Brand?.Name,
+
+                Variants = p.Variants?.Select(v => new ProductVariantDto
+                {
+                    Id = v.Id,
+                    Color = v.Color,
+                    Size = v.Size,
+                    StockQuantity = v.StockQuantity,
+                    PriceAdjustment = v.PriceAdjustment
+                }).ToList() ?? new List<ProductVariantDto>(),
+
+                InStock = p.Variants?.Any(v => v.StockQuantity > 0) ?? false
+            };
+        }
+        private Product MapToProduct(ProductCreateDto dto)
+        {
+            return new Product
+            {
+               
+                Name = dto.Name,
+                Description = dto.Description,
+                ShortDescription = dto.ShortDescription,
+                Sku = dto.Sku,
+                Price = dto.Price,
+                SalePrice = dto.SalePrice,
+                GenderTarget = dto.GenderTarget,
+                MetaTitle = dto.MetaTitle,
+                MetaDescription = dto.MetaDescription,
+                CategoryId = dto.CategoryId,
+                BrandId = dto.BrandId
+            };
+        }
+
+
+
         public async Task<ProductVariantDto?> GetVariantByIdAsync(Guid id)
         {
             var variant = await _variantRepository.GetByIdAsync(id);
             if (variant == null) return null;
-            return variant.Adapt<ProductVariantDto>();
+
+            return new ProductVariantDto
+            {
+                Id = variant.Id,
+                Color = variant.Color,
+                Size = variant.Size,
+                StockQuantity = variant.StockQuantity,
+                PriceAdjustment = variant.PriceAdjustment,
+            };
         }
+
+
+
         public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId)
         {
             var product = await _productRepository.GetProductWithVariantsAsync(productId);
             if (product == null) return null;
-            return product.Adapt<ProductDto>();
+            return MapToProductDto(product);
         }
+
         public async Task DeleteVariantAsync(Guid id)
         {
             var variant = await _variantRepository.GetByIdAsync(id);
@@ -52,14 +115,16 @@ namespace Adidas.Application.Services.Main
             _variantRepository.Remove(variant);
             await _variantRepository.SaveChangesAsync();
         }
-        
+
         public async Task<PagedResultDto<ProductDto>> GetProductsFilteredByCategoryBrandGenderAsync(ProductFilterDto filters)
         {
             var (products, totalCount) = await _productRepository.GetFilteredProductsAsync(filters);
 
+            var productDtos = products.Select(MapToProductDto).ToList();
+
             return new PagedResultDto<ProductDto>
             {
-                Items = products.Adapt<IEnumerable<ProductDto>>(),
+                Items = productDtos,
                 TotalCount = totalCount,
                 PageNumber = filters.PageNumber,
                 PageSize = filters.PageSize,
@@ -72,7 +137,7 @@ namespace Adidas.Application.Services.Main
             try
             {
                 var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
+                return OperationResult<IEnumerable<ProductDto>>.Success(products.Select(MapToProductDto));
             }
             catch (Exception ex)
             {
@@ -86,7 +151,7 @@ namespace Adidas.Application.Services.Main
             try
             {
                 var products = await _productRepository.GetProductsByBrandAsync(brandId);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
+                return OperationResult<IEnumerable<ProductDto>>.Success(products.Select(MapToProductDto));
             }
             catch (Exception ex)
             {
@@ -100,7 +165,7 @@ namespace Adidas.Application.Services.Main
             try
             {
                 var products = await _productRepository.GetProductsByGenderAsync(gender);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
+                return OperationResult<IEnumerable<ProductDto>>.Success(products.Select(MapToProductDto));
             }
             catch (Exception ex)
             {
@@ -114,7 +179,7 @@ namespace Adidas.Application.Services.Main
             try
             {
                 var products = await _productRepository.GetFeaturedProductsAsync();
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
+                return OperationResult<IEnumerable<ProductDto>>.Success(products.Select(MapToProductDto));
             }
             catch (Exception ex)
             {
@@ -128,7 +193,7 @@ namespace Adidas.Application.Services.Main
             try
             {
                 var products = await _productRepository.GetProductsOnSaleAsync();
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
+                return OperationResult<IEnumerable<ProductDto>>.Success(products.Select(MapToProductDto));
             }
             catch (Exception ex)
             {
@@ -144,7 +209,7 @@ namespace Adidas.Application.Services.Main
                 var product = await _productRepository.GetProductBySkuAsync(sku);
                 return product == null
                     ? OperationResult<ProductDto>.Fail("Product not found")
-                    : OperationResult<ProductDto>.Success(product.Adapt<ProductDto>());
+                    : OperationResult<ProductDto>.Success(MapToProductDto(product));
             }
             catch (Exception ex)
             {
@@ -158,7 +223,7 @@ namespace Adidas.Application.Services.Main
             try
             {
                 var products = await _productRepository.SearchProductsAsync(searchTerm);
-                return OperationResult<IEnumerable<ProductDto>>.Success(products.Adapt<IEnumerable<ProductDto>>());
+                return OperationResult<IEnumerable<ProductDto>>.Success(products.Select(MapToProductDto));
             }
             catch (Exception ex)
             {
@@ -167,8 +232,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public async Task<OperationResult<PagedResultDto<ProductDto>>> GetProductsWithFiltersAsync(
-            ProductFilterDto filters)
+        public async Task<OperationResult<PagedResultDto<ProductDto>>> GetProductsWithFiltersAsync(ProductFilterDto filters)
         {
             try
             {
@@ -176,16 +240,16 @@ namespace Adidas.Application.Services.Main
                     filters.PageNumber, filters.PageSize, filters.CategoryId, filters.BrandId,
                     filters.Gender, filters.MinPrice, filters.MaxPrice, filters.SearchTerm);
 
-                var PagedResultDto = new PagedResultDto<ProductDto>
+                var pagedResultDto = new PagedResultDto<ProductDto>
                 {
-                    Items = products.Adapt<IEnumerable<ProductDto>>(),
+                    Items = products.Select(MapToProductDto).ToList(),
                     TotalCount = totalCount,
                     PageNumber = filters.PageNumber,
                     PageSize = filters.PageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / filters.PageSize)
                 };
 
-                return OperationResult<PagedResultDto<ProductDto>>.Success(PagedResultDto);
+                return OperationResult<PagedResultDto<ProductDto>>.Success(pagedResultDto);
             }
             catch (Exception ex)
             {
@@ -194,8 +258,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public async Task<OperationResult<bool>> UpdateInventoryAsync(Guid productId,
-            Dictionary<Guid, int> variantStockUpdates)
+        public async Task<OperationResult<bool>> UpdateInventoryAsync(Guid productId, Dictionary<Guid, int> variantStockUpdates)
         {
             try
             {
@@ -203,7 +266,6 @@ namespace Adidas.Application.Services.Main
                 {
                     await _variantRepository.UpdateStockAsync(update.Key, update.Value);
                 }
-
                 return OperationResult<bool>.Success(true);
             }
             catch (Exception ex)
@@ -213,8 +275,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public async Task<OperationResult<decimal>> CalculateDiscountedPriceAsync(Guid productId,
-            string? discountCode = null)
+        public async Task<OperationResult<decimal>> CalculateDiscountedPriceAsync(Guid productId, string? discountCode = null)
         {
             try
             {
@@ -254,14 +315,109 @@ namespace Adidas.Application.Services.Main
 
         protected async Task BeforeCreateAsync(Product entity)
         {
-            // Generate SKU if not provided
             if (string.IsNullOrEmpty(entity.Sku))
             {
                 entity.Sku = await GenerateSkuAsync(entity.Name);
             }
+        }
 
-            // Create slug from name
-            //entity.Slug = CreateSlug(entity.Name);
+        public override async Task<OperationResult<ProductDto>> UpdateAsync(ProductUpdateDto updateDto)
+        {
+            var existingEntity = await _productRepository.GetByIdAsync(updateDto.Id);
+            if (existingEntity == null)
+                throw new KeyNotFoundException($"Product with id {updateDto.Id} not found");
+
+            if (updateDto.SalePrice.HasValue && updateDto.Price.HasValue && updateDto.SalePrice > updateDto.Price)
+            {
+                return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
+            }
+            else if (updateDto.SalePrice.HasValue && !updateDto.Price.HasValue && existingEntity.Price < updateDto.SalePrice)
+            {
+                return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
+            }
+
+            if (updateDto.Name != null)
+                existingEntity.Name = updateDto.Name;
+
+            if (updateDto.Description != null)
+                existingEntity.Description = updateDto.Description;
+
+            if (updateDto.ShortDescription != null)
+                existingEntity.ShortDescription = updateDto.ShortDescription;
+
+            if (updateDto.Price.HasValue)
+                existingEntity.Price = updateDto.Price.Value;
+
+            if (updateDto.SalePrice.HasValue)
+                existingEntity.SalePrice = updateDto.SalePrice.Value;
+
+            if (updateDto.GenderTarget.HasValue)
+                existingEntity.GenderTarget = updateDto.GenderTarget.Value;
+
+            if (updateDto.CategoryId.HasValue)
+                existingEntity.CategoryId = updateDto.CategoryId.Value;
+
+            if (updateDto.BrandId.HasValue)
+                existingEntity.BrandId = updateDto.BrandId.Value;
+
+            if (updateDto.MetaTitle != null)
+                existingEntity.MetaTitle = updateDto.MetaTitle;
+
+            if (updateDto.MetaDescription != null)
+                existingEntity.MetaDescription = updateDto.MetaDescription;
+
+            await BeforeUpdateAsync(existingEntity);
+
+            var updatedEntityEntry = await _productRepository.UpdateAsync(existingEntity);
+            var updatedEntity = updatedEntityEntry.Entity;
+            await _productRepository.SaveChangesAsync();
+
+            await AfterUpdateAsync(updatedEntity);
+
+            return OperationResult<ProductDto>.Success(MapToProductDto(updatedEntity));
+        }
+
+        public override async Task<OperationResult<ProductDto>> CreateAsync(ProductCreateDto createDto)
+        {
+            try
+            {
+                await ValidateCreateAsync(createDto);
+
+                var entity = MapToProduct(createDto);
+
+                await BeforeCreateAsync(entity);
+
+                var createdEntityEntry = await _productRepository.AddAsync(entity);
+                var createdEntity = createdEntityEntry.Entity;
+                await _productRepository.SaveChangesAsync();
+                await AfterCreateAsync(createdEntity);
+
+                return OperationResult<ProductDto>.Success(MapToProductDto(createdEntity));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating product");
+                return OperationResult<ProductDto>.Fail("Error creating product: " + ex.Message);
+            }
+        }
+
+
+        public override async Task<OperationResult<ProductDto>> GetByIdAsync(Guid id, params Expression<Func<Product, object>>[] includes)
+        {
+            try
+            {
+                var product = await _productRepository.GetByIdAsync(id, includes);
+                if (product == null)
+                    return OperationResult<ProductDto>.Fail("Product not found");
+
+                var dto = MapToProductDto(product);
+                return OperationResult<ProductDto>.Success(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting product by id {Id} with includes", id);
+                return OperationResult<ProductDto>.Fail("Error getting product by id: " + ex.Message);
+            }
         }
 
         private async Task<string> GenerateSkuAsync(string productName)
@@ -279,12 +435,7 @@ namespace Adidas.Application.Services.Main
             return sku;
         }
 
-        private static string CreateSlug(string name)
-        {
-            return name.ToLower()
-                .Replace(" ", "-")
-                .Replace("'", "")
-                .Replace("&", "and");
-        }
+      
+
     }
 }

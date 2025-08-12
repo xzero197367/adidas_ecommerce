@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 
 namespace Adidas.Infra.Separator
 {
-    public class CategoryRepository : GenericRepository<Category>, ICategoryRepository
+    public class CategoryRepository : GenericRepository<Category>,ICategoryRepository
+
     {
         public CategoryRepository(AdidasDbContext context) : base(context) { }
 
@@ -27,7 +28,14 @@ namespace Adidas.Infra.Separator
                 .Where(c => c.ParentCategoryId == parentCategoryId && !c.IsDeleted && c.IsActive)
                 .ToListAsync();
         }
-       
+        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        {
+            return await _dbSet
+                .Where(c => !c.IsDeleted) 
+                .ToListAsync();
+        }
+
+
 
         public async Task<Category?> GetCategoryBySlugAsync(string slug)
         {
