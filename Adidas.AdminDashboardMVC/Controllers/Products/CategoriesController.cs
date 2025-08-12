@@ -45,6 +45,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             if (!ModelState.IsValid)
             {
                 await PopulateParentCategoriesDropdown();
+                if (ImageFile == null)
+                {
+                    ModelState.AddModelError("ImageUrl", "Image is Required ");
+                }
                 return View(model);
             }
 
