@@ -1,0 +1,318 @@
+﻿@model Adidas.AdminDashboardMVC.ViewModels.Inventory.InventoryDashboardViewModel
+@{
+    ViewData["Title"] = "Inventory Dashboard";
+    ViewData["PageHeader"] = "Inventory Management";
+    ViewData["Breadcrumb"] = "Dashboard";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">@ViewData["PageHeader"]</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item active">@ViewData["Breadcrumb"]</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+
+    
+
+        <!-- Small boxes (Stat box) -->
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@Model.Report.TotalProducts</h3>
+                        <p>Total Products</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <a asp-action="Report" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.Report.TotalVariants</h3>
+                        <p>Total Variants</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <a asp-action="Report" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.Report.LowStockVariants</h3>
+                        <p>Low Stock Alerts</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <a asp-action="LowStock" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@Model.Report.OutOfStockVariants</h3>
+                        <p>Out of Stock</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <a asp-action="LowStock" asp-route-threshold="0" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Inventory Value -->
+        <div class="row">
+            <div class="col-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success elevation-1"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total Inventory Value</span>
+                        <span class="info-box-number">$@Model.Report.TotalInventoryValue.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Low Stock Alerts -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            Low Stock Alerts
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0" style="height: 300px;">
+                        @if (Model.LowStockAlerts.Any())
+                        {
+                            <table class="table table-head-fixed text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Variant</th>
+                                        <th>Stock</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var alert in Model.LowStockAlerts.Take(10))
+                                    {
+                                        <tr>
+                                            <td>@alert.ProductName</td>
+                                            <td>@alert.VariantDetails</td>
+                                            <td>
+                                                <span class="badge @(alert.CurrentStock == 0 ? "badge-danger" : "badge-warning")">
+                                                    @alert.CurrentStock
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a asp-action="UpdateStock" asp-route-id="@alert.VariantId"
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                                <p class="text-muted">No low stock alerts</p>
+                            </div>
+                        }
+                    </div>
+                    @if (Model.LowStockAlerts.Count() > 10)
+                    {
+                        <div class="card-footer text-center">
+                            <a asp-action="LowStock" class="btn btn-sm btn-secondary">
+                                View All (@Model.LowStockAlerts.Count()) Alerts
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Top Products by Stock Value -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-pie text-success"></i>
+                            Top Products by Stock Value
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0" style="height: 300px;">
+                        @if (Model.Report.ProductStocks.Any())
+                        {
+                            <table class="table table-head-fixed text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Variants</th>
+                                        <th>Stock</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in Model.Report.ProductStocks.OrderByDescending(p => p.InventoryValue).Take(10))
+                                    {
+                                        <tr>
+                                            <td>@product.ProductName</td>
+                                            <td>
+                                                <span class="badge badge-info">@product.VariantCount</span>
+                                            </td>
+                                            <td>@product.TotalStock</td>
+                                            <td>$@product.InventoryValue.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox text-muted fa-3x mb-3"></i>
+                                <p class="text-muted">No products found</p>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer text-center">
+                        <a asp-action="Report" class="btn btn-sm btn-secondary">
+                            View Full Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-tools"></i>
+                            Quick Actions
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <a asp-action="Report" class="btn btn-info btn-block">
+                                    <i class="fas fa-chart-bar"></i> Full Inventory Report
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a asp-action="LowStock" class="btn btn-warning btn-block">
+                                    <i class="fas fa-exclamation-triangle"></i> Low Stock Alerts
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-success btn-block" data-toggle="modal" data-target="#updateThresholdModal">
+                                    <i class="fas fa-cog"></i> Set Alert Threshold
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-primary btn-block" onclick="refreshDashboard()">
+                                    <i class="fas fa-sync-alt"></i> Refresh Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Update Threshold Modal -->
+<div class="modal fade" id="updateThresholdModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Set Low Stock Alert Threshold</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="thresholdForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="threshold">Alert Threshold</label>
+                        <input type="number" class="form-control" id="threshold" name="threshold"
+                               value="10" min="1" max="100" required>
+                        <small class="form-text text-muted">
+                            Products with stock below this number will trigger low stock alerts.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Alerts</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function refreshDashboard() {
+            location.reload();
+        }
+
+        $('#thresholdForm').on('submit', function(e) {
+            e.preventDefault();
+            var threshold = $('#threshold').val();
+            window.location.href = '@Url.Action("LowStock")' + '?threshold=' + threshold;
+        });
+
+        // Auto-refresh dashboard every 5 minutes
+        setInterval(function() {
+            if (!$('.modal').hasClass('show')) {
+                location.reload();
+            }
+        }, 300000);
+    </script>
+}
