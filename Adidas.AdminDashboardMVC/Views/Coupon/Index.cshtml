@@ -77,28 +77,42 @@
                 </div>
             </div>
 
-            <!-- Filters and Search -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="get" class="row g-3">
+            <!-- Filters -->
+            <div class="card-header">
+                <form method="get" asp-action="Index" asp-controller="Coupon">
+                    <div class="row">
+                        <!-- Search -->
                         <div class="col-md-6">
-                            <label class="form-label">Search coupons...</label>
-                            <input type="text" class="form-control" name="search" value="@ViewBag.Search" placeholder="Search by code...">
+                            <div class="form-group">
+                                <label>Search Coupons</label>
+                                <input type="text" name="search" class="form-control"
+                                       placeholder="Search by code..."
+                                       value="@ViewBag.Search" />
+                            </div>
                         </div>
+
+                        <!-- Status -->
                         <div class="col-md-4">
-                            <label class="form-label">All Status</label>
-                            <select class="form-select" name="status">
-                                <option value="All" selected="@(ViewBag.Status == "All" ? "selected" : null)">All Status</option>
-                                <option value="Active" selected="@(ViewBag.Status == "Active" ? "selected" : null)">Active</option>
-                                <option value="Expired" selected="@(ViewBag.Status == "Expired" ? "selected" : null)">Expired</option>
-                                <option value="Inactive" selected="@(ViewBag.Status == "Inactive" ? "selected" : null)">Inactive</option>
-                            </select>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select name="status" class="form-control">
+                                    <option value="All" selected="@(ViewBag.Status == "All")">All</option>
+                                    <option value="Active" selected="@(ViewBag.Status == "Active")">Active</option>
+                                    <option value="Expired" selected="@(ViewBag.Status == "Expired")">Expired</option>
+                                    <option value="Inactive" selected="@(ViewBag.Status == "Inactive")">Inactive</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+
+                        <!-- Filter Button -->
+                        <div class="col-md-2">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-dark btn-block">
+                                <i class="fas fa-filter"></i> Apply
+                            </button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
 
             <!-- Coupons Table -->
