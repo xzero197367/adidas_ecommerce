@@ -1,0 +1,293 @@
+﻿@using Adidas.DTOs.Operation.OrderDTOs
+@using Adidas.Models.Operation
+@model OrderUpdateDto
+
+@{
+    ViewData["Title"] = $"Edit Order - {Model.OrderNumber}";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Edit Order - @Model.OrderNumber</h3>
+                </div>
+                
+                <form asp-action="Edit" asp-controller="Orders" asp-route-id="@Model.Id" method="post">
+                    <input asp-for="Id" type="hidden" />
+                    
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Order Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Order Information</h5>
+                                
+                                <div class="form-group">
+                                    <label asp-for="OrderNumber" class="form-label">Order Number</label>
+                                    <input asp-for="OrderNumber" class="form-control" readonly />
+                                    <small class="form-text text-muted">Order number cannot be changed</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="OrderStatus" class="form-label">Order Status</label>
+                                    <select asp-for="OrderStatus" class="form-control">
+                                        <option value="">-- Select Status --</option>
+                                        @foreach (OrderStatus status in Enum.GetValues<OrderStatus>())
+                                        {
+                                            <option value="@status" selected="@(status == Model.OrderStatus)">@status</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="OrderStatus" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Currency" class="form-label">Currency</label>
+                                    <select asp-for="Currency" class="form-control">
+                                        <option value="USD">USD - US Dollar</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                        <option value="GBP">GBP - British Pound</option>
+                                        <option value="EGP">EGP - Egyptian Pound</option>
+                                    </select>
+                                    <span asp-validation-for="Currency" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="OrderDate" class="form-label">Order Date</label>
+                                    <input asp-for="OrderDate" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="OrderDate" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="ShippedDate" class="form-label">Shipped Date</label>
+                                            <input asp-for="ShippedDate" type="datetime-local" class="form-control" />
+                                            <span asp-validation-for="ShippedDate" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="DeliveredDate" class="form-label">Delivered Date</label>
+                                            <input asp-for="DeliveredDate" type="datetime-local" class="form-control" />
+                                            <span asp-validation-for="DeliveredDate" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Information -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Customer Information</h5>
+                                
+                                <div class="form-group">
+                                    <label asp-for="UserId" class="form-label">Customer ID</label>
+                                    <input asp-for="UserId" class="form-control" readonly />
+                                    <small class="form-text text-muted">Customer cannot be changed after order creation</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Notes" class="form-label">Order Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Any special instructions or notes..."></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Address Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Shipping Address</h5>
+                                <div class="form-group">
+                                    <label asp-for="ShippingAddress" class="form-label">Shipping Address (JSON)</label>
+                                    <textarea asp-for="ShippingAddress" class="form-control" rows="4" placeholder='{"street": "123 Main St", "city": "New York", "state": "NY", "zip": "10001", "country": "USA"}'></textarea>
+                                    <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                                    <small class="form-text text-muted">Enter address as JSON format</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Billing Address</h5>
+                                <div class="form-group">
+                                    <label asp-for="BillingAddress" class="form-label">Billing Address (JSON)</label>
+                                    <textarea asp-for="BillingAddress" class="form-control" rows="4" placeholder='{"street": "123 Main St", "city": "New York", "state": "NY", "zip": "10001", "country": "USA"}'></textarea>
+                                    <span asp-validation-for="BillingAddress" class="text-danger"></span>
+                                    <small class="form-text text-muted">Enter address as JSON format</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyShippingToBilling()">
+                                    Copy Shipping Address
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Pricing Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Pricing Details</h5>
+                                
+                                <div class="form-group">
+                                    <label asp-for="Subtotal" class="form-label">Subtotal</label>
+                                    <div class="input-group">
+                                        <input asp-for="Subtotal" type="number" step="0.01" class="form-control" min="0" />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">@Model.Currency</span>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="Subtotal" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="TaxAmount" class="form-label">Tax Amount</label>
+                                    <div class="input-group">
+                                        <input asp-for="TaxAmount" type="number" step="0.01" class="form-control" min="0" />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">@Model.Currency</span>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="TaxAmount" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="ShippingAmount" class="form-label">Shipping Amount</label>
+                                    <div class="input-group">
+                                        <input asp-for="ShippingAmount" type="number" step="0.01" class="form-control" min="0" />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">@Model.Currency</span>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="ShippingAmount" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="DiscountAmount" class="form-label">Discount Amount</label>
+                                    <div class="input-group">
+                                        <input asp-for="DiscountAmount" type="number" step="0.01" class="form-control" min="0" />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">@Model.Currency</span>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="DiscountAmount" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="TotalAmount" class="form-label">Total Amount</label>
+                                    <div class="input-group">
+                                        <input asp-for="TotalAmount" type="number" step="0.01" class="form-control" min="0.01" />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">@Model.Currency</span>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="TotalAmount" class="text-danger"></span>
+                                    <button type="button" class="btn btn-sm btn-outline-info mt-1" onclick="calculateTotal()">
+                                        Recalculate Total
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Status Timeline -->
+                        <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="mb-3">Order Status Timeline</h5>
+                                <div class="alert alert-info">
+                                    <h6>Status Change Guidelines:</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Pending:</strong> Order received but not yet processed</li>
+                                        <li><strong>Processing:</strong> Order is being prepared and packed</li>
+                                        <li><strong>Shipped:</strong> Order has been dispatched (set shipped date)</li>
+                                        <li><strong>Delivered:</strong> Order has been delivered (set delivered date)</li>
+                                        <li><strong>Cancelled:</strong> Order has been cancelled</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Order
+                        </button>
+                        <a asp-action="Details" asp-controller="Orders" asp-route-id="@Model.Id" class="btn btn-info ml-2">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a asp-action="Index" asp-controller="Orders" class="btn btn-secondary ml-2">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function copyShippingToBilling() {
+            const shippingAddress = document.querySelector('textarea[name="ShippingAddress"]').value;
+            document.querySelector('textarea[name="BillingAddress"]').value = shippingAddress;
+        }
+
+        function calculateTotal() {
+            const subtotal = parseFloat(document.querySelector('input[name="Subtotal"]').value) || 0;
+            const tax = parseFloat(document.querySelector('input[name="TaxAmount"]').value) || 0;
+            const shipping = parseFloat(document.querySelector('input[name="ShippingAmount"]').value) || 0;
+            const discount = parseFloat(document.querySelector('input[name="DiscountAmount"]').value) || 0;
+            
+            const total = subtotal + tax + shipping - discount;
+            document.querySelector('input[name="TotalAmount"]').value = total.toFixed(2);
+        }
+
+        // Auto-calculate when pricing fields change
+        document.querySelectorAll('input[name="Subtotal"], input[name="TaxAmount"], input[name="ShippingAmount"], input[name="DiscountAmount"]').forEach(input => {
+            input.addEventListener('input', calculateTotal);
+        });
+
+        // Handle status change logic
+        document.querySelector('select[name="OrderStatus"]').addEventListener('change', function() {
+            const status = this.value;
+            const shippedDateField = document.querySelector('input[name="ShippedDate"]');
+            const deliveredDateField = document.querySelector('input[name="DeliveredDate"]');
+            
+            // Auto-set dates based on status
+            if (status === '@OrderStatus.Shipped' && !shippedDateField.value) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                shippedDateField.value = now.toISOString().slice(0, 16);
+            }
+            
+            if (status === '@OrderStatus.Delivered' && !deliveredDateField.value) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                deliveredDateField.value = now.toISOString().slice(0, 16);
+                
+                // Also set shipped date if not already set
+                if (!shippedDateField.value) {
+                    const yesterday = new Date(now - 24*60*60*1000);
+                    shippedDateField.value = yesterday.toISOString().slice(0, 16);
+                }
+            }
+        });
+
+        // Convert DateTime values to local datetime-local format
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateFields = ['OrderDate', 'ShippedDate', 'DeliveredDate'];
+            dateFields.forEach(fieldName => {
+                const field = document.querySelector(`input[name="${fieldName}"]`);
+                if (field && field.value) {
+                    const date = new Date(field.value);
+                    if (!isNaN(date.getTime())) {
+                        date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+                        field.value = date.toISOString().slice(0, 16);
+                    }
+                }
+            });
+        });
+    </script>
+}

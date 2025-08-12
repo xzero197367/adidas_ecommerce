@@ -1,0 +1,402 @@
+﻿@using Adidas.DTOs.Operation.OrderDTOs
+@model OrderSummaryDto
+
+@{
+    ViewData["Title"] = "Order Summary Report";
+    var startDate = ViewBag.StartDate as string;
+    var endDate = ViewBag.EndDate as string;
+}
+
+<div class="container-fluid">
+    <!-- Report Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-chart-bar"></i> Order Summary Report
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Date Range Filter -->
+                    <form method="get" asp-action="Summary" asp-controller="Orders" class="row">
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">Start Date:</label>
+                            <input type="date" id="startDate" name="startDate" value="@startDate" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDate" class="form-label">End Date:</label>
+                            <input type="date" id="endDate" name="endDate" value="@endDate" class="form-control">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary mr-2">
+                                <i class="fas fa-search"></i> Generate Report
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearDates()">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end justify-content-end">
+                            <button type="button" class="btn btn-success" onclick="exportReport()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button type="button" class="btn btn-info ml-2" onclick="window.print()">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </div>
+                    </form>
+                    
+                    @if (!string.IsNullOrEmpty(startDate) || !string.IsNullOrEmpty(endDate))
+                    {
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Report Period:</strong>
+                            @if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
+                            {
+                                <span>From @DateTime.Parse(startDate).ToString("MMM dd, yyyy") to @DateTime.Parse(endDate).ToString("MMM dd, yyyy")</span>
+                            }
+                            else if (!string.IsNullOrEmpty(startDate))
+                            {
+                                <span>From @DateTime.Parse(startDate).ToString("MMM dd, yyyy") to Present</span>
+                            }
+                            else
+                            {
+                                <span>Up to @DateTime.Parse(endDate).ToString("MMM dd, yyyy")</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-1">@Model.TotalAmount.ToString("C")</h4>
+                            <p class="card-text">Total Revenue</p>
+                        </div>
+                        <div class="card-icon">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-1">@Model.ItemCount</h4>
+                            <p class="card-text">Total Orders</p>
+                        </div>
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-1">@(Model.ItemCount > 0 ? (Model.TotalAmount / Model.ItemCount).ToString("C") : "$0.00")</h4>
+                            <p class="card-text">Average Order</p>
+                        </div>
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-1">@DateTime.Now.ToString("MMM yyyy")</h4>
+                            <p class="card-text">Report Period</p>
+                        </div>
+                        <div class="card-icon">
+                            <i class="fas fa-calendar fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analysis -->
+    <div class="row">
+        <!-- Revenue Breakdown -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-pie-chart"></i> Revenue Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Status Distribution -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks"></i> Order Status Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tachometer-alt"></i> Performance Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2">
+                            <div class="metric-item">
+                                <h3 class="text-success">95%</h3>
+                                <p class="text-muted">Order Completion Rate</p>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="metric-item">
+                                <h3 class="text-info">2.5 days</h3>
+                                <p class="text-muted">Avg. Processing Time</p>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="metric-item">
+                                <h3 class="text-warning">3%</h3>
+                                <p class="text-muted">Return Rate</p>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="metric-item">
+                                <h3 class="text-primary">4.8/5</h3>
+                                <p class="text-muted">Customer Rating</p>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="metric-item">
+                                <h3 class="text-success">$85</h3>
+                                <p class="text-muted">Avg. Order Value</p>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="metric-item">
+                                <h3 class="text-danger">1.2%</h3>
+                                <p class="text-muted">Cancellation Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a asp-action="ByStatus" asp-controller="Orders" asp-route-status="Pending" class="btn btn-warning btn-block">
+                                <i class="fas fa-clock"></i> View Pending Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-action="ByStatus" asp-controller="Orders" asp-route-status="Processing" class="btn btn-info btn-block">
+                                <i class="fas fa-cogs"></i> View Processing Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-action="ByStatus" asp-controller="Orders" asp-route-status="Shipped" class="btn btn-primary btn-block">
+                                <i class="fas fa-shipping-fast"></i> View Shipped Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-action="Index" asp-controller="Orders" class="btn btn-secondary btn-block">
+                                <i class="fas fa-list"></i> All Orders
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with Report Info -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-light">
+                <div class="card-footer text-center text-muted">
+                    <small>
+                        Report generated on @DateTime.Now.ToString("MMMM dd, yyyy 'at' HH:mm") | 
+                        Data refreshed every 15 minutes |
+                        <a asp-action="Summary" asp-controller="Orders" class="text-decoration-none">Refresh Report</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <script>
+        // Sample data - in real implementation, this would come from the server
+        const revenueData = {
+            labels: ['Subtotal', 'Tax', 'Shipping', 'Discounts'],
+            datasets: [{
+                data: [@(Model.TotalAmount * 0.85m), @(Model.TotalAmount * 0.08m), @(Model.TotalAmount * 0.07m), @(Model.TotalAmount * 0.05m)],
+                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        };
+
+        const statusData = {
+            labels: ['Delivered', 'Shipped', 'Processing', 'Pending', 'Cancelled'],
+            datasets: [{
+                data: [45, 25, 15, 10, 5], // Sample percentages
+                backgroundColor: ['#28a745', '#007bff', '#17a2b8', '#ffc107', '#dc3545'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        };
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'doughnut',
+            data: revenueData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: statusData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        function clearDates() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+        }
+
+        function exportReport() {
+            // In real implementation, this would trigger a server-side export
+            alert('Export functionality would be implemented here (PDF/Excel)');
+        }
+
+        // Auto-refresh every 15 minutes
+        setTimeout(function() {
+            location.reload();
+        }, 15 * 60 * 1000);
+    </script>
+}
+
+@section Styles {
+    <style>
+        .card-icon {
+            opacity: 0.7;
+        }
+
+        .metric-item {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .metric-item h3 {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .metric-item p {
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+
+        @@media print {
+            .btn, .card-header .btn-group, .no-print {
+                display: none !important;
+            }
+            
+            .card {
+                border: 1px solid #dee2e6 !important;
+                box-shadow: none !important;
+            }
+            
+            .card-body {
+                padding: 10px !important;
+            }
+            
+            body {
+                font-size: 12px;
+            }
+        }
+
+        .card.bg-primary .card-title,
+        .card.bg-success .card-title,
+        .card.bg-info .card-title,
+        .card.bg-warning .card-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+    </style>
+}

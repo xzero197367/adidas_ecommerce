@@ -582,7 +582,7 @@
                 // Load categories and brands for filters
                 const [categoriesResponse, brandsResponse] = await Promise.all([
                     fetch('get-categories'),
-                    fetch('get-brands')
+                    fetch('/api/brands')
                 ]);
 
                 const categories = await categoriesResponse.json();

@@ -5,7 +5,6 @@ using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
 using Adidas.Models.Operation;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Models.People;
 
 namespace Adidas.Web.Controllers
@@ -338,73 +337,6 @@ namespace Adidas.Web.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id = result.Data.Id });
-        }
-        
-        
-        //  get customers
-        
-        [HttpGet("customers")]
-        public async Task<IActionResult> GetCustomers(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? search = null,
-            [FromQuery] string? role = null)
-        {
-            try
-            {
-                var query = _userManager.Users.Where(u => !u.IsDeleted && u.IsActive);
-
-                // Filter by search term
-                if (!string.IsNullOrEmpty(search))
-                {
-                    query = query.Where(u => 
-                        u.FirstName.Contains(search) ||
-                        u.LastName.Contains(search) ||
-                        u.Email.Contains(search) ||
-                        u.UserName.Contains(search));
-                }
-
-                // Filter by role
-                if (!string.IsNullOrEmpty(role) && Enum.TryParse<UserRole>(role, out var userRole))
-                {
-                    query = query.Where(u => u.Role == userRole);
-                }
-
-                var totalCount = await query.CountAsync();
-                
-                var users = await query
-                    .OrderBy(u => u.FirstName)
-                    .ThenBy(u => u.LastName)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(u => new
-                    {
-                        u.Id,
-                        u.FirstName,
-                        u.LastName,
-                        u.Email,
-                        u.UserName,
-                        Role = u.Role.ToString(),
-                        u.Phone,
-                        u.IsActive
-                    })
-                    .ToListAsync();
-
-                var result = new
-                {
-                    Items = users,
-                    TotalCount = totalCount,
-                    PageNumber = page,
-                    PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                };
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Error retrieving customers", error = ex.Message });
-            }
         }
     }
 }

@@ -6,7 +6,6 @@ using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.Models.Separator;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Separator

@@ -7,6 +7,7 @@ using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.DTOs.Common_DTOs;
 using Microsoft.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
+using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.ProductDTOs;
 using Mapster;
 using Adidas.DTOs.Main.Product_DTOs;
@@ -22,6 +23,20 @@ namespace Adidas.Application.Services.Separator
           )
         {
             _categoryRepository = categoryRepository;
+        }
+        
+        public virtual async Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync(
+            Func<IQueryable<Category>, IQueryable<Category>>? queryFunc = null)
+        {
+            try
+            {
+                var entities = await _categoryRepository.GetAll(queryFunc).ToListAsync();
+                return OperationResult<IEnumerable<CategoryDto>>.Success(entities.Adapt<IEnumerable<CategoryDto>>());
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<IEnumerable<CategoryDto>>.Fail("Error getting all entities: " + ex.Message);
+            }
         }
         public async Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync()
         {

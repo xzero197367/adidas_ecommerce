@@ -284,7 +284,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         // api call to get all categories
         
-        [HttpGet("get-categories")]
+        [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
             try

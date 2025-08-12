@@ -1,7 +1,5 @@
 ﻿  using Adidas.Application.Contracts.ServicesContracts.Separator;
-using Adidas.Application.Services.Separator;
 using Adidas.DTOs.Separator.Brand_DTOs;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
@@ -16,12 +14,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             _webHostEnvironment = webHostEnvironment;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        
+        public async Task<IActionResult> Index(string statusFilter, string searchTerm)
         {
-            var brands = await _brandService.GetActiveBrandsAsync();
+            var brands = await _brandService.GetFilteredBrandsAsync(statusFilter, searchTerm);
 
-            return View(brands.Data);
+            ViewData["CurrentStatus"] = statusFilter;
+            ViewData["SearchTerm"] = searchTerm;
+            return View(brands);
         }
 
         [HttpPost]
@@ -32,7 +32,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (!result.IsSuccess)
             {
-                TempData["Error"] = result.ErrorMessage;
+                TempData["Error"] = result.Error;
             }
             else
             {
@@ -86,8 +86,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage);
-                TempData["Error"] = result.ErrorMessage;
+                ModelState.AddModelError(string.Empty, result.Error);
+                TempData["Error"] = result.Error;
                 return View(createBrandDto);
             }
 
@@ -108,10 +108,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             var updateBrandDto = new BrandUpdateDto
             {
-                Id = brand.Data.Id,
-                Name = brand.Data.Name,
-                Description = brand.Data.Description,
-                LogoUrl = brand.Data.LogoUrl,
+                Id = brand.Id,
+                Name = brand.Name,
+                Description = brand.Description,
+                LogoUrl = brand.LogoUrl,
 
             };
 
@@ -157,8 +157,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             var result = await _brandService.UpdateAsync(updateBrandDto);
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage);
-                TempData["Error"] = result.ErrorMessage;
+                ModelState.AddModelError(string.Empty, result.Error);
+                TempData["Error"] = result.Error;
                 ViewBag.BrandId = updateBrandDto.Id;
                 return View(updateBrandDto);
             }
@@ -172,13 +172,56 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         {
             var brandDetails = await _brandService.GetDetailsByIdAsync(id);
 
-            if (brandDetails.IsSuccess == false)
+            if (brandDetails == null)
             {
                 TempData["Error"] = "Brand not found.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(brandDetails.Data);
+            return View(brandDetails);
+        }
+
+        public async Task<IActionResult> ToggleStatus(Guid id)
+        {
+            var result = await _brandService.ToggleBrandStatusAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                TempData["Error"] = result.Error;
+            }
+            else
+            {
+                TempData["Success"] = "Brands status updated successfully.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+        
+        // api calls
+        [HttpGet("get-brands")]
+        public async Task<IActionResult> GetBrands()
+        {
+            try
+            {
+                var result = await _brandService.GetAllAsync();
+                if (!result.IsSuccess)
+                {
+                    return BadRequest(new { message = result.ErrorMessage });
+                }
+
+                var brands = result.Data.Select(b => new
+                {
+                    b.Id,
+                    b.Name,
+                    b.LogoUrl
+                }).OrderBy(b => b.Name);
+
+                return Ok(brands);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving brands", error = ex.Message });
+            }
         }
     }
 }

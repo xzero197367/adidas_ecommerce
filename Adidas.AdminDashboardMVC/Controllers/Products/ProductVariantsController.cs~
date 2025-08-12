@@ -223,10 +223,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return View(model);
             }
         }
-
-
+        
+        
+        
         // api call to get all variants
-        [HttpGet("variants")]
+             [HttpGet("variants")]
         public async Task<IActionResult> GetVariants(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 12,
@@ -250,7 +251,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 };
 
                 var result = await _productService.GetProductsWithFiltersAsync(filter);
-
+                
                 if (!result.IsSuccess)
                 {
                     return BadRequest(new { message = result.ErrorMessage });
