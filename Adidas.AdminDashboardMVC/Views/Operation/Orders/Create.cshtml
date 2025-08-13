@@ -473,7 +473,7 @@
                 `;
 
                 // Simulate API call - replace with actual endpoint
-                const response = await fetch(`/customers?page=${currentCustomerPage}&pageSize=${customerPageSize}&search=${encodeURIComponent(customerSearchTerm)}&role=${customerRoleFilter}`);
+                const response = await fetch(`/get-customers?page=${currentCustomerPage}&pageSize=${customerPageSize}&search=${encodeURIComponent(customerSearchTerm)}&role=${customerRoleFilter}`);
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch customers');
