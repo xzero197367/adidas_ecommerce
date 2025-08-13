@@ -1,0 +1,567 @@
+
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using Adidas.Models.Feature;
+using Adidas.Models.Operation;
+using Adidas.Models;
+
+namespace Models.Feature
+{
+    public enum DiscountType
+    {
+        Percentage,
+        Amount,
+        FixedAmount
+    }
+    public class Coupon : BaseAuditableEntity
+    {
+        // fields
+        public required string Code { get; set; }
+        public required string Name { get; set; }
+        public required DiscountType DiscountType { get; set; }
+        public required decimal DiscountValue { get; set; }
+        public decimal MinimumAmount { get; set; }
+        public required DateTime ValidFrom { get; set; }
+        public required DateTime ValidTo { get; set; }
+        public int UsageLimit { get; set; }
+        public int UsedCount { get; set; }
+
+        // Relationships
+        public virtual ICollection<OrderCoupon> OrderCoupons { get; set; } = new List<OrderCoupon>();
+    }
+}
+
+
+
+using Adidas.Models.Operation;
+using Coupon = Models.Feature.Coupon;
+
+namespace Adidas.Models.Feature;
+
+public class OrderCoupon : BaseAuditableEntity
+{
+    // fields
+    public decimal DiscountApplied { get; set; }
+    
+    // foreign key
+    public Guid CouponId { get; set; }
+    public Guid OrderId { get; set; }
+
+    // navigation
+    public Coupon Coupon { get; set; }
+    public Order Order { get; set; }
+  
+}
+
+
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Main;
+using Models.People;
+
+namespace Adidas.Models.Feature;
+
+public class ShoppingCart : BaseAuditableEntity
+{
+    //fields
+    public required int Quantity { get; set; }
+    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+    
+    // foreign keys
+    public required string UserId { get; set; }
+    public required Guid VariantId { get; set; }
+    
+    // navigation properties
+    public User User { get; set; }
+    public ProductVariant Variant { get; set; }
+
+
+}
+
+
+using Adidas.Models;
+using Adidas.Models.Main;
+using Models.People;
+
+namespace Models.Feature
+{
+ 
+    public class Wishlist: BaseAuditableEntity
+    {   
+        // fields
+        public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+        // forieng keys
+        public required string UserId { get; set; }
+        public required Guid ProductId { get; set; }
+        // navigation properties
+        public User User { get; set; }
+        public Product Product { get; set; }
+    }
+}
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Adidas.Models.Main;
+
+public class ProductImage : BaseAuditableEntity
+{
+    // fields
+    public required string ImageUrl { get; set; }
+    public string AltText { get; set; } = string.Empty;
+    public int SortOrder { get; set; }
+    public required bool IsPrimary { get; set; }
+    // foreign keys
+    public required Guid ProductId { get; set; }
+    public Guid? VariantId { get; set; }
+    
+    // navigation properties
+    public Product? Product { get; set; }
+    public ProductVariant? Variant { get; set; }
+
+
+}
+
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Operation;
+using Adidas.Models.Separator;
+using Models.Feature;
+using Models.People;
+
+namespace Adidas.Models.Main;
+
+public class Product : BaseAuditableEntity
+{
+    // fields ad123
+    public required string Name { get; set; }
+    public required string Description { get; set; }
+    public required string ShortDescription { get; set; }
+    public required decimal Price { get; set; }
+    public decimal? SalePrice { get; set; }
+    public required Gender GenderTarget { get; set; }
+    
+    public string? MetaTitle { get; set; }
+
+    public string? MetaDescription { get; set; }
+    public required string Sku { get; set; }
+
+    public string? Specifications { get; set; }
+
+
+
+    // calculated properties
+    [NotMapped]
+    public double AverageRating { get => Reviews.Any() ? Reviews.Average(r => r.Rating) : 0; }
+
+    [NotMapped]
+    public int ReviewCount { get => Reviews.Count; }
+
+    // foreign keys
+    public required Guid CategoryId { get; set; }
+    public required Guid BrandId { get; set; }
+
+    #region navigation properties single
+    public virtual Category? Category { get; set; }
+    public virtual Brand? Brand { get; set; }
+
+    #endregion
+    
+    
+    // navigation properties many
+
+    #region navigation properties many
+
+    public virtual ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
+    public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+    public virtual ICollection<ProductAttributeValue> AttributeValues { get; set; } = new List<ProductAttributeValue>();
+
+
+    #endregion
+  
+    
+}
+
+
+using System.ComponentModel.DataAnnotations;
+
+namespace Adidas.Models.Main;
+
+public class ProductAttribute : BaseAuditableEntity
+{
+    // fields
+    public required string Name { get; set; }
+    public required string DataType { get; set; }
+    public required bool IsFilterable { get; set; }
+    public required bool IsRequired { get; set; }
+    public int SortOrder { get; set; }
+    
+    // foreign keys
+
+    // Relationships many
+    public virtual ICollection<ProductAttributeValue> AttributeValues { get; set; } = new List<ProductAttributeValue>();
+}
+
+
+
+namespace Adidas.Models.Main;
+
+public class ProductAttributeValue : BaseAuditableEntity
+{
+    // field
+    public required string Value { get; set; }
+    // foreign key
+    public required Guid ProductId { get; set; }
+    public required Guid AttributeId { get; set; }
+    
+    // navigation
+    public ProductAttribute Attribute { get; set; }
+    public Product Product { get; set; }
+}
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Feature;
+using Adidas.Models.Operation;
+using Adidas.Models.Tracker;
+
+namespace Adidas.Models.Main;
+
+
+public class ProductVariant : BaseAuditableEntity
+{
+    // fields
+    public required string Sku { get; set; }
+    public required string Size { get; set; }
+    public required string Color { get; set; }
+    public required int StockQuantity { get; set; }
+    
+    public decimal PriceAdjustment { get; set; }
+    public string ImageUrl { get; set; }
+    
+    // foriegn keys
+    public required Guid ProductId { get; set; }
+    
+    // navigation properties
+    public Product Product { get; set; }
+
+    
+    // Relationships
+    public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public virtual ICollection<ShoppingCart> CartItems { get; set; } = new List<ShoppingCart>();
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public virtual ICollection<InventoryLog> InventoryLogs { get; set; } = new List<InventoryLog>();
+}
+
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Feature;
+using Models.People;
+
+namespace Adidas.Models.Operation;
+
+public enum OrderStatus
+{
+    Pending,
+    Processing,
+    Shipped,
+    Delivered,
+    Cancelled
+}
+
+public class Order : BaseAuditableEntity
+{
+    // fields
+    public required string OrderNumber { get; set; }
+    public required OrderStatus OrderStatus { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal ShippingAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public required decimal TotalAmount { get; set; }
+    public required string Currency { get; set; }
+    public required DateTime OrderDate { get; set; } = DateTime.UtcNow;
+
+    public DateTime? ShippedDate { get; set; }
+
+    public DateTime? DeliveredDate { get; set; }
+    public required string ShippingAddress { get; set; } // JSON string
+    public required string BillingAddress { get; set; } // JSON string
+
+    public string Notes { get; set; }
+    
+    // foreign keys
+    public required String UserId { get; set; }
+    
+    // navigation properties
+    public User User { get; set; }
+
+    // Relationships
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual ICollection<OrderCoupon> OrderCoupons { get; set; } = new List<OrderCoupon>();
+}
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Main;
+
+namespace Adidas.Models.Operation;
+
+public class OrderItem : BaseAuditableEntity
+{
+    // fields
+    public required int Quantity { get; set; }
+    public required decimal UnitPrice { get; set; }
+    public required decimal TotalPrice { get; set; }
+    public required  string ProductName { get; set; }
+    public string VariantDetails { get; set; }
+    
+    // foreign keys
+    public required Guid OrderId { get; set; }
+    public required Guid VariantId { get; set; }
+    
+    // navigation properties
+    public Order Order { get; set; }
+    public ProductVariant Variant { get; set; }
+}
+
+
+
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Adidas.Models.Operation;
+
+
+public class Payment : BaseAuditableEntity
+{
+    // fields
+    public required string PaymentMethod { get; set; }
+    public required string PaymentStatus { get; set; }
+
+    public required decimal Amount { get; set; }
+
+    [MaxLength(100)]
+    public string TransactionId { get; set; }
+
+    public string GatewayResponse { get; set; }
+
+    public required DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
+    
+    // foreign keys
+    public required Guid OrderId { get; set; }
+    // navigations
+    public Order Order { get; set; }
+    
+}
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Main;
+using Models.People;
+
+namespace Adidas.Models.Operation;
+
+public class Review : BaseAuditableEntity
+{
+    //fields
+    public required int Rating { get; set; }
+    public string Title { get; set; }
+    public string? ReviewText { get; set; }
+    public required bool IsVerifiedPurchase { get; set; }
+    public required bool IsApproved { get; set; }
+    // foreign keys
+    public required Guid ProductId { get; set; }
+    public required string UserId { get; set; }
+    // navigations
+    public Product Product { get; set; }
+    public User User { get; set; }
+
+
+
+
+
+}
+
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models;
+
+namespace Models.People;
+
+
+public class Address : BaseAuditableEntity
+{
+
+    // fields
+    public required string AddressType { get; set; }
+    public required string StreetAddress { get; set; }
+    public required string City { get; set; }
+
+    public string StateProvince { get; set; }
+
+    public required string PostalCode { get; set; }
+    public required string Country { get; set; }
+
+    public required bool IsDefault { get; set; }
+
+    // foreign keys
+    public required string UserId { get; set; }
+
+    // navigations
+    public User User { get; set; }
+
+
+
+    
+}
+
+
+
+
+using System.ComponentModel.DataAnnotations;
+using Adidas.Models.Feature;
+using Adidas.Models.Operation;
+using Microsoft.AspNetCore.Identity;
+using Models.Feature;
+
+namespace Models.People
+{
+
+
+    public enum UserRole
+    {
+        Admin = 1,
+        Employee = 2,
+        Customer = 3
+    }
+    
+    public enum Gender
+    {
+        Male,
+        Female,
+        Kids,
+        Unisex
+    }
+
+
+    public enum Language
+    {
+        arabic, english
+    }
+    public class User : IdentityUser
+    {
+
+
+        public DateTime? DateOfBirth { get; set; }
+
+        public Gender? Gender { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Phone { get; set; }
+
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? UpdatedAt { get; set; }
+
+        [Required]
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
+
+        [MaxLength(10)]
+        public string? PreferredLanguage { get; set; }
+
+        [Required]
+        public UserRole Role { get; set; } = UserRole.Customer;
+
+        // Relationships
+        public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+        public virtual ICollection<ShoppingCart> CartItems { get; set; } = new List<ShoppingCart>();
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+    }
+
+}
+
+
+using System.ComponentModel.DataAnnotations;
+using Adidas.Models.Main;
+
+namespace Adidas.Models.Separator;
+
+public class Brand : BaseAuditableEntity
+{
+    public required string Name { get; set; }
+    public string? LogoUrl { get; set; }
+    public string Description { get; set; }
+
+    // Relationships
+    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+}
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Main;
+
+namespace Adidas.Models.Separator;
+public class Category : BaseAuditableEntity
+{
+    // field 
+    public required string Name { get; set; }
+    public required string Slug { get; set; }
+    public string Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public int SortOrder { get; set; }
+    // foreign key
+    public Guid? ParentCategoryId { get; set; }
+    // navigation
+    public Category ParentCategory { get; set; }
+    
+    // Relationships
+    public virtual ICollection<Category> SubCategories { get; set; } = new List<Category>();
+    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+}
+
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Adidas.Models.Main;
+using Models.People;
+
+namespace Adidas.Models.Tracker;
+
+public class InventoryLog : BaseAuditableEntity
+{
+    // fields
+    public required int QuantityChange { get; set; }
+    public required int PreviousStock { get; set; }
+    public required int NewStock { get; set; }
+    public required string ChangeType { get; set; }
+    public string Reason { get; set; }
+    // foreign key
+    [Required]
+    public required Guid VariantId { get; set; }
+    // navigation
+    public ProductVariant Variant { get; set; }
+
+    
+  
+}
