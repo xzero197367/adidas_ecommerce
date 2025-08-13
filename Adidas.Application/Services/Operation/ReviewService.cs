@@ -11,7 +11,6 @@
 //using Microsoft.AspNetCore.Http;
 //using Adidas.DTOs.CommonDTOs;
 
-
 //namespace Adidas.Application.Services.Operation
 //{
 //    public class ReviewService : GenericService<Review, ReviewDto, ReviewCreateDto, ReviewUpdateDto>, IReviewService
@@ -93,6 +92,7 @@
 //            }
 //        }
 
+//        // ✅ FIXED: Proper rejection logic
 //        public async Task<bool> RejectReviewAsync(Guid reviewId, string reason)
 //        {
 //            try
@@ -100,10 +100,11 @@
 //                var review = await _reviewRepository.GetByIdAsync(reviewId);
 //                if (review == null) return false;
 
+//                // ✅ FIXED: Set IsApproved = false AND IsActive = false for rejection
 //                review.IsApproved = false;
-//                review.IsActive = false; // Mark as inactive to indicate rejection
+//                review.IsActive = false; // This marks it as rejected
 //                review.UpdatedAt = DateTime.UtcNow;
-//                // يمكنك إضافة حقل RejectReason إلى الـ model إذا كنت تريد حفظ السبب
+//                // You can add a RejectReason field to the model if needed
 
 //                await _reviewRepository.UpdateAsync(review);
 //                await _reviewRepository.SaveChangesAsync();
@@ -134,103 +135,117 @@
 //            };
 //        }
 
-
-//public async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewFilterDto filter, int pageNumber, int pageSize)
-//    {
-//        // Start with base query (non-deleted) and include navigation props for UI mapping
-//        IQueryable<Review> query = _reviewRepository.GetAll(q =>
-//            q.Include(r => r.User)
-//             .Include(r => r.Product)
-//        ).Where(r => !r.IsDeleted);
-
-//        // Apply status filter (status string or explicit booleans)
-//        if (filter != null)
+//        // ✅ FIXED: Proper filtering logic
+//        public async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewFilterDto filter, int pageNumber, int pageSize)
 //        {
-//            // Example: status could be represented using IsApproved and IsActive flags in DB
-//            // Support explicit IsApproved or status string mapping if your UI sends it
-//            if (filter.IsApproved.HasValue)
+//            // Start with base query (non-deleted) and include navigation props for UI mapping
+//            IQueryable<Review> query = _reviewRepository.GetAll(q =>
+//                q.Include(r => r.User)
+//                 .Include(r => r.Product)
+//            ).Where(r => !r.IsDeleted);
+
+//            // Apply status filter
+//            if (filter != null)
 //            {
-//                query = query.Where(r => r.IsApproved == filter.IsApproved.Value);
+//                // ✅ FIXED: Proper status filtering logic
+//                if (filter.IsApproved.HasValue)
+//                {
+//                    if (filter.IsApproved.Value)
+//                    {
+//                        // Approved reviews: IsApproved = true AND IsActive = true
+//                        query = query.Where(r => r.IsApproved == true && r.IsActive == true);
+//                    }
+//                    else
+//                    {
+//                        // For non-approved, we need to check if it's pending or rejected
+//                        // This will be handled by additional filtering logic below
+//                        query = query.Where(r => r.IsApproved == false);
+//                    }
+//                }
+
+//                // ✅ NEW: Add specific filtering for pending/rejected based on IsActive
+//                if (filter.IsPending.HasValue && filter.IsPending.Value)
+//                {
+//                    // Pending: IsApproved = false AND IsActive = true
+//                    query = query.Where(r => r.IsApproved == false && r.IsActive == true);
+//                }
+
+//                if (filter.IsRejected.HasValue && filter.IsRejected.Value)
+//                {
+//                    // Rejected: IsApproved = false AND IsActive = false
+//                    query = query.Where(r => r.IsApproved == false && r.IsActive == false);
+//                }
+
+//                if (filter.MinRating.HasValue)
+//                {
+//                    query = query.Where(r => r.Rating >= filter.MinRating.Value);
+//                }
+
+//                if (filter.MaxRating.HasValue)
+//                {
+//                    query = query.Where(r => r.Rating <= filter.MaxRating.Value);
+//                }
+
+//                if (filter.IsVerifiedPurchase.HasValue)
+//                {
+//                    query = query.Where(r => r.IsVerifiedPurchase == filter.IsVerifiedPurchase.Value);
+//                }
+
+//                if (filter.ProductId.HasValue)
+//                {
+//                    query = query.Where(r => r.ProductId == filter.ProductId.Value);
+//                }
+
+//                if (!string.IsNullOrWhiteSpace(filter.UserId))
+//                {
+//                    query = query.Where(r => r.UserId == filter.UserId);
+//                }
+
+//                if (filter.StartDate.HasValue)
+//                {
+//                    var s = filter.StartDate.Value.Date;
+//                    query = query.Where(r => r.CreatedAt >= s);
+//                }
+
+//                if (filter.EndDate.HasValue)
+//                {
+//                    var e = filter.EndDate.Value.Date.AddDays(1).AddTicks(-1);
+//                    query = query.Where(r => r.CreatedAt <= e);
+//                }
+
+//                if (!string.IsNullOrWhiteSpace(filter.SearchText))
+//                {
+//                    var term = filter.SearchText.Trim();
+//                    query = query.Where(r =>
+//                        EF.Functions.Like(r.Title, $"%{term}%") ||
+//                        EF.Functions.Like(r.ReviewText, $"%{term}%") ||
+//                        (r.Product != null && EF.Functions.Like(r.Product.Name, $"%{term}%")) ||
+//                        (r.User != null && EF.Functions.Like(r.User.Email, $"%{term}%"))
+//                    );
+//                }
 //            }
 
-//            if (filter.MinRating.HasValue)
-//            {
-//                query = query.Where(r => r.Rating >= filter.MinRating.Value);
-//            }
+//            // Get total count
+//            var totalCount = await query.CountAsync();
 
-//            if (filter.MaxRating.HasValue)
-//            {
-//                query = query.Where(r => r.Rating <= filter.MaxRating.Value);
-//            }
+//            var items = await query
+//                .OrderByDescending(r => r.CreatedAt)
+//                .Skip((pageNumber - 1) * pageSize)
+//                .Take(pageSize)
+//                .ToListAsync();
 
-//            if (filter.IsVerifiedPurchase.HasValue)
-//            {
-//                query = query.Where(r => r.IsVerifiedPurchase == filter.IsVerifiedPurchase.Value);
-//            }
+//            // Map to DTO and return PagedResultDto
+//            var mapped = items.Adapt<IEnumerable<ReviewDto>>();
 
-//            if (filter.ProductId.HasValue)
+//            return new PagedResultDto<ReviewDto>
 //            {
-//                query = query.Where(r => r.ProductId == filter.ProductId.Value);
-//            }
-
-//            if (!string.IsNullOrWhiteSpace(filter.UserId))
-//            {
-//                query = query.Where(r => r.UserId == filter.UserId);
-//            }
-
-//            if (filter.StartDate.HasValue)
-//            {
-//                var s = filter.StartDate.Value.Date;
-//                query = query.Where(r => r.CreatedAt >= s);
-//            }
-
-//            if (filter.EndDate.HasValue)
-//            {
-//                var e = filter.EndDate.Value.Date.AddDays(1).AddTicks(-1);
-//                query = query.Where(r => r.CreatedAt <= e);
-//            }
-
-//            if (!string.IsNullOrWhiteSpace(filter.SearchText))
-//            {
-//                var term = filter.SearchText.Trim();
-//                // Search in title, review text, product name or user email if available
-//                query = query.Where(r =>
-//                    EF.Functions.Like(r.Title, $"%{term}%") ||
-//                    EF.Functions.Like(r.ReviewText, $"%{term}%") ||
-//                    (r.Product != null && EF.Functions.Like(r.Product.Name, $"%{term}%")) ||
-//                    (r.User != null && EF.Functions.Like(r.User.Email, $"%{term}%"))
-//                );
-//            }
+//                Items = mapped,
+//                TotalCount = totalCount,
+//                PageNumber = pageNumber,
+//                PageSize = pageSize,
+//                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+//            };
 //        }
-
-//        // Get total count
-//        var totalCount = await query.CountAsync();
-
-//        var items = await query
-//            .OrderByDescending(r => r.CreatedAt)
-//            .Skip((pageNumber - 1) * pageSize)
-//            .Take(pageSize)
-//            .ToListAsync();
-
-//        // Map to DTO and return PagedResultDto
-//        var mapped = items.Adapt<IEnumerable<ReviewDto>>();
-
-//        return new PagedResultDto<ReviewDto>
-//        {
-//            Items = mapped,
-//            TotalCount = totalCount,
-//            PageNumber = pageNumber,
-//            PageSize = pageSize,
-//            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-//        };
-//    }
-
-
-//        //private async Task<ReviewStatsDto> GetReviewStatsAsync()
-//        //{
-//        //    // Delegate to the service which already computes Total/Approved/Pending/Rejected.
-//        //    return await _reviewService.GetReviewStatsAsync();
-//        //}
 
 //        public async Task SoftDeleteAsync(Guid id)
 //        {
@@ -238,7 +253,7 @@
 //            if (entity == null) throw new KeyNotFoundException("Review not found.");
 
 //            // Example: extra logic before delete
-//            if (entity.IsApproved )
+//            if (entity.IsApproved)
 //            {
 //                throw new UnauthorizedAccessException("Only admins can delete approved reviews.");
 //            }
@@ -246,13 +261,6 @@
 //            entity.IsDeleted = true;
 //            await _reviewRepository.UpdateAsync(entity);
 //        }
-
-//        //Optional helper
-//        //private bool IsCurrentUserAdmin()
-//        //{
-//        //    return _httpContextAccessor.HttpContext.User.IsInRole("Admin");
-//        //}
-
 
 //        public async Task<bool> CanUserReviewProductAsync(string userId, Guid productId)
 //        {
@@ -278,15 +286,16 @@
 //            }
 //        }
 
-
+//        // ✅ FIXED: Proper statistics calculation
 //        public async Task<ReviewStatsDto> GetReviewStatsAsync()
 //        {
 //            try
 //            {
 //                var totalReviews = await _repository.CountAsync(r => !r.IsDeleted);
 //                var approvedReviews = await _repository.CountAsync(r => r.IsApproved && !r.IsDeleted);
-//                var pendingReviews = await _reviewRepository.GetPendingReviewsCountAsync();
-//                var rejectedReviews = await _reviewRepository.GetRejectedReviewsCountAsync();
+//                var pendingReviews = await _repository.CountAsync(r => !r.IsApproved && r.IsActive && !r.IsDeleted);
+//                // ✅ FIXED: Proper rejected count - IsApproved = false AND IsActive = false
+//                var rejectedReviews = await _repository.CountAsync(r => !r.IsApproved && !r.IsActive && !r.IsDeleted);
 //                var verifiedPurchases = await _repository.CountAsync(r => r.IsVerifiedPurchase && !r.IsDeleted);
 
 //                var allApprovedReviews = await _repository.GetAll()
@@ -312,7 +321,6 @@
 //                return new ReviewStatsDto();
 //            }
 //        }
-
 
 //        public override async Task ValidateCreateAsync(ReviewCreateDto createDto)
 //        {
