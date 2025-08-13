@@ -343,7 +343,7 @@ namespace Adidas.Web.Controllers
         
         //  get customers
         
-        [HttpGet("customers")]
+        [HttpGet("get-customers")]
         public async Task<IActionResult> GetCustomers(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,

@@ -1,0 +1,734 @@
+
+
+using Adidas.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations
+{
+    public static class BaseAuditableEntityConfig
+    {
+        public static void Configure<TEntity>(EntityTypeBuilder<TEntity> builder) where TEntity : BaseAuditableEntity
+        {
+            builder.HasKey(x => x.Id);
+
+            builder.HasQueryFilter(x=> !x.IsDeleted);
+
+            builder.Property(e => e.IsDeleted)
+            .HasDefaultValue(false);
+
+            builder.Property(e => e.CreatedAt)
+               .HasDefaultValueSql("GETDATE()");
+
+            builder.Property(e => e.UpdatedAt)
+          .HasDefaultValueSql("GETDATE()");
+
+            builder.HasOne(e => e.AddedBy)
+            .WithMany()
+            .HasForeignKey(e => e.AddedById)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        }
+    }
+}
+
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Models.Feature;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class CouponConfig: IEntityTypeConfiguration<Coupon>
+{
+    public void Configure(EntityTypeBuilder<Coupon> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+        
+        // properties
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.Code).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.DiscountType).IsRequired();
+        builder.Property(e => e.DiscountValue).IsRequired();
+        builder.Property(e => e.ValidFrom).IsRequired();
+        builder.Property(e => e.ValidTo).IsRequired();
+        builder.Property(e => e.UsageLimit).HasDefaultValue(0);
+        
+        
+        
+    }
+}
+
+using Adidas.Models.Feature;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class OrderCouponConfig: IEntityTypeConfiguration<OrderCoupon>
+{
+    public void Configure(EntityTypeBuilder<OrderCoupon> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+        
+        builder.Property(e => e.OrderId).IsRequired();
+        builder.Property(e => e.CouponId).IsRequired();
+        builder.Property(e=>e.DiscountApplied).IsRequired();
+        
+        
+        builder.HasOne(e => e.Order)
+        .WithMany(e => e.OrderCoupons)
+        .HasForeignKey(e => e.OrderId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.Coupon)
+        .WithMany(e => e.OrderCoupons)
+        .HasForeignKey(e => e.CouponId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+
+    }
+}
+
+using Adidas.Models.Feature;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Models.Feature;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class ShoppingCartConfig: IEntityTypeConfiguration<ShoppingCart>
+{
+    public void Configure(EntityTypeBuilder<ShoppingCart> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+        
+        // properties
+        // indexes
+        builder.HasIndex(e => new { e.UserId, e.VariantId }).IsUnique();
+        builder.HasIndex(e => e.AddedAt);
+        
+        builder.Property(e => e.UserId).IsRequired();
+        builder.Property(e => e.VariantId).IsRequired();
+        builder.Property(e => e.Quantity).IsRequired();
+        
+        // relationships
+        builder.HasOne(e => e.User)
+            .WithMany(e => e.CartItems)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasOne(e => e.Variant)
+            .WithMany(e => e.CartItems)
+            .HasForeignKey(e => e.VariantId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+
+using Adidas.Models.Feature;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Models.Feature;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class WishlistConfig : IEntityTypeConfiguration<Wishlist>
+{
+    public void Configure(EntityTypeBuilder<Wishlist> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        // indexes
+        builder.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
+        builder.HasIndex(e => e.AddedAt);
+        
+        builder.Property(e => e.UserId).IsRequired();
+        builder.Property(e => e.ProductId).IsRequired();
+        builder.Property(e => e.AddedAt).IsRequired();
+
+        // relationships
+        builder.HasOne(e => e.User)
+            .WithMany(e => e.Wishlists)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.Product)
+            .WithMany(e => e.Wishlists)
+            .HasForeignKey(e => e.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+
+using Adidas.Models.Main;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class ProductAttributeValueConfig : IEntityTypeConfiguration<ProductAttributeValue>
+{
+    public void Configure(EntityTypeBuilder<ProductAttributeValue> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        builder.Property(e => e.AttributeId).IsRequired();
+        builder.Property(e => e.ProductId).IsRequired();
+        builder.Property(e => e.Value).IsRequired();
+
+        // relationships
+        builder.HasOne(e => e.Attribute)
+            .WithMany(e => e.AttributeValues)
+            .HasForeignKey(e => e.AttributeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.Product)
+            .WithMany(e => e.AttributeValues)
+            .HasForeignKey(e => e.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+       
+    }
+}
+
+
+
+using Adidas.Models.Main;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class ProductAttributeConfig : IEntityTypeConfiguration<ProductAttribute>
+{
+    public void Configure(EntityTypeBuilder<ProductAttribute> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.DataType).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.IsFilterable).IsRequired();
+        builder.Property(e => e.IsRequired).IsRequired();
+        
+        // foreign keys
+
+        // relationships
+
+    }
+}
+
+
+
+using Adidas.Models.Main;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class ProductConfig : IEntityTypeConfiguration<Product>
+{
+    public void Configure(EntityTypeBuilder<Product> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        // index
+        builder.HasIndex(e => e.Sku).IsUnique();
+        builder.HasIndex(e => new { e.CategoryId, e.IsActive });
+        builder.HasIndex(e => new { e.BrandId, e.IsActive });
+        builder.HasIndex(e => e.GenderTarget);
+        builder.HasIndex(e => e.CreatedAt);
+        
+        
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(200);
+        builder.Property(e => e.Description).IsRequired().HasMaxLength(5000);
+        builder.Property(e => e.ShortDescription).IsRequired().HasMaxLength(1000);
+        builder.Property(e => e.Sku).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.Price).HasPrecision(18, 2).IsRequired();
+        builder.Property(e => e.SalePrice).HasPrecision(18, 2);
+        builder.Property(e => e.GenderTarget).IsRequired();
+        
+  
+        // calculated properties
+        builder.Ignore(e => e.AverageRating);
+        builder.Ignore(e => e.ReviewCount);
+        
+        // foreign keys
+        builder.Property(e=>e.BrandId).IsRequired();
+        builder.Property(e=>e.CategoryId).IsRequired();
+
+        // relationships
+        builder.HasOne(e => e.Brand)
+            .WithMany(e => e.Products)
+            .HasForeignKey(e => e.BrandId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasOne(e => e.Category)
+            .WithMany(e => e.Products)
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        
+        
+        
+      
+
+
+  
+
+
+    }
+}
+
+
+
+
+using Adidas.Models.Main;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class ProductImageConfig : IEntityTypeConfiguration<ProductImage>
+{
+    public void Configure(EntityTypeBuilder<ProductImage> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        // indexes
+        builder.HasIndex(e => new { e.ProductId, e.IsPrimary });
+        builder.HasIndex(e => new { e.VariantId, e.SortOrder });
+        
+        builder.Property(e => e.ProductId).IsRequired();
+        builder.Property(e => e.IsPrimary).IsRequired();
+        builder.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
+        builder.Property(e => e.AltText).HasMaxLength(200);
+
+        // relationships
+        builder.HasOne(e => e.Product)
+            .WithMany(e => e.Images)
+            .HasForeignKey(e => e.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.Variant)
+            .WithMany(e => e.Images)
+            .HasForeignKey(e => e.VariantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+    }
+}
+
+
+using Adidas.Models.Main;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class ProductVariantConfig : IEntityTypeConfiguration<ProductVariant>
+{
+    public void Configure(EntityTypeBuilder<ProductVariant> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        // indexes
+        builder.HasIndex(e => e.Sku).IsUnique();
+        builder.HasIndex(e => new { e.ProductId, e.Size, e.Color }).IsUnique();
+        builder.HasIndex(e => new { e.ProductId, e.IsActive });
+        builder.HasIndex(e => e.StockQuantity);
+        
+        builder.Property(e => e.Sku).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.Size).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.Color).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.StockQuantity).IsRequired();
+        builder.Property(e => e.ImageUrl).HasMaxLength(500);
+        builder.Property(e => e.PriceAdjustment).HasPrecision(18, 2);
+
+        // foreign keys
+        builder.Property(e => e.ProductId).IsRequired();
+
+        // relationships
+        builder.HasOne(e => e.Product)
+            .WithMany(e => e.Variants)
+            .HasForeignKey(e => e.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+    }
+}
+
+
+using Adidas.Models.Operation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class OrderConfig : IEntityTypeConfiguration<Order>
+{
+    public void Configure(EntityTypeBuilder<Order> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // fields
+        // indexes
+        builder.HasIndex(e => e.OrderNumber).IsUnique();
+        builder.HasIndex(e => new { e.UserId, e.OrderDate });
+        builder.HasIndex(e => e.OrderStatus);
+        builder.HasIndex(e => e.OrderDate);
+        
+       builder.Property(e=>e.OrderNumber).IsRequired().HasMaxLength(100);
+       builder.Property(e => e.OrderStatus).IsRequired();
+       builder.Property(e => e.OrderDate).IsRequired();
+       builder.Property(e => e.ShippingAddress).IsRequired();
+       builder.Property(e => e.BillingAddress).IsRequired();
+       
+       builder.Property(e=>e.Currency).IsRequired().HasMaxLength(30);
+       builder.Property(e => e.Subtotal).HasPrecision(18, 2).IsRequired();
+       builder.Property(e => e.TotalAmount).HasPrecision(18, 2).IsRequired();
+       builder.Property(e => e.TaxAmount).HasPrecision(18, 2);
+       builder.Property(e => e.ShippingAmount).HasPrecision(18, 2);
+       builder.Property(e => e.DiscountAmount).HasPrecision(18, 2);
+       
+
+        // foreign keys
+        builder.Property(e => e.UserId).IsRequired();
+        // relationships
+        builder.HasOne(e => e.User)
+            .WithMany(e => e.Orders)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+    }
+}
+
+
+
+using Adidas.Models.Operation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class OrderItemConfig : IEntityTypeConfiguration<OrderItem>
+{
+    public void Configure(EntityTypeBuilder<OrderItem> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        // indexes
+        builder.HasIndex(e => e.OrderId);
+        builder.HasIndex(e => e.VariantId);
+        
+        builder.Property(e => e.Quantity).IsRequired();
+        builder.Property(e => e.UnitPrice).HasPrecision(18, 2).IsRequired();
+        builder.Property(e => e.TotalPrice).HasPrecision(18, 2).IsRequired();
+        builder.Property(e => e.ProductName).IsRequired();
+        builder.Property(e => e.VariantDetails).HasMaxLength(1000);
+
+        // foreign keys
+        builder.Property(e => e.OrderId).IsRequired();
+        builder.Property(e => e.VariantId).IsRequired();
+        // relationships
+        builder.HasOne(e => e.Order)
+            .WithMany(e => e.OrderItems)
+            .HasForeignKey(e => e.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.Variant)
+            .WithMany(e => e.OrderItems)
+            .HasForeignKey(e => e.VariantId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+
+
+
+using Adidas.Models.Operation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class PaymentConfig : IEntityTypeConfiguration<Payment>
+{
+    public void Configure(EntityTypeBuilder<Payment> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        // indexes
+        builder.HasIndex(e => e.OrderId);
+        builder.HasIndex(e => e.TransactionId);
+        builder.HasIndex(e => e.PaymentStatus);
+        builder.HasIndex(e => e.ProcessedAt);
+        
+        builder.Property(e => e.PaymentMethod).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.PaymentStatus).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.Amount).HasPrecision(18, 2).IsRequired();
+        builder.Property(e => e.ProcessedAt).IsRequired();
+
+        // foreign keys
+        builder.Property(e => e.OrderId).IsRequired();
+        // relationships
+
+        builder.HasOne(e => e.Order)
+            .WithMany(o => o.Payments)
+            .HasForeignKey(e => e.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+
+
+
+using Adidas.Models.Operation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.Feature;
+
+public class ReviewConfig : IEntityTypeConfiguration<Review>
+{
+    public void Configure(EntityTypeBuilder<Review> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // properties
+        // indexes
+        //builder.HasIndex(e => new { e.ProductId, e.IsApproved });
+        //builder.HasIndex(e => new { e.UserId, e.CreatedAt });
+        //builder.HasIndex(e => e.Rating);
+
+        //builder.Property(e => e.ProductId).IsRequired();
+        //builder.Property(e => e.IsVerifiedPurchase).IsRequired();
+        //builder.Property(e => e.IsApproved).IsRequired();
+        //builder.Property(e => e.Title).HasMaxLength(200);
+
+        //// foreign keys
+        //builder.Property(e => e.Rating).IsRequired();
+        //builder.Property(e => e.UserId).IsRequired();
+
+        //// relationships
+        //builder.HasOne(e => e.Product)
+        //    .WithMany(p => p.Reviews)
+        //    .HasForeignKey(e => e.ProductId)
+        //    .OnDelete(DeleteBehavior.Restrict);
+
+        //builder.HasOne(e => e.User)
+        //    .WithMany(u => u.Reviews)
+        //    .HasForeignKey(e => e.UserId)
+        //    .OnDelete(DeleteBehavior.Restrict);
+        builder.ToTable("Reviews");
+
+        builder.HasKey(r => r.Id);
+
+        builder.Property(r => r.Rating)
+            .IsRequired()
+            .HasAnnotation("Range", new[] { 1, 5 });
+
+        builder.Property(r => r.Title)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(r => r.ReviewText)
+            .HasMaxLength(1000);
+
+        builder.Property(r => r.IsVerifiedPurchase)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(r => r.IsApproved)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        // Foreign Key Relationships
+        builder.HasOne(r => r.Product)
+            .WithMany(p => p.Reviews)
+            .HasForeignKey(r => r.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(r => r.User)
+            .WithMany(u => u.Reviews)
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Indexes for better performance
+        builder.HasIndex(r => r.ProductId);
+        builder.HasIndex(r => r.UserId);
+        builder.HasIndex(r => r.IsApproved);
+        builder.HasIndex(r => r.CreatedAt);
+    }
+}
+
+
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Models.People;
+
+namespace Adidas.Context.Configurations.People;
+
+public class AddressConfig: IEntityTypeConfiguration<Address>
+{
+    public void Configure(EntityTypeBuilder<Address> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+        
+        // fields
+        // indexes
+        builder.HasIndex(e => new { e.UserId, e.IsDefault });
+        builder.HasIndex(e => new { e.Country, e.StateProvince, e.City });
+        
+        builder.Property(e => e.AddressType).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.StreetAddress).IsRequired().HasMaxLength(200);
+        builder.Property(e => e.City).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.StateProvince).HasMaxLength(100);
+        builder.Property(e => e.PostalCode).HasMaxLength(20);
+        builder.Property(e => e.Country).HasMaxLength(100);
+        
+        // relation
+        builder.HasOne(e => e.User)
+        .WithMany(e => e.Addresses)
+        .HasForeignKey(e => e.UserId)
+        .OnDelete(DeleteBehavior.Restrict);
+        
+    }
+}
+
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Models.People;
+
+namespace Adidas.Context.Configurations.People;
+
+public class UserConfig: IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasIndex(e => e.Email).IsUnique();
+        builder.HasIndex(e => new { e.IsActive, e.Role });
+        builder.HasIndex(e => e.CreatedAt);
+    }
+}
+
+
+
+using Adidas.Models.Separator;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.People;
+
+public class BrandConfig: IEntityTypeConfiguration<Brand>
+{
+    public void Configure(EntityTypeBuilder<Brand> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+        
+        // fields
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.LogoUrl).HasMaxLength(500);
+        builder.Property(e => e.Description).HasMaxLength(500);
+
+        // foreign keys
+
+        // navigations
+        
+        
+        // Seed Brands
+        //builder.HasData(
+        //    new Brand {  Name = "Adidas", Description = "Impossible is Nothing", IsActive = true },
+        //    new Brand {  Name = "Adidas Originals", Description = "Original is Never Finished", IsActive = true },
+        //    new Brand {  Name = "Adidas Performance", Description = "Nothing is Impossible", IsActive = true }
+        //);
+    }
+}
+
+
+using Adidas.Models.Separator;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.People;
+
+public class CategoryConfig: IEntityTypeConfiguration<Category>
+{
+    public void Configure(EntityTypeBuilder<Category> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+        
+        // fields
+        // indexes
+        builder.HasIndex(e => e.Slug).IsUnique();
+        builder.HasIndex(e => new { e.ParentCategoryId, e.IsActive });
+        builder.HasIndex(e => e.SortOrder);
+        
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.Slug).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.ImageUrl).HasMaxLength(500);
+
+        // foreign keys
+
+        // navigations
+        builder.HasOne(e => e.ParentCategory)
+            .WithMany(p => p.SubCategories)
+            .HasForeignKey(e => e.ParentCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        
+        // Seed Categories
+        //builder.HasData(
+        //    new Category { Name = "Footwear", Slug = "footwear", IsActive = true, SortOrder = 1 },
+        //    new Category { Name = "Clothing", Slug = "clothing", IsActive = true, SortOrder = 2 },
+        //    new Category { Name = "Accessories", Slug = "accessories", IsActive = true, SortOrder = 3 },
+        //    new Category { Name = "Running Shoes", Slug = "running-shoes",  IsActive = true, SortOrder = 1 },
+        //    new Category { Name = "Lifestyle Shoes", Slug = "lifestyle-shoes",  IsActive = true, SortOrder = 2 },
+        //    new Category { Name = "Football Boots", Slug = "football-boots",  IsActive = true, SortOrder = 3 }
+        //);
+    }
+}
+
+
+using Adidas.Models.Tracker;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Adidas.Context.Configurations.People;
+
+public class InventoryLogConfig : IEntityTypeConfiguration<InventoryLog>
+{
+    public void Configure(EntityTypeBuilder<InventoryLog> builder)
+    {
+        BaseAuditableEntityConfig.Configure(builder);
+
+        // fields
+        builder.Property(e => e.QuantityChange).IsRequired();
+        builder.Property(e => e.PreviousStock).IsRequired();
+        builder.Property(e => e.NewStock).IsRequired();
+        builder.Property(e => e.ChangeType).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.Reason).HasMaxLength(500);
+
+        // foreign keys
+        builder.Property(e => e.VariantId).IsRequired();
+        // navigations
+
+        builder.HasOne(e => e.Variant)
+            .WithMany(v => v.InventoryLogs)
+            .HasForeignKey(e => e.VariantId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+
