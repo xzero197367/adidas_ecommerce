@@ -15,7 +15,7 @@ namespace Adidas.Application.Services
         where TEntity : BaseAuditableEntity
         where TDto : class
         where TCreateDto : class
-        where TUpdateDto : BaseEntity
+        where TUpdateDto : BaseUpdateDto
     {
         public readonly IGenericRepository<TEntity> _repository;
         public readonly ILogger _logger;

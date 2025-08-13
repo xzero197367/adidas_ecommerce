@@ -131,8 +131,10 @@ namespace Adidas.Application.Services
                 await BeforeCreateAsync(entity);
 
                 var createdEntityEntry = await _repository.AddAsync(entity);
-                var createdEntity = createdEntityEntry.Entity; // Extract the entity from EntityEntry
+              
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
+                createdEntityEntry.State = EntityState.Deleted;
+                var createdEntity = createdEntityEntry.Entity; // Extract the entity from EntityEntry
                 await AfterCreateAsync(createdEntity);
 
                 return OperationResult<TDto>.Success(createdEntity.Adapt<TDto>());

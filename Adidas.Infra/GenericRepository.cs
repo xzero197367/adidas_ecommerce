@@ -167,7 +167,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
     public async Task<PagedResultDto<T>> GetPagedAsync(int pageNumber, int pageSize,
         Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
     {
-        var query = _dbSet.AsQueryable();
+        var query = _dbSet.AsNoTracking().AsQueryable();
         if (queryFunc != null) query = queryFunc(query);
         var totalCount = await query.CountAsync();
         var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -186,7 +186,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
 
     public async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
     {
-        var query = _dbSet.AsQueryable();
+        var query = _dbSet.AsNoTracking().AsQueryable();
         foreach (var include in includes)
         {
             query = query.Include(include);
@@ -197,14 +197,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
 
     public  IQueryable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
     {
-        var query = _dbSet.AsQueryable();
+        var query = _dbSet.AsNoTracking().AsQueryable();
         if (queryFunc != null) query = queryFunc(query);
         return query;
     }
 
     public async Task<T?> FindAsync(Func<IQueryable<T>, IQueryable<T>> queryFunc)
     {
-        var query = _dbSet.AsQueryable();
+        var query = _dbSet.AsNoTracking().AsQueryable();
         query = queryFunc(query);
         return await query.FirstOrDefaultAsync();
     }
@@ -216,12 +216,12 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.AsNoTracking().ToListAsync();
     }
 
     public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
     {
-        var query = _dbSet.AsQueryable();
+        var query = _dbSet.AsNoTracking().AsQueryable();
         foreach (var include in includes)
         {
             query = query.Include(include);

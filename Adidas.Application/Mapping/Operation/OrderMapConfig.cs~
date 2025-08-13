@@ -1,0 +1,36 @@
+﻿
+using System.Text.Json;
+using Adidas.DTOs.Operation.OrderDTOs;
+using Adidas.DTOs.Operation.OrderDTOs.Create;
+using Mapster;
+
+namespace Adidas.Application.Mapping.Operation;
+
+public class OrderMapConfig
+{
+    public static void Configure()
+    {
+        // Get DTO to Model
+        TypeAdapterConfig<OrderDto, Order>.NewConfig()
+            .Map(dest => dest.ShippingAddress, src => JsonSerializer.Serialize(src.ShippingAddress))
+            .Map(dest => dest.BillingAddress, src => JsonSerializer.Serialize(src.BillingAddress))
+            .IgnoreNullValues(true);
+
+        // Model to DTO
+        TypeAdapterConfig<Order, OrderDto>.NewConfig()
+            .Map(dest => dest.ShippingAddress, src => JsonSerializer.Deserialize<Dictionary<string, object>>(src.ShippingAddress))
+            .Map(dest => dest.BillingAddress, src => JsonSerializer.Deserialize<Dictionary<string, object>>(src.BillingAddress));
+
+        // Create DTO to Model
+        TypeAdapterConfig<OrderCreateDto, Order>.NewConfig()
+            .Map(dest => dest.ShippingAddress, src => JsonSerializer.Serialize(src.ShippingAddress))
+            .Map(dest => dest.BillingAddress, src => JsonSerializer.Serialize(src.BillingAddress))
+            .IgnoreNullValues(true);
+
+        // Update DTO to Model
+        TypeAdapterConfig<OrderUpdateDto, Order>.NewConfig()
+            .Map(dest => dest.ShippingAddress, src => JsonSerializer.Serialize(src.ShippingAddress))
+            .Map(dest => dest.BillingAddress, src => JsonSerializer.Serialize(src.BillingAddress))
+            .IgnoreNullValues(true);
+    }
+}
