@@ -117,8 +117,9 @@ public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, Ord
             }
 
             order.OrderStatus = newStatus;
-            await _orderRepository.UpdateAsync(order);
-
+            var result = await _orderRepository.UpdateAsync(order);
+            await _orderRepository.SaveChangesAsync();
+            result.State = EntityState.Detached;
             await _notificationService.SendOrderStatusUpdateAsync(orderId);
             return OperationResult<bool>.Success(true);
         }
@@ -200,8 +201,9 @@ public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, Ord
             order.OrderStatus = OrderStatus.Cancelled;
 
             var result = await _orderRepository.UpdateAsync(order);
-            result.State = EntityState.Detached;
+
             await _orderRepository.SaveChangesAsync();
+            result.State = EntityState.Detached;
 
             return OperationResult<bool>.Success(true);
         }

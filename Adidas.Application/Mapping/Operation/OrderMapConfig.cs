@@ -1,7 +1,7 @@
-﻿
+﻿using System.Text.Json;
+using Mapster;
 using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
-using Mapster;
 
 namespace Adidas.Application.Mapping.Operation;
 
@@ -9,19 +9,33 @@ public class OrderMapConfig
 {
     public static void Configure()
     {
-        // Get DTO to Model
-        TypeAdapterConfig.GlobalSettings.NewConfig<OrderDto, Order>()
+        var jsonOptions = new JsonSerializerOptions();
+
+        TypeAdapterConfig<Order, OrderDto>.NewConfig()
+            .Map(dest => dest.ShippingAddress,
+                src => JsonSerializer.Deserialize<Dictionary<string, object>>(src.ShippingAddress, jsonOptions))
+            .Map(dest => dest.BillingAddress,
+                src => JsonSerializer.Deserialize<Dictionary<string, object>>(src.BillingAddress, jsonOptions));
+
+        TypeAdapterConfig<OrderDto, Order>.NewConfig()
+            .Map(dest => dest.ShippingAddress,
+                src => JsonSerializer.Serialize(src.ShippingAddress, jsonOptions))
+            .Map(dest => dest.BillingAddress,
+                src => JsonSerializer.Serialize(src.BillingAddress, jsonOptions))
             .IgnoreNullValues(true);
 
-        // Model to Get DTO
-        TypeAdapterConfig.GlobalSettings.NewConfig<Order, OrderDto>();
-
-        // Create DTO to Model
-        TypeAdapterConfig.GlobalSettings.NewConfig<OrderCreateDto, Order>()
+        TypeAdapterConfig<OrderCreateDto, Order>.NewConfig()
+            .Map(dest => dest.ShippingAddress,
+                src => JsonSerializer.Serialize(src.ShippingAddress, jsonOptions))
+            .Map(dest => dest.BillingAddress,
+                src => JsonSerializer.Serialize(src.BillingAddress, jsonOptions))
             .IgnoreNullValues(true);
 
-        // Update DTO to Model
-        TypeAdapterConfig.GlobalSettings.NewConfig<OrderUpdateDto, Order>()
+        TypeAdapterConfig<OrderUpdateDto, Order>.NewConfig()
+            .Map(dest => dest.ShippingAddress,
+                src => JsonSerializer.Serialize(src.ShippingAddress, jsonOptions))
+            .Map(dest => dest.BillingAddress,
+                src => JsonSerializer.Serialize(src.BillingAddress, jsonOptions))
             .IgnoreNullValues(true);
     }
 }
