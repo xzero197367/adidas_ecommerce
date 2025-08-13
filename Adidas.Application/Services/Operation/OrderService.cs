@@ -279,4 +279,21 @@ public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, Ord
             entity.OrderNumber = result.Data;
         }
     }
+    public async Task<IEnumerable<OrderDto>> GetRecentOrdersAsync(int count)
+    {
+        var pagedOrders = await _orderRepository.GetPagedAsync(
+            pageNumber: 1,
+            pageSize: count,
+            query => query
+                .Where(o => !o.IsDeleted)
+                .Include(o => o.User) // make sure User is loaded
+                .OrderByDescending(o => o.OrderDate)
+        );
+
+        return pagedOrders?.Items?.Adapt<IEnumerable<OrderDto>>() ?? Enumerable.Empty<OrderDto>();
+    }
+
+
+
+
 }

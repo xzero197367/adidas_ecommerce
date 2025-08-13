@@ -21,5 +21,6 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
 
         Task<OperationResult<OrderSummaryDto>> GetOrderSummaryAsync(DateTime? startDate = null,
             DateTime? endDate = null);
+        Task<IEnumerable<OrderDto>> GetRecentOrdersAsync(int count);
     }
 }

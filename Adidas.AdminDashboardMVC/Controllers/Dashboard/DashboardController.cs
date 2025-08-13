@@ -1,10 +1,9 @@
 ﻿using Adidas.AdminDashboardMVC.ViewModels.Dashboard;
-using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.DTOs.Static;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
 {
@@ -12,16 +11,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
     public class DashboardController : Controller
     {
         private readonly IAnalyticsService _analyticsService;
-        private readonly IOrderRepository _orderRepository;
         private readonly ILogger<DashboardController> _logger;
 
         public DashboardController(
             IAnalyticsService analyticsService,
-            IOrderRepository orderRepository,
+            IOrderService orderService,
             ILogger<DashboardController> logger)
         {
             _analyticsService = analyticsService;
-            _orderRepository = orderRepository;
+            
             _logger = logger;
         }
 
@@ -51,15 +49,21 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 // Create view model
                 var viewModel = new DashboardViewModel
                 {
-                    Stats = dashboardStats.Data ?? new DashboardStatsDto(),
-                    SalesReport = salesReport.Data ?? new SalesReportDto(),
-                    PopularProducts = popularProducts.Data != null
+                    Stats = dashboardStats.IsSuccess && dashboardStats.Data != null
+                        ? dashboardStats.Data
+                        : new DashboardStatsDto(),
+                    SalesReport = salesReport.IsSuccess && salesReport.Data != null
+                        ? salesReport.Data
+                        : new SalesReportDto { DailySales = new List<DailySalesDto>() },
+                    PopularProducts = popularProducts.IsSuccess && popularProducts.Data != null
                         ? popularProducts.Data.ToList()
                         : new List<PopularProductDto>(),
-                    CategoryPerformance = categoryPerformance.Data != null
+                    CategoryPerformance = categoryPerformance.IsSuccess && categoryPerformance.Data != null
                         ? categoryPerformance.Data.Take(6).ToList()
                         : new List<CategoryPerformanceDto>(),
-                    CustomerInsights = customerInsights.Data != null ? customerInsights.Data : new CustomerInsightsDto(),
+                    CustomerInsights = customerInsights.IsSuccess && customerInsights.Data != null
+                        ? customerInsights.Data
+                        : new CustomerInsightsDto(),
                     CurrentTimeRange = "Last 30 days",
                     LastUpdated = DateTime.UtcNow
                 };
@@ -71,7 +75,18 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
             {
                 _logger.LogError(ex, "Error loading dashboard data");
                 TempData["Error"] = "Unable to load dashboard data. Please try again.";
-                return View(new DashboardViewModel());
+
+                // Return empty view model to prevent null reference exceptions
+                return View(new DashboardViewModel
+                {
+                    Stats = new DashboardStatsDto(),
+                    SalesReport = new SalesReportDto { DailySales = new List<DailySalesDto>() },
+                    PopularProducts = new List<PopularProductDto>(),
+                    CategoryPerformance = new List<CategoryPerformanceDto>(),
+                    CustomerInsights = new CustomerInsightsDto(),
+                    CurrentTimeRange = "Last 30 days",
+                    LastUpdated = DateTime.UtcNow
+                });
             }
         }
 
@@ -84,18 +99,24 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
                 var startDate = endDate.AddDays(-days);
                 var salesReport = await _analyticsService.GenerateSalesReportAsync(startDate, endDate);
 
-                var chartData = salesReport?.Data?.DailySales.Select(d => new
+                if (salesReport.IsSuccess && salesReport.Data?.DailySales != null)
                 {
-                    date = d.Date.ToString("yyyy-MM-dd"),
-                    sales = d.Sales,
-                    orders = d.Orders
-                });
+                    var chartData = salesReport.Data.DailySales.Select(d => new
+                    {
+                        date = d.Date.ToString("yyyy-MM-dd"),
+                        sales = d.Sales,
+                        orders = d.Orders
+                    });
 
-                return Json(chartData);
+                    return Json(new { success = true, data = chartData });
+                }
+
+                return Json(new { success = false, error = "Unable to load sales data" });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return Json(new { error = "Unable to load sales data" });
+                _logger.LogError(ex, "Error loading sales data");
+                return Json(new { success = false, error = "Unable to load sales data" });
             }
         }
 
@@ -104,22 +125,19 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
         {
             try
             {
-                var recentOrders = await _orderRepository.GetAll().ToListAsync();
-                var orderDtos = recentOrders.Select(o => new RecentOrderDto
-                {
-                    OrderId = o.Id,
-                    CustomerName = o.User?.UserName,
-                    TotalAmount = o.TotalAmount,
-                    OrderStatus = o.OrderStatus.ToString(),
-                    OrderDate = o.OrderDate
-                }).ToList();
+                var recentOrdersResult = await _analyticsService.GetRecentOrdersAsync(count);
 
-                return Json(orderDtos);
+                if (recentOrdersResult.IsSuccess && recentOrdersResult.Data != null)
+                {
+                    return Json(new { success = true, data = recentOrdersResult.Data });
+                }
+
+                return Json(new { success = false, error = "Unable to load recent orders" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading recent orders");
-                return Json(new { error = "Unable to load recent orders" });
+                return Json(new { success = false, error = "Unable to load recent orders" });
             }
         }
 
@@ -128,43 +146,47 @@ namespace Adidas.AdminDashboardMVC.Controllers.Dashboard
         {
             try
             {
-                var notifications = new List<NotificationDto>();
-                var stats = await _analyticsService.GetDashboardStatsAsync();
+                var notificationsResult = await _analyticsService.GetDashboardNotificationsAsync();
 
-                // Low stock notification
-                if (stats?.Data?.LowStockProducts > 0)
+                if (notificationsResult.IsSuccess && notificationsResult.Data != null)
                 {
-                    notifications.Add(new NotificationDto
-                    {
-                        Type = "warning",
-                        Title = "Low Stock Alert",
-                        Message = $"{stats.Data.LowStockProducts} products are running low on stock",
-                        //ActionUrl = Url.Action("LowStock", "Product"),
-                        ActionText = "View Products",
-                        CreatedAt = DateTime.UtcNow
-                    });
+                    return Json(new { success = true, data = notificationsResult.Data });
                 }
 
-                // Pending orders notification
-                if (stats?.Data?.PendingOrders > 0)
-                {
-                    notifications.Add(new NotificationDto
-                    {
-                        Type = "info",
-                        Title = "Pending Orders",
-                        Message = $"{stats.Data.PendingOrders} orders are waiting for processing",
-                        //ActionUrl = Url.Action("Pending", "Order"),
-                        ActionText = "Process Orders",
-                        CreatedAt = DateTime.UtcNow
-                    });
-                }
-
-                return Json(notifications);
+                return Json(new { success = false, error = "Unable to load notifications" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading notifications");
-                return Json(new { error = "Unable to load notifications" });
+                return Json(new { success = false, error = "Unable to load notifications" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCategoryData()
+        {
+            try
+            {
+                var categoryPerformance = await _analyticsService.GetCategoryPerformanceAsync();
+
+                if (categoryPerformance.IsSuccess && categoryPerformance.Data != null)
+                {
+                    var chartData = categoryPerformance.Data.Select(c => new
+                    {
+                        categoryName = c.CategoryName,
+                        totalSales = c.TotalSales,
+                        orderCount = c.OrderCount
+                    });
+
+                    return Json(new { success = true, data = chartData });
+                }
+
+                return Json(new { success = false, error = "Unable to load category data" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading category data");
+                return Json(new { success = false, error = "Unable to load category data" });
             }
         }
     }

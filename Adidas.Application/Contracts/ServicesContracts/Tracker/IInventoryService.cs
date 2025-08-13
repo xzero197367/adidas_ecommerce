@@ -7,7 +7,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Tracker
 {
     public interface IInventoryService
     {
-        Task<OperationResult<bool>> ReserveStockAsync(Guid variantId, int quantity);
+        Task<OperationResult<bool>> ReserveStockAsync(Guid variantId, int quantity); 
         Task<OperationResult<bool>> ReleaseStockAsync(Guid variantId, int quantity);
         Task<OperationResult<bool>> UpdateStockAsync(Guid variantId, int newStock);
         Task<OperationResult<IEnumerable<LowStockAlertDto>>> GetLowStockAlertsAsync(int threshold = 10);

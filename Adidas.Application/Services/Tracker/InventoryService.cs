@@ -105,14 +105,16 @@ namespace Adidas.Application.Services.Tracker
             {
                 var lowStockVariants = await _variantRepository.GetLowStockVariantsAsync(threshold);
 
-                var result = lowStockVariants.Select(v => new LowStockAlertDto
-                {
-                    VariantId = v.Id,
-                    ProductName = v.Product.Name,
-                    VariantDetails = $"{v.Color} - {v.Size}",
-                    CurrentStock = v.StockQuantity,
-                    ReorderLevel = threshold
-                });
+                var result = lowStockVariants
+                    .ToList() // already in memory
+                    .Select(v => new LowStockAlertDto
+                    {
+                        VariantId = v.Id,
+                        ProductName = v.Product.Name,
+                        VariantDetails = $"{v.Color} - {v.Size}",
+                        CurrentStock = v.StockQuantity,
+                        ReorderLevel = threshold
+                    });
                 return OperationResult<IEnumerable<LowStockAlertDto>>.Success(result);
             }catch (Exception ex)
             {
@@ -125,12 +127,12 @@ namespace Adidas.Application.Services.Tracker
         {
             try
             {
-                // Ensure Product is loaded with the variants
-                var allVariants = await _variantRepository.GetAll()
-                    .Include(v => v.Product)
-                    .ToListAsync();
+                // Directly query the repository with EF Include
+                var allVariants = await _variantRepository
+                    .GetAllForInventory(q => q.Include(v => v.Product)) // EF Include here
+                    .ToListAsync(); // async execution still works
 
-                // Filter out any variants with missing Product to avoid null refs
+                // Filter out variants with missing Product
                 var variantsList = allVariants
                     .Where(v => v.Product != null)
                     .ToList();
@@ -168,6 +170,7 @@ namespace Adidas.Application.Services.Tracker
                 return OperationResult<InventoryReportDto>.Fail(ex.Message);
             }
         }
+
 
         public async Task LogInventoryChangeAsync(Guid variantId, int oldQuantity, int newQuantity, string changeType, string userId, string? reason = null)
         {
