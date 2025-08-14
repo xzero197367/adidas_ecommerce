@@ -22,10 +22,32 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
 
             var result = await _customerService.GetCustomersAsync(filter);
 
+            // Get statistics for the cards
+            var totalCustomersFilter = new CustomerFilterDto { PageSize = int.MaxValue };
+            var allCustomersResult = await _customerService.GetCustomersAsync(totalCustomersFilter);
+
+            // Access the Data property to get the actual PagedResultDto
+            var totalCustomers = allCustomersResult.Data.TotalCount;
+            var activeCustomers = allCustomersResult.Data.Items.Count(c => c.Status == "Active");
+            var suspendedCustomers = allCustomersResult.Data.Items.Count(c => c.Status == "Suspended");
+
             ViewBag.CurrentFilter = filter;
+            ViewBag.TotalCustomers = totalCustomers;
+            ViewBag.ActiveCustomers = activeCustomers;
+            ViewBag.SuspendedCustomers = suspendedCustomers;
+
             return View(result.Data);
         }
 
+        //[HttpGet]
+        //public async Task<IActionResult> GetCustomersData(CustomerFilterDto filter)
+        //{
+        //    if (filter.Page <= 0) filter.Page = 1;
+        //    if (filter.PageSize <= 0) filter.PageSize = 10;
+
+        //    var result = await _customerService.GetCustomersAsync(filter);
+        //    return PartialView("_CustomerListPartial", result.Data);
+        //}
         [HttpGet]
         public async Task<IActionResult> Details(string id)
         {
@@ -130,8 +152,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
             return File(csvData.Data, "text/csv", $"customers_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
         }
 
-        // AJAX endpoint for filtered data
-        [HttpGet]
+        //AJAX endpoint for filtered data
+       [HttpGet]
         public async Task<IActionResult> GetCustomersData(CustomerFilterDto filter)
         {
             var result = await _customerService.GetCustomersAsync(filter);

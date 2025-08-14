@@ -3,7 +3,7 @@
     ViewData["Title"] = "Users Management";
 }
 
-<!-- Content Header (Page header) -->
+<!--Content Header (Page header)-->
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -20,13 +20,10 @@
     </div>
 </div>
 
-<!-- Main content -->
+<!--Main content-->
 <section class="content">
     <div class="container-fluid">
-        <!-- Success Message -->
-
-
-        <!-- Statistics Cards Row -->
+        <!--Statistics Cards Row-->
         <div class="row">
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-info">
@@ -77,7 +74,7 @@
             </div>
         </div>
 
-        <!-- Users Table -->
+        <!--Users Table-->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -91,7 +88,7 @@
                     </div>
 
                     <div class="card-body">
-                        <!-- Search and Filter Form -->
+                        <!--Search and Filter Form-->
                         <form asp-action="Index" method="get" class="mb-3">
                             <div class="row">
                                 <div class="col-md-4">
@@ -131,7 +128,7 @@
                             </div>
                         </form>
 
-                        <!-- Users Table -->
+                        <!--Users Table-->
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">
                                 <thead>
@@ -199,38 +196,75 @@
                             </table>
                         </div>
 
-                        <!-- Pagination -->
+                        <!--Enhanced Pagination-->
                         @if (Model.TotalPages > 1)
                         {
                             <nav aria-label="Users pagination">
-                                <ul class="pagination justify-content-center">
-                                    @if (Model.CurrentPage > 1)
-                                    {
-                                        <li class="page-item">
-                                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
-                                                Previous
-                                            </a>
-                                        </li>
-                                    }
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="text-muted">
+                                            Showing @((Model.CurrentPage - 1) * Model.PageSize + 1) to @(Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalUsers)) of @Model.TotalUsers entries
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul class="pagination justify-content-end">
+                                            <!-- First page -->
+                                            @if (Model.CurrentPage > 3)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="@Url.Action("Index", new { page = 1, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
+                                                        <i class="fas fa-angle-double-left"></i>
+                                                    </a>
+                                                </li>
+                                            }
 
-                                    @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
-                                    {
-                                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                            <a class="page-link" href="@Url.Action("Index", new { page = i, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
-                                                @i
-                                            </a>
-                                        </li>
-                                    }
+                                            <!-- Previous page -->
+                                            @if (Model.CurrentPage > 1)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
+                                                        <i class="fas fa-angle-left"></i>
+                                                    </a>
+                                                </li>
+                                            }
 
-                                    @if (Model.CurrentPage < Model.TotalPages)
-                                    {
-                                        <li class="page-item">
-                                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
-                                                Next
-                                            </a>
-                                        </li>
-                                    }
-                                </ul>
+                                            <!-- Page numbers -->
+                                            @{
+                                                int startPage = Math.Max(1, Model.CurrentPage - 2);
+                                                int endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+                                            }
+
+                                            @for (int i = startPage; i <= endPage; i++)
+                                            {
+                                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                                    <a class="page-link" href="@Url.Action("Index", new { page = i, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
+                                                        @i
+                                                    </a>
+                                                </li>
+                                            }
+
+                                            <!-- Next page -->
+                                            @if (Model.CurrentPage < Model.TotalPages)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
+                                                        <i class="fas fa-angle-right"></i>
+                                                    </a>
+                                                </li>
+                                            }
+
+                                            <!-- Last page -->
+                                            @if (Model.CurrentPage < Model.TotalPages - 2)
+                                            {
+                                                <li class="page-item">
+                                                    <a class="page-link" href="@Url.Action("Index", new { page = Model.TotalPages, searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageSize = Model.PageSize })">
+                                                        <i class="fas fa-angle-double-right"></i>
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
                             </nav>
                         }
                     </div>
@@ -254,14 +288,14 @@
                         userId: userId,
                         __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                     },
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success) {
                             location.reload();
                         } else {
                             alert('Error: ' + response.message);
                         }
                     },
-                    error: function () {
+                    error: function() {
                         alert('An error occurred while updating user status.');
                     }
                 });
@@ -278,18 +312,23 @@
                         userId: userId,
                         __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                     },
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success) {
                             location.reload();
                         } else {
                             alert('Error: ' + response.message);
                         }
                     },
-                    error: function () {
+                    error: function() {
                         alert('An error occurred while deleting the user.');
                     }
                 });
             }
         }
+
+        // Set selected page size on load
+        $(document).ready(function() {
+            $('#PageSize').val('@Model.PageSize');
+        });
     </script>
 }

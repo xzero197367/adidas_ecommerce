@@ -62,6 +62,7 @@
                                 <i class="fas fa-edit"></i>
                             </a>
                             <button type="button" class="btn btn-@(customer.IsActive ? "secondary" : "success") btn-sm toggle-status"
+
                                     data-id="@customer.Id" title="@(customer.IsActive ? "Suspend" : "Activate")">
                                 <i class="fas fa-@(customer.IsActive ? "ban" : "check")"></i>
                             </button>

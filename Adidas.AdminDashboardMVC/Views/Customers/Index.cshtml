@@ -1,6 +1,5 @@
 ﻿@using Adidas.DTOs.Common_DTOs
 @using Adidas.DTOs.People.Customer_DTOs
-<!-- Views/Customers/Index.cshtml -->
 @model PagedResultDto<CustomerDto>
 @{
     ViewData["Title"] = "All Customers";
@@ -22,6 +21,46 @@
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid">
+        
+        <!-- Statistics Cards Row -->
+        <div class="row">
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalCustomers</h3>
+                        <p>Total Customers</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.ActiveCustomers</h3>
+                        <p>Active Customers</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewBag.SuspendedCustomers</h3>
+                        <p>Suspended Customers</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
                 <div class="row">
@@ -99,6 +138,8 @@
                         if (response.success) {
                             toastr.success(response.message);
                             applyFilters();
+                            // Refresh statistics after status change
+                            location.reload();
                         } else {
                             toastr.error(response.message);
                         }
@@ -107,6 +148,7 @@
                         toastr.error('An error occurred while updating the customer status.');
                     });
             });
+
 
             // Delete customer
             $(document).on('click', '.delete-customer', function() {
@@ -118,7 +160,8 @@
                         .done(function(response) {
                             if (response.success) {
                                 toastr.success(response.message);
-                                applyFilters();
+                                // Refresh page to update statistics
+                                location.reload();
                             } else {
                                 toastr.error(response.message);
                             }

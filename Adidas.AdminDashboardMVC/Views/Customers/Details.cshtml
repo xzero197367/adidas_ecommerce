@@ -50,9 +50,9 @@
                                 </a>
                             </div>
                             <div class="col-6">
-                                <button class="btn btn-@(Model.IsActive ? "secondary" : "success") btn-block toggle-status" data-id="@Model.Id">
+                                <a href="@Url.Action("ToggleStatus", new { id = Model.Id })" class="btn btn-@(Model.IsActive ? "secondary" : "success") btn-block toggle-status" data-id="@Model.Id">
                                     <i class="fas fa-@(Model.IsActive ? "ban" : "check")"></i> @(Model.IsActive ? "Suspend" : "Activate")
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
