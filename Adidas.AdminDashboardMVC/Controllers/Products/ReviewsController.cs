@@ -1,21 +1,13 @@
-﻿
-
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
 using Adidas.DTOs.Common_DTOs;
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.Operation.ReviewDTOs.Result;
-
 using Adidas.DTOs.Operation.ReviewDTOs;
-using Microsoft.AspNetCore.Authorization;
-
 
 namespace Adidas.Web.Controllers
 {
-    [Authorize(Policy = "EmployeeOrAdmin")]
-
     public class ReviewsController : Controller
     {
         private readonly IReviewService _reviewService;
@@ -203,18 +195,18 @@ namespace Adidas.Web.Controllers
         {
             try
             {
-                var result = await _reviewService.ApproveReviewAsync(id);
-                if (result)
+                var (success, message) = await _reviewService.ApproveReviewAsync(id);
+                if (success)
                 {
-                    TempData["Success"] = "Review approved successfully.";
+                    TempData["Success"] = message;
                     _logger.LogInformation("Review {ReviewId} approved by {User}", id, User.Identity?.Name);
                 }
                 else
                 {
-                    TempData["Error"] = "Failed to approve review.";
+                    TempData["Error"] = message;
                 }
 
-                return Json(new { success = result, message = result ? "Review approved" : "Failed to approve review" });
+                return Json(new { success, message });
             }
             catch (Exception ex)
             {
@@ -235,19 +227,19 @@ namespace Adidas.Web.Controllers
                     return Json(new { success = false, message = "Invalid request data." });
                 }
 
-                var result = await _reviewService.RejectReviewAsync(id, request.Reason);
-                if (result)
+                var (success, message) = await _reviewService.RejectReviewAsync(id, request.Reason);
+                if (success)
                 {
-                    TempData["Success"] = "Review rejected successfully.";
+                    TempData["Success"] = message;
                     _logger.LogInformation("Review {ReviewId} rejected by {User} with reason: {Reason}",
                         id, User.Identity?.Name, request.Reason);
                 }
                 else
                 {
-                    TempData["Error"] = "Failed to reject review.";
+                    TempData["Error"] = message;
                 }
 
-                return Json(new { success = result, message = result ? "Review rejected" : "Failed to reject review" });
+                return Json(new { success, message });
             }
             catch (Exception ex)
             {
@@ -269,25 +261,31 @@ namespace Adidas.Web.Controllers
 
                 var successCount = 0;
                 var failCount = 0;
+                var messages = new List<string>();
 
                 foreach (var reviewId in request.ReviewIds)
                 {
-                    bool result = request.Action.ToLower() switch
+                    (bool success, string message) = request.Action.ToLower() switch
                     {
                         "approve" => await _reviewService.ApproveReviewAsync(reviewId),
                         "reject" => await _reviewService.RejectReviewAsync(reviewId, request.Reason ?? "Bulk rejection"),
-                        _ => false
+                        _ => (false, "Invalid action")
                     };
 
-                    if (result) successCount++;
+                    if (success) successCount++;
                     else failCount++;
+                    if (!success) messages.Add(message);
                 }
 
-                var message = $"Bulk action completed. {successCount} successful, {failCount} failed.";
+                var overallMessage = $"Bulk action completed. {successCount} successful, {failCount} failed.";
+                if (messages.Any())
+                {
+                    overallMessage += " " + string.Join("; ", messages.Distinct());
+                }
                 _logger.LogInformation("Bulk {Action} performed by {User}. Success: {Success}, Failed: {Failed}",
                     request.Action, User.Identity?.Name, successCount, failCount);
 
-                return Json(new { success = true, message, successCount, failCount });
+                return Json(new { success = true, message = overallMessage, successCount, failCount });
             }
             catch (Exception ex)
             {
@@ -296,27 +294,16 @@ namespace Adidas.Web.Controllers
             }
         }
 
-        [HttpDelete("{id:guid}")]
+        [HttpDelete]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            try
-            {
-                var result = await _reviewService.DeleteAsync(id);
-                if (result.IsSuccess)
-                {
-                    _logger.LogInformation("Review {ReviewId} deleted by {User}", id, User.Identity?.Name);
-                    return Json(new { success = true, message = "Review deleted successfully." });
-                }
-
-                return Json(new { success = false, message = "Review not found or could not be deleted." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting review {ReviewId}", id);
-                return Json(new { success = false, message = "An error occurred while deleting the review." });
-            }
+            var result = await _reviewService.DeleteAsync(id);
+            if (result.IsSuccess)
+                return Json(new { success = true, message = "Review deleted successfully." });
+            return Json(new { success = false, message = result.ErrorMessage });
         }
+
 
         // ✅ FIXED: Updated GetFilteredReviewsAsync method with proper status mapping
         private async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewsIndexViewModel viewModel)

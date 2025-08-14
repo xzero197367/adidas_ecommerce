@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Adidas.Models.Main;
 using Models.People;
@@ -19,6 +20,9 @@ public class Review : BaseAuditableEntity
     // navigations
     public Product Product { get; set; }
     public User User { get; set; }
+    // NEW
+    [MaxLength(1000)]
+    public string? RejectionReason { get; set; }
 
 
 
