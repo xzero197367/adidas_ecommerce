@@ -22,10 +22,10 @@ public class PaymentReportService : IPaymentReportService
     {
         try
         {
-            var payments = await _paymentRepository.GetAll(q => q.Where(p => 
+            var payments = await _paymentRepository.GetAll().Where(p => 
                 p.ProcessedAt >= startDate && 
                 p.ProcessedAt <= endDate && 
-                !p.IsDeleted)).ToListAsync();
+                !p.IsDeleted).ToListAsync();
 
             var totalRevenue = payments.Where(p => p.PaymentStatus == "Completed").Sum(p => p.Amount);
             var totalTransactions = payments.Count;
@@ -58,11 +58,11 @@ public class PaymentReportService : IPaymentReportService
 
     public async Task<List<PaymentMethodStatDto>> GetPaymentMethodStatsAsync(DateTime startDate, DateTime endDate)
     {
-        var payments = await _paymentRepository.GetAll(q => q.Where(p => 
+        var payments = await _paymentRepository.GetAll().Where(p => 
             p.ProcessedAt >= startDate && 
             p.ProcessedAt <= endDate && 
             p.PaymentStatus == "Completed" &&
-            !p.IsDeleted)).ToListAsync();
+            !p.IsDeleted).ToListAsync();
 
         var totalAmount = payments.Sum(p => p.Amount);
 
@@ -81,11 +81,11 @@ public class PaymentReportService : IPaymentReportService
 
     public async Task<List<DailyPaymentStatDto>> GetDailyPaymentStatsAsync(DateTime startDate, DateTime endDate)
     {
-        var payments = await _paymentRepository.GetAll(q => q.Where(p => 
+        var payments = await _paymentRepository.GetAll().Where(p => 
             p.ProcessedAt >= startDate && 
             p.ProcessedAt <= endDate && 
             p.PaymentStatus == "Completed" &&
-            !p.IsDeleted)).ToListAsync();
+            !p.IsDeleted).ToListAsync();
 
         return payments
             .GroupBy(p => p.ProcessedAt.Date)

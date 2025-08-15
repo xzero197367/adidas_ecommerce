@@ -1,0 +1,291 @@
+﻿@using Adidas.DTOs.Common_DTOs;
+@using Adidas.DTOs.Main.Product_DTOs;
+@using Adidas.DTOs.Main.ProductDTOs
+@model PagedResultDto<ProductDto>
+
+
+@{
+    ViewData["Title"] = "Product Management";
+    // Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var filter = ViewBag.Filter as ProductFilterDto;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-box-open me-2"></i>Product Management
+        </h2>
+        <a asp-action="Create" asp-controller="Product1" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Product
+        </a>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>Filters
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Index" asp-controller="Product1">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Search Term</label>
+                        <input type="text" class="form-control" name="SearchTerm" value="@ViewBag.SearchTerm"
+                               placeholder="Product name, SKU...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="CategoryId" asp-items="ViewBag.Categories"
+                                asp-for="@filter.CategoryId">
+                            <option value="">All Categories</option>
+                            @* @foreach (var category in ViewBag.Categories as SelectList) *@
+                            @* { *@
+                            @*     <option value="@category.Value" selected="@category.Selected">@category.Text</option> *@
+                            @* } *@
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Brand</label>
+                        <select class="form-select" asp-items="ViewBag.Brands" name="BrandId" asp-for="@filter.BrandId">
+                            <option value="">All Brands</option>
+                            @* @foreach (var brand in ViewBag.Brands as SelectList) *@
+                            @* { *@
+                            @*     <option value="@brand.Value" selected="@brand.Selected">@brand.Text</option> *@
+                            @* } *@
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Gender</label>
+                        <select class="form-select" name="Gender" asp-items="ViewBag.Genders" asp-for="@filter.Gender">
+                            <option value="">All Genders</option>
+                            @* @foreach (var gender in ViewBag.Genders as SelectList) *@
+                            @* { *@
+                            @*     <option value="@gender.Value" selected="@gender.Selected">@gender.Text</option> *@
+                            @* } *@
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Min Price</label>
+                        <input type="number" class="form-control" name="MinPrice" value="@ViewBag.MinPrice" step="0.01">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Max Price</label>
+                        <input type="number" class="form-control" name="MaxPrice" value="@ViewBag.MaxPrice" step="0.01">
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model?.Items?.Any() == true)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var product in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    @if (product.Images?.Any() == true)
+                                    {
+                                        <img src="@product.Images.First().ImageUrl" alt="@product.Name"
+                                             class="img-thumbnail"
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light d-flex align-items-center justify-content-center"
+                                             style="width: 50px; height: 50px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@product.Name</strong>
+                                        @if (product.IsOnSale)
+                                        {
+                                            <span class="badge bg-danger ms-2">SALE</span>
+                                        }
+                                    </div>
+                                    <small class="text-muted">@product.GenderTarget</small>
+                                </td>
+                                <td>
+                                    <code>@product.Sku</code>
+                                </td>
+                                <td>@product.CategoryName</td>
+                                <td>@product.BrandName</td>
+                                <td>
+                                    @if (product.IsOnSale)
+                                    {
+                                        <span class="text-danger fw-bold">$@product.SalePrice?.ToString("F2")</span>
+                                        <br>
+                                        <small
+                                            class="text-decoration-line-through text-muted">$@product.Price.ToString("F2")</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-bold">$@product.Price.ToString("F2")</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (product.ComputedInStock)
+                                    {
+                                        <span class="badge bg-success">In Stock</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Out of Stock</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (product.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-controller="Product1" asp-route-id="@product.Id"
+                                           class="btn btn-sm btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-controller="Product1" asp-route-id="@product.Id"
+                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="ManageVariants" asp-controller="Product1"
+                                           asp-route-id="@product.Id"
+                                           class="btn btn-sm btn-outline-warning" title="Manage Variants">
+                                            <i class="fas fa-layer-group"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                onclick="deleteProduct('@product.Id')" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Products pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.PageNumber > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-controller="Product1"
+                                       asp-route-pageNumber="@(Model.PageNumber - 1)">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-controller="Product1"
+                                       asp-route-pageNumber="@i">@i</a>
+                                </li>
+                            }
+
+                            @if (Model.PageNumber < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-controller="Product1"
+                                       asp-route-pageNumber="@(Model.PageNumber + 1)">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <h5>No products found</h5>
+                    <p class="text-muted">Try adjusting your filters or create a new product.</p>
+                    <a asp-action="Create" asp-controller="Product1" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create First Product
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this product? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteProduct(productId) {
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = `/Admin/Product/Delete/${productId}`;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+
+        // Auto-submit form on filter change
+        document.querySelectorAll('select[name="CategoryId"], select[name="BrandId"], select[name="Gender"]').forEach(select => {
+            select.addEventListener('change', function () {
+                this.closest('form').submit();
+            });
+        });
+    </script>
+}

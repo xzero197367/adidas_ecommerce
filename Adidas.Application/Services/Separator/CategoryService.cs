@@ -1,5 +1,4 @@
-﻿
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Models.Separator;
@@ -11,6 +10,7 @@ using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.ProductDTOs;
 using Mapster;
 using Adidas.DTOs.Main.Product_DTOs;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Adidas.Application.Services.Separator
 {
@@ -20,18 +20,22 @@ namespace Adidas.Application.Services.Separator
 
         public CategoryService(
             ICategoryRepository categoryRepository
-          )
+        )
         {
             _categoryRepository = categoryRepository;
         }
-        
-        public virtual async Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync(
-            Func<IQueryable<Category>, IQueryable<Category>>? queryFunc = null)
+
+        public async Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync()
         {
             try
             {
-                var entities = await _categoryRepository.GetAll(queryFunc).ToListAsync();
-                return OperationResult<IEnumerable<CategoryDto>>.Success(entities.Adapt<IEnumerable<CategoryDto>>());
+
+                var entities =  await _categoryRepository.GetAllAsync();
+         
+                
+                var dtos = entities.Adapt<IEnumerable<CategoryDto>>();
+
+                return OperationResult<IEnumerable<CategoryDto>>.Success(dtos);
             }
             catch (Exception ex)
             {
@@ -44,8 +48,8 @@ namespace Adidas.Application.Services.Separator
             var categories = await _categoryRepository.GetAllAsync();
 
             var mainCategories = categories
-              .Where(c => c.ParentCategoryId == null && c.IsActive && !c.IsDeleted)
-              .ToList();
+                .Where(c => c.ParentCategoryId == null && c.IsActive && !c.IsDeleted)
+                .ToList();
 
             var categoryDtos = mainCategories.Select(c => new CategoryDto
             {
@@ -82,7 +86,8 @@ namespace Adidas.Application.Services.Separator
             return categoryDtos;
         }
 
-        public async Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter, string searchTerm)
+        public async Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter,
+            string searchTerm)
         {
             var categories = await _categoryRepository.GetAllAsync();
 
@@ -92,7 +97,6 @@ namespace Adidas.Application.Services.Separator
                     categories = categories.Where(c => c.ParentCategoryId == null).ToList();
                 else if (categoryType == "Sub")
                     categories = categories.Where(c => c.ParentCategoryId != null).ToList();
-
             }
 
 
@@ -126,7 +130,6 @@ namespace Adidas.Application.Services.Separator
                 {
                     Id = p.Id,
                     Name = p.Name
-
                 }).ToList() ?? new List<ProductDto>(),
                 SubCategories = c.SubCategories?.Select(sc => new CategoryDto
                 {
@@ -182,14 +185,7 @@ namespace Adidas.Application.Services.Separator
                 return Result.Failure("An unexpected error occurred.");
             }
         }
-        public async Task<IEnumerable<CategoryDto>> GetAllAsync()
-        {
-          
-                var categories = await _categoryRepository.GetAllCategoriesAsync();
-                return categories.Adapt<IEnumerable<CategoryDto>>();
-          
-           
-        }
+
         public async Task<Result> DeleteAsync(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(
@@ -203,7 +199,7 @@ namespace Adidas.Application.Services.Separator
 
             if (category.SubCategories.Count() != 0)
                 return Result.Failure("Cannot delete a category that has subcategories.");
-          if (category.Products.Count() != 0)
+            if (category.Products.Count() != 0)
                 return Result.Failure("Cannot delete a category that has products.");
 
             await _categoryRepository.HardDeleteAsync(id);
@@ -220,11 +216,11 @@ namespace Adidas.Application.Services.Separator
             var category = await _categoryRepository.GetByIdAsync(dto.Id);
             if (category == null)
                 return Result.Failure("Category not found.");
-           
+
             var nameExists = await _categoryRepository.GetCategoryByNameAsync(dto.Name);
             if (nameExists != null && nameExists.Id != category.Id)
                 return Result.Failure("name is already exists.");
- 
+
             var slugExists = await _categoryRepository.GetCategoryBySlugAsync(dto.Slug);
             if (slugExists != null && slugExists.Id != category.Id)
                 return Result.Failure("Slug already exists.");
@@ -239,9 +235,7 @@ namespace Adidas.Application.Services.Separator
             var result = await _categoryRepository.SaveChangesAsync();
 
             return result == null ? Result.Failure("Failed to Create category.") : Result.Success();
-
         }
-
 
 
         public async Task<CategoryUpdateDto> GetCategoryToEditByIdAsync(Guid id)
@@ -275,13 +269,13 @@ namespace Adidas.Application.Services.Separator
                 SortOrder = category.SortOrder,
                 IsActive = category.IsActive,
                 ParentCategory = category.ParentCategory != null
-                ? new CategoryDto
-                {
-                    Id = category.ParentCategory.Id,
-                    Name = category.ParentCategory.Name,
-                    Slug = category.ParentCategory.Slug
-                }
-                : null,
+                    ? new CategoryDto
+                    {
+                        Id = category.ParentCategory.Id,
+                        Name = category.ParentCategory.Name,
+                        Slug = category.ParentCategory.Slug
+                    }
+                    : null,
                 SubCategories = category.SubCategories?.Select(sub => new CategoryDto
                 {
                     Id = sub.Id,
@@ -302,9 +296,7 @@ namespace Adidas.Application.Services.Separator
                 }).ToList() ?? new List<ProductDto>()
             };
             return dto;
-
         }
-
 
 
         public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
@@ -327,12 +319,9 @@ namespace Adidas.Application.Services.Separator
             }
             catch (Exception ex)
             {
-
                 return Result.Failure("An error occurred while updating the category status.");
             }
         }
-
-
     }
 }
 
@@ -543,4 +532,3 @@ namespace Adidas.Application.Services.Separator
 //}
 
 //#endregion
-

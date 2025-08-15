@@ -21,5 +21,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
 
         Task<OperationResult<OrderSummaryDto>> GetOrderSummaryAsync(DateTime? startDate = null,
             DateTime? endDate = null);
+        
+        Task<byte[]> ExportToExcelAsync(DateTime? startDate = null, DateTime? endDate = null);
+        Task<byte[]> ExportToPdfAsync(DateTime? startDate = null, DateTime? endDate = null);
     }
 }

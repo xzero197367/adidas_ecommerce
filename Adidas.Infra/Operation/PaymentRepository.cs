@@ -9,17 +9,17 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<Payment>> GetPaymentsByOrderIdAsync(Guid orderId)
         {
-            return await GetAll(q=>q.Where(p => p.OrderId == orderId && !p.IsDeleted)).ToListAsync();
+            return await GetAll().Where(p => p.OrderId == orderId && !p.IsDeleted).ToListAsync();
         }
 
         public async Task<IEnumerable<Payment>> GetPaymentsByStatusAsync(string status)
         {
-            return await GetAll(q => q.Where(p => p.PaymentStatus == status && !p.IsDeleted)).ToListAsync();
+            return await GetAll().Where(p => p.PaymentStatus == status && !p.IsDeleted).ToListAsync();
         }
 
         public async Task<IEnumerable<Payment>> GetPaymentsByMethodAsync(string method)
         {
-            return await GetAll(q => q.Where(p => p.PaymentMethod == method && !p.IsDeleted)).ToListAsync();
+            return await GetAll().Where(p => p.PaymentMethod == method && !p.IsDeleted).ToListAsync();
         }
 
         public async Task<Payment?> GetPaymentByTransactionIdAsync(string transactionId)
@@ -29,7 +29,7 @@ namespace Adidas.Infra.Operation
 
         public async Task<decimal> GetTotalPaymentsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            var query = GetAll(q=>q.Where(p => p.PaymentStatus == "Success" && !p.IsDeleted));
+            var query = GetAll().Where(p => p.PaymentStatus == "Success" && !p.IsDeleted);
 
             if (startDate.HasValue)
                 query = query.Where(p => p.ProcessedAt >= startDate.Value);
@@ -42,7 +42,7 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<Payment>> GetFailedPaymentsAsync()
         {
-            return await GetAll(q => q.Where(p => p.PaymentStatus == "Failed" && !p.IsDeleted)).ToListAsync();
+            return await GetAll().Where(p => p.PaymentStatus == "Failed" && !p.IsDeleted).ToListAsync();
         }
 
         public async Task<PagedResultDto<Payment>> GetPaymentsPagedAsync(int pageNumber, int pageSize, string? status = null)

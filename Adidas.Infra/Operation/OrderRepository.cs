@@ -10,22 +10,21 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId)
         {
-            return await GetAll(q =>
-                    q.Where(o => o.UserId == userId && !o.IsDeleted).Include(o => o.OrderItems)
-                        .Include(o => o.Payments))
+            return await GetAll().Where(o => o.UserId == userId && !o.IsDeleted).Include(o => o.OrderItems)
+                        .Include(o => o.Payments)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
-            return await GetAll(q => q.Where(o => o.OrderStatus == status && !o.IsDeleted)).ToListAsync();
+            return await GetAll().Where(o => o.OrderStatus == status && !o.IsDeleted).ToListAsync();
         }
 
-        public async Task<IEnumerable<Order>> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
+        public IEnumerable<Order> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            return await GetAll(q => q.Where(o => o.OrderDate >= startDate &&
+            return  GetAll().Where(o => o.OrderDate >= startDate &&
                                                   o.OrderDate <= endDate &&
-                                                  !o.IsDeleted)).ToListAsync();
+                                                  !o.IsDeleted).ToList();
         }
 
         public async Task<Order?> GetOrderWithItemsAsync(Guid orderId)
@@ -52,10 +51,10 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
         {
-            return await GetAll(q => q.Where(o => o.OrderStatus == OrderStatus.Pending && !o.IsDeleted)).ToListAsync();
+            return await GetAll().Where(o => o.OrderStatus == OrderStatus.Pending && !o.IsDeleted).ToListAsync();
         }
 
-        public async Task<decimal> GetTotalSalesAsync(DateTime? startDate = null, DateTime? endDate = null)
+        public decimal GetTotalSalesAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             var query = _context.Orders
                 .Where(o => o.OrderStatus == OrderStatus.Delivered && !o.IsDeleted);
@@ -66,7 +65,7 @@ namespace Adidas.Infra.Operation
             if (endDate.HasValue)
                 query = query.Where(o => o.OrderDate <= endDate.Value);
 
-            return await query.SumAsync(o => o.TotalAmount);
+            return  query.Sum(o => o.TotalAmount);
         }
 
 

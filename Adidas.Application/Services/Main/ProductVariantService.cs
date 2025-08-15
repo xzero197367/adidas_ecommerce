@@ -40,10 +40,10 @@ namespace Adidas.Application.Services.Main
             try
             {
                 // تحقق هل يوجد نفس المنتج مع نفس الحجم واللون
-                var existingVariant = await _productVariantRepository.GetAll(q => q.Where(v =>
+                var existingVariant = await _productVariantRepository.GetAll().Where(v =>
                     v.ProductId == createDto.ProductId &&
                     v.Size.ToLower() == createDto.Size.ToLower() &&
-                    v.Color.ToLower() == createDto.Color.ToLower())).ToListAsync();
+                    v.Color.ToLower() == createDto.Color.ToLower()).ToListAsync();
 
                 if (existingVariant.Any())
                 {
@@ -154,11 +154,18 @@ namespace Adidas.Application.Services.Main
                 if (existingEntity == null)
                     throw new KeyNotFoundException($"Product variant with id {id} not found");
 
-                var duplicates = await _productVariantRepository.GetAll(q => q.Where(v =>
+                //var duplicates = await _productVariantRepository.GetAll(q => q.Where(v =>
+                //    v.ProductId == productVariantUpdateDto.ProductId &&
+                //    v.Size.ToLower() == productVariantUpdateDto.Size.ToLower() &&
+                //    v.Color.ToLower() == productVariantUpdateDto.Color.ToLower() &&
+                //    v.Id != id)).ToListAsync();
+                var duplicates = await  _productVariantRepository.GetAll().Where(v =>
                     v.ProductId == productVariantUpdateDto.ProductId &&
                     v.Size.ToLower() == productVariantUpdateDto.Size.ToLower() &&
                     v.Color.ToLower() == productVariantUpdateDto.Color.ToLower() &&
-                    v.Id != id)).ToListAsync();
+                    v.Id != id).ToListAsync();
+
+
 
                 if (duplicates.Any())
                 {

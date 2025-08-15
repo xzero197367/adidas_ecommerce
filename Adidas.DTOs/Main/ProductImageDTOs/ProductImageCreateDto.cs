@@ -7,7 +7,7 @@ namespace Adidas.DTOs.Main.ProductImageDTOs
     {
         [Required]
         [Url(ErrorMessage = "Please provide a valid image URL")]
-        public required string ImageUrl { get; set; }
+        public string ImageUrl { get; set; }
 
         public string AltText { get; set; } = string.Empty;
 
@@ -15,10 +15,10 @@ namespace Adidas.DTOs.Main.ProductImageDTOs
         public int SortOrder { get; set; }
 
         [Required]
-        public required bool IsPrimary { get; set; }
+        public bool IsPrimary { get; set; }
 
         [Required]
-        public required Guid ProductId { get; set; }
+        public Guid ProductId { get; set; }
 
         public Guid? VariantId { get; set; }
     }

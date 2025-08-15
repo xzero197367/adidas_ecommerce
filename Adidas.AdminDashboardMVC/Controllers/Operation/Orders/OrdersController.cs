@@ -23,9 +23,16 @@ namespace Adidas.Web.Controllers
         }
 
         // GET: Order
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? orderNumber = null)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10,
+            string? orderNumber = null, OrderStatus? status = null, DateTime? orderDate = null)
+
         {
-            var filter = new OrderFilterDto { OrderNumber = orderNumber };
+            var filter = new OrderFilterDto()
+            {
+                OrderNumber = orderNumber,
+                OrderStatus = status,
+                OrderDate = orderDate
+            };
             var result = await _orderService.GetPagedOrdersAsync(pageNumber, pageSize, filter);
 
             if (!result.IsSuccess)
@@ -34,10 +41,12 @@ namespace Adidas.Web.Controllers
                 return View();
             }
 
-            ViewBag.CurrentFilter = orderNumber;
             ViewBag.PageNumber = pageNumber;
             ViewBag.PageSize = pageSize;
-            
+            ViewBag.OrderNumber = orderNumber;
+            ViewBag.OrderStatus = status;
+            ViewBag.OrderDate = orderDate;
+
             return View(result.Data);
         }
 
@@ -45,7 +54,7 @@ namespace Adidas.Web.Controllers
         public async Task<IActionResult> Details(Guid id)
         {
             var result = await _orderService.GetOrderWithItemsAsync(id);
-            
+
             if (!result.IsSuccess)
             {
                 TempData["Error"] = result.ErrorMessage;
@@ -82,13 +91,13 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _orderService.CreateAsync(orderDto);
-                
+
                 if (result.IsSuccess)
                 {
                     TempData["Success"] = "Order created successfully!";
                     return RedirectToAction(nameof(Details), new { id = result.Data.Id });
                 }
-                
+
                 TempData["Error"] = result.ErrorMessage;
                 return View(orderDto);
             }
@@ -104,7 +113,7 @@ namespace Adidas.Web.Controllers
         public async Task<IActionResult> Edit(Guid id)
         {
             var result = await _orderService.GetByIdAsync(id);
-            
+
             if (!result.IsSuccess)
             {
                 TempData["Error"] = result.ErrorMessage;
@@ -151,13 +160,13 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _orderService.UpdateAsync(orderDto);
-                
+
                 if (result.IsSuccess)
                 {
                     TempData["Success"] = "Order updated successfully!";
                     return RedirectToAction(nameof(Details), new { id });
                 }
-                
+
                 TempData["Error"] = result.ErrorMessage;
                 return View(orderDto);
             }
@@ -173,7 +182,7 @@ namespace Adidas.Web.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _orderService.GetByIdAsync(id);
-            
+
             if (!result.IsSuccess)
             {
                 TempData["Error"] = result.ErrorMessage;
@@ -192,7 +201,7 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _orderService.DeleteAsync(id);
-                
+
                 if (result.IsSuccess)
                 {
                     TempData["Success"] = "Order deleted successfully!";
@@ -201,7 +210,7 @@ namespace Adidas.Web.Controllers
                 {
                     TempData["Error"] = result.ErrorMessage;
                 }
-                
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -220,7 +229,7 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _orderService.UpdateOrderStatusAsync(id, status);
-                
+
                 if (result.IsSuccess)
                 {
                     TempData["Success"] = $"Order status updated to {status}!";
@@ -229,7 +238,7 @@ namespace Adidas.Web.Controllers
                 {
                     TempData["Error"] = result.ErrorMessage;
                 }
-                
+
                 return RedirectToAction(nameof(Details), new { id });
             }
             catch (Exception ex)
@@ -248,7 +257,7 @@ namespace Adidas.Web.Controllers
             try
             {
                 var result = await _orderService.CancelOrderAsync(id, reason);
-                
+
                 if (result.IsSuccess)
                 {
                     TempData["Success"] = "Order cancelled successfully!";
@@ -257,7 +266,7 @@ namespace Adidas.Web.Controllers
                 {
                     TempData["Error"] = result.ErrorMessage;
                 }
-                
+
                 return RedirectToAction(nameof(Details), new { id });
             }
             catch (Exception ex)
@@ -277,7 +286,7 @@ namespace Adidas.Web.Controllers
             }
 
             var result = await _orderService.GetOrdersByUserIdAsync(user.Id);
-            
+
             if (!result.IsSuccess)
             {
                 TempData["Error"] = result.ErrorMessage;
@@ -288,27 +297,27 @@ namespace Adidas.Web.Controllers
         }
 
         // GET: Order/ByStatus
-        [Authorize(Roles = "Admin,Employee")]
-        public async Task<IActionResult> ByStatus(OrderStatus status)
-        {
-            var result = await _orderService.GetOrdersByStatusAsync(status);
-            
-            if (!result.IsSuccess)
-            {
-                TempData["Error"] = result.ErrorMessage;
-                return View(new List<OrderDto>());
-            }
-
-            ViewBag.Status = status;
-            return View(result.Data);
-        }
+        // [Authorize(Roles = "Admin,Employee")]
+        // public async Task<IActionResult> ByStatus(OrderStatus status)
+        // {
+        //     var result = await _orderService.GetOrdersByStatusAsync(status);
+        //
+        //     if (!result.IsSuccess)
+        //     {
+        //         TempData["Error"] = result.ErrorMessage;
+        //         return View(new List<OrderDto>());
+        //     }
+        //
+        //     ViewBag.Status = status;
+        //     return View(result.Data);
+        // }
 
         // GET: Order/Summary
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Summary(DateTime? startDate = null, DateTime? endDate = null)
         {
             var result = await _orderService.GetOrderSummaryAsync(startDate, endDate);
-            
+
             if (!result.IsSuccess)
             {
                 TempData["Error"] = result.ErrorMessage;
@@ -317,10 +326,22 @@ namespace Adidas.Web.Controllers
 
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            
+
             return View(result.Data);
         }
-
+        
+        // POST: Order/ExportToFile
+        public async Task<FileResult> ExportToFile(string format, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            if (format == "pdf")
+            {
+                var pdfBytes = await _orderService.ExportToPdfAsync(startDate, endDate);
+                return File(pdfBytes, "application/pdf", "orders.pdf");
+            }
+            var excelBytes = await _orderService.ExportToExcelAsync(startDate, endDate);
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx");
+        }
+        
         // GET: Order/Search
         public async Task<IActionResult> Search(string orderNumber)
         {
@@ -330,7 +351,7 @@ namespace Adidas.Web.Controllers
             }
 
             var result = await _orderService.GetOrderByOrderNumberAsync(orderNumber);
-            
+
             if (!result.IsSuccess)
             {
                 TempData["Error"] = result.ErrorMessage;
@@ -339,10 +360,10 @@ namespace Adidas.Web.Controllers
 
             return RedirectToAction(nameof(Details), new { id = result.Data.Id });
         }
-        
-        
+
+
         //  get customers
-        
+
         [HttpGet("get-customers")]
         public async Task<IActionResult> GetCustomers(
             [FromQuery] int page = 1,
@@ -357,7 +378,7 @@ namespace Adidas.Web.Controllers
                 // Filter by search term
                 if (!string.IsNullOrEmpty(search))
                 {
-                    query = query.Where(u => 
+                    query = query.Where(u =>
                         u.FirstName.Contains(search) ||
                         u.LastName.Contains(search) ||
                         u.Email.Contains(search) ||
@@ -371,7 +392,7 @@ namespace Adidas.Web.Controllers
                 }
 
                 var totalCount = await query.CountAsync();
-                
+
                 var users = await query
                     .OrderBy(u => u.FirstName)
                     .ThenBy(u => u.LastName)

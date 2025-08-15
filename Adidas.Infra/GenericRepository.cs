@@ -9,8 +9,8 @@ namespace Adidas.Infra;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditableEntity
 {
-    protected readonly AdidasDbContext _context;
-    protected readonly DbSet<T> _dbSet;
+    protected AdidasDbContext _context;
+    protected DbSet<T> _dbSet;
 
     public GenericRepository(AdidasDbContext context)
     {
@@ -195,10 +195,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
         return await query.FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public  IQueryable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
+    public IQueryable<T> GetAll()
     {
-        var query = _dbSet.AsNoTracking().AsQueryable();
-        if (queryFunc != null) query = queryFunc(query);
+        IQueryable<T> query = _dbSet.AsQueryable().AsNoTracking(); // keep EF tracking mode optional
         return query;
     }
 
@@ -226,9 +225,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditabl
         {
             query = query.Include(include);
         }
+
         return await query.ToListAsync();
     }
-
 
     #endregion
 }

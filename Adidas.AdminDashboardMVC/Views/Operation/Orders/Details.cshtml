@@ -213,10 +213,11 @@
                             <div class="col-md-6">
                                 <h6>Update Status</h6>
                                 <form asp-action="UpdateStatus" asp-controller="Orders" method="post"
+                                      @* asp-route-status="@Model.OrderStatus" *@
                                       class="form-inline">
                                     <input type="hidden" name="id" value="@Model.Id"/>
 
-                                    <select asp-for="OrderStatus" asp-items="Html.GetEnumSelectList<OrderStatus>()"
+                                    <select asp-for="OrderStatus" name="status" asp-items="Html.GetEnumSelectList<OrderStatus>()"
                                             class="form-control mr-2" required></select>
 
                                     <button type="submit" class="btn btn-primary">Update Status</button>
@@ -267,7 +268,8 @@
                         {
                             <a asp-action="Delete" asp-controller="Orders" asp-route-id="@Model.Id"
                                class="btn btn-danger ml-2"
-                               onclick="return confirm('Are you sure you want to delete this order?')">
+                               @* onclick="return confirm('Are you sure you want to delete this order?')" *@
+                               >
                                 <i class="fas fa-trash"></i> Delete Order
                             </a>
                         }
@@ -289,13 +291,15 @@
 
         // Form validation for status update
         $('form[action*="UpdateStatus"]').on('submit', function (e) {
+            console.log(e.target.value)
             var status = $('select[name="status"]').val();
-            if (!status) {
-                e.preventDefault();
-                alert('Please select a status before updating.');
-                return false;
-            }
-            return confirm('Are you sure you want to update the order status to ' + status + '?');
+            // if (!status) {
+            //     e.preventDefault();
+            //     console.log({status})
+            //     alert('Please select a status before updating.');
+            //     return false;
+            // }
+            // return confirm('Are you sure you want to update the order status to ' + status + '?');
         });
     </script>
 }

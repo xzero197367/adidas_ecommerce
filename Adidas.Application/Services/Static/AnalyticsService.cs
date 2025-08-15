@@ -49,10 +49,10 @@ namespace Adidas.Application.Services.Static
                 var totalProducts = await _productRepository.CountAsync();
                 var totalOrders = await _orderRepository.CountAsync();
                 var totalCustomers = await _context.Users.CountAsync(u => u.Role == UserRole.Customer);
-                var totalRevenue = await _orderRepository.GetTotalSalesAsync();
+                var totalRevenue =  _orderRepository.GetTotalSalesAsync();
 
                 var currentMonth = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
-                var monthlyRevenue = await _orderRepository.GetTotalSalesAsync(currentMonth);
+                var monthlyRevenue =  _orderRepository.GetTotalSalesAsync(currentMonth);
 
                 var lowStockVariants = await _variantRepository.GetLowStockVariantsAsync(10);
                 var pendingOrders = await _orderRepository.CountAsync(o => o.OrderStatus == OrderStatus.Pending);
@@ -84,7 +84,7 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var orders = await _orderRepository.GetOrdersByDateRangeAsync(startDate, endDate);
+                var orders =  _orderRepository.GetOrdersByDateRangeAsync(startDate, endDate);
                 var ordersList = orders.Where(o => o.OrderStatus != OrderStatus.Cancelled).ToList();
 
                 var totalSales = ordersList.Sum(o => o.TotalAmount);

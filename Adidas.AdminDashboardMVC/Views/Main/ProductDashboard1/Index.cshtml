@@ -1,0 +1,541 @@
+﻿@model Adidas.AdminDashboardMVC.Controllers.Main.ProductDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Dashboard</h1>
+            <small class="text-muted">Welcome back! Here's what's happening with your store.</small>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary" onclick="refreshDashboard()">
+                <i class="fas fa-sync-alt me-2"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Products</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalProducts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Index" asp-controller="Product1" class="small text-decoration-none">View All Products <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Product Variants</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalVariants</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Index"  asp-controller="ProductVariant1" class="small text-decoration-none">Manage Variants <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Low Stock Items</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.LowStockItems</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a  onclick="showStockAlerts()" class="small text-decoration-none">View Details <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Out of Stock</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.OutOfStockItems</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a 
+                        @* href="/Admin/ProductVariant?stockStatus=outofstock"  *@
+                        class="small text-decoration-none">Restock Items <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-info">@Model.TotalCategories</h5>
+                    <p class="card-text">Categories</p>
+                    <a asp-controller="Categories" asp-action="Index" class="btn btn-sm btn-outline-info">Manage</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-secondary">@Model.TotalBrands</h5>
+                    <p class="card-text">Brands</p>
+                    <a asp-controller="Brands" asp-action="Index" class="btn btn-sm btn-outline-secondary">Manage</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">@((Model.TotalVariants > 0 ? (decimal)(Model.TotalVariants - Model.OutOfStockItems) / Model.TotalVariants * 100 : 0).ToString("F1"))%</h5>
+                    <p class="card-text">Stock Availability</p>
+                    <span class="badge bg-success">Healthy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Recent Products -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Recent Products
+                    </h6>
+                    <a asp-controller="Product1" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentProducts.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var product in Model.RecentProducts)
+                            {
+                                <div class="list-group-item list-group-item-action border-0 px-0">
+                                    <div class="d-flex align-items-center">
+                                        @if (product.Images?.Any() == true)
+                                        {
+                                            <img src="@product.Images.First().ImageUrl" alt="@product.Name" 
+                                                 class="me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="me-3 bg-light rounded d-flex align-items-center justify-content-center" 
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        }
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold">@product.Name</div>
+                                            <small class="text-muted">
+                                                @product.CategoryName • @product.BrandName
+                                                @if (product.IsOnSale)
+                                                {
+                                                    <span class="badge bg-danger ms-2">SALE</span>
+                                                }
+                                            </small>
+                                            <div class="text-success fw-bold">$@product.DisplayPrice.ToString("F2")</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">@product.CreatedAt.ToString("MMM dd")</small>
+                                            <br>
+                                            <a  asp-route-id="@product.Id" asp-controller="Product1" asp-action="Details" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-box fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">No products created yet</p>
+                            <a asp-controller="Product1" asp-action="Create" class="btn btn-primary">Create First Product</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Alerts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Stock Alerts
+                    </h6>
+                    <a 
+                        @* href="/Admin/ProductVariant?stockStatus=lowstock"  *@
+                        asp-controller="Product1" asp-action="Index"
+                       asp-route-filter=""
+                       class="btn btn-sm btn-outline-warning">View All</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.LowStockAlerts.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var variant in Model.LowStockAlerts)
+                            {
+                                <div class="list-group-item list-group-item-action border-0 px-0">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div class="fw-bold">@variant.Product?.Name</div>
+                                            <small class="text-muted">@variant.Color - @variant.Size</small>
+                                            <br>
+                                            <code class="small">@variant.Sku</code>
+                                        </div>
+                                        <div class="text-end">
+                                            @if (variant.StockQuantity == 0)
+                                            {
+                                                <span class="badge bg-danger">Out of Stock</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">@variant.StockQuantity left</span>
+                                            }
+                                            <br>
+                                            <a 
+                                                asp-route-id="@variant.Id" 
+                                                asp-controller="ProductVariant1" 
+                                                asp-action="Details"
+                                               class="btn btn-sm btn-outline-primary mt-1">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                            <p class="text-muted">All items are well stocked!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a asp-action="Create" asp-controller="Product1" class="btn btn-primary w-100">
+                                <i class="fas fa-plus me-2"></i>Add Product
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a asp-action="Create" asp-controller="ProductVariant1" class="btn btn-success w-100">
+                                <i class="fas fa-layer-group me-2"></i>Add Variant
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a asp-action="Create" asp-controller="Categories" class="btn btn-info w-100">
+                                <i class="fas fa-tags me-2"></i>Add Category
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning w-100" onclick="showStockAlerts()">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Stock Alerts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clock me-2"></i>Recent Activity
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="recentActivity">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Alerts Modal -->
+<div class="modal fade" id="stockAlertsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>Stock Alerts
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="stockAlertsList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* <div class="modal-footer"> *@
+            @*     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> *@
+            @*     <a href="/Admin/ProductVariant?stockStatus=lowstock" class="btn btn-primary"> *@
+            @*         Manage All Stock *@
+            @*     </a> *@
+            @* </div> *@
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Load recent activity on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecentActivity();
+        });
+
+        function loadRecentActivity() {
+            fetch('/Admin/RecentActivity')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('recentActivity');
+                    
+                    if (data && data.length > 0) {
+                        let html = '<div class="timeline">';
+                        
+                        data.forEach((activity, index) => {
+                            const timeAgo = moment(activity.timestamp).fromNow();
+                            const iconClass = getActivityIcon(activity.type);
+                            
+                            html += `
+                                <div class="timeline-item ${index === data.length - 1 ? 'last' : ''}">
+                                    <div class="timeline-marker">
+                                        <i class="${iconClass}"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">${activity.title}</h6>
+                                        <p class="timeline-text">${activity.description}</p>
+                                        <small class="text-muted">${timeAgo}</small>
+                                        ${activity.link ? `<a href="${activity.link}" class="btn btn-sm btn-outline-primary ms-2">View</a>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-clock fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">No recent activity</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading recent activity:', error);
+                    document.getElementById('recentActivity').innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
+                            <p class="text-muted">Error loading recent activity</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function showStockAlerts() {
+            const modal = new bootstrap.Modal(document.getElementById('stockAlertsModal'));
+            modal.show();
+            
+            fetch('/Admin/StockAlerts')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('stockAlertsList');
+                    
+                    if (data && data.length > 0) {
+                        let html = '<div class="table-responsive"><table class="table"><thead><tr><th>Product</th><th>Variant</th><th>SKU</th><th>Stock</th><th>Action</th></tr></thead><tbody>';
+                        
+                        data.forEach(alert => {
+                            const statusBadge = alert.status === 'out_of_stock' 
+                                ? '<span class="badge bg-danger">Out of Stock</span>'
+                                : `<span class="badge bg-warning">${alert.stock} left</span>`;
+                                
+                            html += `
+                                <tr>
+                                    <td>${alert.productName}</td>
+                                    <td>${alert.variant}</td>
+                                    <td><code>${alert.sku}</code></td>
+                                    <td>${statusBadge}</td>
+                                    <td><a href="${alert.link}" class="btn btn-sm btn-outline-primary">Edit</a></td>
+                                </tr>
+                            `;
+                        });
+                        
+                        html += '</tbody></table></div>';
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                                <p class="text-muted">All items are well stocked!</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading stock alerts:', error);
+                    document.getElementById('stockAlertsList').innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
+                            <p class="text-muted">Error loading stock alerts</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function refreshDashboard() {
+            location.reload();
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                'product_created': 'fas fa-plus-circle text-success',
+                'variant_created': 'fas fa-layer-group text-info',
+                'stock_updated': 'fas fa-boxes text-warning',
+                'order_received': 'fas fa-shopping-cart text-primary',
+                'default': 'fas fa-circle text-secondary'
+            };
+            
+            return icons[type] || icons['default'];
+        }
+    </script>
+
+    <!-- Add Moment.js for time formatting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    
+    <style>
+        .border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+        .border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+        .border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+        .border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+        
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e3e6f0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .timeline-item.last {
+            margin-bottom: 0;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -2.25rem;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #e3e6f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .timeline-content {
+            background: #f8f9fc;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e3e6f0;
+        }
+        
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-text {
+            font-size: 13px;
+            margin-bottom: 0.5rem;
+            color: #5a5c69;
+        }
+    </style>
+}

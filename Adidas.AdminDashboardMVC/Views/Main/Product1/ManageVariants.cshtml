@@ -1,0 +1,132 @@
+﻿@model List<Adidas.DTOs.Main.Product_Variant_DTOs.ProductVariantDto>
+
+@{
+    ViewData["Title"] = $"Manage Variants - {ViewBag.ProductName}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-layer-group me-2"></i>Manage Product Variants - @ViewBag.ProductName
+                        </h3>
+                        <a asp-controller="ProductVariant1" asp-action="Create" asp-route-productId="@ViewBag.ProductId" class="btn btn-light">
+                            <i class="fas fa-plus me-1"></i>Add New Variant
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>SKU</th>
+                                        <th>Size</th>
+                                        <th>Color</th>
+                                        <th>Price Adjustment</th>
+                                        <th>Stock</th>
+                                        <th>Sort Order</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var variant in Model.OrderBy(v => v.SortOrder))
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (variant.Images != null && variant.Images.Any())
+                                                {
+                                                    var primaryImage = variant.Images.FirstOrDefault(i => i.IsPrimary) ?? variant.Images.First();
+                                                    <img src="@primaryImage.ImageUrl" alt="@primaryImage.AltText" class="img-thumbnail" style="max-width: 50px; max-height: 50px;" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                        <i class="fas fa-image text-muted"></i>
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">@variant.Sku</small>
+                                            </td>
+                                            <td>@variant.Size</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(variant.Color))
+                                                {
+                                                    <span class="badge" style="@(string.IsNullOrEmpty(variant.ColorHex) ? "background-color: #6c757d;" : $"background-color: {variant.ColorHex};")">
+                                                        @variant.Color
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <strong>@(variant.PriceAdjustment >= 0 ? "+" : "")@variant.PriceAdjustment.ToString("C")</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge @(variant.StockQuantity > 0 ? (variant.StockQuantity < 10 ? "bg-warning" : "bg-success") : "bg-danger")">
+                                                    @variant.StockQuantity
+                                                </span>
+                                            </td>
+                                            <td>@variant.SortOrder</td>
+                                            <td>
+                                                <span class="badge @(variant.IsActive ? "bg-success" : "bg-secondary")">
+                                                    @(variant.IsActive ? "Active" : "Inactive")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a asp-controller="ProductVariant1" asp-action="Details" asp-route-id="@variant.Id" class="btn btn-outline-info" title="Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a asp-controller="ProductVariant1" asp-action="Edit" asp-route-id="@variant.Id" class="btn btn-outline-primary" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a asp-controller="ProductVariant1" asp-action="Delete" asp-route-id="@variant.Id" class="btn btn-outline-danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No variants found</h5>
+                            <p class="text-muted">Create your first product variant to get started.</p>
+                            <a asp-controller="ProductVariant1" asp-action="Create" asp-route-productId="@ViewBag.ProductId" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Add First Variant
+                            </a>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Details" asp-controller="Product1" asp-route-id="@ViewBag.ProductId" class="btn btn-info me-2">
+                        <i class="fas fa-eye me-1"></i>View Product
+                    </a>
+                    <a asp-action="Edit" asp-controller="Product1" asp-route-id="@ViewBag.ProductId" class="btn btn-primary me-2">
+                        <i class="fas fa-edit me-1"></i>Edit Product
+                    </a>
+                    <a asp-action="Index" asp-controller="Product1" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Products
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

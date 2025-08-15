@@ -11,27 +11,25 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<OrderItem>> GetItemsByOrderIdAsync(Guid orderId)
         {
-            return await GetAll((q) =>
-            {
-                return q.Where(oi => oi.OrderId == orderId && !oi.IsDeleted).Include(oi => oi.Variant)
-                    .Include(oi => oi.Order);
-            }).ToListAsync();
+            return await GetAll().Where(oi => oi.OrderId == orderId && !oi.IsDeleted).Include(oi => oi.Variant)
+                    .Include(oi => oi.Order)
+            .ToListAsync();
         }
 
         public async Task<IEnumerable<OrderItem>> GetItemsByVariantIdAsync(Guid variantId)
         {
-            return await GetAll(q => q.Where(oi => oi.VariantId == variantId && !oi.IsDeleted)).ToListAsync();
+            return await GetAll().Where(oi => oi.VariantId == variantId && !oi.IsDeleted).ToListAsync();
         }
 
         public async Task<decimal> GetTotalSalesForVariantAsync(Guid variantId)
         {
-            var query = GetAll(q => q.Where(oi => oi.VariantId == variantId && !oi.IsDeleted));
+            var query = GetAll().Where(oi => oi.VariantId == variantId && !oi.IsDeleted);
             return await query.SumAsync(oi => oi.TotalPrice);
         }
 
         public async Task<IEnumerable<OrderItem>> GetBestSellingItemsAsync(int count)
         {
-            var query = GetAll(q => q.Where(io => !io.IsDeleted));
+            var query = GetAll().Where(io => !io.IsDeleted);
             return await query
                 .GroupBy(oi => oi.VariantId)
                 .OrderByDescending(g => g.Sum(oi => oi.Quantity))
@@ -43,7 +41,7 @@ namespace Adidas.Infra.Operation
 
         public async Task<int> GetTotalQuantitySoldAsync(Guid variantId)
         {
-            var query = GetAll(q => q.Where(oi => oi.VariantId == variantId && !oi.IsDeleted));
+            var query = GetAll().Where(oi => oi.VariantId == variantId && !oi.IsDeleted);
             return await query.SumAsync(oi => oi.Quantity);
         }
 

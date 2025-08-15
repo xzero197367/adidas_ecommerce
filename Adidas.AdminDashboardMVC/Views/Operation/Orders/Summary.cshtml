@@ -37,15 +37,22 @@
                             </button>
                         </div>
                         <div class="col-md-3 d-flex align-items-end justify-content-end">
-                            <button type="button" class="btn btn-success" onclick="exportReport()">
-                                <i class="fas fa-download"></i> Export
-                            </button>
-                            <button type="button" class="btn btn-info ml-2" onclick="window.print()">
-                                <i class="fas fa-print"></i> Print
-                            </button>
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" onclick="exportReport('pdf')"><i
+                                                class="far fa-file-pdf text-danger"></i> Export as PDF</a></li>
+                                    <li><a class="dropdown-item" onclick="exportReport('xlsx')"><i
+                                                class="far fa-file-excel text-success"></i> Export as Excel</a></li>
+                                </ul>
+                            </div>
+                       
                         </div>
+
                     </form>
-                    
                     @if (!string.IsNullOrEmpty(startDate) || !string.IsNullOrEmpty(endDate))
                     {
                         <div class="alert alert-info mt-3">
@@ -87,7 +94,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6">
             <div class="card bg-success text-white">
                 <div class="card-body">
@@ -103,7 +110,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6">
             <div class="card bg-info text-white">
                 <div class="card-body">
@@ -119,7 +126,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6">
             <div class="card bg-warning text-white">
                 <div class="card-body">
@@ -233,17 +240,20 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <a asp-action="ByStatus" asp-controller="Orders" asp-route-status="Pending" class="btn btn-warning btn-block">
+                            <a asp-action="Index" asp-controller="Orders" asp-route-status="Pending"
+                               class="btn btn-warning btn-block">
                                 <i class="fas fa-clock"></i> View Pending Orders
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a asp-action="ByStatus" asp-controller="Orders" asp-route-status="Processing" class="btn btn-info btn-block">
+                            <a asp-action="Index" asp-controller="Orders" asp-route-status="Processing"
+                               class="btn btn-info btn-block">
                                 <i class="fas fa-cogs"></i> View Processing Orders
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a asp-action="ByStatus" asp-controller="Orders" asp-route-status="Shipped" class="btn btn-primary btn-block">
+                            <a asp-action="Index" asp-controller="Orders" asp-route-status="Shipped"
+                               class="btn btn-primary btn-block">
                                 <i class="fas fa-shipping-fast"></i> View Shipped Orders
                             </a>
                         </div>
@@ -264,7 +274,7 @@
             <div class="card border-light">
                 <div class="card-footer text-center text-muted">
                     <small>
-                        Report generated on @DateTime.Now.ToString("MMMM dd, yyyy 'at' HH:mm") | 
+                        Report generated on @DateTime.Now.ToString("MMMM dd, yyyy 'at' HH:mm") |
                         Data refreshed every 15 minutes |
                         <a asp-action="Summary" asp-controller="Orders" class="text-decoration-none">Refresh Report</a>
                     </small>
@@ -277,7 +287,10 @@
 @section Scripts {
     <!-- Chart.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    
+
+    <!-- Custom Export Script -->
+    @* <script src="~/js/order-export.js"></script> *@
+
     <script>
         // Sample data - in real implementation, this would come from the server
         const revenueData = {
@@ -337,13 +350,71 @@
             document.getElementById('endDate').value = '';
         }
 
-        function exportReport() {
-            // In real implementation, this would trigger a server-side export
-            alert('Export functionality would be implemented here (PDF/Excel)');
+        function exportReport(format) {
+            console.log('Exporting report...');
+            const startDate = document.getElementById('startDate')?.value;
+            const endDate = document.getElementById('endDate')?.value;
+
+            // Show loading indicator
+            const exportButton = event?.target?.closest('.btn-group')?.querySelector('button') ||
+                document.querySelector('button[onclick^="exportReport"]');
+            const originalText = exportButton.innerHTML;
+            exportButton.disabled = true;
+            exportButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...';
+
+            // Create form data
+            const formData = new FormData();
+            if (startDate) formData.append('startDate', startDate);
+            if (endDate) formData.append('endDate', endDate);
+
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            // Send request to server
+            fetch(`/Orders/ExportToFile/?format=${format}`, {
+                method: 'POST',
+                body: formData,
+                headers: token ? {
+                    'RequestVerificationToken': token
+                } : {}
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text || 'Export failed');
+                        });
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `OrderSummary_${new Date().toISOString().replace(/[:.]/g, '-')}.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+
+                    // Show success message
+                    showAlert('Export completed successfully!', 'success');
+                })
+                .catch(error => {
+                    console.error('Export error:', error);
+                    showAlert('Failed to generate export. Please try again.', 'danger');
+                })
+                .finally(() => {
+                    // Reset button state
+                    if (exportButton) {
+                        exportButton.disabled = false;
+                        exportButton.innerHTML = originalText;
+                    }
+                });
         }
 
         // Auto-refresh every 15 minutes
-        setTimeout(function() {
+        setTimeout(function () {
             location.reload();
         }, 15 * 60 * 1000);
     </script>
@@ -376,16 +447,16 @@
             .btn, .card-header .btn-group, .no-print {
                 display: none !important;
             }
-            
+
             .card {
                 border: 1px solid #dee2e6 !important;
                 box-shadow: none !important;
             }
-            
+
             .card-body {
                 padding: 10px !important;
             }
-            
+
             body {
                 font-size: 12px;
             }

@@ -1,0 +1,257 @@
+﻿@model Adidas.DTOs.Main.ProductDTOs.ProductCreateDto
+
+@{
+    ViewData["Title"] = "Create Product";
+    // Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-plus-circle me-2"></i>Create New Product
+        </h2>
+        <a asp-action="Index" asp-controller="Product1" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Products
+        </a>
+    </div>
+
+    <form asp-action="Create" asp-controller="Product1" method="post" class="needs-validation" novalidate>
+        @Html.AntiForgeryToken()
+        
+        <div class="row">
+            <!-- Basic Information -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Basic Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Name" class="form-label">Product Name *</label>
+                                <input asp-for="Name" class="form-control" placeholder="Enter product name" required>
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Sku" class="form-label">SKU</label>
+                                <input asp-for="Sku" class="form-control" placeholder="Auto-generated if empty">
+                                <span asp-validation-for="Sku" class="text-danger"></span>
+                                <small class="text-muted">Leave empty to auto-generate</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ShortDescription" class="form-label">Short Description *</label>
+                            <textarea asp-for="ShortDescription" class="form-control" rows="2" 
+                                      placeholder="Brief description for product listings" required></textarea>
+                            <span asp-validation-for="ShortDescription" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Full Description *</label>
+                            <textarea asp-for="Description" class="form-control" rows="6" 
+                                      placeholder="Detailed product description" required></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-dollar-sign me-2"></i>Pricing
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label">Regular Price *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Price" class="form-control" type="number" step="0.01" 
+                                           placeholder="0.00" required>
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SalePrice" class="form-label">Sale Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="SalePrice" class="form-control" type="number" step="0.01" 
+                                           placeholder="0.00">
+                                </div>
+                                <span asp-validation-for="SalePrice" class="text-danger"></span>
+                                <small class="text-muted">Leave empty if not on sale</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEO -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-search me-2"></i>SEO Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="MetaTitle" class="form-label">Meta Title</label>
+                            <input asp-for="MetaTitle" class="form-control" maxlength="60" 
+                                   placeholder="SEO title (max 60 characters)">
+                            <span asp-validation-for="MetaTitle" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="MetaDescription" class="form-label">Meta Description</label>
+                            <textarea asp-for="MetaDescription" class="form-control" rows="3" maxlength="160"
+                                      placeholder="SEO description (max 160 characters)"></textarea>
+                            <span asp-validation-for="MetaDescription" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories and Attributes -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tags me-2"></i>Categories & Attributes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="CategoryId" class="form-label">Category *</label>
+                            <select asp-for="CategoryId" class="form-select" required>
+                                <option value="">Select Category</option>
+                                @foreach (var category in ViewBag.Categories as SelectList)
+                                {
+                                    <option value="@category.Value">@category.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="BrandId" class="form-label">Brand *</label>
+                            <select asp-for="BrandId" class="form-select" required>
+                                <option value="">Select Brand</option>
+                                @foreach (var brand in ViewBag.Brands as SelectList)
+                                {
+                                    <option value="@brand.Value">@brand.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="BrandId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GenderTarget" class="form-label">Target Gender *</label>
+                            <select asp-for="GenderTarget" class="form-select" required>
+                                <option value="">Select Gender</option>
+                                @foreach (var gender in ViewBag.Genders as SelectList)
+                                {
+                                    <option value="@gender.Value">@gender.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="GenderTarget" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Status -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-toggle-on me-2"></i>Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input asp-for="InStock" class="form-check-input" type="checkbox">
+                            <label asp-for="InStock" class="form-check-label">
+                                Available for Sale
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input asp-for="Sale" class="form-check-input" type="checkbox">
+                            <label asp-for="Sale" class="form-check-label">
+                                Featured Product
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Create Product
+                            </button>
+                            <a asp-action="Index" asp-controller="Product1" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+
+        // Price validation
+        document.getElementById('@Html.IdFor(m => m.SalePrice)').addEventListener('input', function() {
+            const regularPrice = parseFloat(document.getElementById('@Html.IdFor(m => m.Price)').value);
+            const salePrice = parseFloat(this.value);
+            
+            if (salePrice && regularPrice && salePrice >= regularPrice) {
+                this.setCustomValidity('Sale price must be less than regular price');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Character counter for meta fields
+        function setupCharacterCounter(elementId, maxLength) {
+            const element = document.getElementById(elementId);
+            const counter = document.createElement('small');
+            counter.className = 'text-muted d-block mt-1';
+            element.parentNode.appendChild(counter);
+            
+            function updateCounter() {
+                const remaining = maxLength - element.value.length;
+                counter.textContent = `${remaining} characters remaining`;
+                counter.className = remaining < 20 ? 'text-warning d-block mt-1' : 'text-muted d-block mt-1';
+            }
+            
+            element.addEventListener('input', updateCounter);
+            updateCounter();
+        }
+
+        setupCharacterCounter('@Html.IdFor(m => m.MetaTitle)', 60);
+        setupCharacterCounter('@Html.IdFor(m => m.MetaDescription)', 160);
+    </script>
+}

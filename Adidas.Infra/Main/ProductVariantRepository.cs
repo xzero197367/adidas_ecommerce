@@ -58,10 +58,10 @@ namespace Adidas.Infra.Main
 
         public async Task<IEnumerable<ProductVariant>> GetLowStockVariantsAsync(int threshold = 10)
         {
-            return await _dbSet
+            return _dbSet.AsNoTracking().AsQueryable()
                 .Include(v => v.Product)
                 .Where(v => !v.IsDeleted && v.IsActive && v.StockQuantity <= threshold)
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<bool> UpdateStockAsync(Guid variantId, int newStock)

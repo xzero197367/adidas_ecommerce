@@ -1,0 +1,260 @@
+﻿@model Adidas.DTOs.Main.Product_Variant_DTOs.ProductVariantUpdateDto
+
+@{
+    ViewData["Title"] = "Edit Product Variant";
+    // Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-edit me-2"></i>Edit Product Variant
+            @if (!string.IsNullOrEmpty(ViewBag.ProductName))
+            {
+                <small class="text-muted">for @ViewBag.ProductName</small>
+            }
+        </h2>
+        <div class="btn-group">
+            <a asp-action="Details" asp-controller="ProductVariant1" asp-route-id="@Model.Id" 
+               class="btn btn-outline-info">
+                <i class="fas fa-eye me-2"></i>View Details
+            </a>
+            <a asp-action="Index" asp-controller="ProductVariant1" asp-route-productId="@Model.ProductId"
+               class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Variants
+            </a>
+        </div>
+    </div>
+
+    <form asp-action="Edit" asp-controller="ProductVariant1" method="post" enctype="multipart/form-data"
+          class="needs-validation" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ProductId" />
+
+        <div class="row">
+            <!-- Variant Information -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Variant Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Product</label>
+                            <div class="form-control-plaintext">
+                                <strong>@ViewBag.ProductName</strong>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Color" class="form-label">Color *</label>
+                                <input asp-for="Color" class="form-control" required>
+                                <span asp-validation-for="Color" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Size" class="form-label">Size *</label>
+                                <input asp-for="Size" class="form-control" required>
+                                <span asp-validation-for="Size" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="StockQuantity" class="form-label">Stock Quantity *</label>
+                                <input asp-for="StockQuantity" class="form-control" type="number" min="0" required>
+                                <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PriceAdjustment" class="form-label">Price Adjustment</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="PriceAdjustment" class="form-control" type="number" step="0.01">
+                                </div>
+                                <small class="text-muted">Additional cost (+) or discount (-) from base price</small>
+                                <span asp-validation-for="PriceAdjustment" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ColorHex" class="form-label">Color Code (Hex)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">#</span>
+                                    <input asp-for="ColorHex" class="form-control" placeholder="000000" maxlength="6">
+                                    <input type="color" class="form-control form-control-color" id="colorPicker"
+                                           title="Choose color" value="#@Model.ColorHex">
+                                </div>
+                                <small class="text-muted">Optional: Used for color display</small>
+                                <span asp-validation-for="ColorHex" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SortOrder" class="form-label">Sort Order</label>
+                                <input asp-for="SortOrder" class="form-control" type="number" min="0">
+                                <small class="text-muted">Lower numbers appear first</small>
+                                <span asp-validation-for="SortOrder" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Variant Image -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-camera me-2"></i>Variant Image
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="ImageFile" class="form-label">Upload New Image</label>
+                            <input asp-for="ImageFile" class="form-control" type="file" accept="image/*">
+                            <small class="text-muted">Accepted formats: JPG, PNG, GIF. Max size: 5MB</small>
+                            <span asp-validation-for="ImageFile" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ImageUrl" class="form-label">Or Image URL</label>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
+                            <small class="text-muted">Alternative: Provide direct URL to image</small>
+                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                        </div>
+
+                        <div id="imagePreview" class="mt-3">
+                            <label class="form-label">Current Image</label>
+                            <div>
+                                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                {
+                                    <img id="previewImg" src="@Model.ImageUrl" alt="Current image" class="img-thumbnail"
+                                         style="max-height: 200px;">
+                                }
+                                else
+                                {
+                                    <div class="bg-light d-flex align-items-center justify-content-center rounded" 
+                                         style="height: 200px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a asp-action="Details" asp-controller="ProductVariant1" asp-route-id="@Model.Id" 
+                               class="btn btn-outline-info">
+                                <i class="fas fa-eye me-2"></i>View Details
+                            </a>
+                            <a asp-action="Index" asp-controller="ProductVariant1" asp-route-productId="@Model.ProductId"
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Variants
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Variant Info -->
+                @* <div class="card"> *@
+                @*     <div class="card-header"> *@
+                @*         <h5 class="mb-0"> *@
+                @*             <i class="fas fa-info-circle me-2"></i>Variant Summary *@
+                @*         </h5> *@
+                @*     </div> *@
+                @*     <div class="card-body"> *@
+                @*         <dl class="row small"> *@
+                @*             <dt class="col-sm-5">Created:</dt> *@
+                @*             <dd class="col-sm-7">@Model.CreatedAt.ToString("g")</dd> *@
+                @* *@
+                @*             <dt class="col-sm-5">Last Updated:</dt> *@
+                @*             <dd class="col-sm-7">@(Model.UpdatedAt?.ToString("g") ?? "Never")</dd> *@
+                @* *@
+                @*             <dt class="col-sm-5">Status:</dt> *@
+                @*             <dd class="col-sm-7"> *@
+                @*                 <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")"> *@
+                @*                     @(Model.IsActive ? "Active" : "Inactive") *@
+                @*                 </span> *@
+                @*             </dd> *@
+                @*         </dl> *@
+                @*     </div> *@
+                @* </div> *@
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Form validation
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+
+        // Color picker integration
+        const colorPicker = document.getElementById('colorPicker');
+        const colorHexInput = document.getElementById('@Html.IdFor(m => m.ColorHex)');
+
+        colorPicker.addEventListener('change', function () {
+            const hex = this.value.substring(1); // Remove # from color value
+            colorHexInput.value = hex;
+        });
+
+        colorHexInput.addEventListener('input', function () {
+            if (this.value.match(/^[0-9A-Fa-f]{6}$/)) {
+                colorPicker.value = '#' + this.value;
+            }
+        });
+
+        // Image preview for file upload
+        document.getElementById('@Html.IdFor(m => m.ImageFile)').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    // Clear URL input when file is selected
+                    document.getElementById('@Html.IdFor(m => m.ImageUrl)').value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Image preview for URL
+        document.getElementById('@Html.IdFor(m => m.ImageUrl)').addEventListener('blur', function () {
+            if (this.value) {
+                document.getElementById('previewImg').src = this.value;
+                // Clear file input when URL is provided
+                document.getElementById('@Html.IdFor(m => m.ImageFile)').value = '';
+            }
+        });
+    </script>
+}

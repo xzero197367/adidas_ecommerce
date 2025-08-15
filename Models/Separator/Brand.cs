@@ -10,5 +10,5 @@ public class Brand : BaseAuditableEntity
     public string Description { get; set; }
 
     // Relationships
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual ICollection<Product> Products { get; set; } 
 }

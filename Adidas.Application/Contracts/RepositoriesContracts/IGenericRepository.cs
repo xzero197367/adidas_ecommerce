@@ -9,7 +9,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts
     {
         // Read operations
         Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes);
-        IQueryable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? queryFunc = null);
+        IQueryable<T> GetAll();
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes);
 

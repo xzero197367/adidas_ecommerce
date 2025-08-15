@@ -22,7 +22,7 @@ namespace Models.People
         Male,
         Female,
         Kids,
-        Unisex
+        // Unisex
     }
 
 
@@ -55,13 +55,6 @@ namespace Models.People
 
         [Required]
         public UserRole Role { get; set; } = UserRole.Customer;
-        
-        
-        // foreign keys
-        public string? AddedById { get; set; }
-
-        // navigation properties
-        public virtual User? AddedBy { get; set; }
 
         // Relationships
         public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();

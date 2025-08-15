@@ -22,6 +22,7 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
         public decimal PriceAdjustment { get; set; } = 0;
         public string? ColorHex { get; set; }
         public int SortOrder { get; set; }
+        public bool? IsActive { get; set; }
 
         public IFormFile? ImageFile { get; set; }  
 

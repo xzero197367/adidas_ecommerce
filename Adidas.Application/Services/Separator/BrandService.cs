@@ -28,7 +28,12 @@ namespace Adidas.Application.Services.Separator
         {
             try
             {
-                var entities = await _brandRepository.GetAll(queryFunc).ToListAsync();
+                var query = _brandRepository.GetAll();
+                if(queryFunc != null)
+                {
+                    query = queryFunc(query);
+                }
+                var entities = await query.ToListAsync();
                 return OperationResult<IEnumerable<BrandDto>>.Success(entities.Adapt<IEnumerable<BrandDto>>());
             }
             catch (Exception ex)

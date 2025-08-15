@@ -27,7 +27,7 @@ public class AddressService : GenericService<Address, AddressDto, AddressCreateD
         try
         {
             var addresses = await _repository
-                .GetAll(a => a.Where(a => a.UserId == userId && !a.IsDeleted).Include(a => a.User))
+                .GetAll().Where(a => a.UserId == userId && !a.IsDeleted).Include(a => a.User)
                 .ToListAsync();
 
             return OperationResult<IEnumerable<AddressDto>>.Success(addresses.Adapt<IEnumerable<AddressDto>>());

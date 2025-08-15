@@ -16,7 +16,7 @@ public class ViewLocationExpander: IViewLocationExpander
         var customLocations = new[]
         {
             "/Views/Operation/{1}/{0}.cshtml", 
-
+            "/Views/Main/{1}/{0}.cshtml", 
         };
 
         return customLocations.Concat(viewLocations);

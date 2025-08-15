@@ -520,10 +520,9 @@ namespace Adidas.Application.Services.Operation
         public async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewFilterDto filter, int pageNumber, int pageSize)
         {
             // Start with base query (non-deleted) and include navigation props for UI mapping
-            IQueryable<Review> query = _reviewRepository.GetAll(q =>
-                q.Include(r => r.User)
+            IQueryable<Review> query = _reviewRepository.GetAll().Include(r => r.User)
                  .Include(r => r.Product)
-            ).Where(r => !r.IsDeleted);
+            .Where(r => !r.IsDeleted);
 
             // Apply status filter
             if (filter != null)

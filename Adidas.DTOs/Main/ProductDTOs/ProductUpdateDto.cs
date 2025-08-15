@@ -19,5 +19,6 @@ public class ProductUpdateDto : BaseUpdateDto
     public string? MetaDescription { get; set; }
     public string? Keywords { get; set; }
     public bool? InStock { get; set; }
-   
+
+    public bool? IsActive { get; set; }
 }

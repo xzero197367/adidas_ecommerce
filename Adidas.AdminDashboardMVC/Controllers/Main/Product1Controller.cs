@@ -1,0 +1,313 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.DTOs.Main.ProductDTOs;
+using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.DTOs.Main.ProductAttributeDTOs;
+using Adidas.DTOs.Main.ProductImageDTOs;
+using Models.People;
+
+namespace Adidas.AdminDashboardMVC.Controllers.Main;
+
+[Route("Admin/[controller]")]
+public class Product1Controller : Controller
+{
+    private readonly IProductService _productService;
+    private readonly ICategoryService _categoryService;
+    private readonly IBrandService _brandService;
+    private readonly IProductImageService _productImageService;
+    private readonly IProductAttributeService _productAttributeService;
+
+
+    public Product1Controller(
+        IProductService productService,
+        ICategoryService categoryService,
+        IBrandService brandService,
+        IProductImageService productImageService,
+        IProductAttributeService productAttributeService
+    )
+    {
+        _productService = productService;
+        _categoryService = categoryService;
+        _brandService = brandService;
+        _productImageService = productImageService;
+        _productAttributeService = productAttributeService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index(ProductFilterDto filter)
+    {
+        try
+        {
+            var result = await _productService.GetProductsWithFiltersAsync(filter);
+            if (result.IsSuccess)
+            {
+                ViewBag.Categories = await GetCategoriesSelectList();
+                ViewBag.Brands = await GetBrandsSelectList();
+                ViewBag.Genders = GetGenderSelectList();
+                ViewBag.Filter = filter;
+                return View(result.Data);
+            }
+
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return View();
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "An error occurred while loading products.";
+            return View();
+        }
+    }
+
+    [HttpGet("Details/{id}")]
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var result = await _productService.GetProductWithVariantsAsync(id);
+        if (result == null)
+        {
+            TempData["ErrorMessage"] = "Product not found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(result);
+    }
+
+    [HttpGet("Create")]
+    public async Task<IActionResult> Create()
+    {
+        await PopulateSelectLists();
+        return View();
+    }
+
+    [HttpPost("Create")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(ProductCreateDto model)
+    {
+        if (ModelState.IsValid)
+        {
+            var result = await _productService.CreateAsync(model);
+            if (result.IsSuccess)
+            {
+                TempData["SuccessMessage"] = "Product created successfully.";
+                return RedirectToAction("Details", new { id = result.Data.Id });
+            }
+
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+
+        await PopulateSelectLists();
+        return View(model);
+    }
+
+    [HttpGet("Edit/{id}")]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        var result = await _productService.GetByIdAsync(id);
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index));
+        }
+
+        var updateDto = new ProductUpdateDto
+        {
+            Id = result.Data.Id,
+            Name = result.Data.Name,
+            Description = result.Data.Description,
+            ShortDescription = result.Data.ShortDescription,
+            Price = result.Data.Price,
+            SalePrice = result.Data.SalePrice,
+            GenderTarget = result.Data.GenderTarget,
+            CategoryId = result.Data.CategoryId,
+            BrandId = result.Data.BrandId,
+            MetaTitle = result.Data.MetaTitle,
+            MetaDescription = result.Data.MetaDescription
+        };
+
+        await PopulateSelectLists();
+        return View(updateDto);
+    }
+
+    [HttpPost("Edit/{id}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Guid id, ProductUpdateDto model)
+    {
+        if (id != model.Id)
+        {
+            return BadRequest();
+        }
+
+        if (ModelState.IsValid)
+        {
+            var result = await _productService.UpdateAsync(model);
+            if (result.IsSuccess)
+            {
+                TempData["SuccessMessage"] = "Product updated successfully.";
+                return RedirectToAction("Details", new { id = result.Data.Id });
+            }
+
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+
+        await PopulateSelectLists();
+        return View(model);
+    }
+
+    [HttpPost("Delete/{id}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _productService.DeleteAsync(id);
+        if (result.IsSuccess)
+        {
+            TempData["SuccessMessage"] = "Product deleted successfully.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet("Images/{id}")]
+    public async Task<IActionResult> ManageImages(Guid id)
+    {
+        var productResult = await _productService.GetByIdAsync(id);
+        if (!productResult.IsSuccess)
+        {
+            TempData["ErrorMessage"] = "Product not found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var imagesResult = await _productImageService.GetImagesByProductIdAsync(id);
+
+        ViewBag.Product = productResult.Data;
+        return View(imagesResult.IsSuccess ? imagesResult.Data : new List<ProductImageDto>());
+    }
+
+    [HttpGet("Variants/{id}")]
+    public async Task<IActionResult> ManageVariants(Guid id)
+    {
+        var product = await _productService.GetProductWithVariantsAsync(id);
+        if (product == null)
+        {
+            TempData["ErrorMessage"] = "Product not found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        ViewBag.ProductId = id;
+        ViewBag.ProductName = product.Name; 
+        return View(product.Variants);
+    }
+
+    [HttpGet("Attributes/{id}")]
+    public async Task<IActionResult> ManageAttributes(Guid id)
+    {
+        var productResult = await _productService.GetByIdAsync(id);
+        if (!productResult.IsSuccess)
+        {
+            TempData["ErrorMessage"] = "Product not found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var attributesResult = await _productAttributeService.GetAllAsync();
+
+        ViewBag.Product = productResult.Data;
+        return View(attributesResult.IsSuccess ? attributesResult.Data?.ToList() : new List<ProductAttributeDto>());
+    }
+
+    [HttpPost("ToggleStatus/{id}")]
+    public async Task<IActionResult> ToggleStatus(Guid id)
+    {
+        var result = await _productService.GetByIdAsync(id);
+        if (!result.IsSuccess)
+        {
+            return Json(new { success = false, message = "Product not found." });
+        }
+
+        var updateDto = new ProductUpdateDto
+        {
+            Id = id,
+            IsActive = !result.Data.IsActive
+        };
+
+        var updateResult = await _productService.UpdateAsync(updateDto);
+
+        return Json(new
+        {
+            success = updateResult.IsSuccess,
+            message = updateResult.IsSuccess ? "Status updated successfully." : updateResult.ErrorMessage
+        });
+    }
+
+    [HttpGet("GetProductsByCategory")]
+    public async Task<IActionResult> GetProductsByCategory(Guid categoryId)
+    {
+        var result = await _productService.GetProductsByCategoryAsync(categoryId);
+        return Json(result.IsSuccess ? result.Data : new List<ProductDto>());
+    }
+
+    [HttpGet("GetProductsByBrand")]
+    public async Task<IActionResult> GetProductsByBrand(Guid brandId)
+    {
+        var result = await _productService.GetProductsByBrandAsync(brandId);
+        return Json(result.IsSuccess ? result.Data : new List<ProductDto>());
+    }
+
+    [HttpGet("Search")]
+    public async Task<IActionResult> Search(string term)
+    {
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            return Json(new List<ProductDto>());
+        }
+
+        var result = await _productService.SearchProductsAsync(term);
+        return Json(result.IsSuccess ? result.Data : new List<ProductDto>());
+    }
+
+    private async Task PopulateSelectLists()
+    {
+        ViewBag.Categories = await GetCategoriesSelectList();
+        ViewBag.Brands = await GetBrandsSelectList();
+        ViewBag.Genders = GetGenderSelectList();
+    }
+
+    private async Task<SelectList> GetCategoriesSelectList()
+    {
+        var result = await _categoryService.
+            GetAllAsync();
+
+        if (result.IsSuccess)
+        {
+            return new SelectList(result.Data, "Id", "Name");
+        }
+
+        return new SelectList(new List<object>(), "Id", "Name");
+    }
+
+    private async Task<SelectList> GetBrandsSelectList()
+    {
+        var result = await _brandService.GetAllAsync();
+        if (result.IsSuccess)
+        {
+            return new SelectList(result.Data, "Id", "Name");
+        }
+
+        return new SelectList(new List<object>(), "Id", "Name");
+    }
+
+    private SelectList GetGenderSelectList()
+    {
+        var genders = new List<object>
+        {
+            new { Value = (int)Gender.Male, Text = "Male" },
+            new { Value = (int)Gender.Female, Text = "Female" },
+            new { Value = (int)Gender.Kids, Text = "Kids" },
+            new { Value = (int)Gender.Unisex, Text = "Unisex" }
+        };
+        return new SelectList(genders, "Value", "Text");
+    }
+}

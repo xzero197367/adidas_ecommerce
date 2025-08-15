@@ -19,18 +19,15 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<Coupon>> GetActiveCouponsAsync()
         {
-            return await GetAll((q) => { return q.Where(c => c.IsActive && !c.IsDeleted); }).ToListAsync();
+            return await GetAll().Where(c => c.IsActive && !c.IsDeleted).ToListAsync();
         }
 
         public async Task<IEnumerable<Coupon>> GetValidCouponsAsync(DateTime date)
         {
-            return await GetAll((q) =>
-            {
-                return q.Where(c => c.IsActive &&
+            return await GetAll().Where(c => c.IsActive &&
                                     !c.IsDeleted &&
                                     c.ValidFrom <= date &&
-                                    c.ValidTo >= date);
-            }).ToListAsync();
+                                    c.ValidTo >= date).ToListAsync();
         }
 
         public async Task<bool> IsCouponValidAsync(string code, decimal orderAmount)
@@ -48,7 +45,7 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<Coupon>> GetCouponsByUsageAsync(int maxUsage)
         {
-            return await GetAll(q => q.Where(c => c.UsedCount <= maxUsage && !c.IsDeleted)).ToListAsync();
+            return await GetAll().Where(c => c.UsedCount <= maxUsage && !c.IsDeleted).ToListAsync();
         }
 
         public async Task<bool> IncrementUsageCountAsync(Guid couponId)
@@ -80,7 +77,7 @@ namespace Adidas.Infra.Operation
 
         public async Task<IEnumerable<Coupon>> GetCouponsByUserAsync(string userId)
         {
-            return await GetAll(q => q.Where(c => c.AddedById == userId && !c.IsDeleted)).ToListAsync();
+            return await GetAll().Where(c => c.AddedById == userId && !c.IsDeleted).ToListAsync();
         }
 
         public async Task<bool> DeactivateCouponAsync(Guid couponId)
@@ -96,7 +93,7 @@ namespace Adidas.Infra.Operation
         public async Task<IEnumerable<Coupon>> GetExpiredCouponsAsync()
         {
             var now = DateTime.UtcNow;
-            return await GetAll(q => q.Where(c => c.ValidTo < now && !c.IsDeleted)).ToListAsync();
+            return await GetAll().Where(c => c.ValidTo < now && !c.IsDeleted).ToListAsync();
         }
 
         public async Task<bool> ApplyCouponToOrderAsync(Guid couponId, Guid orderId)

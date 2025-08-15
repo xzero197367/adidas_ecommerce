@@ -13,7 +13,10 @@ namespace Adidas.Infra.Separator
     public class CategoryRepository : GenericRepository<Category>,ICategoryRepository
 
     {
-        public CategoryRepository(AdidasDbContext context) : base(context) { }
+        public CategoryRepository(AdidasDbContext context) : base(context)
+        {
+            _dbSet = context.Set<Category>();
+        }
 
         public async Task<IEnumerable<Category>> GetMainCategoriesAsync()
         {

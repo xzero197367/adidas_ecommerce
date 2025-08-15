@@ -50,7 +50,14 @@ namespace Adidas.Application.Services
         {
             try
             {
-                var entities = await _repository.GetAll(queryFunc).ToListAsync();
+                var query = _repository.GetAll();
+
+                if (queryFunc != null)
+                {
+                    query = queryFunc(query);
+                }
+
+                var entities = await query.ToListAsync();
                 return OperationResult<IEnumerable<TDto>>.Success(entities.Adapt<IEnumerable<TDto>>());
             }
             catch (Exception ex)
@@ -131,7 +138,7 @@ namespace Adidas.Application.Services
                 await BeforeCreateAsync(entity);
 
                 var createdEntityEntry = await _repository.AddAsync(entity);
-              
+
                 await _repository.SaveChangesAsync(); // Ensure changes are saved
                 createdEntityEntry.State = EntityState.Deleted;
                 var createdEntity = createdEntityEntry.Entity; // Extract the entity from EntityEntry

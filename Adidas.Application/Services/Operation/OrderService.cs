@@ -9,12 +9,15 @@ using Adidas.DTOs.Operation.OrderDTOs.Create;
 using Microsoft.Extensions.Logging;
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
+using ClosedXML.Excel;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.Application.Services.Operation;
 
-public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, OrderUpdateDto>, IOrderService
+public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, OrderUpdateDto>, IOrderService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IShoppingCartRepository _cartRepository;
@@ -45,9 +48,23 @@ public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, Ord
         var pagedOrders = await _orderRepository.GetPagedAsync(pageNumber, pageSize, q =>
         {
             var query = q.Where(o => o.IsDeleted == false).OrderByDescending(o => o.OrderDate).AsQueryable();
-            if (filter != null && filter?.OrderNumber != null)
+            if (filter != null)
             {
-                query = query.Where(o => o.OrderNumber.Contains(filter.OrderNumber));
+                if (filter?.OrderNumber != null)
+                {
+                    query = query.Where(o => o.OrderNumber.Contains(filter.OrderNumber));
+                }
+
+                if (filter?.OrderStatus != null)
+                {
+                    query = query.Where(o => o.OrderStatus == filter.OrderStatus);
+                }
+
+                if (filter?.OrderDate != null)
+                {
+                    var orderDate = filter.OrderDate.Value.Date;
+                    query = query.Where(o => o.OrderDate == orderDate);
+                }
             }
 
             return query;
@@ -102,10 +119,8 @@ public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, Ord
             return OperationResult<IEnumerable<OrderDto>>.Fail(ex.Message);
         }
     }
-    
 
 
- 
     public async Task<OperationResult<bool>> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus)
     {
         try
@@ -219,8 +234,8 @@ public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, Ord
     {
         try
         {
-            var totalSales = await _orderRepository.GetTotalSalesAsync(startDate, endDate);
-            var orders = await _orderRepository.GetOrdersByDateRangeAsync(
+            var totalSales = _orderRepository.GetTotalSalesAsync(startDate, endDate);
+            var orders = _orderRepository.GetOrdersByDateRangeAsync(
                 startDate ?? DateTime.UtcNow.AddDays(-30),
                 endDate ?? DateTime.UtcNow);
 
@@ -273,10 +288,110 @@ public class OrderService :  GenericService<Order, OrderDto, OrderCreateDto, Ord
 
     public override async Task BeforeCreateAsync(Order entity)
     {
-        var result  = await GenerateOrderNumberAsync();
+        var result = await GenerateOrderNumberAsync();
         if (result.IsSuccess)
         {
             entity.OrderNumber = result.Data;
+        }
+    }
+
+
+    public async Task<byte[]> ExportToExcelAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var result = await GetOrderSummaryAsync(startDate, endDate);
+
+        if (!result.IsSuccess)
+        {
+            throw new Exception(result.ErrorMessage);
+        }
+
+        var summary = result.Data;
+
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("Order Summary");
+
+            // Header
+            worksheet.Cell(1, 1).Value = "Order Summary Report";
+            worksheet.Range(1, 1, 1, 4).Merge();
+            worksheet.Cell(2, 1).Value = $"Date: {DateTime.Now:yyyy-MM-dd HH:mm}";
+            worksheet.Range(2, 1, 2, 4).Merge();
+
+            // Period
+            var period = startDate.HasValue || endDate.HasValue
+                ? $"From {startDate?.ToString("yyyy-MM-dd") ?? "Start"} to {endDate?.ToString("yyyy-MM-dd") ?? "End"}"
+                : "All Time";
+            worksheet.Cell(3, 1).Value = $"Period: {period}";
+            worksheet.Range(3, 1, 3, 4).Merge();
+
+            // Summary
+            int row = 5;
+            worksheet.Cell(row++, 1).Value = "Total Count";
+            worksheet.Cell(row - 1, 2).Value = summary.ItemCount;
+
+            worksheet.Cell(row++, 1).Value = "Total Amount";
+            worksheet.Cell(row - 1, 2).Value = summary.TotalAmount;
+
+            // Formatting
+            worksheet.Columns().AdjustToContents();
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                return stream.ToArray();
+            }
+        }
+    }
+
+    public async Task<byte[]> ExportToPdfAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var result = await GetOrderSummaryAsync(startDate, endDate);
+
+        if (!result.IsSuccess)
+        {
+            throw new Exception(result.ErrorMessage);
+        }
+
+        var summary = result.Data;
+
+        using (var stream = new MemoryStream())
+        {
+            var document = new Document(PageSize.A4, 15, 15, 15, 15);
+            var writer = PdfWriter.GetInstance(document, stream);
+            document.Open();
+
+            // Title
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18);
+            var title = new Paragraph("Order Summary Report", titleFont)
+            {
+                Alignment = Element.ALIGN_CENTER,
+                SpacingAfter = 20f
+            };
+            document.Add(title);
+
+            // Date and Period
+            var dateFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+            document.Add(new Paragraph($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm}", dateFont));
+
+            var period = startDate.HasValue || endDate.HasValue
+                ? $"Period: From {startDate?.ToString("yyyy-MM-dd") ?? "Start"} to {endDate?.ToString("yyyy-MM-dd") ?? "End"}"
+                : "Period: All Time";
+            document.Add(new Paragraph(period, dateFont));
+
+            // Add some space
+            document.Add(new Paragraph("\n"));
+
+            // Summary
+            var boldFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD);
+            var normalFont = FontFactory.GetFont(FontFactory.HELVETICA);
+
+            document.Add(new Paragraph("Summary:", boldFont));
+            document.Add(new Paragraph($"Total Count: {summary.ItemCount}", normalFont));
+            document.Add(new Paragraph($"Total Amount: {summary.TotalAmount:C}", normalFont));
+
+            document.Close();
+
+            return stream.ToArray();
         }
     }
 }
