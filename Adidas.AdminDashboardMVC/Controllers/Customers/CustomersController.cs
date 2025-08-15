@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Adidas.Application.Contracts.ServicesContracts.People;
 using Adidas.DTOs.People.Customer_DTOs;
+using Models.People;
+using Microsoft.AspNetCore.Identity;
+using Adidas.AdminDashboardMVC.Controllers.System;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Customers
 {
@@ -9,10 +12,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
     public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;
+        private readonly UserManager<User> _userManager;
+        private readonly ILogger<CustomersController> _logger;
 
-        public CustomersController(ICustomerService customerService)
+        public CustomersController(ICustomerService customerService, UserManager<User> userManager, ILogger<CustomersController> logger)
         {
             _customerService = customerService;
+            _userManager = userManager;
+            _logger = logger;
+
         }
 
         public async Task<IActionResult> Index(CustomerFilterDto filter)
@@ -115,18 +123,51 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
         }
 
         [HttpPost]
+
+      
         public async Task<IActionResult> ToggleStatus(string id)
         {
             if (string.IsNullOrEmpty(id))
-                return Json(new { success = false, message = "Invalid customer ID." });
-
-            var success = await _customerService.ToggleCustomerStatusAsync(id);
-
-            return Json(new
             {
-                success = success,
-                message = success.IsSuccess ? "Customer status updated successfully." : "Failed to update customer status."
-            });
+                return Json(new { success = false, message = "Invalid customer ID." });
+            }
+
+            try
+            {
+                var result = await _customerService.ToggleCustomerStatusAsync(id);
+
+                if (result.IsSuccess)
+                {
+                    // Get the updated customer to return the current status
+                    var customerResult = await _customerService.GetCustomerByIdAsync(id);
+
+                    if (customerResult.IsSuccess)
+                    {
+                        return Json(new
+                        {
+                            success = true,
+                            isActive = customerResult.Data.IsActive,
+                            message = "Customer status updated successfully."
+                        });
+                    }
+                    else
+                    {
+                        // Fallback - assume the toggle worked but we couldn't get updated data
+                        return Json(new
+                        {
+                            success = true,
+                            message = "Customer status updated successfully."
+                        });
+                    }
+                }
+
+                return Json(new { success = false, message = result });
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error toggling customer status for ID: {CustomerId}", id);
+                return Json(new { success = false, message = "An error occurred while updating customer status." });
+            }
         }
 
         [HttpPost]

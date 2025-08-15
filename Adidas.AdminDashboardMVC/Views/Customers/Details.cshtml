@@ -27,7 +27,6 @@
                 <!-- Customer Profile -->
                 <div class="card card-primary card-outline">
                     <div class="card-body box-profile">
-
                         <h3 class="profile-username text-center">@Model.Name</h3>
                         <ul class="list-group list-group-unbordered mb-3">
                             <li class="list-group-item">
@@ -50,9 +49,9 @@
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a href="@Url.Action("ToggleStatus", new { id = Model.Id })" class="btn btn-@(Model.IsActive ? "secondary" : "success") btn-block toggle-status" data-id="@Model.Id">
+                                <button type="button" class="btn btn-@(Model.IsActive ? "secondary" : "success") btn-block toggle-status" data-id="@Model.Id">
                                     <i class="fas fa-@(Model.IsActive ? "ban" : "check")"></i> @(Model.IsActive ? "Suspend" : "Activate")
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -181,10 +180,7 @@
                                     <strong>Product:</strong> @review.ProductId <br />
                                     <strong>Rating:</strong> @review.Rating / 5 <br />
                                     <strong>Comment:</strong> @review.ReviewText <br />
-                                    @* <small class="text-muted">Posted on @review.CreatedAt.ToString("MMMM dd, yyyy")</small> *@
                                     <small class="text-muted">Posted on @((DateTime)review.CreatedAt).ToString("MMMM dd, yyyy")</small>
-
-
                                 </div>
                             }
                         }
@@ -201,22 +197,81 @@
 
 @section Scripts {
     <script>
-        $('.toggle-status').click(function() {
-            var customerId = $(this).data('id');
-            var button = $(this);
+        $(document).ready(function() {
+            // Toggle status functionality - USING SERVICE METHOD
+            $('.toggle-status').click(function(e) {
+                e.preventDefault();
 
-            $.post('@Url.Action("ToggleStatus")', { id: customerId })
-                .done(function(response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        location.reload(); // Refresh to update the UI
-                    } else {
-                        toastr.error(response.message);
-                    }
-                })
-                .fail(function() {
-                    toastr.error('An error occurred while updating the customer status.');
-                });
+                var customerId = $(this).data('id');
+                var button = $(this);
+                var originalText = button.html();
+                var originalClass = button.hasClass('btn-success') ? 'btn-success' : 'btn-secondary';
+
+                // Show loading state
+                button.html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+                button.prop('disabled', true);
+
+                console.log('Toggling status for customer ID:', customerId); // Debug log
+
+                $.post('@Url.Action("ToggleStatus")', { id: customerId })
+                    .done(function(response) {
+                        console.log('Toggle response:', response); // Debug log
+
+                        if (response.success) {
+                            toastr.success(response.message);
+
+                            // If we have the isActive status in response, update UI accordingly
+                            if (typeof response.isActive !== 'undefined') {
+                                if (response.isActive) {
+                                    button.removeClass('btn-success').addClass('btn-secondary');
+                                    button.html('<i class="fas fa-ban"></i> Suspend');
+                                } else {
+                                    button.removeClass('btn-secondary').addClass('btn-success');
+                                    button.html('<i class="fas fa-check"></i> Activate');
+                                }
+
+                                // Update the status badge
+                                var statusBadge = $('.badge');
+                                if (response.isActive) {
+                                    statusBadge.removeClass('badge-danger').addClass('badge-success').text('Active');
+                                } else {
+                                    statusBadge.removeClass('badge-success').addClass('badge-danger').text('Suspended');
+                                }
+                            } else {
+                                // If no isActive in response, just reload the page
+                                console.log('No isActive in response, reloading page...');
+                                location.reload();
+                                return;
+                            }
+
+                            // Reload page after a short delay to ensure all data is updated
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+
+                        } else {
+                            console.error('Toggle failed:', response.message);
+                            toastr.error(response.message || 'Failed to update customer status');
+                            button.html(originalText);
+                            button.removeClass().addClass('btn btn-block toggle-status ' + originalClass);
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        console.error('Toggle status AJAX error:', {
+                            status: status,
+                            error: error,
+                            responseText: xhr.responseText,
+                            statusCode: xhr.status
+                        });
+
+                        toastr.error('An error occurred while updating the customer status.');
+                        button.html(originalText);
+                        button.removeClass().addClass('btn btn-block toggle-status ' + originalClass);
+                    })
+                    .always(function() {
+                        button.prop('disabled', false);
+                    });
+            });
         });
     </script>
 }
