@@ -14,6 +14,18 @@ namespace Adidas.Infra.Main
     {
         public ProductVariantRepository(AdidasDbContext context) : base(context) { }
 
+        public IQueryable<ProductVariant> GetAllForInventory(
+    Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>>? queryFunc = null)
+        {
+            IQueryable<ProductVariant> query = _dbSet.AsNoTracking();
+
+            if (queryFunc != null)
+            {
+                query = queryFunc(query); // Still EF query if you only use EF methods
+            }
+
+            return query; // Return EF IQueryable, not enumerated yet
+        }
         public async Task<IEnumerable<ProductVariant>> GetVariantsByProductIdAsync(Guid productId)
         {
             return await _dbSet

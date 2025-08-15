@@ -1,6 +1,5 @@
 ﻿@using Adidas.DTOs.Common_DTOs
 @using Adidas.DTOs.People.Customer_DTOs
-<!-- Views/Customers/_CustomerListPartial.cshtml -->
 @model PagedResultDto<CustomerDto>
 
 <div class="table-responsive">
@@ -34,20 +33,12 @@
                     <td>
                         @(string.IsNullOrEmpty(customer.PreferredLanguage) ? "Not Set" : customer.PreferredLanguage)
                     </td>
-
                     <td>
                         @(customer.DateOfBirth.HasValue ? customer.DateOfBirth.Value.ToString("dd MMM yyyy") : "Not Set")
                     </td>
                     <td>@customer.JoinDate.ToString("dd MMM yyyy HH:mm")</td>
-
-            
-
-                    <!-- ✅ Total Orders -->
                     <td>@customer.TotalOrders</td>
-
-                    <!-- ✅ Total Spent -->
                     <td>@customer.TotalSpent.ToString("C")</td>
-
                     <td>
                         <span class="badge badge-@(customer.IsActive ? "success" : "danger")">
                             @customer.Status
@@ -64,6 +55,10 @@
                             <button type="button" class="btn btn-@(customer.IsActive ? "secondary" : "success") btn-sm toggle-status"
                                     data-id="@customer.Id" title="@(customer.IsActive ? "Suspend" : "Activate")">
                                 <i class="fas fa-@(customer.IsActive ? "ban" : "check")"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm delete-customer"
+                                    data-id="@customer.Id" data-name="@customer.Name" title="Delete">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </td>

@@ -1,5 +1,4 @@
-﻿
-using Adidas.Application.Contracts.RepositoriesContracts.Main;
+﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Static;
@@ -24,13 +23,13 @@ namespace Adidas.Application.Services.Static
         private readonly ILogger<AnalyticsService> _logger;
 
         public AnalyticsService(
-      IOrderRepository orderRepository,
-      IProductRepository productRepository,
-      ICategoryRepository categoryRepository,
-      IProductVariantRepository variantRepository,
-      UserManager<User> userManager,
-      AdidasDbContext context,
-      ILogger<AnalyticsService> logger)
+            IOrderRepository orderRepository,
+            IProductRepository productRepository,
+            ICategoryRepository categoryRepository,
+            IProductVariantRepository variantRepository,
+            UserManager<User> userManager,
+            AdidasDbContext context,
+            ILogger<AnalyticsService> logger)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
@@ -41,24 +40,40 @@ namespace Adidas.Application.Services.Static
             _logger = logger;
         }
 
-
         public async Task<OperationResult<DashboardStatsDto>> GetDashboardStatsAsync()
         {
             try
             {
-                var totalProducts = await _productRepository.CountAsync();
-                var totalOrders = await _orderRepository.CountAsync();
+                // Use direct DbContext queries to avoid IQueryable async issues
+                var totalProducts = await _context.Products.CountAsync();
+                var totalOrders = await _context.Orders.CountAsync();
                 var totalCustomers = await _context.Users.CountAsync(u => u.Role == UserRole.Customer);
-                var totalRevenue =  _orderRepository.GetTotalSalesAsync();
 
+                // Calculate total revenue using DbContext directly
+                var totalRevenue = await _context.Orders
+                    .Where(o => o.OrderStatus != OrderStatus.Cancelled)
+                    .SumAsync(o => o.TotalAmount);
+
+                // Calculate monthly revenue
                 var currentMonth = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
-                var monthlyRevenue =  _orderRepository.GetTotalSalesAsync(currentMonth);
+                var monthlyRevenue = await _context.Orders
+                    .Where(o => o.OrderDate >= currentMonth && o.OrderStatus != OrderStatus.Cancelled)
+                    .SumAsync(o => o.TotalAmount);
 
-                var lowStockVariants = await _variantRepository.GetLowStockVariantsAsync(10);
-                var pendingOrders = await _orderRepository.CountAsync(o => o.OrderStatus == OrderStatus.Pending);
+                // Get low stock variants count
+                var lowStockCount = await _context.ProductVariants
+                    .CountAsync(v => v.StockQuantity <= 10);
 
-                var allOrders = await _orderRepository.GetAll().ToListAsync();
-                var averageOrderValue = allOrders.Any() ? allOrders.Average(o => o.TotalAmount) : 0;
+                // Get pending orders count
+                var pendingOrders = await _context.Orders
+                    .CountAsync(o => o.OrderStatus == OrderStatus.Pending);
+
+                // Calculate average order value
+                var completedOrders = await _context.Orders
+                    .Where(o => o.OrderStatus != OrderStatus.Cancelled)
+                    .ToListAsync();
+
+                var averageOrderValue = completedOrders.Any() ? completedOrders.Average(o => o.TotalAmount) : 0;
 
                 var result = new DashboardStatsDto
                 {
@@ -67,10 +82,11 @@ namespace Adidas.Application.Services.Static
                     TotalCustomers = totalCustomers,
                     TotalRevenue = totalRevenue,
                     MonthlyRevenue = monthlyRevenue,
-                    LowStockProducts = lowStockVariants.Count(),
+                    LowStockProducts = lowStockCount,
                     PendingOrders = pendingOrders,
                     AverageOrderValue = (double)averageOrderValue
                 };
+
                 return OperationResult<DashboardStatsDto>.Success(result);
             }
             catch (Exception ex)
@@ -84,14 +100,22 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var orders =  _orderRepository.GetOrdersByDateRangeAsync(startDate, endDate);
-                var ordersList = orders.Where(o => o.OrderStatus != OrderStatus.Cancelled).ToList();
+                // Use DbContext directly to get orders by date range
+                var orders = await _context.Orders
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.Variant)
+                            .ThenInclude(v => v.Product)
+                                .ThenInclude(p => p.Category)
+                    .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
+                    .ToListAsync();
 
-                var totalSales = ordersList.Sum(o => o.TotalAmount);
-                var totalOrders = ordersList.Count;
+                var validOrders = orders.Where(o => o.OrderStatus != OrderStatus.Cancelled).ToList();
+
+                var totalSales = validOrders.Sum(o => o.TotalAmount);
+                var totalOrders = validOrders.Count;
                 var averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
-                var dailySales = ordersList
+                var dailySales = validOrders
                     .GroupBy(o => o.OrderDate.Date)
                     .Select(g => new DailySalesDto
                     {
@@ -99,17 +123,20 @@ namespace Adidas.Application.Services.Static
                         Sales = g.Sum(o => o.TotalAmount),
                         Orders = g.Count()
                     })
-                    .OrderBy(d => d.Date);
+                    .OrderBy(d => d.Date)
+                    .ToList();
 
-                var categorySales = ordersList
+                var categorySales = validOrders
                     .SelectMany(o => o.OrderItems)
+                    .Where(oi => oi.Variant?.Product?.Category != null)
                     .GroupBy(oi => oi.Variant.Product.Category.Name)
                     .Select(g => new CategorySalesDto
                     {
                         CategoryName = g.Key,
                         Sales = g.Sum(oi => oi.TotalPrice),
                         ProductsSold = g.Sum(oi => oi.Quantity)
-                    });
+                    })
+                    .ToList();
 
                 var result = new SalesReportDto
                 {
@@ -121,6 +148,7 @@ namespace Adidas.Application.Services.Static
                     DailySales = dailySales,
                     CategorySales = categorySales
                 };
+
                 return OperationResult<SalesReportDto>.Success(result);
             }
             catch (Exception ex)
@@ -134,8 +162,11 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var popularProducts = await _orderRepository.GetAll().Where(o => o.OrderStatus != OrderStatus.Cancelled)
+                var popularProducts = await _context.Orders
+                    .Where(o => o.OrderStatus != OrderStatus.Cancelled)
                     .SelectMany(o => o.OrderItems)
+                    .Include(oi => oi.Variant)
+                        .ThenInclude(v => v.Product)
                     .GroupBy(oi => new { oi.Variant.Product.Id, oi.Variant.Product.Name })
                     .Select(g => new PopularProductDto
                     {
@@ -145,14 +176,15 @@ namespace Adidas.Application.Services.Static
                         Revenue = g.Sum(oi => oi.TotalPrice)
                     })
                     .OrderByDescending(p => p.UnitsSold)
-                    .Take(count).ToListAsync();
-                    
+                    .Take(count)
+                    .ToListAsync();
+
                 return OperationResult<IEnumerable<PopularProductDto>>.Success(popularProducts);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting popular products");
-                throw;
+                return OperationResult<IEnumerable<PopularProductDto>>.Fail(ex.Message);
             }
         }
 
@@ -160,26 +192,28 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var categories = await _categoryRepository.GetAll().ToListAsync();
-                var allOrders = await _orderRepository.GetAll().ToListAsync();
-
-                var categoryPerformance = categories.Select(category =>
-                {
-                    var categoryOrders = allOrders
-                        .Where(o => o.OrderStatus != OrderStatus.Cancelled)
-                        .SelectMany(o => o.OrderItems)
-                        .Where(oi => oi.Variant.Product.CategoryId == category.Id);
-
-                    return new CategoryPerformanceDto
+                var categoryPerformance = await _context.Categories
+                    .Include(c => c.Products)
+                    .Select(category => new CategoryPerformanceDto
                     {
                         CategoryId = category.Id,
                         CategoryName = category.Name,
                         ProductCount = category.Products.Count,
-                        TotalSales = categoryOrders.Sum(oi => oi.TotalPrice),
-                        OrderCount = categoryOrders.Select(oi => oi.OrderId).Distinct().Count()
-                    };
-                })
-                .OrderByDescending(cp => cp.TotalSales);
+                        TotalSales = _context.Orders
+                            .Where(o => o.OrderStatus != OrderStatus.Cancelled)
+                            .SelectMany(o => o.OrderItems)
+                            .Where(oi => oi.Variant.Product.CategoryId == category.Id)
+                            .Sum(oi => oi.TotalPrice),
+                        OrderCount = _context.Orders
+                            .Where(o => o.OrderStatus != OrderStatus.Cancelled)
+                            .SelectMany(o => o.OrderItems)
+                            .Where(oi => oi.Variant.Product.CategoryId == category.Id)
+                            .Select(oi => oi.OrderId)
+                            .Distinct()
+                            .Count()
+                    })
+                    .OrderByDescending(cp => cp.TotalSales)
+                    .ToListAsync();
 
                 return OperationResult<IEnumerable<CategoryPerformanceDto>>.Success(categoryPerformance);
             }
@@ -194,17 +228,20 @@ namespace Adidas.Application.Services.Static
         {
             try
             {
-                var allUsers = await _context.Users
+                var customers = await _context.Users
                     .Include(u => u.Orders)
                     .Where(u => u.Role == UserRole.Customer)
                     .ToListAsync();
-                var customers = allUsers.Where(u => u.Role == UserRole.Customer).ToList();
 
                 var currentMonth = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
                 var newCustomers = customers.Count(c => c.CreatedAt >= currentMonth);
                 var returningCustomers = customers.Count(c => c.Orders.Count > 1);
 
-                var customerOrders = customers.SelectMany(c => c.Orders).Where(o => o.OrderStatus != OrderStatus.Cancelled);
+                var customerOrders = customers
+                    .SelectMany(c => c.Orders)
+                    .Where(o => o.OrderStatus != OrderStatus.Cancelled)
+                    .ToList();
+
                 var averageCustomerValue = customerOrders.Any() ?
                     customerOrders.GroupBy(o => o.UserId).Average(g => g.Sum(o => o.TotalAmount)) : 0;
 
@@ -215,7 +252,7 @@ namespace Adidas.Application.Services.Static
                         SegmentName = "New Customers",
                         CustomerCount = newCustomers,
                         AverageOrderValue = customerOrders
-                            .Where(o => customers.First(c => c.Id == o.UserId).CreatedAt >= currentMonth)
+                            .Where(o => customers.Any(c => c.Id == o.UserId && c.CreatedAt >= currentMonth))
                             .DefaultIfEmpty()
                             .Average(o => o?.TotalAmount ?? 0)
                     },
@@ -224,19 +261,20 @@ namespace Adidas.Application.Services.Static
                         SegmentName = "Returning Customers",
                         CustomerCount = returningCustomers,
                         AverageOrderValue = customerOrders
-                            .Where(o => customers.First(c => c.Id == o.UserId).Orders.Count > 1)
+                            .Where(o => customers.Any(c => c.Id == o.UserId && c.Orders.Count > 1))
                             .DefaultIfEmpty()
                             .Average(o => o?.TotalAmount ?? 0)
                     }
                 };
 
-                var result =  new CustomerInsightsDto
+                var result = new CustomerInsightsDto
                 {
                     NewCustomers = newCustomers,
                     ReturningCustomers = returningCustomers,
                     AverageCustomerValue = averageCustomerValue,
                     CustomerSegments = customerSegments
                 };
+
                 return OperationResult<CustomerInsightsDto>.Success(result);
             }
             catch (Exception ex)
@@ -246,16 +284,20 @@ namespace Adidas.Application.Services.Static
             }
         }
 
-        // NEW METHOD: Get Recent Orders
         public async Task<OperationResult<IEnumerable<RecentOrderDto>>> GetRecentOrdersAsync(int count = 5)
         {
             try
             {
-                var recentOrders = await _orderRepository.GetAll().ToListAsync();
+                var recentOrders = await _context.Orders
+                    .Include(o => o.User)
+                    .OrderByDescending(o => o.OrderDate)
+                    .Take(count)
+                    .ToListAsync();
+
                 var orderDtos = recentOrders.Select(o => new RecentOrderDto
                 {
                     OrderId = o.Id,
-                    CustomerName = o.User?.UserName ,
+                    CustomerName = o.User?.UserName ?? "Unknown Customer",
                     TotalAmount = o.TotalAmount,
                     OrderStatus = o.OrderStatus.ToString(),
                     OrderDate = o.OrderDate
@@ -270,13 +312,17 @@ namespace Adidas.Application.Services.Static
             }
         }
 
-        // NEW METHOD: Get Dashboard Notifications
         public async Task<OperationResult<IEnumerable<NotificationDto>>> GetDashboardNotificationsAsync()
         {
             try
             {
                 var notifications = new List<NotificationDto>();
                 var stats = await GetDashboardStatsAsync();
+
+                if (!stats.IsSuccess || stats.Data == null)
+                {
+                    return OperationResult<IEnumerable<NotificationDto>>.Success(notifications);
+                }
 
                 // Low stock notification
                 if (stats.Data.LowStockProducts > 0)
@@ -306,7 +352,7 @@ namespace Adidas.Application.Services.Static
 
                 // New customers notification
                 var customerInsights = await GetCustomerInsightsAsync();
-                if (customerInsights.Data.NewCustomers > 0)
+                if (customerInsights.IsSuccess && customerInsights.Data != null && customerInsights.Data.NewCustomers > 0)
                 {
                     notifications.Add(new NotificationDto
                     {
@@ -324,7 +370,7 @@ namespace Adidas.Application.Services.Static
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting dashboard notifications");
-                throw;
+                return OperationResult<IEnumerable<NotificationDto>>.Fail(ex.Message);
             }
         }
     }

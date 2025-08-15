@@ -1,6 +1,5 @@
 ﻿@using Adidas.DTOs.Common_DTOs
 @using Adidas.DTOs.People.Customer_DTOs
-<!-- Views/Customers/Index.cshtml -->
 @model PagedResultDto<CustomerDto>
 @{
     ViewData["Title"] = "All Customers";
@@ -22,6 +21,46 @@
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid">
+        
+        <!-- Statistics Cards Row -->
+        <div class="row">
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalCustomers</h3>
+                        <p>Total Customers</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.ActiveCustomers</h3>
+                        <p>Active Customers</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewBag.SuspendedCustomers</h3>
+                        <p>Suspended Customers</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
                 <div class="row">
@@ -68,7 +107,7 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
+          $(document).ready(function() {
             // Set initial filter values
             $('#statusFilter').val('@filter.Status');
 
@@ -90,21 +129,81 @@
                 window.location.href = '@Url.Action("Export")?' + params;
             });
 
-            // Toggle status
-            $(document).on('click', '.toggle-status', function() {
+            // Toggle status - USING SERVICE METHOD
+            $(document).on('click', '.toggle-status', function(e) {
+                e.preventDefault();
+
                 var customerId = $(this).data('id');
+                var button = $(this);
+                var originalText = button.html();
+                var originalClass = button.hasClass('btn-success') ? 'btn-success' : 'btn-secondary';
+
+                // Show loading state
+                button.html('<i class="fas fa-spinner fa-spin"></i>');
+                button.prop('disabled', true);
+
+                console.log('Toggling status for customer ID:', customerId); // Debug log
 
                 $.post('@Url.Action("ToggleStatus")', { id: customerId })
                     .done(function(response) {
+                        console.log('Toggle response:', response); // Debug log
+
                         if (response.success) {
                             toastr.success(response.message);
-                            applyFilters();
+
+                            // If we have the isActive status in response, update UI accordingly
+                            if (typeof response.isActive !== 'undefined') {
+                                if (response.isActive) {
+                                    button.removeClass('btn-success').addClass('btn-secondary');
+                                    button.attr('title', 'Suspend');
+                                    button.html('<i class="fas fa-ban"></i>');
+                                } else {
+                                    button.removeClass('btn-secondary').addClass('btn-success');
+                                    button.attr('title', 'Activate');
+                                    button.html('<i class="fas fa-check"></i>');
+                                }
+
+                                // Update the status badge in the same row
+                                var statusBadge = button.closest('tr').find('.badge');
+                                if (response.isActive) {
+                                    statusBadge.removeClass('badge-danger').addClass('badge-success').text('Active');
+                                } else {
+                                    statusBadge.removeClass('badge-success').addClass('badge-danger').text('Suspended');
+                                }
+                            } else {
+                                // If no isActive in response, just reload the page
+                                console.log('No isActive in response, reloading page...');
+                                location.reload();
+                                return;
+                            }
+
+                            // Refresh statistics after a short delay
+                            setTimeout(function() {
+                                // Reload to update statistics
+                                location.reload();
+                            }, 2000);
+
                         } else {
-                            toastr.error(response.message);
+                            console.error('Toggle failed:', response.message);
+                            toastr.error(response.message || 'Failed to update customer status');
+                            button.html(originalText);
+                            button.removeClass().addClass('btn btn-sm toggle-status ' + originalClass);
                         }
                     })
-                    .fail(function() {
+                    .fail(function(xhr, status, error) {
+                        console.error('Toggle status AJAX error:', {
+                            status: status,
+                            error: error,
+                            responseText: xhr.responseText,
+                            statusCode: xhr.status
+                        });
+
                         toastr.error('An error occurred while updating the customer status.');
+                        button.html(originalText);
+                        button.removeClass().addClass('btn btn-sm toggle-status ' + originalClass);
+                    })
+                    .always(function() {
+                        button.prop('disabled', false);
                     });
             });
 
@@ -118,7 +217,7 @@
                         .done(function(response) {
                             if (response.success) {
                                 toastr.success(response.message);
-                                applyFilters();
+                                location.reload();
                             } else {
                                 toastr.error(response.message);
                             }

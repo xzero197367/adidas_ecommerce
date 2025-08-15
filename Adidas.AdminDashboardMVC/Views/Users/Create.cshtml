@@ -33,7 +33,6 @@
                     You can create users in two ways:
                     <ul class="mb-0 mt-2">
                         <li><strong>Manual Creation:</strong> Set email, password, and role manually</li>
-                        <li><strong>Google Integration:</strong> User gets invitation email to complete setup with Google</li>
                     </ul>
                 </div>
 
@@ -44,11 +43,6 @@
                             <li class="nav-item">
                                 <a class="nav-link active" id="manual-tab" data-toggle="pill" href="#manual" role="tab" aria-controls="manual" aria-selected="true">
                                     <i class="fas fa-user-plus"></i> Manual Creation
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="google-tab" data-toggle="pill" href="#google" role="tab" aria-controls="google" aria-selected="false">
-                                    <i class="fab fa-google"></i> Google Integration
                                 </a>
                             </li>
                         </ul>
@@ -156,77 +150,7 @@
                                 </form>
                             </div>
 
-                            <!-- Google Integration Tab -->
-                            <div class="tab-pane fade" id="google" role="tabpanel" aria-labelledby="google-tab">
-                                <div class="alert alert-info">
-                                    <h5><i class="icon fab fa-google"></i> Google Authentication Process</h5>
-                                    <p>This will redirect the admin to authenticate with Google and create a user account:</p>
-                                    <ul>
-                                        <li>You'll be redirected to Google to authenticate</li>
-                                        <li>After successful authentication, you'll set the user's role</li>
-                                        <li>The user account will be created immediately</li>
-                                        <li>User can then login using Google authentication</li>
-                                    </ul>
-                                </div>
-
-                                <!-- Role Selection Form for Google -->
-                                <form id="googleAuthForm" method="get">
-                                    <!-- Role Selection -->
-                                    <div class="form-group">
-                                        <label for="googleRole" class="form-label">Select Role for New Google User</label>
-                                        <select id="googleRole" name="role" class="form-control" asp-items="ViewBag.Roles" required>
-                                            <option value="">Select a role...</option>
-                                        </select>
-                                        <small class="form-text text-muted">This role will be assigned to the user after Google authentication.</small>
-                                    </div>
-
-                                    <!-- Phone Number -->
-                                    <div class="form-group">
-                                        <label for="googlePhone" class="form-label">Phone Number (Optional)</label>
-                                        <input type="tel" id="googlePhone" name="phoneNumber" class="form-control" placeholder="Enter phone number" />
-                                        <small class="form-text text-muted">Optional phone number for the user account.</small>
-                                    </div>
-
-                                    <!-- Date of Birth -->
-                                    <div class="form-group">
-                                        <label for="googleDateOfBirth" class="form-label">Date of Birth (Optional)</label>
-                                        <input type="date" id="googleDateOfBirth" name="dateOfBirth" class="form-control" />
-                                        <small class="form-text text-muted">Optional birth date for the user profile.</small>
-                                    </div>
-
-                                    <!-- Gender -->
-                                    <div class="form-group">
-                                        <label for="googleGender" class="form-label">Gender (Optional)</label>
-                                        <select id="googleGender" name="gender" class="form-control">
-                                            <option value="">Select gender (optional)...</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                     
-                                        </select>
-                                        <small class="form-text text-muted">Optional gender information.</small>
-                                    </div>
-
-                                    <!-- Active Status -->
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="googleIsActive" name="isActive" value="true" checked />
-                                            <label class="form-check-label" for="googleIsActive">
-                                                Account Active
-                                            </label>
-                                        </div>
-                                        <small class="form-text text-muted">Uncheck to create an inactive account.</small>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <button type="button" id="googleAuthBtn" class="btn btn-danger">
-                                            <i class="fab fa-google"></i> Create User with Google
-                                        </button>
-                                        <a href="@Url.Action("Index", "Users")" class="btn btn-secondary">
-                                            <i class="fas fa-arrow-left"></i> Cancel
-                                        </a>
-                                    </div>
-                                </form>
-                            </div>
+                           
                         </div>
                     </div>
                 </div>

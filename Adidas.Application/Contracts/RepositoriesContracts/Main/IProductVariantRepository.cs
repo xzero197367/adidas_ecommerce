@@ -21,6 +21,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Main
         void Remove(ProductVariant entity);
         Task<IEnumerable<ProductVariant>> GetAllWithProductAndImagesAsync();
 
-
+        IQueryable<ProductVariant> GetAllForInventory(
+    Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>>? queryFunc = null);
     }
 }

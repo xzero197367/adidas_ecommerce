@@ -32,7 +32,7 @@
 
         <!-- Summary Cards -->
         <div class="row">
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4 col-12">
                 <div class="small-box bg-info">
                     <div class="inner">
                         <h3>@Model.Report.TotalProducts</h3>
@@ -43,20 +43,7 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>@Model.Report.TotalVariants</h3>
-                        <p>Total Variants</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-cubes"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4 col-12">
                 <div class="small-box bg-warning">
                     <div class="inner">
                         <h3>@Model.Report.LowStockVariants</h3>
@@ -68,7 +55,7 @@
                 </div>
             </div>
 
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4 col-12">
                 <div class="small-box bg-danger">
                     <div class="inner">
                         <h3>@Model.Report.OutOfStockVariants</h3>
@@ -113,9 +100,7 @@
                                 <button type="button" class="btn btn-success" onclick="exportToExcel()">
                                     <i class="fas fa-file-excel"></i> Export Excel
                                 </button>
-                                <button type="button" class="btn btn-info" onclick="exportToPDF()">
-                                    <i class="fas fa-file-pdf"></i> Export PDF
-                                </button>
+
                             </div>
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-secondary" onclick="location.reload()">
@@ -256,36 +241,7 @@
             </div>
         </div>
 
-        <!-- Stock Distribution Chart -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-chart-pie"></i>
-                            Stock Status Distribution
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="stockStatusChart" style="height: 300px;"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-chart-bar"></i>
-                            Top 10 Products by Value
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="topProductsChart" style="height: 300px;"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+  
 
         <!-- Key Metrics -->
         <div class="row">
@@ -365,6 +321,56 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
+        // Define functions in global scope first
+        function printReport() {
+            window.print();
+        }
+
+        function exportToExcel() {
+            // Simple CSV export that can be opened in Excel
+            var csv = 'Product Name,Total Variants,Total Stock,Inventory Value,Average Stock per Variant,Status\n';
+
+        @foreach (var product in Model.Report.ProductStocks.OrderByDescending(p => p.InventoryValue))
+        {
+            <text>
+                        csv += '@Html.Raw(product.ProductName.Replace("\"", "\"\"")),' +
+                               '@product.VariantCount,' +
+                               '@product.TotalStock,' +
+                               '@product.InventoryValue.ToString("F2"),' +
+                               '@Math.Round((double)product.TotalStock / product.VariantCount, 1),' +
+                               '@(product.TotalStock == 0 ? "Out of Stock" : product.TotalStock <= 50 ? "Low Stock" : product.TotalStock <= 100 ? "Moderate" : "Well Stocked")\n';
+            </text>
+        }
+
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            if (link.download !== undefined) {
+                var url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'inventory_report_' + new Date().toISOString().split('T')[0] + '.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        function exportToPDF() {
+            // This would typically integrate with a PDF library like jsPDF
+            alert('PDF export feature would be implemented with a PDF library like jsPDF or server-side PDF generation.');
+        }
+
+        function viewProductDetails(productId) {
+            // Navigate to product details page
+            window.location.href = '/Products/Details/' + productId;
+        }
+
+        function bulkUpdateProduct(productId) {
+            // Navigate to bulk update page for product variants
+            window.location.href = '/Products/Edit/' + productId;
+        }
+
+        // Now the document ready function
         $(document).ready(function() {
             // Initialize DataTable
             $('#productStockTable').DataTable({
@@ -438,7 +444,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return ' + value.toLocaleString();
+                                    return '$' + value.toLocaleString();
                                 }
                             }
                         },
@@ -453,55 +459,7 @@
             });
         }
 
-        function printReport() {
-            window.print();
-        }
-
-        function exportToExcel() {
-            // Simple CSV export that can be opened in Excel
-            var csv = 'Product Name,Total Variants,Total Stock,Inventory Value,Average Stock per Variant,Status\n';
-
-        @foreach (var product in Model.Report.ProductStocks.OrderByDescending(p => p.InventoryValue))
-        {
-            <text>
-                    csv += '@Html.Raw(product.ProductName.Replace("\"", "\"\"")),' +
-                           '@product.VariantCount,' +
-                           '@product.TotalStock,' +
-                           '@product.InventoryValue.ToString("F2"),' +
-                           '@Math.Round((double)product.TotalStock / product.VariantCount, 1),' +
-                           '@(product.TotalStock == 0 ? "Out of Stock" : product.TotalStock <= 50 ? "Low Stock" : product.TotalStock <= 100 ? "Moderate" : "Well Stocked")\n';
-            </text>
-        }
-
-            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            if (link.download !== undefined) {
-                var url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', 'inventory_report_' + new Date().toISOString().split('T')[0] + '.csv');
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        }
-
-        function exportToPDF() {
-            // This would typically integrate with a PDF library like jsPDF
-            alert('PDF export feature would be implemented with a PDF library like jsPDF or server-side PDF generation.');
-        }
-
-        function viewProductDetails(productId) {
-            // Navigate to product details page
-            window.location.href = '/Products/Details/' + productId;
-        }
-
-        function bulkUpdateProduct(productId) {
-            // Navigate to bulk update page for product variants
-            window.location.href = '/Products/BulkUpdateVariants/' + productId;
-        }
-
-        // Print styles
+        // Print styles handlers
         window.addEventListener('beforeprint', function() {
             // Hide action buttons and other non-essential elements when printing
             $('.btn-toolbar, .card-tools, td:last-child').hide();
@@ -512,33 +470,4 @@
             $('.btn-toolbar, .card-tools, td:last-child').show();
         });
     </script>
-
-    @* <style> *@
-    @*     @media print { *@
-    @*         .btn-toolbar, .card-tools, .breadcrumb, .content-header .btn, table td:last-child *@
-
-    @*     { *@
-    @*         display: none !important; *@
-    @*     } *@
-
-    @*     .card { *@
-    @*         border: 1px solid #dee2e6 !important; *@
-    @*         box-shadow: none !important; *@
-    @*     } *@
-
-    @*     .small-box { *@
-    @*         border: 1px solid #dee2e6 !important; *@
-    @*         box-shadow: none !important; *@
-    @*     } *@
-
-    @*     body { *@
-    @*         font-size: 12px; *@
-    @*     } *@
-
-    @*     h1, h2, h3, h4, h5, h6 { *@
-    @*         color: #000 !important; *@
-    @*     } *@
-
-    @*     } *@
-    @* </style> *@
 }

@@ -149,9 +149,6 @@
                         </div>
                     </div>
                     <div class="row">
-                        
-                        
-                       
                     </div>
                     <!-- Hidden field to maintain current page -->
                     <input asp-for="CurrentPage" type="hidden" />
@@ -220,7 +217,7 @@
                                                     <i class="fas fa-user-circle fa-2x text-muted"></i>
                                                 </div>
                                                 <div>
-                                                    <div class="font-weight-bold">@review.UserId</div>
+                                                    <div class="font-weight-bold">@review.UserEmail</div>
                                                     <small class="text-muted">@review.UserId</small>
                                                 </div>
                                             </div>
@@ -231,7 +228,7 @@
                                                     <i class="fas fa-cube fa-2x text-muted"></i>
                                                 </div>
                                                 <div>
-                                                    <div class="font-weight-bold">Product Name</div>
+                                                    <div class="font-weight-bold">@review.ProductName</div>
                                                     <small class="text-muted">ID: @review.ProductId.ToString().Substring(0, 8)...</small>
                                                 </div>
                                             </div>
@@ -268,7 +265,7 @@
                                         <td class="text-center">
                                             <span class="text-nowrap">
                                                 <i class="fas fa-calendar-alt text-muted mr-1"></i>
-                                                @((review.CreatedAt ).ToString("MMM dd, yyyy"))
+                                                @((review.CreatedAt).ToString("MMM dd, yyyy"))
                                             </span>
                                         </td>
                                         <td class="text-center">
@@ -289,6 +286,12 @@
                                                     icon = "fas fa-check-circle";
                                                     statusText = "Approved";
                                                 }
+                                                else if (!review.IsActive && !string.IsNullOrWhiteSpace(review.RejectionReason))
+                                                {
+                                                    badgeClass = "badge-danger";
+                                                    icon = "fas fa-times-circle";
+                                                    statusText = "Rejected";
+                                                }
                                                 else if (!review.IsActive)
                                                 {
                                                     badgeClass = "badge-danger";
@@ -297,20 +300,21 @@
                                                 }
                                                 else
                                                 {
-                                                    badgeClass = "badge-warning";
+                                                    badgeClass = "badge-warning text-dark"; // Modified to ensure consistent styling
                                                     icon = "fas fa-clock";
                                                     statusText = "Pending";
                                                 }
                                             }
-                                            <span class="badge @badgeClass">
-                                                <i class="@icon"></i> @statusText
+
+                                            <span class="badge @badgeClass badge-pill">
+                                                <i class="@icon mr-1"></i> @statusText
                                             </span>
-                                            @if (review.IsVerifiedPurchase)
+
+                                            @if (!string.IsNullOrWhiteSpace(review.RejectionReason))
                                             {
-                                                <br>
-                                                <small class="badge badge-info mt-1">
-                                                    <i class="fas fa-shield-alt"></i> Verified
-                                                </small>
+                                                <div class="mt-1 small text-muted">
+                                                    <i class="fas fa-comment-alt"></i> @review.RejectionReason
+                                                </div>
                                             }
                                         </td>
                                         <td class="text-center">
@@ -325,18 +329,18 @@
                                                             data-id="@review.Id" title="Approve" data-toggle="tooltip">
                                                         <i class="fas fa-check"></i>
                                                     </button>
-                                                    @* <button type="button" class="btn btn-sm btn-warning reject-btn" *@
-                                                    @*         data-id="@review.Id" title="Reject" data-toggle="tooltip"> *@
-                                                    @*     <i class="fas fa-times"></i> *@
-                                                    @* </button> *@
+                                                    <button type="button" class="btn btn-sm btn-warning reject-btn"
+                                                            data-id="@review.Id" title="Reject" data-toggle="tooltip">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
                                                 }
-                                                @* @if (!review.IsDeleted) *@
-                                                @* { *@
-                                                @*     <button type="button" class="btn btn-sm btn-outline-danger delete-btn" *@
-                                                @*             data-id="@review.Id" title="Delete" data-toggle="tooltip"> *@
-                                                @*         <i class="fas fa-trash"></i> *@
-                                                @*     </button> *@
-                                                @* } *@
+                                                @if (!review.IsDeleted)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+                                                            data-id="@review.Id" title="Delete" data-toggle="tooltip">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                }
                                             </div>
                                         </td>
                                     </tr>
@@ -833,4 +837,3 @@
 
     @Html.AntiForgeryToken()
 }
-

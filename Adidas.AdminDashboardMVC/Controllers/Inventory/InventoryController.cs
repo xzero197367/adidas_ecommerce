@@ -4,6 +4,7 @@ using Adidas.Application.Contracts.ServicesContracts.Tracker;
 using Adidas.DTOs.Tracker;
 using Adidas.AdminDashboardMVC.ViewModels.Inventory;
 using Adidas.Application.Contracts.ServicesContracts.Main;
+using Microsoft.EntityFrameworkCore;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Inventory
 {
@@ -31,18 +32,16 @@ namespace Adidas.AdminDashboardMVC.Controllers.Inventory
             {
                 var reportResult = await _inventoryService.GenerateInventoryReportAsync();
                 var lowStockResult = await _inventoryService.GetLowStockAlertsAsync(10);
-                var allProductsResult = await _productService.GetAllAsync();
-                var allVariantsResult = await _productVariantService.GetAllAsync();
 
-                // Extract counts safely
-                //var totalProducts = (allProductsResult.IsSuccess && allProductsResult.Data != null)
-                //    ? allProductsResult.Data.Count()
-                //    : 0;
+                // Ensure EF IQueryable is used here by passing queryFunc
+                var allProductsResult = await _productService.GetAllAsync(
+                    q => q // EF IQueryable<Product>
+                );
 
-                //var totalVariants = (allVariantsResult.IsSuccess && allVariantsResult.Data != null)
-                //    ? allVariantsResult.Data.Count()
-                //    : 0;
-               
+                var allVariantsResult = await _productVariantService.GetAllAsync(
+                    q => q.Include(v => v.Product) // EF IQueryable<ProductVariant>
+                );
+
                 var viewModel = new InventoryDashboardViewModel();
 
                 if (!reportResult.IsSuccess || reportResult.Data == null)
@@ -72,14 +71,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Inventory
                     }
                 }
 
-                if (lowStockResult.IsSuccess && lowStockResult.Data != null)
-                {
-                    viewModel.LowStockAlerts = lowStockResult.Data;
-                }
-                else
-                {
-                    viewModel.LowStockAlerts = new List<LowStockAlertDto>();
-                }
+                viewModel.LowStockAlerts = (lowStockResult.IsSuccess && lowStockResult.Data != null)
+                    ? lowStockResult.Data
+                    : new List<LowStockAlertDto>();
 
                 return View(viewModel);
             }
@@ -103,6 +97,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Inventory
                 });
             }
         }
+
 
 
 
