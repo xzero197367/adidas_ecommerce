@@ -22,6 +22,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         public async Task<IActionResult> Index(string categoryType, string statusFilter, string searchTerm)
         {
+            categoryType ??= "Main";
+
             var categories = await _categoryService.GetFilteredCategoriesAsync(categoryType, statusFilter, searchTerm);
 
             ViewData["CurrentType"] = categoryType;

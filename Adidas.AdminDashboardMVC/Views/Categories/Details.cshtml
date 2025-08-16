@@ -12,9 +12,7 @@
             Category Details: @Model.Name
         </h2>
         <div class="d-flex gap-2">
-            <a asp-action="Edit" asp-controller="Categories" asp-route-id="@Model.Id" class="btn btn-warning" title="Edit Category">
-                <i class="bi bi-pencil me-1"></i> Edit
-            </a>
+          
             <a asp-action="Index" asp-controller="Categories" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Back to List
             </a>
@@ -69,9 +67,7 @@
                         </span>
                     </dd>
 
-                    <dt class="col-sm-3">Sort Order:</dt>
-                    <dd class="col-sm-9">@Model.SortOrder</dd>
-
+               
                     <dt class="col-sm-3">Parent Category:</dt>
                     <dd class="col-sm-9">
                         @if (Model.ParentCategory != null)
@@ -106,7 +102,7 @@
                                 <th>NAME</th>
                                 <th>DESCRIPTION</th>
                                 <th>SLUG</th>
-                                <th>SORT ORDER</th>
+                                
                                 <th>STATUS</th>
                                 <th>ACTIONS</th>
                             </tr>
@@ -125,7 +121,7 @@
                                             (subCategory.Description.Length > 50 ? subCategory.Description.Substring(0, 50) + "..." : subCategory.Description))
                                     </td>
                                     <td>@subCategory.Slug</td>
-                                    <td>@subCategory.SortOrder</td>
+                                    
                                     <td>
                                         <span class="badge @(subCategory.IsActive ? "bg-success" : "bg-danger")">
                                             @(subCategory.IsActive ? "Active" : "Inactive")
@@ -141,6 +137,13 @@
                                         <a href="#" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@subCategory.Id">
                                             <i class="bi bi-trash"></i>
                                         </a>
+
+                                        <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@subCategory.Id" />
+                                            <button type="submit" class="btn btn-sm @(subCategory.IsActive ? "btn-outline-secondary" : "btn-outline-success")">
+                                                <i class="@(subCategory.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                                 <!-- Delete Modal -->
@@ -186,6 +189,8 @@
     }
 
     <!-- Products Section -->
+
+    @if(Model.ParentCategoryId!=null){
     <div class="card shadow-sm rounded-3 p-3">
         <h4 class="mb-3"><i class="bi bi-box-seam text-primary me-2"></i> Products</h4>
         @if (Model.Products == null || !Model.Products.Any())
@@ -223,4 +228,6 @@
             </div>
         }
     </div>
+    }
+
 </div>
