@@ -37,17 +37,9 @@
                                        value="@(ViewData["SearchTerm"] as string)" />
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label>Category Type</label>
-                                <select name="categoryType" class="form-control">
-                                    <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentType"] as string))">All</option>
-                                    <option value="Main" selected="@(ViewData["CurrentType"] as string == "Main")">Main Categories</option>
-                                    <option value="Sub" selected="@(ViewData["CurrentType"] as string == "Sub")">Sub Categories</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
+                        <input type="hidden" name="categoryType" value="Main" />
+
+                        <div class="col-md-5">
                             <div class="form-group">
                                 <label>Status</label>
                                 <select name="statusFilter" class="form-control">
@@ -57,6 +49,7 @@
                                 </select>
                             </div>
                         </div>
+                      
                         <div class="col-md-2">
                             <label>&nbsp;</label>
                             <button type="submit" class="btn btn-dark btn-block">
