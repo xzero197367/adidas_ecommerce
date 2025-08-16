@@ -67,9 +67,7 @@
                         </span>
                     </dd>
 
-                    <dt class="col-sm-3">Sort Order:</dt>
-                    <dd class="col-sm-9">@Model.SortOrder</dd>
-
+               
                     <dt class="col-sm-3">Parent Category:</dt>
                     <dd class="col-sm-9">
                         @if (Model.ParentCategory != null)
@@ -104,7 +102,7 @@
                                 <th>NAME</th>
                                 <th>DESCRIPTION</th>
                                 <th>SLUG</th>
-                                <th>SORT ORDER</th>
+                                
                                 <th>STATUS</th>
                                 <th>ACTIONS</th>
                             </tr>
@@ -123,7 +121,7 @@
                                             (subCategory.Description.Length > 50 ? subCategory.Description.Substring(0, 50) + "..." : subCategory.Description))
                                     </td>
                                     <td>@subCategory.Slug</td>
-                                    <td>@subCategory.SortOrder</td>
+                                    
                                     <td>
                                         <span class="badge @(subCategory.IsActive ? "bg-success" : "bg-danger")">
                                             @(subCategory.IsActive ? "Active" : "Inactive")
