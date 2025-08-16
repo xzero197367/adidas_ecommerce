@@ -7,16 +7,42 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <Compile Remove="Controllers\Feature\**" />
+    <Compile Remove="Controllers\Main\**" />
+    <Compile Remove="Controllers\Operation\**" />
+    <Compile Remove="Controllers\People\**" />
+    <Compile Remove="Controllers\Separator\**" />
+    <Compile Remove="Controllers\Tracker\**" />
+    <Content Remove="Controllers\Feature\**" />
+    <Content Remove="Controllers\Main\**" />
+    <Content Remove="Controllers\Operation\**" />
+    <Content Remove="Controllers\People\**" />
+    <Content Remove="Controllers\Separator\**" />
+    <Content Remove="Controllers\Tracker\**" />
+    <EmbeddedResource Remove="Controllers\Feature\**" />
+    <EmbeddedResource Remove="Controllers\Main\**" />
+    <EmbeddedResource Remove="Controllers\Operation\**" />
+    <EmbeddedResource Remove="Controllers\People\**" />
+    <EmbeddedResource Remove="Controllers\Separator\**" />
+    <EmbeddedResource Remove="Controllers\Tracker\**" />
+    <None Remove="Controllers\Feature\**" />
+    <None Remove="Controllers\Main\**" />
+    <None Remove="Controllers\Operation\**" />
+    <None Remove="Controllers\People\**" />
+    <None Remove="Controllers\Separator\**" />
+    <None Remove="Controllers\Tracker\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Feature\" />
-    <Folder Include="Controllers\Main\" />
-    <Folder Include="Controllers\Operation\" />
-    <Folder Include="Controllers\People\" />
-    <Folder Include="Controllers\Separator\" />
-    <Folder Include="Controllers\Tracker\" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.70.0" />
+    <PackageReference Include="Mapster" Version="7.4.0" />
+    <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.19" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.19" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.19" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
   </ItemGroup>
 
   <ItemGroup>
