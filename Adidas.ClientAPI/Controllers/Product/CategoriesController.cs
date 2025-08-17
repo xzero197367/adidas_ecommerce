@@ -32,11 +32,4 @@ namespace Adidas.ClientAPI.Controllers.Product
         }
     }
 }
-//    
-//CategoryController
-//    
-//    • - FilterProducts
-//    • - GetAllSubCategories
-//    • - GetSubCategoriesByGender
-//    • - FilterSubCategories
-//Team Member: Ahmad Kh
+ 
