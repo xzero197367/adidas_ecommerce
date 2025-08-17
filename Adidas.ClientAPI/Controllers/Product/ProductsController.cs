@@ -36,9 +36,10 @@ namespace Adidas.ClientAPI.Controllers.Product
 
         }
         [HttpGet("GetProductsByCategoryId/{id}")]
-        public async Task<IActionResult> GetProductsByCategoryId(int id)
+        public async Task<IActionResult> GetProductsByCategoryId(Guid id)
         {
-            var products = await _productService.GetProductsByCategoryAsync(id);            return Ok(products);
+            var products = await _productService.GetProductsByCategoryAsync(id);        
+            return Ok(products);
 
         }
        
@@ -49,7 +50,7 @@ namespace Adidas.ClientAPI.Controllers.Product
 //    ProductController
 //    
 //   
-//    • - GetProductsByCategory
+//   
 //    • - GetProductVariantById
 //    • - GetImagesByProductVariantId
 //    • - GetProductsYouMayLike
