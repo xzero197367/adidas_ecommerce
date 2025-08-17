@@ -15,6 +15,20 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.Google;
 using Adidas.Infra.People;
+using Adidas.Application.Contracts.RepositoriesContracts.Main;
+using Adidas.Infra.Main;
+using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Services.Main;
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
+using Adidas.Infra.Separator;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.Application.Services.Separator;
+using Adidas.Application.Contracts.ServicesContracts.Feature;
+using Adidas.Application.Services.Feature;
+using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Infra.Operation;
+using Adidas.Application.Contracts.RepositoriesContracts.Feature;
+using Adidas.Infra.Feature;
 
 namespace Adidas.ClientAPI
 {
@@ -98,9 +112,25 @@ namespace Adidas.ClientAPI
 
             // Register Application Services
             builder.Services.AddScoped<IAddressService, AddressService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<ICategoryService,CategoryService>();
+            builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+            builder.Services.AddScoped<ICouponService, CouponService>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
 
             // Register Repositories (you'll need to add these)
-             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+            builder.Services.AddScoped<IProductVariantRepository,ProductVariantRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+
+
+           
+            builder.Services.AddScoped<IOrderCouponRepository, OrderCouponRepository>();  
 
             // Add Controllers
             builder.Services.AddControllers();

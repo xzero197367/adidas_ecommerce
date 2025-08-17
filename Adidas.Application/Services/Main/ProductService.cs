@@ -6,6 +6,10 @@ using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
+using Adidas.DTOs.Main.ProductImageDTOs;
+using Adidas.DTOs.Operation.ReviewDTOs.Query;
+using Adidas.DTOs.Separator.Brand_DTOs;
+using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Main;
 using Mapster;
 using Microsoft.Extensions.Logging;
@@ -435,7 +439,75 @@ namespace Adidas.Application.Services.Main
             return sku;
         }
 
-      
+        public async Task<OperationResult<List<ProductDto>>> GetLastAddedProducts()
+        {
+            try
+            {
+                var products = await _productRepository.GetAllAsync(
+                    p => p.Category,
+                    p => p.Images,
+                    p => p.Variants,
+                    p => p.Reviews
+                );
+
+                var lastProducts = products
+                    .OrderByDescending(p => p.CreatedAt) // assumes CreatedAt exists in your entity
+                    .Take(5) // for example, last 5 products
+                    .Select(p => new ProductDto
+                    {
+                        Name = p.Name,
+                        Description = p.Description,
+                        ShortDescription = p.ShortDescription,
+                        Sku = p.Sku,
+                        Price = p.Price,
+                        SalePrice = p.SalePrice,
+                        GenderTarget = p.GenderTarget,
+                        MetaTitle = p.MetaTitle,
+                        MetaDescription = p.MetaDescription,
+                        CategoryId = p.CategoryId,
+                        BrandId = p.BrandId,
+                        CategoryName = p.Category != null ? p.Category.Name : "No Category",
+                        BrandName = p.Brand != null ? p.Brand.Name : "No Brand",
+
+                        Category = new CategoryDto
+                        {
+                            Id = p.Category.Id,
+                            Name = p.Category.Name
+                        },
+
+                        Images = p.Images.Select(i => new ProductImageDto
+                        {
+                            Id = i.Id,
+                            ImageUrl = i.ImageUrl,
+                            AltText = i.AltText
+                        }).ToList(),
+                        Variants = p.Variants.Select(v => new ProductVariantDto
+                        {
+                            Id = v.Id,
+                            Size = v.Size,
+                            Color = v.Color,
+                            StockQuantity = v.StockQuantity
+                        }).ToList(),
+                        Reviews = p.Reviews.Select(r => new ReviewDto
+                        {
+                            Id = r.Id,
+                            Rating = r.Rating,
+                            ReviewText = r.ReviewText
+                        }).ToList()
+                    })
+                    .ToList();
+
+                if (!lastProducts.Any())
+                    return OperationResult<List<ProductDto>>.Fail("No products found.");
+
+                return OperationResult<List<ProductDto>>.Success(lastProducts);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<List<ProductDto>>.Fail($"Error fetching products: {ex.Message}");
+            }
+        }
+
 
     }
 }
