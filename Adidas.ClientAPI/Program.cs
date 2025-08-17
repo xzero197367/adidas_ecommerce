@@ -1,5 +1,4 @@
-// Updated Program.cs with proper using statements and NuGet packages
-
+﻿// Program.cs 
 using Adidas.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
@@ -12,9 +11,8 @@ using Adidas.Application.Services.People;
 using Adidas.Application.Contracts.RepositoriesContracts.People;
 using Microsoft.OpenApi.Models;
 using Mapster;
-using MapsterMapper;
-using Microsoft.AspNetCore.Authentication.Google;
 using Adidas.Infra.People;
+
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Infra.Main;
 using Adidas.Application.Contracts.ServicesContracts.Main;
@@ -27,8 +25,11 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Services.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Infra.Operation;
+using Adidas.Application.Services.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Infra.Feature;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
+
 
 namespace Adidas.ClientAPI
 {
@@ -38,13 +39,12 @@ namespace Adidas.ClientAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
-            // Configure DbContext
+            #region DbContext
             builder.Services.AddDbContext<AdidasDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            #endregion
 
-            // Configure Identity
+            #region Identity
             builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
                 // Password settings
@@ -66,8 +66,9 @@ namespace Adidas.ClientAPI
             })
             .AddEntityFrameworkStores<AdidasDbContext>()
             .AddDefaultTokenProviders();
+            #endregion
 
-            // Configure JWT Authentication
+            #region Authentication - JWT
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"];
 
@@ -90,16 +91,18 @@ namespace Adidas.ClientAPI
                     ClockSkew = TimeSpan.Zero
                 };
             });
+            #endregion
 
-            // Configure Google Authentication
+            #region Authentication - Google
             builder.Services.AddAuthentication()
                 .AddGoogle(options =>
                 {
                     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
                     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
                 });
+            #endregion
 
-            // Add Authorization
+            #region Authorization
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("CustomerOnly", policy =>
@@ -109,33 +112,40 @@ namespace Adidas.ClientAPI
                     policy.RequireAssertion(context =>
                         context.User.Identity.IsAuthenticated));
             });
+            #endregion
 
-            // Register Application Services
-            builder.Services.AddScoped<IAddressService, AddressService>();
+            #region Application Services & Repositories
+            builder.Services.AddScoped<IAddressService, AddressService>(); 
+
+            // Register Services
             builder.Services.AddScoped<IProductService, ProductService>();
-            builder.Services.AddScoped<ICategoryService,CategoryService>();
-            builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICouponService, CouponService>();
-            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-
-            // Register Repositories (you'll need to add these)
+            // Register Repositories
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-             builder.Services.AddScoped<IProductRepository, ProductRepository>();
-             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
             builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-            builder.Services.AddScoped<IProductVariantRepository,ProductVariantRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IOrderCouponRepository, OrderCouponRepository>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+
+            // Register PayPal Services with HttpClient
+            builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
+            {
+                // Keep BaseAddress configurable if needed
+                // client.BaseAddress = new Uri("https://api-m.sandbox.paypal.com");
+            });
 
 
-
-           
-            builder.Services.AddScoped<IOrderCouponRepository, OrderCouponRepository>();  
-
-            // Add Controllers
+            #region Controllers
             builder.Services.AddControllers();
+            #endregion
 
-            // Configure Swagger/OpenAPI with JWT support
+            #region Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -171,8 +181,9 @@ namespace Adidas.ClientAPI
                     }
                 });
             });
+            #endregion
 
-            // Add CORS
+            #region CORS
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngular", policy =>
@@ -183,13 +194,15 @@ namespace Adidas.ClientAPI
                           .AllowCredentials();
                 });
             });
+            #endregion
 
-            // Add Mapster for object mapping (Alternative: use AutoMapper or manual mapping)
+            #region Mapster
             builder.Services.AddMapster();
+            #endregion
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            #region Middleware
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -199,26 +212,15 @@ namespace Adidas.ClientAPI
                 });
             }
 
-            // Use CORS
             app.UseCors("AllowAngular");
-
-            // Use HTTPS redirection
             app.UseHttpsRedirection();
-
-            // Use Authentication & Authorization
             app.UseAuthentication();
             app.UseAuthorization();
-
-            // Map Controllers
             app.MapControllers();
-
-         
+            #endregion
 
             app.Run();
         }
-
-       
-
-       
     }
 }
+
