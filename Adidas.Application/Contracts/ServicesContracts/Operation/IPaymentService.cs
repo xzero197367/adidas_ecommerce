@@ -26,6 +26,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         // Task<OperationResult<IEnumerable<PaymentDto>>> GetPaymentsByDateRangeAsync(DateTime startDate, DateTime endDate);
         //
         // // Business Logic
+        Task<OperationResult<PaymentDto>> CreatePaymentAsync(PaymentCreateDto paymentCreateDto);
+        Task<OperationResult<IEnumerable<PaymentDto>>> GetPendingPaymentsAsync();
         Task<OperationResult<PaymentDto>> GetPaymentByIdAsync(Guid id);
         Task<OperationResult<PaymentDto>> ProcessPaymentAsync(PaymentCreateDto paymentDto);
         Task<OperationResult<PaymentDto>> RefundPaymentAsync(Guid paymentId, decimal? refundAmount = null);

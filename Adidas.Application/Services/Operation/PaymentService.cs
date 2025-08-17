@@ -27,6 +27,7 @@ public class PaymentService : IPaymentService
     #region Payment-Specific Methods
 
     // Legacy method that now calls the generic method
+ 
     public async Task<OperationResult<PaymentDto>> GetPaymentByIdAsync(Guid id)
     {
         try
