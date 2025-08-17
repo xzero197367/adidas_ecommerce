@@ -71,11 +71,6 @@ namespace Adidas.ClientAPI.Controllers.Product
 
     }
 }
+//• - GetProductsOthersAlsoBought
 
-//    ProductController
-//    
-//   
-//   
-//
-//    • - GetImagesByProductVariantId
-//    • - GetProductsYouMayLike
+//• - GetProductsYouMayLike
