@@ -24,5 +24,11 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         
         Task<byte[]> ExportToExcelAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportToPdfAsync(DateTime? startDate = null, DateTime? endDate = null);
+        Task<OperationResult<object>> GetFormattedOrderSummaryAsync(string userId, string? couponCode = null);
+
+        Task<BillingSummaryDto> GetBillingSummaryAsync(string userId, string? promoCode = null);
+
+
+
     }
 }

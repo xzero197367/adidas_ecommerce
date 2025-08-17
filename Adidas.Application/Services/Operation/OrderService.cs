@@ -1,19 +1,21 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
 using Adidas.DTOs.Common_DTOs;
-using Adidas.DTOs.Operation.OrderDTOs.Create;
-using Microsoft.Extensions.Logging;
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
+using Adidas.DTOs.Operation.OrderDTOs.Create;
+using Adidas.Models.Feature;
 using ClosedXML.Excel;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Operation;
 
@@ -24,6 +26,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
     private readonly IProductVariantRepository _variantRepository;
     private readonly IInventoryService _inventoryService;
     private readonly INotificationService _notificationService;
+    private readonly ICouponService _couponService;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
@@ -32,6 +35,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         IProductVariantRepository variantRepository,
         IInventoryService inventoryService,
         INotificationService notificationService,
+        ICouponService couponService,
         ILogger<OrderService> logger) : base(orderRepository, logger)
     {
         _orderRepository = orderRepository;
@@ -39,8 +43,62 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         _variantRepository = variantRepository;
         _inventoryService = inventoryService;
         _notificationService = notificationService;
+        _couponService = couponService;
         _logger = logger;
     }
+
+    public async Task<BillingSummaryDto> GetBillingSummaryAsync(string userId, string? promoCode = null)
+    {
+        var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId) ?? new List<ShoppingCart>();
+
+        decimal itemsTotal = 0;
+
+        foreach (var item in cartItems)
+        {
+            var variant = await _variantRepository.GetByIdAsync(item.VariantId);
+
+            if (variant == null)
+            {
+                _logger.LogWarning("Variant not found for VariantId: {VariantId}", item.VariantId);
+                continue;
+            }
+
+            if (variant.Product == null)
+            {
+                _logger.LogWarning("Product not found for VariantId: {VariantId}", item.VariantId);
+                continue;
+            }
+
+            var price = (variant.Product.SalePrice ?? variant.Product.Price) + variant.PriceAdjustment;
+            itemsTotal += price * item.Quantity;
+        }
+
+        decimal shipping = itemsTotal >= 100 ? 0 : 10;
+        string shippingText = shipping == 0 ? "Free" : $"EGP {shipping:N2}";
+
+        decimal discount = 0;
+
+        if (!string.IsNullOrEmpty(promoCode))
+        {
+            var couponResult = await _couponService.ApplyCouponToCartAsync(userId, promoCode, itemsTotal);
+            if (couponResult?.Success == true)
+            {
+                discount = couponResult.DiscountApplied;
+            }
+        }
+
+        decimal total = itemsTotal + shipping - discount;
+
+        return new BillingSummaryDto
+        {
+            Subtotal = itemsTotal,
+            Shipping = shipping,
+            ShippingText = shippingText,
+            Discount = discount,
+            Total = total
+        };
+    }
+
 
     public async Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize,
         OrderFilterDto? filter = null)
@@ -394,4 +452,63 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return stream.ToArray();
         }
     }
+    public async Task<OperationResult<object>> GetFormattedOrderSummaryAsync(string userId, string? couponCode = null)
+    {
+        try
+        {
+            var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId) ?? new List<ShoppingCart>();
+            decimal subtotal = 0;
+
+            foreach (var item in cartItems)
+            {
+                var variant = await _variantRepository.GetByIdAsync(item.VariantId);
+
+                if (variant == null)
+                {
+                    _logger.LogWarning("Variant not found for VariantId: {VariantId}", item.VariantId);
+                    continue;
+                }
+
+                if (variant.Product == null)
+                {
+                    _logger.LogWarning("Product not found for VariantId: {VariantId}", item.VariantId);
+                    continue;
+                }
+
+                var itemPrice = (variant.Product.SalePrice ?? variant.Product.Price) + variant.PriceAdjustment;
+                subtotal += itemPrice * item.Quantity;
+            }
+
+            var shipping = subtotal >= 100 ? 0 : 10; 
+            var total = subtotal + shipping;
+
+            decimal discount = 0;
+            if (!string.IsNullOrEmpty(couponCode))
+            {
+                var couponResult = await _couponService.ApplyCouponToOrderAsync(Guid.Empty, couponCode); 
+                if (couponResult?.Success == true)
+                {
+                    discount = couponResult.DiscountApplied;
+                    total -= discount;
+                }
+            }
+
+            var response = new
+            {
+                Subtotal = $"EGP {subtotal:N2}",
+                Delivery = shipping == 0 ? "Free" : $"EGP {shipping:N2}",
+                Message = shipping == 0 ? "You unlocked Free Shipping!" : "",
+                Discount = discount > 0 ? $"EGP {discount:N2}" : null,
+                Total = $"EGP {total:N2}"
+            };
+
+            return OperationResult<object>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating formatted order summary");
+            return OperationResult<object>.Fail(ex.Message);
+        }
+    }
+
 }

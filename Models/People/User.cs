@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using Adidas.Models.Feature;
 using Adidas.Models.Operation;
+using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Identity;
 using Models.Feature;
 
@@ -62,6 +63,8 @@ namespace Models.People
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
         public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
-    }
 
+
+
+    }
 }

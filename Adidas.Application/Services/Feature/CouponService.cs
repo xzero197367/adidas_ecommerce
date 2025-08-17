@@ -38,6 +38,30 @@ namespace Adidas.Application.Services.Feature
                 return Math.Min(coupon.DiscountValue, orderAmount);
             }
         }
+        public async Task<CouponApplicationResult> ApplyCouponToCartAsync(string userId, string couponCode, decimal cartTotal)
+        {
+            var coupon = await _couponRepository.GetByCodeAsync(couponCode);
+            if (coupon == null || !coupon.IsActive || coupon.IsDeleted)
+                return CouponApplicationResult.Fail("Coupon not found or inactive.");
+
+            var now = DateTime.Now;
+            if (now < coupon.ValidFrom || now > coupon.ValidTo)
+                return CouponApplicationResult.Fail("Coupon is not valid at this time.");
+
+            if (coupon.UsageLimit > 0 && coupon.UsedCount >= coupon.UsageLimit)
+                return CouponApplicationResult.Fail("Coupon usage limit reached.");
+
+            if (cartTotal < coupon.MinimumAmount)
+                return CouponApplicationResult.Fail($"Cart total must be at least {coupon.MinimumAmount:C}.");
+
+            decimal discount = coupon.DiscountType == DiscountType.Percentage
+                ? cartTotal * (coupon.DiscountValue / 100m)
+                : coupon.DiscountValue;
+
+            discount = Math.Min(discount, cartTotal);
+
+            return CouponApplicationResult.Ok(discount, cartTotal - discount);
+        }
 
         public async Task<CouponListResult> GetFilteredPagedCouponsAsync(string search, string status, int page, int pageSize)
         {
