@@ -10,10 +10,12 @@ namespace Adidas.ClientAPI.Controllers.Product
     {
         private readonly IProductService _productService;
         private readonly IProductVariantService _productVariantService;
-        public ProductsController(IProductService productService, IProductVariantService productVariantService)
+        private readonly IProductImageService _productImageService;
+        public ProductsController(IProductService productService, IProductVariantService productVariantService, IProductImageService productImageService)
         {
             _productService = productService;
             _productVariantService = productVariantService;
+            _productImageService = productImageService;
         }
         [HttpGet("GetAllProducts")]
         public async Task<IActionResult> GetProducts()
@@ -57,8 +59,14 @@ namespace Adidas.ClientAPI.Controllers.Product
         {
             var productVariant = await _productVariantService.GetByIdAsync(id);        
             return Ok(productVariant);
-
         }
+        [HttpGet("GetImagesByProductVariantId/{id}")]
+        public async Task<IActionResult> GetImagesByProductVariantId(Guid id)
+        {
+            var productVariantImages = await _productImageService.GetImagesByVariantIdAsync(id);        
+            return Ok(productVariantImages);
+        }
+         
        
 
     }
@@ -68,6 +76,6 @@ namespace Adidas.ClientAPI.Controllers.Product
 //    
 //   
 //   
-//    • - GetProductVariantById
+//
 //    • - GetImagesByProductVariantId
 //    • - GetProductsYouMayLike

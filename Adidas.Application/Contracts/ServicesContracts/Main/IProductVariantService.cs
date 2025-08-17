@@ -17,6 +17,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Main
         Task<bool> AddImageAsync(Guid variantId, IFormFile imageFile);
         Task<ProductVariantDto?> GetBySkuAsync(string sku);
 
+        
+
 
 
     }
