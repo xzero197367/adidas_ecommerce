@@ -25,5 +25,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Main
         Task<PagedResultDto<ProductDto>> GetProductsFilteredByCategoryBrandGenderAsync(ProductFilterDto filters);
         Task<ProductDto?> GetProductWithVariantsAsync(Guid productId);
         Task DeleteVariantAsync(Guid id);
+        Task<OperationResult<List<ProductDto>>> GetLastAddedProducts();
+        Task<OperationResult<List<ProductDto>>> GetSalesProducts();
+
     }
 }

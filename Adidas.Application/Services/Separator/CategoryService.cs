@@ -30,9 +30,7 @@ namespace Adidas.Application.Services.Separator
             try
             {
 
-                var entities =  await _categoryRepository.GetAllAsync();
-         
-                
+                var entities =  await _categoryRepository.GetAllAsync();                
                 var dtos = entities.Adapt<IEnumerable<CategoryDto>>();
 
                 return OperationResult<IEnumerable<CategoryDto>>.Success(dtos);

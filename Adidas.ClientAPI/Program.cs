@@ -12,10 +12,24 @@ using Adidas.Application.Contracts.RepositoriesContracts.People;
 using Microsoft.OpenApi.Models;
 using Mapster;
 using Adidas.Infra.People;
+
+using Adidas.Application.Contracts.RepositoriesContracts.Main;
+using Adidas.Infra.Main;
+using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Services.Main;
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
+using Adidas.Infra.Separator;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.Application.Services.Separator;
+using Adidas.Application.Contracts.ServicesContracts.Feature;
+using Adidas.Application.Services.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
-using Adidas.Application.Contracts.ServicesContracts.Operation;
-using Adidas.Application.Services.Operation;
 using Adidas.Infra.Operation;
+using Adidas.Application.Services.Operation;
+using Adidas.Application.Contracts.RepositoriesContracts.Feature;
+using Adidas.Infra.Feature;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
+
 
 namespace Adidas.ClientAPI
 {
@@ -101,18 +115,30 @@ namespace Adidas.ClientAPI
             #endregion
 
             #region Application Services & Repositories
-            builder.Services.AddScoped<IAddressService, AddressService>();
-            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+            builder.Services.AddScoped<IAddressService, AddressService>(); 
+
+            // Register Services
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<ICouponService, CouponService>();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+            // Register Repositories
+            builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+            builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IOrderCouponRepository, OrderCouponRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
             // Register PayPal Services with HttpClient
             builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
             {
-                // لو عايز تسيبها dynamic حسب config، سيبها فاضية
+                // Keep BaseAddress configurable if needed
                 // client.BaseAddress = new Uri("https://api-m.sandbox.paypal.com");
             });
-            #endregion
 
 
             #region Controllers
