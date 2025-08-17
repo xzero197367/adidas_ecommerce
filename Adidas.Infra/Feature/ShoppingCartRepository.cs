@@ -3,7 +3,7 @@ using Adidas.Context;
 using Adidas.Models.Feature;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +29,7 @@ namespace Adidas.Infra.Feature
         {
             return await _dbSet
                 .Include(sc => sc.Variant)
-                .Include(sc => sc.Variant.Product)
+                .ThenInclude(v => v.Product)
                 .Where(sc => sc.UserId == userId)
                 .ToListAsync();
         }
