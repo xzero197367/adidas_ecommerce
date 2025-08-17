@@ -13,7 +13,21 @@ namespace Adidas.ClientAPI.Controllers.Product
         {
             _productService = productService;
         }
-      
+        [HttpGet("GetAllProducts")]
+        public async Task<IActionResult> GetProducts()
+        {
+            var products = await _productService.GetAllAsync();
+            return Ok(products);
+
+        }
+
+        [HttpGet("GetLastAddedProducts")]
+        public async Task<IActionResult> GetLastAddedProducts()
+        {
+            var products = await _productService.GetLastAddedProducts();
+            return Ok(products);
+
+        }
       
 
     }
