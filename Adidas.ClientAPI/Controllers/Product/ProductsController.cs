@@ -9,9 +9,11 @@ namespace Adidas.ClientAPI.Controllers.Product
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
-        public ProductsController(IProductService productService)
+        private readonly IProductVariantService _productVariantService;
+        public ProductsController(IProductService productService, IProductVariantService productVariantService)
         {
             _productService = productService;
+            _productVariantService = productVariantService;
         }
         [HttpGet("GetAllProducts")]
         public async Task<IActionResult> GetProducts()
@@ -40,6 +42,21 @@ namespace Adidas.ClientAPI.Controllers.Product
         {
             var products = await _productService.GetProductsByCategoryAsync(id);        
             return Ok(products);
+
+        }
+        [HttpGet("GetProductVariantsById/{id}")]
+        public async Task<IActionResult> GetProductVariantsById(Guid id)
+        {
+            var productVariants = await _productService.GetProductWithVariantsAsync(id);
+            return Ok(productVariants);
+
+        }
+
+        [HttpGet("GetProductVariantById/{id}")]
+        public async Task<IActionResult> GetProductVariantById(Guid id)
+        {
+            var productVariant = await _productVariantService.GetByIdAsync(id);        
+            return Ok(productVariant);
 
         }
        
