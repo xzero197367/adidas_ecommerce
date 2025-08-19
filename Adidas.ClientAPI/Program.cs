@@ -122,7 +122,8 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICouponService, CouponService>();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
-
+            builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
+            builder.Services.AddScoped<IProductImageService, ProductImageService>();
             // Register Repositories
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -132,7 +133,7 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderCouponRepository, OrderCouponRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-
+            builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
             // Register PayPal Services with HttpClient
             builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
             {
