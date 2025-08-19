@@ -29,6 +29,7 @@ using Adidas.Application.Services.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Infra.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
+using Adidas.Infra.Repositories.Feature;
 
 
 namespace Adidas.ClientAPI
@@ -134,6 +135,11 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IOrderCouponRepository, OrderCouponRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+            builder.Services.AddScoped<IWishListService, WishListService>();
+            builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+
+            builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
+            builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
             // Register PayPal Services with HttpClient
             builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
             {
@@ -225,3 +231,4 @@ namespace Adidas.ClientAPI
     }
 }
 
+#endregion
