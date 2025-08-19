@@ -9,7 +9,8 @@ namespace Adidas.DTOs.People.Auth
 {
     public class GoogleLoginDto
     {
-        [Required]
-        public string IdToken { get; set; }
+        public string? IdToken { get; set; }
+        public string? AuthorizationCode { get; set; }
+        public string? RedirectUri { get; set; }
     }
 }

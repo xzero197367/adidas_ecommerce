@@ -9,7 +9,9 @@ using Models.People;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Cryptography;
-using System.ComponentModel.DataAnnotations;
+// Add these using statements at the top
+using System.Text.Json;
+using System.Net.Http;
 using Adidas.DTOs.People.Auth;
 
 namespace Adidas.ClientAPI.Controllers.Auth
@@ -159,85 +161,189 @@ namespace Adidas.ClientAPI.Controllers.Auth
             }
         }
 
-        [HttpPost("google-login")]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto googleLoginDto)
+
+
+// Add this method to handle authorization code exchange
+[HttpPost("google-login")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto googleLoginDto)
+    {
+        try
         {
-            try
+            GoogleJsonWebSignature.Payload googleUser = null;
+
+            // Handle both IdToken and AuthorizationCode
+            if (!string.IsNullOrEmpty(googleLoginDto.IdToken))
             {
-                // Verify Google token
-                var googleUser = await VerifyGoogleToken(googleLoginDto.IdToken);
-                if (googleUser == null)
-                    return BadRequest(new { message = "Invalid Google token" });
-
-                var user = await _userManager.FindByEmailAsync(googleUser.Email);
-
-                if (user == null)
-                {
-                    // Create new user if doesn't exist
-                    user = new User
-                    {
-                        UserName = googleUser.Email,
-                        Email = googleUser.Email,
-                        FirstName = googleUser.GivenName,
-                        LastName = googleUser.FamilyName,
-                        Role = UserRole.Customer, // Keep enum for backward compatibility
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        EmailConfirmed = true
-                    };
-
-                    var createResult = await _userManager.CreateAsync(user);
-                    if (!createResult.Succeeded)
-                        return BadRequest(new { message = "Failed to create user account" });
-
-                    // Assign Customer role using Identity roles
-                    var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
-                    if (!roleResult.Succeeded)
-                    {
-                        _logger.LogError("Failed to assign Customer role to Google user {UserId}: {Errors}",
-                            user.Id, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                    }
-                }
-                else
-                {
-                    // Check if existing user is active
-                    if (!user.IsActive || user.IsDeleted)
-                        return StatusCode(403, new { message = "Account is suspended or deactivated" });
-
-                    // Check if user has Customer role using Identity roles
-                    var userRoles = await _userManager.GetRolesAsync(user);
-                    if (!userRoles.Contains("Customer"))
-                        return StatusCode(403, new { message = "Access denied. Customer role required." });
-                }
-
-                var token = await GenerateJwtToken(user);
-                var refreshToken = GenerateRefreshToken();
-
-                // Update last login
-                user.UpdatedAt = DateTime.UtcNow;
-                await _userManager.UpdateAsync(user);
-
-                return Ok(new AuthResponseDto
-                {
-                    Token = token,
-                    RefreshToken = refreshToken,
-                    User = new UserInfoDto
-                    {
-                        Id = user.Id,
-                        Email = user.Email,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        Phone = user.Phone,
-                        Role = "Customer"
-                    }
-                });
+                // Direct ID Token verification (existing flow)
+                googleUser = await VerifyGoogleToken(googleLoginDto.IdToken);
             }
-            catch (Exception ex)
+            else if (!string.IsNullOrEmpty(googleLoginDto.AuthorizationCode))
             {
-                _logger.LogError(ex, "Error during Google login");
-                return StatusCode(500, new { message = "Internal server error" });
+                // Authorization Code flow (new flow)
+                googleUser = await ExchangeAuthorizationCodeForUserInfo(googleLoginDto.AuthorizationCode, googleLoginDto.RedirectUri);
             }
+            else
+            {
+                return BadRequest(new { message = "Either IdToken or AuthorizationCode is required" });
+            }
+
+            if (googleUser == null)
+                return BadRequest(new { message = "Invalid Google authentication" });
+
+            var user = await _userManager.FindByEmailAsync(googleUser.Email);
+
+            if (user == null)
+            {
+                // Create new user if doesn't exist (Registration)
+                user = new User
+                {
+                    UserName = googleUser.Email,
+                    Email = googleUser.Email,
+                    FirstName = googleUser.GivenName ?? googleUser.Name?.Split(' ').FirstOrDefault() ?? "",
+                    LastName = googleUser.FamilyName ?? googleUser.Name?.Split(' ').LastOrDefault() ?? "",
+                    Role = UserRole.Customer,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    EmailConfirmed = true
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                    return BadRequest(new { message = "Failed to create user account", errors = createResult.Errors });
+
+                // Assign Customer role using Identity roles
+                var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
+                if (!roleResult.Succeeded)
+                {
+                    _logger.LogError("Failed to assign Customer role to Google user {UserId}: {Errors}",
+                        user.Id, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                }
+
+                _logger.LogInformation("New Google user registered: {Email}", user.Email);
+            }
+            else
+            {
+                // Existing user login
+                if (!user.IsActive || user.IsDeleted)
+                    return StatusCode(403, new { message = "Account is suspended or deactivated" });
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+                if (!userRoles.Contains("Customer"))
+                    return StatusCode(403, new { message = "Access denied. Customer role required." });
+
+                _logger.LogInformation("Existing Google user logged in: {Email}", user.Email);
+            }
+
+            var token = await GenerateJwtToken(user);
+            var refreshToken = GenerateRefreshToken();
+
+            // Update last login
+            user.UpdatedAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new AuthResponseDto
+            {
+                Token = token,
+                RefreshToken = refreshToken,
+                User = new UserInfoDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Phone = user.Phone,
+                    Role = "Customer"
+                }
+            });
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during Google authentication");
+            return StatusCode(500, new { message = "Internal server error" });
+        }
+    }
+
+    // Add this new method to exchange authorization code for user info
+    private async Task<GoogleJsonWebSignature.Payload> ExchangeAuthorizationCodeForUserInfo(string authorizationCode, string redirectUri)
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+
+            // Step 1: Exchange authorization code for tokens
+            var tokenRequest = new FormUrlEncodedContent(new[]
+            {
+            new KeyValuePair<string, string>("code", authorizationCode),
+            new KeyValuePair<string, string>("client_id", _configuration["Authentication:Google:ClientId"]),
+            new KeyValuePair<string, string>("client_secret", _configuration["Authentication:Google:ClientSecret"]),
+            new KeyValuePair<string, string>("redirect_uri", redirectUri),
+            new KeyValuePair<string, string>("grant_type", "authorization_code")
+        });
+
+            var tokenResponse = await httpClient.PostAsync("https://oauth2.googleapis.com/token", tokenRequest);
+            var tokenContent = await tokenResponse.Content.ReadAsStringAsync();
+
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to exchange authorization code: {Response}", tokenContent);
+                return null;
+            }
+
+            var tokenData = JsonSerializer.Deserialize<GoogleTokenResponse>(tokenContent);
+
+            // Step 2: Get user info using access token
+            httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenData.access_token);
+
+            var userInfoResponse = await httpClient.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo");
+            var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
+
+            if (!userInfoResponse.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to get user info from Google: {Response}", userInfoContent);
+                return null;
+            }
+
+            var userInfo = JsonSerializer.Deserialize<GoogleUserInfo>(userInfoContent);
+
+            // Convert to GoogleJsonWebSignature.Payload format
+            return new GoogleJsonWebSignature.Payload
+            {
+                Email = userInfo.email,
+                Name = userInfo.name,
+                GivenName = userInfo.given_name,
+                FamilyName = userInfo.family_name,
+                Picture = userInfo.picture,
+                EmailVerified = userInfo.verified_email
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exchanging authorization code for user info");
+            return null;
+        }
+    }
+
+    // Add these classes for JSON deserialization
+    public class GoogleTokenResponse
+    {
+        public string access_token { get; set; }
+        public string token_type { get; set; }
+        public int expires_in { get; set; }
+        public string refresh_token { get; set; }
+        public string id_token { get; set; }
+    }
+
+    public class GoogleUserInfo
+    {
+        public string id { get; set; }
+        public string email { get; set; }
+        public bool verified_email { get; set; }
+        public string name { get; set; }
+        public string given_name { get; set; }
+        public string family_name { get; set; }
+        public string picture { get; set; }
+}
 
         [HttpPost("change-password")]
         [Authorize]

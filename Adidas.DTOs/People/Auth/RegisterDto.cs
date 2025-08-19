@@ -24,6 +24,6 @@ namespace Adidas.DTOs.People.Auth
         public string LastName { get; set; }
 
         [Phone]
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
     }
 }
