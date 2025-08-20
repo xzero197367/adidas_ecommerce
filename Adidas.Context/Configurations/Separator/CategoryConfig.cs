@@ -19,7 +19,9 @@ public class CategoryConfig: IEntityTypeConfiguration<Category>
         builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
         builder.Property(e => e.Slug).IsRequired().HasMaxLength(100);
         builder.Property(e => e.ImageUrl).HasMaxLength(500);
-
+        builder.Property(e => e.Type)
+        .HasConversion<string>()  
+        .HasMaxLength(20);
         // foreign keys
 
         // navigations
