@@ -61,6 +61,7 @@ namespace Adidas.Application.Services.Separator
                 CreatedAt = c.CreatedAt ?? DateTime.MinValue,
                 UpdatedAt = c.UpdatedAt,
                 IsActive = c.IsActive,
+                Type = c.Type.HasValue ? c.Type.Value.ToString() : null,
                 Products = c.Products?.Select(p => new ProductDto
                 {
                     Id = p.Id,
@@ -124,6 +125,7 @@ namespace Adidas.Application.Services.Separator
                 CreatedAt = c.CreatedAt ?? DateTime.MinValue,
                 UpdatedAt = c.UpdatedAt,
                 IsActive = c.IsActive,
+                Type = c.Type.HasValue ? c.Type.Value.ToString() : null,
                 Products = c.Products?.Select(p => new ProductDto
                 {
                     Id = p.Id,
@@ -136,6 +138,7 @@ namespace Adidas.Application.Services.Separator
                     Description = sc.Description,
                     Slug = sc.Slug,
                     ImageUrl = sc.ImageUrl,
+                    Type = c.Type.HasValue ? c.Type.Value.ToString() : null,
                     SortOrder = sc.SortOrder,
                     ParentCategoryId = sc.ParentCategoryId,
                     CreatedAt = sc.CreatedAt ?? DateTime.MinValue,
@@ -266,6 +269,7 @@ namespace Adidas.Application.Services.Separator
                 ParentCategoryId = category.ParentCategoryId,
                 SortOrder = category.SortOrder,
                 IsActive = category.IsActive,
+                Type = category.Type.HasValue ? category.Type.Value.ToString() : null,
                 ParentCategory = category.ParentCategory != null
                     ? new CategoryDto
                     {
@@ -282,6 +286,7 @@ namespace Adidas.Application.Services.Separator
                     ImageUrl = sub.ImageUrl,
                     SortOrder = sub.SortOrder,
                     Slug = sub.Slug,
+                    Type = sub.Type.HasValue ? sub.Type.Value.ToString() : null,
                     IsActive = sub.IsActive
                 }).ToList() ?? new List<CategoryDto>(),
                 Products = category.Products?.Select(p => new ProductDto
@@ -338,6 +343,7 @@ namespace Adidas.Application.Services.Separator
                 ParentCategoryId = category.ParentCategoryId,
                 CreatedAt = category.CreatedAt ?? DateTime.MinValue,
                 UpdatedAt = category.UpdatedAt,
+                Type = category.Type.HasValue ? category.Type.Value.ToString() : null,
                 IsActive = category.IsActive,
 
                 SubCategories = category.SubCategories?.Select(sc => new CategoryDto
@@ -351,7 +357,8 @@ namespace Adidas.Application.Services.Separator
                     ParentCategoryId = sc.ParentCategoryId,
                     CreatedAt = sc.CreatedAt ?? DateTime.MinValue,
                     UpdatedAt = sc.UpdatedAt,
-                    IsActive = sc.IsActive
+                    IsActive = sc.IsActive,
+                    Type = sc.Type.HasValue ? sc.Type.Value.ToString() : null
                 }).ToList() ?? new List<CategoryDto>()
             };
 
