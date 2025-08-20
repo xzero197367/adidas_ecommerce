@@ -18,6 +18,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
         Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter, string searchTerm);
         Task<Result> ToggleCategoryStatusAsync(Guid categoryId);
         Task<CategoryDto> GetSubCategoriesByCategoryId(Guid id);
+        Task <IEnumerable<CategoryDto>> GetMainCategoriesByType(string Type);
 
         // Task<IEnumerable<CategoryDto>> GetAllAsync();
 
