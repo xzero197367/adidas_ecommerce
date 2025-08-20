@@ -2,6 +2,12 @@
 using Adidas.Models.Main;
 
 namespace Adidas.Models.Separator;
+public enum CategoryType
+{
+    Men , 
+    Women , 
+    Sports 
+}
 public class Category : BaseAuditableEntity
 {
     // field 
@@ -10,6 +16,8 @@ public class Category : BaseAuditableEntity
     public string Description { get; set; }
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
+    public CategoryType? Type { get; set; }
+
     // foreign key
     public Guid? ParentCategoryId { get; set; }
     // navigation

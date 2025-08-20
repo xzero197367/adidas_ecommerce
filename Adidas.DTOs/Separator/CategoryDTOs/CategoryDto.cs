@@ -10,9 +10,10 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         public string Description { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         //public bool HasSubCategories { get; set; }
+        
         public bool HasSubCategories { get; set; }
         public int ProductsCount { get; set; }  // <-- Add this
-        
+        public string Type {  get; set; }
         public string? ImageUrl { get; set; }
         public Guid? ParentCategoryId { get; set; }
         public int SortOrder { get; set; }

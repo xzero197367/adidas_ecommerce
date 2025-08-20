@@ -23,6 +23,7 @@ namespace Adidas.ClientAPI.Controllers.Product
             return Ok(categories);
 
         }
+        
         [HttpGet("GetAllMainCategories")]
         public async Task<IActionResult> GetAllMainCategories()
         {
@@ -30,6 +31,15 @@ namespace Adidas.ClientAPI.Controllers.Product
             return Ok(categories);
 
         }
+        [HttpGet("GetSubCategoriesByCategoryId/{id}")]
+        public async Task<IActionResult> GetSubCategoriesByCategoryId(Guid id)
+        {
+            var subCategories = await _categoryService.GetSubCategoriesByCategoryId(id);
+            return Ok(subCategories);
+
+        }
+
+        
     }
 }
  
