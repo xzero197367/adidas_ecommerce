@@ -1,4 +1,4 @@
-﻿// Adidas.Application/Services/Operation/PayPalRestService.cs
+﻿// Fixed PayPalRestService.cs
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.CommonDTOs;
@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.Json;
 using Mapster;
 using Adidas.DTOs.Operation.PaymentDTOs.PaypalDtos;
+using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Adidas.Application.Services.Operation
 {
@@ -107,26 +109,23 @@ namespace Adidas.Application.Services.Operation
                     {
                         var approvalUrl = orderResponse.Links?.FirstOrDefault(l => l.Rel == "approve")?.Href;
 
-                        // Create payment record in database
-                        var paymentCreateDto = new PaymentCreateDto
+                        // Create payment record in database - FIX: Create the Payment entity directly
+                        var payment = new Payment
                         {
+                            Id = Guid.NewGuid(),
                             OrderId = createDto.OrderId,
                             Amount = createDto.Amount,
                             PaymentMethod = "PayPal",
+                            PaymentStatus = "PayPal_Created",
+                            TransactionId = orderResponse.Id, // Store PayPal Order ID
+                            CreatedAt = DateTime.UtcNow,
+                            ProcessedAt = DateTime.UtcNow, // FIX: Add required ProcessedAt
+                            IsActive = true,
+                            GatewayResponse = $"PayPal Order Created: {orderResponse.Id}"
                         };
 
-                        var paymentResult = await _paymentService.CreatePaymentAsync(paymentCreateDto);
-                        if (!paymentResult.IsSuccess)
-                        {
-                            return OperationResult<PayPalPaymentDto>.Fail("Failed to create payment record");
-                        }
-
-                        // Update payment with PayPal order ID
-                        var payment = await _paymentRepository.GetByIdAsync(paymentResult.Data.Id);
-                        payment.TransactionId = orderResponse.Id;
-                        payment.PaymentStatus = "PayPal_Created";
-                        payment.GatewayResponse = $"PayPal Order Created: {orderResponse.Id}";
-                        await _paymentRepository.UpdateAsync(payment);
+                        // Add payment directly to repository
+                        var createdPayment = await _paymentRepository.AddAsync(payment);
                         await _paymentRepository.SaveChangesAsync();
 
                         var payPalPaymentDto = new PayPalPaymentDto
@@ -179,12 +178,22 @@ namespace Adidas.Application.Services.Operation
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var captureResponse = JsonSerializer.Deserialize<PayPalCaptureResponse>(responseContent);
 
-                    // Find our payment record
-                    var payments = await _paymentRepository.FindAsync(p =>
+                    // Find our payment record - Use the approach that matches your repository
+                    var paymentRecords = await _paymentRepository.FindAsync(p =>
                         p.Where(x => x.TransactionId == paymentId && !x.IsDeleted));
 
-                    // ✅ Assume FindAsync returns collection
-                    var paymentRecord = payments;
+                    Payment paymentRecord;
+
+                    // Try to cast to IEnumerable first (for collections)
+                    if (paymentRecords is IEnumerable<Payment> collection)
+                    {
+                        paymentRecord = collection.FirstOrDefault();
+                    }
+                    else
+                    {
+                        // If it's a single Payment object
+                        paymentRecord = paymentRecords as Payment;
+                    }
 
                     if (paymentRecord == null)
                     {
@@ -238,10 +247,21 @@ namespace Adidas.Application.Services.Operation
         {
             try
             {
-                var payments = await _paymentRepository.FindAsync(p =>
+                var paymentRecords = await _paymentRepository.FindAsync(p =>
                     p.Where(x => x.TransactionId == paymentId && !x.IsDeleted));
 
-                var paymentRecord = payments;
+                Payment paymentRecord;
+
+                // Try to cast to IEnumerable first (for collections)
+                if (paymentRecords is IEnumerable<Payment> collection)
+                {
+                    paymentRecord = collection.FirstOrDefault();
+                }
+                else
+                {
+                    // If it's a single Payment object
+                    paymentRecord = paymentRecords as Payment;
+                }
 
                 if (paymentRecord != null)
                 {
@@ -293,10 +313,21 @@ namespace Adidas.Application.Services.Operation
                 if (response.IsSuccessStatusCode)
                 {
                     // Find and update payment record
-                    var payments = await _paymentRepository.FindAsync(p =>
+                    var paymentRecords = await _paymentRepository.FindAsync(p =>
                         p.Where(x => x.TransactionId == transactionId && !x.IsDeleted));
 
-                    var paymentRecord = payments;
+                    Payment paymentRecord;
+
+                    // Try to cast to IEnumerable first (for collections)
+                    if (paymentRecords is IEnumerable<Payment> collection)
+                    {
+                        paymentRecord = collection.FirstOrDefault();
+                    }
+                    else
+                    {
+                        // If it's a single Payment object
+                        paymentRecord = paymentRecords as Payment;
+                    }
 
                     if (paymentRecord != null)
                     {
@@ -352,4 +383,5 @@ namespace Adidas.Application.Services.Operation
             }
         }
     }
+
 }

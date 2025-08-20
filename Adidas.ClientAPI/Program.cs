@@ -225,6 +225,24 @@ namespace Adidas.ClientAPI
             app.UseAuthorization();
             app.MapControllers();
             #endregion
+            // Ensure roles exist
+            using(var scope = app.Services.CreateScope())
+{
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                string[] roleNames = { "ADMIN", "CUSTOMER" };
+
+                foreach (var roleName in roleNames)
+                {
+                    if (!roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
+                    {
+                        roleManager.CreateAsync(new IdentityRole(roleName)).GetAwaiter().GetResult();
+                    }
+                }
+            }
+
+
+
 
             app.Run();
         }

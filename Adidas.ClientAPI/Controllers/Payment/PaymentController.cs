@@ -48,30 +48,57 @@ namespace Adidas.ClientAPI.Controllers.Payment
         {
             try
             {
+                _logger.LogInformation("Creating PayPal payment for user {UserId}", User?.Identity?.Name);
+
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    var errors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                        .ToList();
+
+                    _logger.LogWarning("Invalid model state for PayPal payment creation: {Errors}",
+                        string.Join(", ", errors.Select(e => $"{e.Field}: {string.Join(", ", e.Errors)}")));
+
+                    return BadRequest(new
+                    {
+                        IsSuccess = false,
+                        Message = "Validation failed",
+                        Errors = errors
+                    });
                 }
+
+                // Log the incoming request for debugging
+                _logger.LogInformation("PayPal payment request: Amount={Amount}, Currency={Currency}, Items={ItemCount}",
+                    createDto.Amount, createDto.Currency);
 
                 var result = await _payPalService.CreatePaymentAsync(createDto);
 
                 if (result.IsSuccess)
                 {
+                    _logger.LogInformation("PayPal payment created successfully with ID {PaymentId}", result.Data?.PaymentId);
+
                     // Return the approval URL for frontend to redirect
                     return Ok(new
                     {
-                        Success = true,
+                        IsSuccess = true,
                         Data = result.Data,
                         Message = "PayPal payment created successfully. Redirect user to ApprovalUrl."
                     });
                 }
 
+                _logger.LogWarning("PayPal payment creation failed: {Message}", result.ErrorMessage);
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating PayPal payment");
-                return StatusCode(500, "Internal server error occurred while creating payment");
+                _logger.LogError(ex, "Error creating PayPal payment for user {UserId}", User?.Identity?.Name);
+                return StatusCode(500, new
+                {
+                    IsSuccess = false,
+                    Message = "Internal server error occurred while creating payment",
+                    Error = ex.Message // Include error details for debugging (remove in production)
+                });
             }
         }
 
@@ -88,24 +115,35 @@ namespace Adidas.ClientAPI.Controllers.Payment
                     return BadRequest(ModelState);
                 }
 
+                _logger.LogInformation("Executing PayPal payment {PaymentId} for payer {PayerId}",
+                    executeDto.PaymentId, executeDto.PayerId);
+
                 var result = await _payPalService.ExecutePaymentAsync(executeDto.PaymentId, executeDto.PayerId);
 
                 if (result.IsSuccess)
                 {
+                    _logger.LogInformation("PayPal payment executed successfully: {PaymentId}", executeDto.PaymentId);
+
                     return Ok(new
                     {
-                        Success = true,
+                        IsSuccess = true,
                         Data = result.Data,
                         Message = "Payment executed successfully"
                     });
                 }
 
+                _logger.LogWarning("PayPal payment execution failed: {Message}", result.ErrorMessage);
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing PayPal payment");
-                return StatusCode(500, "Internal server error occurred while executing payment");
+                _logger.LogError(ex, "Error executing PayPal payment {PaymentId}", executeDto.PaymentId);
+                return StatusCode(500, new
+                {
+                    IsSuccess = false,
+                    Message = "Internal server error occurred while executing payment",
+                    Error = ex.Message
+                });
             }
         }
 
@@ -120,22 +158,30 @@ namespace Adidas.ClientAPI.Controllers.Payment
             {
                 if (string.IsNullOrEmpty(paymentId) || string.IsNullOrEmpty(PayerID))
                 {
+                    _logger.LogWarning("PayPal success callback missing parameters: paymentId={PaymentId}, PayerID={PayerID}",
+                        paymentId, PayerID);
                     return Redirect($"{GetFrontendUrl()}/payment/failed?error=missing_parameters");
                 }
+
+                _logger.LogInformation("PayPal success callback: PaymentId={PaymentId}, PayerID={PayerID}",
+                    paymentId, PayerID);
 
                 var result = await _payPalService.ExecutePaymentAsync(paymentId, PayerID);
 
                 if (result.IsSuccess)
                 {
+                    _logger.LogInformation("PayPal payment executed successfully via callback: {PaymentId}", paymentId);
+
                     // Redirect to success page with payment details
                     return Redirect($"{GetFrontendUrl()}/payment/success?paymentId={result.Data.Id}&transactionId={result.Data.TransactionId}");
                 }
 
-                return Redirect($"{GetFrontendUrl()}/payment/failed?error=execution_failed");
+                _logger.LogWarning("PayPal payment execution failed via callback: {Message}", result.ErrorMessage);
+                return Redirect($"{GetFrontendUrl()}/payment/failed?error=execution_failed&message={Uri.EscapeDataString(result.ErrorMessage)}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in PayPal success callback");
+                _logger.LogError(ex, "Error in PayPal success callback for payment {PaymentId}", paymentId);
                 return Redirect($"{GetFrontendUrl()}/payment/failed?error=server_error");
             }
         }
@@ -157,12 +203,20 @@ namespace Adidas.ClientAPI.Controllers.Payment
         [HttpGet("paypal/{paymentId}")]
         public async Task<IActionResult> GetPayPalPaymentDetails(string paymentId)
         {
-            var result = await _payPalService.GetPaymentDetailsAsync(paymentId);
+            try
+            {
+                var result = await _payPalService.GetPaymentDetailsAsync(paymentId);
 
-            if (result.IsSuccess)
-                return Ok(result);
+                if (result.IsSuccess)
+                    return Ok(result);
 
-            return BadRequest(result);
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting PayPal payment details for {PaymentId}", paymentId);
+                return StatusCode(500, "Internal server error occurred while retrieving payment details");
+            }
         }
 
         /// <summary>
@@ -173,13 +227,18 @@ namespace Adidas.ClientAPI.Controllers.Payment
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 var result = await _payPalService.RefundPaymentAsync(refundDto.TransactionId, refundDto.Amount);
 
                 if (result.IsSuccess)
                 {
                     return Ok(new
                     {
-                        Success = true,
+                        IsSuccess = true,
                         Data = result.Data,
                         Message = "Refund processed successfully"
                     });
@@ -189,7 +248,7 @@ namespace Adidas.ClientAPI.Controllers.Payment
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing PayPal refund");
+                _logger.LogError(ex, "Error processing PayPal refund for transaction {TransactionId}", refundDto.TransactionId);
                 return StatusCode(500, "Internal server error occurred while processing refund");
             }
         }
@@ -200,12 +259,20 @@ namespace Adidas.ClientAPI.Controllers.Payment
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingPayments()
         {
-            var result = await _paymentService.GetPendingPaymentsAsync();
+            try
+            {
+                var result = await _paymentService.GetPendingPaymentsAsync();
 
-            if (result.IsSuccess)
-                return Ok(result);
+                if (result.IsSuccess)
+                    return Ok(result);
 
-            return BadRequest(result);
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving pending payments");
+                return StatusCode(500, "Internal server error occurred while retrieving pending payments");
+            }
         }
 
         /// <summary>
@@ -266,24 +333,22 @@ namespace Adidas.ClientAPI.Controllers.Payment
                 return StatusCode(500, "Webhook processing failed");
             }
         }
+
         private string GetFrontendUrl()
         {
-            // في الـ Sandbox هتخليها localhost:4200 (الـ Angular app بتاعك)
-            // في الإنتاج حط لينك موقعك الحقيقي (مثلا https://myadidasclone.com)
-            return "http://localhost:4200";
+            // Get from configuration or environment variable in production
+            return Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:4200";
         }
     }
 
-    // Additional DTO for refunds
-
-    
+    // Additional DTO for refunds with better validation
     public class PayPalRefundDto
     {
-        [Required]
-        public string TransactionId { get; set; }
+        [Required(ErrorMessage = "Transaction ID is required")]
+        [StringLength(50, ErrorMessage = "Transaction ID cannot exceed 50 characters")]
+        public string TransactionId { get; set; } = string.Empty;
 
-        [Range(0.01, double.MaxValue)]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public decimal? Amount { get; set; }
     }
 }
-
