@@ -6,7 +6,9 @@ public enum CategoryType
 {
     Men , 
     Women , 
-    Sports 
+    Kids , 
+    Sports ,
+
 }
 public class Category : BaseAuditableEntity
 {

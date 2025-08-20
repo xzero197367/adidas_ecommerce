@@ -118,6 +118,7 @@ namespace Adidas.Context.Seeds
              {
                 CategoryType.Men,
                 CategoryType.Women,
+                CategoryType.Kids,
                 CategoryType.Sports
             };
             for (int i = 0; i < 50; i++)
