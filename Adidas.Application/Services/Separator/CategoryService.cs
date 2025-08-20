@@ -376,18 +376,17 @@ namespace Adidas.Application.Services.Separator
             );
             if (categories != null)
             {
-                if (Enum.TryParse<CategoryType>(Type, true, out var parsedType))
+                if (Enum.TryParse<CategoryType>(Type, ignoreCase: true, out var parsedType))
                 {
                     categories = categories
                         .Where(c => c.ParentCategoryId == null
-                                    && c.IsActive == true
+                                    && c.IsActive
                                     && c.Type == parsedType)
                         .ToList();
                 }
                 else
                 {
-                    
-                    categories = new List<Models.Separator.Category>();
+                    categories = new List<Models.Separator.Category>(); 
                 }
             }
 
