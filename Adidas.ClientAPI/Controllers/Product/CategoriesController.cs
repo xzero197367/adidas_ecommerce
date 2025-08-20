@@ -23,7 +23,15 @@ namespace Adidas.ClientAPI.Controllers.Product
             return Ok(categories);
 
         }
-        
+
+        [HttpGet("GetMainCategoriesByType/{Type}")]
+        public async Task<IActionResult> GetMainCategoriesByType(string Type)
+        {
+            var categories = await _categoryService.GetMainCategoriesByType(Type);
+            return Ok(categories);
+
+        }
+
         [HttpGet("GetAllMainCategories")]
         public async Task<IActionResult> GetAllMainCategories()
         {
