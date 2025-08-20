@@ -130,6 +130,12 @@ namespace Adidas.Context.Seeds
             }
             modelBuilder.Entity<Brand>().HasData(brands);
 
+            var categoryTypes = new[]
+            {
+                CategoryType.Men,
+                CategoryType.Women,
+                CategoryType.Sports
+            };
             // Categories (50 records)
             var categories = new List<Category>();
             var categoryNames = new[] { "Footwear", "Clothing", "Accessories", "Running", "Football", 
@@ -149,7 +155,10 @@ namespace Adidas.Context.Seeds
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-i * 2),
                     UpdatedAt = DateTime.UtcNow.AddDays(-i * 2),
-                    AddedById = adminUserId
+                    AddedById = adminUserId,
+                    Type = categoryTypes[i % categoryTypes.Length]
+
+
                 });
             }
             modelBuilder.Entity<Category>().HasData(categories);
