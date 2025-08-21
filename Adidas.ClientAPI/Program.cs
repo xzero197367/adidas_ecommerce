@@ -230,7 +230,7 @@ namespace Adidas.ClientAPI
 {
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                string[] roleNames = { "ADMIN", "CUSTOMER" };
+                string[] roleNames = { "Admin", "Customer" };
 
                 foreach (var roleName in roleNames)
                 {
