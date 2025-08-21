@@ -7,11 +7,8 @@ using Adidas.DTOs.Common_DTOs;
 using Microsoft.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
 using Adidas.DTOs.CommonDTOs;
-using Adidas.DTOs.Main.ProductDTOs;
 using Mapster;
 using Adidas.DTOs.Main.Product_DTOs;
-using Microsoft.EntityFrameworkCore.Query;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Adidas.Application.Services.Separator
 {
@@ -30,7 +27,6 @@ namespace Adidas.Application.Services.Separator
         {
             try
             {
-
                 var entities = await _categoryRepository.GetAllAsync();
                 var dtos = entities.Adapt<IEnumerable<CategoryDto>>();
 
@@ -84,6 +80,17 @@ namespace Adidas.Application.Services.Separator
             }).ToList();
 
             return categoryDtos;
+        }
+
+
+        private string GenerateSlug(string name)
+        {
+            return name.ToLower()
+                .Replace(" ", "-")
+                .Replace("&", "and")
+                .Replace("'", "")
+                .Replace("\"", "")
+                .Trim();
         }
 
         public async Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter,
@@ -164,6 +171,7 @@ namespace Adidas.Application.Services.Separator
                     Description = createCategoryDto.Description,
                     ImageUrl = createCategoryDto.ImageUrl,
                 };
+                category.Slug = GenerateSlug(createCategoryDto.Name);
 
                 await _categoryRepository.AddAsync(category);
                 var result = await _categoryRepository.SaveChangesAsync();
@@ -302,6 +310,12 @@ namespace Adidas.Application.Services.Separator
             return dto;
         }
 
+        public async Task<CategoryDto> GetSubCategoriesByCategorySlug(string slug)
+        {
+            var category = await _categoryRepository.GetCategoryBySlugAsync(slug);
+            return category.Adapt<CategoryDto>();
+        }
+
 
         public async Task<Result> ToggleCategoryStatusAsync(Guid categoryId)
         {
@@ -330,8 +344,8 @@ namespace Adidas.Application.Services.Separator
         public async Task<CategoryDto> GetSubCategoriesByCategoryId(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(
-              id,
-              category => category.SubCategories);
+                id,
+                category => category.SubCategories);
 
             var categoryDto = new CategoryDto
             {
@@ -368,12 +382,12 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<IEnumerable<CategoryDto>> GetMainCategoriesByType(string Type)
         {
-
-            var categories = await _categoryRepository.GetAllAsync(
-                 c => c.SubCategories,
-                 c => c.Products,
-                 c => c.ParentCategory
-            );
+            // var categories = await _categoryRepository.GetAllAsync(
+            //     c => c.SubCategories
+            //     c => c.Products,
+            //     c => c.ParentCategory
+            // );
+            var categories = _categoryRepository.GetAll().Where(c => c.ParentCategoryId == null).ToList();
             if (categories != null)
             {
                 if (Enum.TryParse<CategoryType>(Type, ignoreCase: true, out var parsedType))
@@ -386,46 +400,47 @@ namespace Adidas.Application.Services.Separator
                 }
                 else
                 {
-                    categories = new List<Models.Separator.Category>(); 
+                    categories = new List<Models.Separator.Category>();
                 }
             }
 
-            var categoryDtos = categories.Select(c => new CategoryDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    Slug = c.Slug,
-                    ImageUrl = c.ImageUrl,
-                    SortOrder = c.SortOrder,
-                    ParentCategoryId = c.ParentCategoryId,
-                    CreatedAt = c.CreatedAt ?? DateTime.MinValue,
-                    UpdatedAt = c.UpdatedAt,
-                    IsActive = c.IsActive,
-                    Type = c.Type.HasValue ? c.Type.Value.ToString() : null,
-                    Products = c.Products?.Select(p => new ProductDto
-                    {
-                        Id = p.Id,
-                        Name = p.Name
-                    }).ToList() ?? new List<ProductDto>(),
-                    SubCategories = c.SubCategories?.Select(sc => new CategoryDto
-                    {
-                        Id = sc.Id,
-                        Name = sc.Name,
-                        Description = sc.Description,
-                        Slug = sc.Slug,
-                        ImageUrl = sc.ImageUrl,
-                        Type = c.Type.HasValue ? c.Type.Value.ToString() : null,
-                        SortOrder = sc.SortOrder,
-                        ParentCategoryId = sc.ParentCategoryId,
-                        CreatedAt = sc.CreatedAt ?? DateTime.MinValue,
-                        UpdatedAt = sc.UpdatedAt,
-                        IsActive = sc.IsActive
-                    }).ToList() ?? new List<CategoryDto>()
-                }).ToList();
+            return categories.Adapt<List<CategoryDto>>();
 
-                return categoryDtos;
-            }
+            // var categoryDtos = categories.Select(c => new CategoryDto
+            // {
+            //     Id = c.Id,
+            //     Name = c.Name,
+            //     Description = c.Description,
+            //     Slug = c.Slug,
+            //     ImageUrl = c.ImageUrl,
+            //     SortOrder = c.SortOrder,
+            //     ParentCategoryId = c.ParentCategoryId,
+            //     CreatedAt = c.CreatedAt ?? DateTime.MinValue,
+            //     UpdatedAt = c.UpdatedAt,
+            //     IsActive = c.IsActive,
+            //     Type = c.Type.HasValue ? c.Type.Value.ToString() : null,
+            //     Products = c.Products?.Select(p => new ProductDto
+            //     {
+            //         Id = p.Id,
+            //         Name = p.Name
+            //     }).ToList() ?? new List<ProductDto>(),
+            //     SubCategories = c.SubCategories?.Select(sc => new CategoryDto
+            //     {
+            //         Id = sc.Id,
+            //         Name = sc.Name,
+            //         Description = sc.Description,
+            //         Slug = sc.Slug,
+            //         ImageUrl = sc.ImageUrl,
+            //         Type = c.Type.HasValue ? c.Type.Value.ToString() : null,
+            //         SortOrder = sc.SortOrder,
+            //         ParentCategoryId = sc.ParentCategoryId,
+            //         CreatedAt = sc.CreatedAt ?? DateTime.MinValue,
+            //         UpdatedAt = sc.UpdatedAt,
+            //         IsActive = sc.IsActive
+            //     }).ToList() ?? new List<CategoryDto>()
+            // }).ToList();
 
+            // return categoryDtos;
         }
     }
+}

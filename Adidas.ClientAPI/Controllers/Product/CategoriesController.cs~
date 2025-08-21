@@ -50,6 +50,7 @@ namespace Adidas.ClientAPI.Controllers.Product
         {
             var subCategories = await _categoryService.GetSubCategoriesByCategorySlug(slug);
             return Ok(subCategories);
+
         }
     }
 }

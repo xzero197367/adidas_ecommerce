@@ -8,8 +8,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
     public interface ICategoryService 
     {
         // Category-specific methods
-        Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync(
-            Func<IQueryable<Category>, IQueryable<Category>>? queryFunc = null);
+        Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync();
         Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync();
         Task<Result> CreateAsync(CategoryCreateDto createCategoryDto);
         Task<Result>DeleteAsync(Guid id);
@@ -18,6 +17,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
         Task<CategoryDto> GetCategoryDetailsAsync(Guid id);
         Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter, string searchTerm);
         Task<Result> ToggleCategoryStatusAsync(Guid categoryId);
+        Task<CategoryDto> GetSubCategoriesByCategoryId(Guid id);
+        Task <IEnumerable<CategoryDto>> GetMainCategoriesByType(string Type);
 
         // Task<IEnumerable<CategoryDto>> GetAllAsync();
 

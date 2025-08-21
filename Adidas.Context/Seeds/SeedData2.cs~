@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models.People;
 using Adidas.Models.Main;
@@ -56,9 +55,16 @@ namespace Adidas.Context.Seeds
 
             // Users (50 records)
             var users = new List<User>();
-            var firstNames = new[] { "Ahmed", "Mohamed", "Ali", "Omar", "Hassan", "Mahmoud", "Khaled", "Amr", "Tamer", "Youssef",
-                                   "Fatma", "Aisha", "Mariam", "Nour", "Sarah", "Dina", "Rana", "Heba", "Yasmin", "Lina" };
-            var lastNames = new[] { "Mohamed", "Ali", "Hassan", "Ahmed", "Mahmoud", "Ibrahim", "Mostafa", "Abdel Rahman", "El Sayed", "Farouk" };
+            var firstNames = new[]
+            {
+                "Ahmed", "Mohamed", "Ali", "Omar", "Hassan", "Mahmoud", "Khaled", "Amr", "Tamer", "Youssef",
+                "Fatma", "Aisha", "Mariam", "Nour", "Sarah", "Dina", "Rana", "Heba", "Yasmin", "Lina"
+            };
+            var lastNames = new[]
+            {
+                "Mohamed", "Ali", "Hassan", "Ahmed", "Mahmoud", "Ibrahim", "Mostafa", "Abdel Rahman", "El Sayed",
+                "Farouk"
+            };
             for (int i = 1; i <= 50; i++)
             {
                 var firstName = firstNames[(i - 1) % firstNames.Length];
@@ -75,7 +81,9 @@ namespace Adidas.Context.Seeds
                     LastName = lastName,
                     Phone = $"+2010{1000000 + i:D7}",
                     DateOfBirth = DateTime.UtcNow.AddYears(-25).AddDays(i * 10),
-                    Gender = i % 4 == 1 ? Gender.Male : i % 4 == 2 ? Gender.Female : i % 4 == 3 ? Gender.Kids : Gender.Unisex,
+                    Gender = i % 4 == 1 ? Gender.Male :
+                        i % 4 == 2 ? Gender.Female :
+                        i % 4 == 3 ? Gender.Kids : Gender.Unisex,
                     CreatedAt = DateTime.UtcNow.AddDays(-i * 2),
                     UpdatedAt = DateTime.UtcNow.AddDays(-i * 2),
                     IsActive = true,
@@ -87,20 +95,26 @@ namespace Adidas.Context.Seeds
                 user.PasswordHash = hasher.HashPassword(user, "Password@123");
                 users.Add(user);
             }
+
             modelBuilder.Entity<User>().HasData(users);
 
             // Brands (50 records)
             var brands = new List<Brand>();
-            var brandNames = new[] { "Adidas", "Adidas Originals", "Adidas Performance", "Adidas Y-3", "Stella McCartney",
-                                   "Pharrell Williams", "Ivy Park", "Human Made", "Adidas Golf", "Adidas Skateboarding" };
+            var brandNames = new[]
+            {
+                "Adidas", "Adidas Originals", "Adidas Performance", "Adidas Y-3", "Stella McCartney",
+                "Pharrell Williams", "Ivy Park", "Human Made", "Adidas Golf", "Adidas Skateboarding"
+            };
             for (int i = 0; i < 50; i++)
             {
                 brands.Add(new Brand
                 {
                     Id = Guid.NewGuid(),
-                    Name = $"{brandNames[i % brandNames.Length]}{(i >= brandNames.Length ? $" {(i / brandNames.Length) + 1}" : "")}",
+                    Name =
+                        $"{brandNames[i % brandNames.Length]}{(i >= brandNames.Length ? $" {(i / brandNames.Length) + 1}" : "")}",
                     LogoUrl = $"https://example.com/logos/brand{i + 1}.png",
-                    Description = $"Premium {brandNames[i % brandNames.Length]} collection with innovative design and technology.",
+                    Description =
+                        $"Premium {brandNames[i % brandNames.Length]} collection with innovative design and technology.",
                     IsDeleted = false,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-i * 3),
@@ -108,42 +122,631 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Brand>().HasData(brands);
 
-            // Categories (50 records)
+            // // Categories (50 records)
+            // var categories = new List<Category>();
+            // var categoryNames = new[] { "Footwear", "Clothing", "Accessories", "Running", "Football",
+            //                           "Basketball", "Training", "Lifestyle", "Originals", "Performance" };
+            // var categoryTypes = new[]
+            //  {
+            //     CategoryType.Men,
+            //     CategoryType.Women,
+            //     CategoryType.Kids,
+            //     CategoryType.Sports
+            // };
+            // for (int i = 0; i < 50; i++)
+            // {
+            //     categories.Add(new Category
+            //     {
+            //         Id = Guid.NewGuid(),
+            //         Name = $"{categoryNames[i % categoryNames.Length]}{(i >= categoryNames.Length ? $" {(i / categoryNames.Length) + 1}" : "")}",
+            //         Slug = $"{categoryNames[i % categoryNames.Length].ToLower().Replace(" ", "-")}-{i + 1}",
+            //         Description = $"High-quality {categoryNames[i % categoryNames.Length].ToLower()} collection for all your sporting needs.",
+            //         ImageUrl = $"https://example.com/categories/category{i + 1}.jpg",
+            //         SortOrder = i + 1,
+            //         ParentCategoryId = i > 10 && i % 5 == 0 ? categories[i % 10].Id : null,
+            //         IsDeleted = false,
+            //         IsActive = true,
+            //         CreatedAt = DateTime.UtcNow.AddDays(-i * 2),
+            //         UpdatedAt = DateTime.UtcNow.AddDays(-i * 2),
+            //         AddedById = adminUserId,
+            //         Type = categoryTypes[i % categoryTypes.Length]
+            //     });
+            // }
+            // modelBuilder.Entity<Category>().HasData(categories);
+
+
+            // Define Category Types
+            var categoryTypes = new[]
+            {
+                CategoryType.Men,
+                CategoryType.Women,
+                CategoryType.Kids,
+                CategoryType.Sports
+            };
+
             var categories = new List<Category>();
-            var categoryNames = new[] { "Footwear", "Clothing", "Accessories", "Running", "Football",
-                                      "Basketball", "Training", "Lifestyle", "Originals", "Performance" };
-            for (int i = 0; i < 50; i++)
+
+
+            // Helper for IDs
+            Func<int, Guid> makeId = (i) => Guid.NewGuid(); //Guid.Parse($"dddddddd-dddd-dddd-dddd-dddddddd{i:D4}");
+
+            // ===== MEN =====
+            var menShoesId = makeId(1);
+            categories.Add(new Category
+            {
+                Id = menShoesId,
+                Name = "Men's Shoes",
+                Slug = "mens-shoes",
+                Description = "Wide range of men's shoes for sports and lifestyle.",
+                ImageUrl = "https://example.com/categories/mens-shoes.jpg",
+                SortOrder = 1,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Men
+            });
+
+            // Subcategories for Men's Shoes
+            string[] menShoeSubs =
+            {
+                "Originals Shoes", "Running Shoes", "Sneakers", "Slides", "Football Shoes",
+                "Sandals", "Gym & Training Shoes", "Basketball Shoes", "Hiking, Trail & Climbing Shoes",
+                "Skateboarding Shoes", "White Sneakers"
+            };
+            int index = 10;
+            foreach (var sub in menShoeSubs)
             {
                 categories.Add(new Category
                 {
-                    Id = Guid.NewGuid(),
-                    Name = $"{categoryNames[i % categoryNames.Length]}{(i >= categoryNames.Length ? $" {(i / categoryNames.Length) + 1}" : "")}",
-                    Slug = $"{categoryNames[i % categoryNames.Length].ToLower().Replace(" ", "-")}-{i + 1}",
-                    Description = $"High-quality {categoryNames[i % categoryNames.Length].ToLower()} collection for all your sporting needs.",
-                    ImageUrl = $"https://example.com/categories/category{i + 1}.jpg",
-                    SortOrder = i + 1,
-                    ParentCategoryId = i > 10 && i % 5 == 0 ? categories[i % 10].Id : null,
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-") + "-sub-" + index,
+                    Description = $"High-quality {sub.ToLower()} for men.",
+                    ImageUrl = $"https://example.com/categories/{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = menShoesId,
                     IsDeleted = false,
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow.AddDays(-i * 2),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-i * 2),
-                    AddedById = adminUserId
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Men
                 });
             }
+
+            // ===== MEN’S CLOTHING =====
+            var menClothingId = makeId(2);
+            categories.Add(new Category
+            {
+                Id = menClothingId,
+                Name = "Men's Clothing",
+                Slug = "mens-clothing",
+                Description = "Men’s clothing for all occasions and sports.",
+                ImageUrl = "https://example.com/categories/mens-clothing.jpg",
+                SortOrder = 2,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Men
+            });
+
+            string[] menClothingSubs =
+            {
+                "T-shirts", "Pants", "Tracksuits", "Swimwear", "Shorts",
+                "Sports Jerseys", "Hoodies", "Sweatshirts", "Jackets", "Light Layers"
+            };
+            foreach (var sub in menClothingSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-"),
+                    Description = $"Premium men's {sub.ToLower()} collection.",
+                    ImageUrl = $"https://example.com/categories/{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = menClothingId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Men
+                });
+            }
+
+            // ===== MEN’S ACCESSORIES =====
+            var menAccessoriesId = makeId(3);
+            categories.Add(new Category
+            {
+                Id = menAccessoriesId,
+                Name = "Men's Accessories",
+                Slug = "mens-accessories",
+                Description = "Accessories to complete men’s sporting and lifestyle look.",
+                ImageUrl = "https://example.com/categories/mens-accessories.jpg",
+                SortOrder = 3,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Men
+            });
+
+            string[] menAccessoriesSubs = { "Headwear", "Bags", "Socks", "Sports Balls" };
+            foreach (var sub in menAccessoriesSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-"),
+                    Description = $"Men’s {sub.ToLower()} collection.",
+                    ImageUrl = $"https://example.com/categories/{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = menAccessoriesId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Men
+                });
+            }
+
+
+            // ===== WOMEN’S SHOES =====
+            var womenShoesId = makeId(300);
+            categories.Add(new Category
+            {
+                Id = womenShoesId,
+                Name = "Women's Shoes",
+                Slug = "womens-shoes",
+                Description = "Wide range of women’s shoes for sports and lifestyle.",
+                ImageUrl = "https://example.com/categories/womens-shoes.jpg",
+                SortOrder = 300,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Women
+            });
+
+            string[] womenShoesSubs =
+            {
+                "Originals Shoes", "Running", "Sneakers", "Slides", "Gym & Training", "Sandals",
+                "Football Shoes", "Hiking, Trail & Climbing", "White Sneakers", "Women Shoes Under 3000"
+            };
+            foreach (var sub in womenShoesSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-").Replace("&", "and"),
+                    Description = $"High-quality {sub.ToLower()} for women.",
+                    ImageUrl =
+                        $"https://example.com/categories/{sub.ToLower().Replace(" ", "-").Replace("&", "and")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = womenShoesId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Women
+                });
+            }
+
+            // ===== WOMEN’S CLOTHING =====
+            var womenClothingId = makeId(301);
+            categories.Add(new Category
+            {
+                Id = womenClothingId,
+                Name = "Women's Clothing",
+                Slug = "womens-clothing",
+                Description = "Sportswear and lifestyle clothing for women.",
+                ImageUrl = "https://example.com/categories/womens-clothing.jpg",
+                SortOrder = 301,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Women
+            });
+
+            string[] womenClothingSubs =
+            {
+                "T-shirts", "Pants", "Leggings & Tights", "Tracksuits", "Sports Bras",
+                "Shorts", "Dresses & Skirts", "Hoodies", "Sweatshirts", "Maternity Sportswear",
+                "Modestwear", "Jackets", "Swimwear", "Gender Neutral Sportswear", "Light Layers",
+                "Clothing Under EGP 2000"
+            };
+            foreach (var sub in womenClothingSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-").Replace("&", "and"),
+                    Description = $"Women’s {sub.ToLower()} collection.",
+                    ImageUrl =
+                        $"https://example.com/categories/{sub.ToLower().Replace(" ", "-").Replace("&", "and")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = womenClothingId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Women
+                });
+            }
+
+            // ===== WOMEN’S ACCESSORIES =====
+            var womenAccessoriesId = makeId(302);
+            categories.Add(new Category
+            {
+                Id = womenAccessoriesId,
+                Name = "Women's Accessories",
+                Slug = "womens-accessories",
+                Description = "Accessories to complete women’s sporting and lifestyle look.",
+                ImageUrl = "https://example.com/categories/womens-accessories.jpg",
+                SortOrder = 302,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Women
+            });
+
+            string[] womenAccessoriesSubs = { "Headwear", "Bags", "Socks", "Gloves" };
+            foreach (var sub in womenAccessoriesSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-"),
+                    Description = $"Women’s {sub.ToLower()} collection.",
+                    ImageUrl = $"https://example.com/categories/womens-{sub.ToLower()}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = womenAccessoriesId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Women
+                });
+            }
+
+
+            // ===== KIDS & TODDLERS (0-4) =====
+            var kidsToddlersId = makeId(200);
+            categories.Add(new Category
+            {
+                Id = kidsToddlersId,
+                Name = "Kids and Toddlers Sportswear",
+                Slug = "kids-toddlers-sportswear",
+                Description = "Sportswear for toddlers and young kids.",
+                ImageUrl = "https://example.com/categories/kids-toddlers.jpg",
+                SortOrder = 200,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Kids
+            });
+
+            string[] kidsToddlersSubs = { "Shoes", "Clothing" };
+            foreach (var sub in kidsToddlersSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-")+"-kids",
+                    Description = $"Toddler and kids {sub.ToLower()} collection.",
+                    ImageUrl = $"https://example.com/categories/kids-toddlers-{sub.ToLower()}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = kidsToddlersId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Kids
+                });
+            }
+
+            // ===== KIDS 4-8 YEARS =====
+            var kids4to8Id = makeId(201);
+            categories.Add(new Category
+            {
+                Id = kids4to8Id,
+                Name = "Kids 4 to 8 Years Sportswear",
+                Slug = "kids-4-8-sportswear",
+                Description = "Sportswear for boys and girls aged 4 to 8.",
+                ImageUrl = "https://example.com/categories/kids-4-8.jpg",
+                SortOrder = 201,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Kids
+            });
+
+            string[] kids4to8Subs = { "Shoes", "Boys Clothing", "Girls Clothing", "Accessories" };
+            foreach (var sub in kids4to8Subs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-")+"-kids",
+                    Description = $"Kids (4-8 years) {sub.ToLower()} collection.",
+                    ImageUrl = $"https://example.com/categories/kids-4-8-{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = kids4to8Id,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Kids
+                });
+            }
+
+            // ===== KIDS 8-16 YEARS =====
+            var kids8to16Id = makeId(202);
+            categories.Add(new Category
+            {
+                Id = kids8to16Id,
+                Name = "Kids 8 to 16 Years Sportswear",
+                Slug = "kids-8-16-sportswear",
+                Description = "Sportswear for boys and girls aged 8 to 16.",
+                ImageUrl = "https://example.com/categories/kids-8-16.jpg",
+                SortOrder = 202,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Kids
+            });
+
+            string[] kids8to16Subs = { "Shoes", "Boys Clothing", "Girls Clothing", "Accessories" };
+            foreach (var sub in kids8to16Subs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-")+"-kids8to16",
+                    Description = $"Kids (8-16 years) {sub.ToLower()} collection.",
+                    ImageUrl = $"https://example.com/categories/kids-8-16-{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = kids8to16Id,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Kids
+                });
+            }
+
+
+            // ===== SPORTS CATEGORIES =====
+
+            // ===== FOOTBALL =====
+            var footballId = makeId(400);
+            categories.Add(new Category
+            {
+                Id = footballId,
+                Name = "Football",
+                Slug = "football",
+                Description = "Football shoes, clothing, accessories, and team jerseys.",
+                ImageUrl = "https://example.com/categories/football.jpg",
+                SortOrder = 400,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Sports
+            });
+
+            string[] footballSubs =
+            {
+                "Shoes", "Clothing", "Accessories", "Football Teams", "Al Ahly",
+                "adidas Copa", "adidas X Crazyfast", "adidas Predator",
+                "Football Jerseys", "Juventus"
+            };
+            foreach (var sub in footballSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-"),
+                    Description = $"Football {sub} collection.",
+                    ImageUrl = $"https://example.com/categories/football-{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = footballId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Sports
+                });
+            }
+
+            // ===== OUTDOOR =====
+            var outdoorId = makeId(401);
+            categories.Add(new Category
+            {
+                Id = outdoorId,
+                Name = "Outdoor",
+                Slug = "outdoor",
+                Description = "Outdoor clothing and shoes including Terrex series.",
+                ImageUrl = "https://example.com/categories/outdoor.jpg",
+                SortOrder = 401,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Sports
+            });
+
+            string[] outdoorSubs = { "Shoes", "Clothing", "Terrex" };
+            foreach (var sub in outdoorSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-"),
+                    Description = $"Outdoor {sub} collection.",
+                    ImageUrl = $"https://example.com/categories/outdoor-{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = outdoorId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Sports
+                });
+            }
+
+            // ===== RUNNING =====
+            var runningId = makeId(402);
+            categories.Add(new Category
+            {
+                Id = runningId,
+                Name = "Running",
+                Slug = "running-1",
+                Description = "Running shoes, clothing, accessories, and performance series.",
+                ImageUrl = "https://example.com/categories/running.jpg",
+                SortOrder = 402,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Sports
+            });
+
+            string[] runningSubs =
+            {
+                "Shoes", "Clothing", "Accessories", "4DFWD", "Ultraboost",
+                "Adidas Adizero", "Supernova", "Ultrarun", "Everyday Running"
+            };
+            foreach (var sub in runningSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-"),
+                    Description = $"Running {sub} collection.",
+                    ImageUrl = $"https://example.com/categories/running-{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = runningId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Sports
+                });
+            }
+
+            // ===== GYM & TRAINING =====
+            var gymTrainingId = makeId(403);
+            categories.Add(new Category
+            {
+                Id = gymTrainingId,
+                Name = "Gym & Training",
+                Slug = "gym-training",
+                Description = "Shoes, clothing, and accessories for gym and training.",
+                ImageUrl = "https://example.com/categories/gym-training.jpg",
+                SortOrder = 403,
+                ParentCategoryId = null,
+                IsDeleted = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                AddedById = adminUserId,
+                Type = CategoryType.Sports
+            });
+
+            string[] gymTrainingSubs = { "Shoes", "Clothing", "Accessories", "Alphaboost", "Dropset" };
+            foreach (var sub in gymTrainingSubs)
+            {
+                categories.Add(new Category
+                {
+                    Id = makeId(index++),
+                    Name = sub,
+                    Slug = sub.ToLower().Replace(" ", "-")+"-gem",
+                    Description = $"Gym & Training {sub} collection.",
+                    ImageUrl = $"https://example.com/categories/gym-training-{sub.ToLower().Replace(" ", "-")}.jpg",
+                    SortOrder = index,
+                    ParentCategoryId = gymTrainingId,
+                    IsDeleted = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    AddedById = adminUserId,
+                    Type = CategoryType.Sports
+                });
+            }
+
+
+            // Final seeding
             modelBuilder.Entity<Category>().HasData(categories);
+
 
             // ProductAttributes (50 records)
             var productAttributes = new List<ProductAttribute>();
-            var attributeNames = new[] { "Size", "Color", "Material", "Technology", "Weight", "Fit", "Style", "Season", "Care", "Origin" };
+            var attributeNames = new[]
+                { "Size", "Color", "Material", "Technology", "Weight", "Fit", "Style", "Season", "Care", "Origin" };
             var dataTypes = new[] { "string", "number", "boolean", "list" };
             for (int i = 0; i < 50; i++)
             {
                 productAttributes.Add(new ProductAttribute
                 {
                     Id = Guid.NewGuid(),
-                    Name = $"{attributeNames[i % attributeNames.Length]}{(i >= attributeNames.Length ? $" {(i / attributeNames.Length) + 1}" : "")}",
+                    Name =
+                        $"{attributeNames[i % attributeNames.Length]}{(i >= attributeNames.Length ? $" {(i / attributeNames.Length) + 1}" : "")}",
                     DataType = dataTypes[i % dataTypes.Length],
                     IsFilterable = i % 3 != 0,
                     IsRequired = i % 4 == 0,
@@ -155,28 +758,39 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<ProductAttribute>().HasData(productAttributes);
 
             // Products (50 records)
             var products = new List<Product>();
-            var productNames = new[] { "Ultra Boost", "Stan Smith", "Superstar", "Gazelle", "NMD",
-                                     "Yeezy", "Forum", "Continental", "Samba", "Campus" };
+            var productNames = new[]
+            {
+                "Ultra Boost", "Stan Smith", "Superstar", "Gazelle", "NMD",
+                "Yeezy", "Forum", "Continental", "Samba", "Campus"
+            };
             for (int i = 0; i < 50; i++)
             {
                 var basePrice = 80 + (i * 5);
                 products.Add(new Product
                 {
                     Id = Guid.NewGuid(),
-                    Name = $"Adidas {productNames[i % productNames.Length]}{(i >= productNames.Length ? $" {(i / productNames.Length) + 1}" : "")}",
-                    Description = $"Experience the perfect blend of comfort and style with the {productNames[i % productNames.Length]}. Featuring premium materials and innovative technology for exceptional performance.",
-                    ShortDescription = $"Premium {productNames[i % productNames.Length]} for ultimate comfort and style.",
+                    Name =
+                        $"Adidas {productNames[i % productNames.Length]}{(i >= productNames.Length ? $" {(i / productNames.Length) + 1}" : "")}",
+                    Description =
+                        $"Experience the perfect blend of comfort and style with the {productNames[i % productNames.Length]}. Featuring premium materials and innovative technology for exceptional performance.",
+                    ShortDescription =
+                        $"Premium {productNames[i % productNames.Length]} for ultimate comfort and style.",
                     Price = basePrice,
                     SalePrice = i % 3 == 0 ? basePrice - 20 : null,
-                    GenderTarget = i % 4 == 0 ? Gender.Male : i % 4 == 1 ? Gender.Female : i % 4 == 2 ? Gender.Kids : Gender.Unisex,
+                    GenderTarget = i % 4 == 0 ? Gender.Male :
+                        i % 4 == 1 ? Gender.Female :
+                        i % 4 == 2 ? Gender.Kids : Gender.Unisex,
                     MetaTitle = $"Adidas {productNames[i % productNames.Length]} | Official Store",
-                    MetaDescription = $"Shop the latest {productNames[i % productNames.Length]} collection at Adidas official store.",
+                    MetaDescription =
+                        $"Shop the latest {productNames[i % productNames.Length]} collection at Adidas official store.",
                     Sku = $"ADI-{productNames[i % productNames.Length].Replace(" ", "").ToUpper()}-{i + 1:D3}",
-                    Specifications = "{\"material\": \"Premium synthetic\", \"sole\": \"Rubber outsole\", \"closure\": \"Lace-up\"}",
+                    Specifications =
+                        "{\"material\": \"Premium synthetic\", \"sole\": \"Rubber outsole\", \"closure\": \"Lace-up\"}",
                     CategoryId = categories[i % categories.Count].Id,
                     BrandId = brands[i % brands.Count].Id,
                     IsDeleted = false,
@@ -186,18 +800,23 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Product>().HasData(products);
 
             // ProductVariants (50 records)
             var productVariants = new List<ProductVariant>();
-            var sizes = new[] { "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "S", "M", "L", "XL" };
+            var sizes = new[]
+            {
+                "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "S", "M", "L", "XL"
+            };
             var colors = new[] { "Black", "White", "Red", "Blue", "Green", "Navy", "Gray", "Brown", "Pink", "Purple" };
             for (int i = 0; i < 50; i++)
             {
                 productVariants.Add(new ProductVariant
                 {
                     Id = Guid.NewGuid(),
-                    Sku = $"VAR-{products[i % products.Count].Sku}-{sizes[i % sizes.Length]}-{colors[i % colors.Length]}",
+                    Sku =
+                        $"VAR-{products[i % products.Count].Sku}-{sizes[i % sizes.Length]}-{colors[i % colors.Length]}",
                     Size = sizes[i % sizes.Length],
                     Color = colors[i % colors.Length],
                     StockQuantity = 50 + (i % 100),
@@ -211,6 +830,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<ProductVariant>().HasData(productVariants);
 
             // ProductImages (50 records)
@@ -233,11 +853,16 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<ProductImage>().HasData(productImages);
 
             // ProductAttributeValues (50 records)
             var productAttributeValues = new List<ProductAttributeValue>();
-            var attributeValues = new[] { "Cotton", "Leather", "Synthetic", "Mesh", "Premium", "Standard", "Lightweight", "Durable", "Comfortable", "Breathable" };
+            var attributeValues = new[]
+            {
+                "Cotton", "Leather", "Synthetic", "Mesh", "Premium", "Standard", "Lightweight", "Durable",
+                "Comfortable", "Breathable"
+            };
             for (int i = 0; i < 50; i++)
             {
                 productAttributeValues.Add(new ProductAttributeValue
@@ -253,13 +878,20 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<ProductAttributeValue>().HasData(productAttributeValues);
 
             // Addresses (50 records)
             var addresses = new List<Address>();
-            var cities = new[] { "Cairo", "Alexandria", "Giza", "Luxor", "Aswan", "Mansoura", "Tanta", "Ismailia", "Suez", "Hurghada" };
-            var streets = new[] { "Tahrir Square", "Nile Corniche", "Zamalek St", "Heliopolis Ave", "Maadi Rd",
-                                "Garden City", "Downtown", "New Cairo", "6th October", "Nasr City" };
+            var cities = new[]
+            {
+                "Cairo", "Alexandria", "Giza", "Luxor", "Aswan", "Mansoura", "Tanta", "Ismailia", "Suez", "Hurghada"
+            };
+            var streets = new[]
+            {
+                "Tahrir Square", "Nile Corniche", "Zamalek St", "Heliopolis Ave", "Maadi Rd",
+                "Garden City", "Downtown", "New Cairo", "6th October", "Nasr City"
+            };
             for (int i = 0; i < 50; i++)
             {
                 addresses.Add(new Address
@@ -280,11 +912,16 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Address>().HasData(addresses);
 
             // Coupons (50 records)
             var coupons = new List<Coupon>();
-            var couponCodes = new[] { "WELCOME10", "SAVE20", "SUMMER25", "WINTER30", "SPORT15", "NEW50", "VIP40", "SALE35", "FIRST20", "MEMBER25" };
+            var couponCodes = new[]
+            {
+                "WELCOME10", "SAVE20", "SUMMER25", "WINTER30", "SPORT15", "NEW50", "VIP40", "SALE35", "FIRST20",
+                "MEMBER25"
+            };
             for (int i = 0; i < 50; i++)
             {
                 var discountValue = (i % 3) switch
@@ -296,9 +933,11 @@ namespace Adidas.Context.Seeds
                 coupons.Add(new Coupon
                 {
                     Id = Guid.NewGuid(),
-                    Code = $"{couponCodes[i % couponCodes.Length]}{(i >= couponCodes.Length ? (i / couponCodes.Length).ToString() : "")}",
+                    Code =
+                        $"{couponCodes[i % couponCodes.Length]}{(i >= couponCodes.Length ? (i / couponCodes.Length).ToString() : "")}",
                     Name = $"Special Discount {i + 1}",
-                    DiscountType = i % 3 == 0 ? DiscountType.Percentage : i % 3 == 1 ? DiscountType.Amount : DiscountType.FixedAmount,
+                    DiscountType = i % 3 == 0 ? DiscountType.Percentage :
+                        i % 3 == 1 ? DiscountType.Amount : DiscountType.FixedAmount,
                     DiscountValue = discountValue,
                     MinimumAmount = i % 4 == 0 ? 0 : 100 + (i * 10),
                     ValidFrom = DateTime.UtcNow.AddDays(-30 - (i % 10)),
@@ -312,6 +951,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Coupon>().HasData(coupons);
 
             // Orders (50 records)
@@ -329,7 +969,10 @@ namespace Adidas.Context.Seeds
                 {
                     Id = Guid.NewGuid(),
                     OrderNumber = $"ADI-{DateTime.Now.Year}-{(i + 1):D6}",
-                    OrderStatus = i % 5 == 0 ? OrderStatus.Pending : i % 5 == 1 ? OrderStatus.Processing : i % 5 == 2 ? OrderStatus.Shipped : i % 5 == 3 ? OrderStatus.Delivered : OrderStatus.Cancelled,
+                    OrderStatus = i % 5 == 0 ? OrderStatus.Pending :
+                        i % 5 == 1 ? OrderStatus.Processing :
+                        i % 5 == 2 ? OrderStatus.Shipped :
+                        i % 5 == 3 ? OrderStatus.Delivered : OrderStatus.Cancelled,
                     Subtotal = subtotal,
                     TaxAmount = taxAmount,
                     ShippingAmount = shippingAmount,
@@ -339,9 +982,11 @@ namespace Adidas.Context.Seeds
                     OrderDate = orderDate,
                     ShippedDate = i % 5 >= 2 ? orderDate.AddDays(2) : null,
                     DeliveredDate = i % 5 == 3 ? orderDate.AddDays(5) : null,
-                    ShippingAddress = $"{{\"street\": \"{addresses[i % addresses.Count].StreetAddress}\", \"city\": \"{addresses[i % addresses.Count].City}\", \"country\": \"Egypt\"}}",
-                    BillingAddress = $"{{\"street\": \"{addresses[i % addresses.Count].StreetAddress}\", \"city\": \"{addresses[i % addresses.Count].City}\", \"country\": \"Egypt\"}}",
-                    Notes = i % 3 == 0 ? $"Special delivery instructions for order {i + 1}" : " no special instructions",
+                    ShippingAddress =
+                        $"{{\"street\": \"{addresses[i % addresses.Count].StreetAddress}\", \"city\": \"{addresses[i % addresses.Count].City}\", \"country\": \"Egypt\"}}",
+                    BillingAddress =
+                        $"{{\"street\": \"{addresses[i % addresses.Count].StreetAddress}\", \"city\": \"{addresses[i % addresses.Count].City}\", \"country\": \"Egypt\"}}",
+                    Notes = i % 3 == 0 ? $"Special delivery instructions for order {i + 1}" : "no special instructions",
                     UserId = users[i % users.Count].Id,
                     IsDeleted = false,
                     IsActive = true,
@@ -350,6 +995,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Order>().HasData(orders);
 
             // OrderItems (50 records)
@@ -357,7 +1003,8 @@ namespace Adidas.Context.Seeds
             for (int i = 0; i < 50; i++)
             {
                 var quantity = (i % 3) + 1;
-                var unitPrice = products[i % products.Count].Price + productVariants[i % productVariants.Count].PriceAdjustment;
+                var unitPrice = products[i % products.Count].Price +
+                                productVariants[i % productVariants.Count].PriceAdjustment;
                 var totalPrice = quantity * unitPrice;
                 orderItems.Add(new OrderItem
                 {
@@ -366,7 +1013,8 @@ namespace Adidas.Context.Seeds
                     UnitPrice = unitPrice,
                     TotalPrice = totalPrice,
                     ProductName = products[i % products.Count].Name,
-                    VariantDetails = $"Size: {productVariants[i % productVariants.Count].Size}, Color: {productVariants[i % productVariants.Count].Color}",
+                    VariantDetails =
+                        $"Size: {productVariants[i % productVariants.Count].Size}, Color: {productVariants[i % productVariants.Count].Color}",
                     OrderId = orders[i % orders.Count].Id,
                     VariantId = productVariants[i % productVariants.Count].Id,
                     IsDeleted = false,
@@ -376,6 +1024,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<OrderItem>().HasData(orderItems);
 
             // OrderCoupons (50 records)
@@ -404,6 +1053,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<OrderCoupon>().HasData(orderCoupons);
 
             // Payments (50 records)
@@ -413,7 +1063,9 @@ namespace Adidas.Context.Seeds
             for (int i = 0; i < 50; i++)
             {
                 var order = orders[i % orders.Count];
-                var status = i % 10 == 9 ? "Failed" : (i % 20 == 19 ? "Refunded" : (i % 5 == 4 ? "Pending" : "Completed"));
+                var status = i % 10 == 9
+                    ? "Failed"
+                    : (i % 20 == 19 ? "Refunded" : (i % 5 == 4 ? "Pending" : "Completed"));
                 payments.Add(new Payment
                 {
                     Id = Guid.NewGuid(),
@@ -422,8 +1074,8 @@ namespace Adidas.Context.Seeds
                     Amount = order.TotalAmount,
                     TransactionId = $"TXN-{DateTime.Now.Year}-{(i + 1):D8}",
                     GatewayResponse = status == "Completed" ? "Payment processed successfully" :
-                                      status == "Failed" ? "Payment failed - insufficient funds" :
-                                      status == "Refunded" ? "Payment refunded successfully" : "Payment pending processing",
+                        status == "Failed" ? "Payment failed - insufficient funds" :
+                        status == "Refunded" ? "Payment refunded successfully" : "Payment pending processing",
                     ProcessedAt = order.OrderDate.AddMinutes(5 + (i % 30)),
                     OrderId = order.Id,
                     IsDeleted = false,
@@ -433,13 +1085,18 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Payment>().HasData(payments);
 
             // Reviews (50 records)
             var reviews = new List<Review>();
-            var reviewTitles = new[] { "Excellent Quality!", "Great Product", "Highly Recommended", "Perfect Fit",
-                                     "Outstanding Design", "Good Value", "Love It!", "Amazing Comfort", "Stylish Choice", "Top Quality" };
-            var reviewTexts = new[] {
+            var reviewTitles = new[]
+            {
+                "Excellent Quality!", "Great Product", "Highly Recommended", "Perfect Fit",
+                "Outstanding Design", "Good Value", "Love It!", "Amazing Comfort", "Stylish Choice", "Top Quality"
+            };
+            var reviewTexts = new[]
+            {
                 "This product exceeded my expectations. The quality is outstanding and fits perfectly.",
                 "Really happy with this purchase. Great design and comfortable to wear.",
                 "Excellent product with premium materials. Highly recommend to everyone.",
@@ -465,6 +1122,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Review>().HasData(reviews);
 
             // ShoppingCarts (50 records)
@@ -486,6 +1144,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<ShoppingCart>().HasData(shoppingCarts);
 
             // Wishlists (50 records)
@@ -506,6 +1165,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<Wishlist>().HasData(wishlists);
 
             // InventoryLogs (50 records)
@@ -532,6 +1192,7 @@ namespace Adidas.Context.Seeds
                     AddedById = adminUserId
                 });
             }
+
             modelBuilder.Entity<InventoryLog>().HasData(inventoryLogs);
         }
     }
