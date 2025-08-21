@@ -3,8 +3,9 @@
 namespace Adidas.DTOs.People.Address_DTOs;
 
 public class AddressUpdateDto: BaseUpdateDto
-{
+{ 
     public string FirstName { get; set; }
+    public string? UserId { get; set; }
     public string LastName { get; set; }
     public string Company { get; set; }
     public string Street { get; set; }
