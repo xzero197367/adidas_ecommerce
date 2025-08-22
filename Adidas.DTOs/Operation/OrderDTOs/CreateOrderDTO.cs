@@ -10,10 +10,12 @@ namespace Adidas.DTOs.Operation.OrderDTOs
     public class CreateOrderDTO
     {
         public string UserId { get; set; }
-        [Required] public string ShippingAddress { get; set; } // JSON string
-
-        [Required] public string BillingAddress { get; set; } // JSON string
-        [Required] public string Currency { get; set; } // JSON string
+        public string ShippingAddress { get; set; }
+        public string BillingAddress { get; set; }
+        public string? CouponCode { get; set; }
+        public string PaymentMethod { get; set; }
+        public string? Notes { get; set; }
+        public string? Currency { get; set; } // JSON string
         
 
     }

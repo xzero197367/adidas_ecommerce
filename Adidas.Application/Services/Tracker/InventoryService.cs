@@ -170,6 +170,29 @@ namespace Adidas.Application.Services.Tracker
                 return OperationResult<InventoryReportDto>.Fail(ex.Message);
             }
         }
+        public async Task<OperationResult<bool>> HasSufficientStockAsync(Guid variantId, int quantity)
+        {
+            try
+            {
+                var variant = await _variantRepository.GetByIdAsync(variantId);
+                if (variant == null)
+                {
+                    return OperationResult<bool>.Fail("Variant not found");
+                }
+
+                if (variant.StockQuantity >= quantity)
+                {
+                    return OperationResult<bool>.Success(true);
+                }
+
+                return OperationResult<bool>.Fail("Not enough stock available");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking stock for variant {VariantId}", variantId);
+                return OperationResult<bool>.Fail(ex.Message);
+            }
+        }
 
 
         public async Task LogInventoryChangeAsync(Guid variantId, int oldQuantity, int newQuantity, string changeType, string userId, string? reason = null)

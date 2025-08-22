@@ -13,5 +13,6 @@ namespace Adidas.Application.Contracts.ServicesContracts.Tracker
         Task<OperationResult<IEnumerable<LowStockAlertDto>>> GetLowStockAlertsAsync(int threshold = 10);
         Task<OperationResult<InventoryReportDto>> GenerateInventoryReportAsync();
         Task LogInventoryChangeAsync(Guid variantId, int oldQuantity, int newQuantity, string changeType, string userId, string? reason = null);
+        Task<OperationResult<bool>> HasSufficientStockAsync(Guid variantId, int quantity);
     }
 }
