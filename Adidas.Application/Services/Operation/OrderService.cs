@@ -11,6 +11,7 @@ using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
 using Adidas.Models.Feature;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office.CustomUI;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Mapster;
@@ -510,5 +511,79 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return OperationResult<object>.Fail(ex.Message);
         }
     }
+
+    public async Task<OperationResult<object>> PlaceOrder(CreateOrderDTO orderCreateDTO)
+    {
+        var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(orderCreateDTO.UserId);
+
+        if (cartItems == null || !cartItems.Any())
+        {
+            return OperationResult<object>.Fail("Cart is empty, cannot place order.");
+        }
+
+        // Calculate amounts
+        decimal subtotal = cartItems.Sum(item =>
+        {
+            var variant = item.Variant;
+            var product = variant.Product;
+            return item.Quantity * (product.Price + variant.PriceAdjustment);
+        });
+
+        decimal taxAmount = subtotal * 0.1m;  // Example 10% tax
+        decimal shippingAmount = 20m;         // Example flat shipping fee
+        decimal discountAmount = 0m;          // Apply coupon logic later
+        decimal totalAmount = subtotal + taxAmount + shippingAmount - discountAmount;
+
+        var order = new Order
+        {
+            BillingAddress = orderCreateDTO.BillingAddress,
+            ShippingAddress = orderCreateDTO.ShippingAddress,
+            Currency = orderCreateDTO.Currency,
+            OrderStatus = OrderStatus.Pending,
+            OrderNumber = Guid.NewGuid().ToString("N"),
+            OrderDate = DateTime.UtcNow,
+            UserId = orderCreateDTO.UserId,
+            Notes = "",
+            Subtotal = subtotal,
+            TaxAmount = taxAmount,
+            ShippingAmount = shippingAmount,
+            DiscountAmount = discountAmount,
+            TotalAmount = totalAmount
+        };
+
+        // Add OrderItems
+        foreach (var cartItem in cartItems)
+        {
+            var variant = cartItem.Variant;
+            var product = variant.Product;
+
+            var variantDetails = $"Size: {variant.Size}, Color: {variant.Color}";
+
+            order.OrderItems.Add(new OrderItem
+            {
+                OrderId = order.Id,   
+                Quantity = cartItem.Quantity,
+                UnitPrice = product.Price + variant.PriceAdjustment,
+                TotalPrice = cartItem.Quantity * (product.Price + variant.PriceAdjustment),
+                ProductName = product.Name,
+                VariantDetails = variantDetails,
+                VariantId = variant.Id
+            });
+        }
+
+        // Save Order
+        await _orderRepository.AddAsync(order);
+
+        // Clear the cart
+        await _cartRepository.ClearCartAsync(orderCreateDTO.UserId);
+
+        // Save changes (repository should call DbContext.SaveChangesAsync inside)
+        await _orderRepository.SaveChangesAsync();
+
+        return OperationResult<object>.Success(new { OrderId = order.Id, OrderNumber = order.OrderNumber });
+    }
+
+
+
 
 }

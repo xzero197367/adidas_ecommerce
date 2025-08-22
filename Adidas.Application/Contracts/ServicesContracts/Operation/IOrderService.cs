@@ -28,6 +28,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
 
         Task<BillingSummaryDto> GetBillingSummaryAsync(string userId, string? promoCode = null);
 
+        Task<OperationResult<object>> PlaceOrder(CreateOrderDTO orderCreateDTO);
+
 
 
     }
