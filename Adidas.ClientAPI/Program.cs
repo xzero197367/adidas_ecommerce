@@ -30,6 +30,12 @@ using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Infra.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Infra.Repositories.Feature;
+using Adidas.Application.Contracts.ServicesContracts.Tracker;
+using Adidas.Application.Services.Tracker;
+using Adidas.Application.Contracts.RepositoriesContracts.Tracker;
+using Adidas.Infra.Tracker;
+using Adidas.Application.Contracts.ServicesContracts.Static;
+using Adidas.Application.Services.Static;
 
 
 namespace Adidas.ClientAPI
@@ -125,6 +131,9 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
             builder.Services.AddScoped<IProductImageService, ProductImageService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IInventoryService, InventoryService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
             // Register Repositories
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -137,9 +146,10 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
             builder.Services.AddScoped<IWishListService, WishListService>();
             builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
-
+            builder.Services.AddScoped<IInventoryLogRepository, InventoryLogRepository>();
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             // Register PayPal Services with HttpClient
             builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
             {

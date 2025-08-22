@@ -2,6 +2,7 @@
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
+using Adidas.DTOs.Operation.OrderDTOs.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -65,5 +66,24 @@ namespace Adidas.ClientAPI.Controllers.Operation
 
             return Ok(response);
         }
+
+        [HttpPost("PlaceOrder")]
+        public async Task<IActionResult> PlaceOrder([FromBody] CreateOrderDTO orderDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _orderService.PlaceOrder(orderDto);
+
+            if (!result.IsSuccess)
+                return BadRequest(new { message = result.ErrorMessage });
+
+            return Ok(result.Data);
+        }
+
+
+
+
+
     }
 }
