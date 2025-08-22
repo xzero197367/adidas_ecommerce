@@ -7,8 +7,11 @@ using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.CommonDTOs;
+using Adidas.DTOs.Feature.OrderCouponDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
+using Adidas.DTOs.Operation.PaymentDTOs;
+using Adidas.DTOs.People.Address_DTOs;
 using Adidas.Models.Feature;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office.CustomUI;
@@ -17,6 +20,7 @@ using iTextSharp.text.pdf;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Adidas.Application.Services.Operation;
 
@@ -143,6 +147,48 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         {
             _logger.LogError(ex, "Error getting orders for user {UserId}", userId);
             return OperationResult<IEnumerable<OrderDto>>.Fail(ex.Message);
+        }
+    }
+    public async Task<OperationResult<OrderDto>> GetOrderByUserIdAsync(string userId)
+    {
+        try
+        {
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+            var order = orders.FirstOrDefault();
+
+            if (order == null)
+                return OperationResult<OrderDto>.Fail("No order found for this user.");
+
+            var orderDto = new OrderDto
+            {
+                Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                OrderStatus = order.OrderStatus,
+                Subtotal = order.Subtotal,
+                TaxAmount = order.TaxAmount,
+                ShippingAmount = order.ShippingAmount,
+                DiscountAmount = order.DiscountAmount,
+                TotalAmount = order.TotalAmount,
+                Currency = order.Currency,
+                OrderDate = order.OrderDate,
+                ShippedDate = order.ShippedDate,
+                DeliveredDate = order.DeliveredDate,
+
+           
+                Notes = order.Notes,
+                UserId = order.UserId,
+                UserName = order.User?.UserName,
+                UserEmail = order.User?.Email
+            };
+              
+ 
+
+            return OperationResult<OrderDto>.Success(orderDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting order for user {UserId}", userId);
+            return OperationResult<OrderDto>.Fail(ex.Message);
         }
     }
 

@@ -26,6 +26,16 @@ namespace Adidas.ClientAPI.Controllers.Operation
             var orders = await orderService.GetOrdersByUserIdAsync(userId);
             return Ok(orders);
         }
+        [HttpGet("GetOrderByUserId/{userId}")]
+        public async Task<IActionResult> GetOrderByUserId(string userId)
+        {
+            var result = await orderService.GetOrderByUserIdAsync(userId);
+
+            if (!result.IsSuccess)
+                return NotFound(new { Message = result.ErrorMessage });
+
+            return Ok(result.Data);
+        }
 
         [HttpGet("active")]
         public async Task<IActionResult> GetActiveOrder()
@@ -40,5 +50,7 @@ namespace Adidas.ClientAPI.Controllers.Operation
 
             return Ok(activeOrder);
         }
+
+
     }
 }

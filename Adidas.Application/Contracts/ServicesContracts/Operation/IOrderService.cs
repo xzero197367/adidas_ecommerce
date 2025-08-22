@@ -11,6 +11,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
             GetPagedOrdersAsync(int pageNumber, int pageSize,
                  OrderFilterDto? filter=null);
         Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId);
+        Task<OperationResult<OrderDto>> GetOrderByUserIdAsync(string userId);
         Task<OperationResult<OrderDto>> GetOrderByOrderNumberAsync(string orderNumber);
         Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByStatusAsync(OrderStatus status);
         // Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(string userId, CreateOrderFromCartDto orderDto);
