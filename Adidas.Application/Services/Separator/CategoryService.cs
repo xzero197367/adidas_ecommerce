@@ -40,7 +40,7 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<IEnumerable<CategoryDto>> GetMainCategoriesAsync()
         {
-            var categories = await _categoryRepository.GetAllAsync();
+            var categories = await _categoryRepository.GetAllAsync(c => c.SubCategories, c => c.Products);
 
             var mainCategories = categories
                 .Where(c => c.ParentCategoryId == null && c.IsActive && !c.IsDeleted)
@@ -96,7 +96,7 @@ namespace Adidas.Application.Services.Separator
         public async Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter,
             string searchTerm)
         {
-            var categories = await _categoryRepository.GetAllAsync();
+            var categories = await _categoryRepository.GetAllAsync(c => c.SubCategories, c => c.Products);
 
             if (!string.IsNullOrEmpty(categoryType))
             {
@@ -387,7 +387,10 @@ namespace Adidas.Application.Services.Separator
             //     c => c.Products,
             //     c => c.ParentCategory
             // );
-            var categories = _categoryRepository.GetAll().Where(c => c.ParentCategoryId == null).ToList();
+            var categories = await _categoryRepository.GetAllAsync(c => c.SubCategories, c => c.Products);
+
+            categories.Where(c => c.ParentCategoryId == null && c.IsActive && !c.IsDeleted)
+               .ToList();
             if (categories != null)
             {
                 if (Enum.TryParse<CategoryType>(Type, ignoreCase: true, out var parsedType))
