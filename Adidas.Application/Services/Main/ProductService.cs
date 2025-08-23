@@ -11,15 +11,15 @@ using Adidas.DTOs.Operation.ReviewDTOs.Query;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Main;
-using Mapster;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.People;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Adidas.Application.Services.Main
 {
-    public class ProductService : GenericService<Product, ProductDto, ProductCreateDto, ProductUpdateDto>,
-        IProductService
+    public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
         private readonly IProductVariantRepository _variantRepository;
@@ -30,13 +30,16 @@ namespace Adidas.Application.Services.Main
             IProductRepository productRepository,
             IProductVariantRepository variantRepository,
             ICouponService couponService,
-            ILogger<ProductService> logger) : base(productRepository, logger)
+            ILogger<ProductService> logger)
         {
             _productRepository = productRepository;
             _variantRepository = variantRepository;
             _couponService = couponService;
             _logger = logger;
         }
+
+        #region Mapping Methods
+
         private ProductDto MapToProductDto(Product p)
         {
             return new ProductDto
@@ -44,15 +47,32 @@ namespace Adidas.Application.Services.Main
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
+                ShortDescription = p.ShortDescription,
                 Price = p.Price,
                 SalePrice = p.SalePrice,
                 Sku = p.Sku,
                 CategoryId = p.CategoryId,
                 BrandId = p.BrandId,
                 GenderTarget = p.GenderTarget,
+                MetaTitle = p.MetaTitle,
+                MetaDescription = p.MetaDescription,
                 UpdatedAt = p.UpdatedAt,
+                CreatedAt = p.CreatedAt ?? new DateTime(),
                 CategoryName = p.Category?.Name,
                 BrandName = p.Brand?.Name,
+
+                Category = p.Category != null ? new CategoryDto
+                {
+                    Id = p.Category.Id,
+                    Name = p.Category.Name
+                } : null,
+
+                Images = p.Images?.Select(i => new ProductImageDto
+                {
+                    Id = i.Id,
+                    ImageUrl = i.ImageUrl,
+                    AltText = i.AltText
+                }).ToList() ?? new List<ProductImageDto>(),
 
                 Variants = p.Variants?.Select(v => new ProductVariantDto
                 {
@@ -63,14 +83,22 @@ namespace Adidas.Application.Services.Main
                     PriceAdjustment = v.PriceAdjustment
                 }).ToList() ?? new List<ProductVariantDto>(),
 
+                Reviews = p.Reviews?.Select(r => new ReviewDto
+                {
+                    Id = r.Id,
+                    Rating = r.Rating,
+                    ReviewText = r.ReviewText
+                }).ToList() ?? new List<ReviewDto>(),
+
                 InStock = p.Variants?.Any(v => v.StockQuantity > 0) ?? false
             };
         }
+
         private Product MapToProduct(ProductCreateDto dto)
         {
             return new Product
             {
-               
+                Id = Guid.NewGuid(),
                 Name = dto.Name,
                 Description = dto.Description,
                 ShortDescription = dto.ShortDescription,
@@ -81,11 +109,394 @@ namespace Adidas.Application.Services.Main
                 MetaTitle = dto.MetaTitle,
                 MetaDescription = dto.MetaDescription,
                 CategoryId = dto.CategoryId,
-                BrandId = dto.BrandId
+                BrandId = dto.BrandId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
+        private void MapUpdateDtoToProduct(ProductUpdateDto updateDto, Product product)
+        {
+            if (updateDto.Name != null)
+                product.Name = updateDto.Name;
 
+            if (updateDto.Description != null)
+                product.Description = updateDto.Description;
+
+            if (updateDto.ShortDescription != null)
+                product.ShortDescription = updateDto.ShortDescription;
+
+            if (updateDto.Price.HasValue)
+                product.Price = updateDto.Price.Value;
+
+            if (updateDto.SalePrice.HasValue)
+                product.SalePrice = updateDto.SalePrice.Value;
+
+            if (updateDto.GenderTarget.HasValue)
+                product.GenderTarget = updateDto.GenderTarget.Value;
+
+            if (updateDto.CategoryId.HasValue)
+                product.CategoryId = updateDto.CategoryId.Value;
+
+            if (updateDto.BrandId.HasValue)
+                product.BrandId = updateDto.BrandId.Value;
+
+            if (updateDto.MetaTitle != null)
+                product.MetaTitle = updateDto.MetaTitle;
+
+            if (updateDto.MetaDescription != null)
+                product.MetaDescription = updateDto.MetaDescription;
+
+            product.UpdatedAt = DateTime.UtcNow;
+        }
+
+        #endregion
+
+        #region Generic CRUD Operations
+
+        public virtual async Task<OperationResult<ProductDto>> GetByIdAsync(Guid id, params Expression<Func<Product, object>>[] includes)
+        {
+            try
+            {
+                IQueryable<Product> query = _productRepository.GetAll()
+                    .Include(p => p.Category)
+                    .Include(p => p.Brand)
+                    .Include(p => p.Variants)
+                    .Include(p => p.Images)
+                    .Include(p => p.Reviews)
+                    .Where(p => p.Id == id);
+
+                // Apply additional includes if provided
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+
+                var entity = await query.FirstOrDefaultAsync();
+
+                if (entity == null)
+                    return OperationResult<ProductDto>.Fail("Product not found");
+
+                return OperationResult<ProductDto>.Success(MapToProductDto(entity));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting product by id {Id} with includes", id);
+                return OperationResult<ProductDto>.Fail("Error getting product by id: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<IEnumerable<ProductDto>>> GetAllAsync(Func<IQueryable<Product>, IQueryable<Product>>? queryFunc = null)
+        {
+            try
+            {
+                IQueryable<Product> query = _productRepository.GetAll()
+                    .Include(p => p.Category)
+                    .Include(p => p.Brand)
+                    .Include(p => p.Variants)
+                    .Include(p => p.Images)
+                    .Include(p => p.Reviews);
+
+                if (queryFunc != null)
+                {
+                    query = queryFunc(query);
+                }
+
+                var entities = await query.ToListAsync();
+                return OperationResult<IEnumerable<ProductDto>>.Success(entities.Select(MapToProductDto));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all products");
+                return OperationResult<IEnumerable<ProductDto>>.Fail("Error getting all products: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<IEnumerable<ProductDto>>> FindAsync(Func<IQueryable<Product>, IQueryable<Product>> queryFunc)
+        {
+            try
+            {
+                IQueryable<Product> query = _productRepository.GetAll()
+                    .Include(p => p.Category)
+                    .Include(p => p.Brand)
+                    .Include(p => p.Variants)
+                    .Include(p => p.Images)
+                    .Include(p => p.Reviews);
+
+                query = queryFunc(query);
+                var entities = await query.ToListAsync();
+                return OperationResult<IEnumerable<ProductDto>>.Success(entities.Select(MapToProductDto));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error finding products with predicate");
+                return OperationResult<IEnumerable<ProductDto>>.Fail("Error finding products with predicate: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<PagedResultDto<ProductDto>>> GetPagedAsync(int pageNumber, int pageSize, Func<IQueryable<Product>, IQueryable<Product>>? queryFunc = null)
+        {
+            try
+            {
+                var pagedResult = await _productRepository.GetPagedAsync(pageNumber, pageSize, queryFunc);
+
+                var mappedResult = new PagedResultDto<ProductDto>
+                {
+                    Items = pagedResult.Items.Select(MapToProductDto).ToList(),
+                    TotalCount = pagedResult.TotalCount,
+                    PageNumber = pagedResult.PageNumber,
+                    PageSize = pagedResult.PageSize,
+                    TotalPages = pagedResult.TotalPages
+                };
+
+                return OperationResult<PagedResultDto<ProductDto>>.Success(mappedResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting paged products");
+                return OperationResult<PagedResultDto<ProductDto>>.Fail("Error getting paged products: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<int>> CountAsync(Expression<Func<Product, bool>>? predicate = null)
+        {
+            try
+            {
+                var count = await _productRepository.CountAsync(predicate);
+                return OperationResult<int>.Success(count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting products with predicate");
+                return OperationResult<int>.Fail("Error counting products with predicate: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<bool>> ExistsAsync(Expression<Func<Product, bool>> predicate)
+        {
+            try
+            {
+                var exists = await _productRepository.ExistsAsync(predicate);
+                return OperationResult<bool>.Success(exists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking product existence");
+                return OperationResult<bool>.Fail("Error checking product existence: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<ProductDto>> CreateAsync(ProductCreateDto createDto)
+        {
+            try
+            {
+                await ValidateCreateAsync(createDto);
+
+                var entity = MapToProduct(createDto);
+                await BeforeCreateAsync(entity);
+
+                var createdEntityEntry = await _productRepository.AddAsync(entity);
+                await _productRepository.SaveChangesAsync();
+
+                var createdEntity = createdEntityEntry.Entity;
+                await AfterCreateAsync(createdEntity);
+
+                return OperationResult<ProductDto>.Success(MapToProductDto(createdEntity));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating product");
+                return OperationResult<ProductDto>.Fail("Error creating product: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<IEnumerable<ProductDto>>> CreateRangeAsync(IEnumerable<ProductCreateDto> createDtos)
+        {
+            try
+            {
+                var createDtoList = createDtos.ToList();
+                foreach (var createDto in createDtoList)
+                {
+                    await ValidateCreateAsync(createDto);
+                }
+
+                var entities = createDtoList.Select(MapToProduct).ToList();
+
+                foreach (var entity in entities)
+                {
+                    await BeforeCreateAsync(entity);
+                }
+
+                var createdEntityEntries = await _productRepository.AddRangeAsync(entities);
+                await _productRepository.SaveChangesAsync();
+
+                var createdEntities = createdEntityEntries.Select(entry => entry.Entity).ToList();
+
+                foreach (var createdEntity in createdEntities)
+                {
+                    await AfterCreateAsync(createdEntity);
+                }
+
+                return OperationResult<IEnumerable<ProductDto>>.Success(createdEntities.Select(MapToProductDto));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating products");
+                return OperationResult<IEnumerable<ProductDto>>.Fail("Error creating products: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<ProductDto>> UpdateAsync(ProductUpdateDto updateDto)
+        {
+            try
+            {
+                var existingEntity = await _productRepository.GetByIdAsync(updateDto.Id);
+                if (existingEntity == null)
+                    return OperationResult<ProductDto>.Fail($"Product with id {updateDto.Id} not found");
+
+                await ValidateUpdateAsync(updateDto.Id, updateDto);
+
+                // Validate sale price logic
+                if (updateDto.SalePrice.HasValue && updateDto.Price.HasValue && updateDto.SalePrice > updateDto.Price)
+                {
+                    return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
+                }
+                else if (updateDto.SalePrice.HasValue && !updateDto.Price.HasValue && existingEntity.Price < updateDto.SalePrice)
+                {
+                    return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
+                }
+
+                MapUpdateDtoToProduct(updateDto, existingEntity);
+                await BeforeUpdateAsync(existingEntity);
+
+                var updatedEntityEntry = await _productRepository.UpdateAsync(existingEntity);
+                await _productRepository.SaveChangesAsync();
+
+                var updatedEntity = updatedEntityEntry.Entity;
+                await AfterUpdateAsync(updatedEntity);
+
+                return OperationResult<ProductDto>.Success(MapToProductDto(updatedEntity));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating product with id {Id}", updateDto.Id);
+                return OperationResult<ProductDto>.Fail("Error updating product: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<IEnumerable<ProductDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductUpdateDto>> updates)
+        {
+            try
+            {
+                var updateList = updates.ToList();
+                var entities = new List<Product>();
+
+                foreach (var update in updateList)
+                {
+                    var existingEntity = await _productRepository.GetByIdAsync(update.Key);
+                    if (existingEntity == null)
+                        throw new KeyNotFoundException($"Product with id {update.Key} not found");
+
+                    await ValidateUpdateAsync(update.Key, update.Value);
+                    MapUpdateDtoToProduct(update.Value, existingEntity);
+                    await BeforeUpdateAsync(existingEntity);
+                    entities.Add(existingEntity);
+                }
+
+                var updatedEntityEntries = await _productRepository.UpdateRangeAsync(entities);
+                await _productRepository.SaveChangesAsync();
+
+                var updatedEntities = updatedEntityEntries.Select(entry => entry.Entity).ToList();
+
+                foreach (var updatedEntity in updatedEntities)
+                {
+                    await AfterUpdateAsync(updatedEntity);
+                }
+
+                return OperationResult<IEnumerable<ProductDto>>.Success(updatedEntities.Select(MapToProductDto));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating products");
+                return OperationResult<IEnumerable<ProductDto>>.Fail("Error updating products: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<Product>> DeleteAsync(Guid id)
+        {
+            try
+            {
+                var entity = await _productRepository.GetByIdAsync(id);
+                if (entity == null)
+                    return OperationResult<Product>.Fail("Product not found");
+
+                await BeforeDeleteAsync(entity);
+                var result = await _productRepository.SoftDeleteAsync(id);
+                await _productRepository.SaveChangesAsync();
+                await AfterDeleteAsync(entity);
+
+                return OperationResult<Product>.Success(result.Entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting product with id {Id}", id);
+                return OperationResult<Product>.Fail("Error deleting product: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<Product>> DeleteAsync(Product entity)
+        {
+            try
+            {
+                await BeforeDeleteAsync(entity);
+                var result = await _productRepository.SoftDeleteAsync(entity.Id);
+                await _productRepository.SaveChangesAsync();
+                await AfterDeleteAsync(entity);
+
+                return OperationResult<Product>.Success(result.Entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting product");
+                return OperationResult<Product>.Fail("Error deleting product: " + ex.Message);
+            }
+        }
+
+        public virtual async Task<OperationResult<IEnumerable<Product>>> DeleteRangeAsync(IEnumerable<Guid> ids)
+        {
+            try
+            {
+                var entities = new List<Product>();
+                foreach (var id in ids)
+                {
+                    var entity = await _productRepository.GetByIdAsync(id);
+                    if (entity != null)
+                    {
+                        await BeforeDeleteAsync(entity);
+                        entities.Add(entity);
+                    }
+                }
+
+                var result = _productRepository.SoftDeleteRange(entities);
+                await _productRepository.SaveChangesAsync();
+
+                foreach (var entity in entities)
+                {
+                    await AfterDeleteAsync(entity);
+                }
+
+                return OperationResult<IEnumerable<Product>>.Success(result.Select(x => x.Entity).ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting products");
+                return OperationResult<IEnumerable<Product>>.Fail("Error deleting products: " + ex.Message);
+            }
+        }
+
+        #endregion
+
+        #region Product-Specific Methods
 
         public async Task<ProductVariantDto?> GetVariantByIdAsync(Guid id)
         {
@@ -101,8 +512,6 @@ namespace Adidas.Application.Services.Main
                 PriceAdjustment = variant.PriceAdjustment,
             };
         }
-
-
 
         public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId)
         {
@@ -306,123 +715,65 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        protected Task ValidateCreateAsync(ProductCreateDto productCreateDto)
-        {
-            if (string.IsNullOrWhiteSpace(productCreateDto.Name))
-                throw new ArgumentException("Product name is required");
-
-            if (productCreateDto.Price <= 0)
-                throw new ArgumentException("Product price must be greater than 0");
-
-            return Task.CompletedTask;
-        }
-
-        protected async Task BeforeCreateAsync(Product entity)
-        {
-            if (string.IsNullOrEmpty(entity.Sku))
-            {
-                entity.Sku = await GenerateSkuAsync(entity.Name);
-            }
-        }
-
-        public override async Task<OperationResult<ProductDto>> UpdateAsync(ProductUpdateDto updateDto)
-        {
-            var existingEntity = await _productRepository.GetByIdAsync(updateDto.Id);
-            if (existingEntity == null)
-                throw new KeyNotFoundException($"Product with id {updateDto.Id} not found");
-
-            if (updateDto.SalePrice.HasValue && updateDto.Price.HasValue && updateDto.SalePrice > updateDto.Price)
-            {
-                return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
-            }
-            else if (updateDto.SalePrice.HasValue && !updateDto.Price.HasValue && existingEntity.Price < updateDto.SalePrice)
-            {
-                return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
-            }
-
-            if (updateDto.Name != null)
-                existingEntity.Name = updateDto.Name;
-
-            if (updateDto.Description != null)
-                existingEntity.Description = updateDto.Description;
-
-            if (updateDto.ShortDescription != null)
-                existingEntity.ShortDescription = updateDto.ShortDescription;
-
-            if (updateDto.Price.HasValue)
-                existingEntity.Price = updateDto.Price.Value;
-
-            if (updateDto.SalePrice.HasValue)
-                existingEntity.SalePrice = updateDto.SalePrice.Value;
-
-            if (updateDto.GenderTarget.HasValue)
-                existingEntity.GenderTarget = updateDto.GenderTarget.Value;
-
-            if (updateDto.CategoryId.HasValue)
-                existingEntity.CategoryId = updateDto.CategoryId.Value;
-
-            if (updateDto.BrandId.HasValue)
-                existingEntity.BrandId = updateDto.BrandId.Value;
-
-            if (updateDto.MetaTitle != null)
-                existingEntity.MetaTitle = updateDto.MetaTitle;
-
-            if (updateDto.MetaDescription != null)
-                existingEntity.MetaDescription = updateDto.MetaDescription;
-
-            await BeforeUpdateAsync(existingEntity);
-
-            var updatedEntityEntry = await _productRepository.UpdateAsync(existingEntity);
-            var updatedEntity = updatedEntityEntry.Entity;
-            await _productRepository.SaveChangesAsync();
-
-            await AfterUpdateAsync(updatedEntity);
-
-            return OperationResult<ProductDto>.Success(MapToProductDto(updatedEntity));
-        }
-
-        public override async Task<OperationResult<ProductDto>> CreateAsync(ProductCreateDto createDto)
+        public async Task<OperationResult<List<ProductDto>>> GetLastAddedProducts()
         {
             try
             {
-                await ValidateCreateAsync(createDto);
+                var products = await _productRepository.GetAllAsync(
+                    p => p.Category,
+                    p => p.Images,
+                    p => p.Variants,
+                    p => p.Reviews
+                );
 
-                var entity = MapToProduct(createDto);
+                var lastProducts = products
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Take(5)
+                    .Select(MapToProductDto)
+                    .ToList();
 
-                await BeforeCreateAsync(entity);
+                if (!lastProducts.Any())
+                    return OperationResult<List<ProductDto>>.Fail("No products found.");
 
-                var createdEntityEntry = await _productRepository.AddAsync(entity);
-                var createdEntity = createdEntityEntry.Entity;
-                await _productRepository.SaveChangesAsync();
-                await AfterCreateAsync(createdEntity);
-
-                return OperationResult<ProductDto>.Success(MapToProductDto(createdEntity));
+                return OperationResult<List<ProductDto>>.Success(lastProducts);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating product");
-                return OperationResult<ProductDto>.Fail("Error creating product: " + ex.Message);
+                return OperationResult<List<ProductDto>>.Fail($"Error fetching products: {ex.Message}");
             }
         }
 
-
-        public override async Task<OperationResult<ProductDto>> GetByIdAsync(Guid id, params Expression<Func<Product, object>>[] includes)
+        public async Task<OperationResult<List<ProductDto>>> GetSalesProducts()
         {
             try
             {
-                var product = await _productRepository.GetByIdAsync(id, includes);
-                if (product == null)
-                    return OperationResult<ProductDto>.Fail("Product not found");
+                var products = await _productRepository.GetAllAsync(
+                    p => p.Category,
+                    p => p.Images,
+                    p => p.Variants,
+                    p => p.Reviews
+                );
 
-                var dto = MapToProductDto(product);
-                return OperationResult<ProductDto>.Success(dto);
+                var salesProducts = products
+                    .Where(p => p.SalePrice > 0)
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Select(MapToProductDto)
+                    .ToList();
+
+                if (!salesProducts.Any())
+                    return OperationResult<List<ProductDto>>.Fail("No products found.");
+
+                return OperationResult<List<ProductDto>>.Success(salesProducts);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting product by id {Id} with includes", id);
-                return OperationResult<ProductDto>.Fail("Error getting product by id: " + ex.Message);
+                return OperationResult<List<ProductDto>>.Fail($"Error fetching products: {ex.Message}");
             }
         }
+
+        #endregion
+
+        #region Private Helper Methods
 
         private async Task<string> GenerateSkuAsync(string productName)
         {
@@ -439,144 +790,37 @@ namespace Adidas.Application.Services.Main
             return sku;
         }
 
-        public async Task<OperationResult<List<ProductDto>>> GetLastAddedProducts()
+        #endregion
+
+        #region Virtual Methods for Customization
+
+        public virtual Task ValidateCreateAsync(ProductCreateDto createDto)
         {
-            try
-            {
-                var products = await _productRepository.GetAllAsync(
-                    p => p.Category,
-                    p => p.Images,
-                    p => p.Variants,
-                    p => p.Reviews
-                );
+            if (string.IsNullOrWhiteSpace(createDto.Name))
+                throw new ArgumentException("Product name is required");
 
-                var lastProducts = products
-                    .OrderByDescending(p => p.CreatedAt)  
-                    .Take(5) 
-                    .Select(p => new ProductDto
-                    {
-                        Name = p.Name,
-                        Description = p.Description,
-                        ShortDescription = p.ShortDescription,
-                        Sku = p.Sku,
-                        Price = p.Price,
-                        SalePrice = p.SalePrice,
-                        GenderTarget = p.GenderTarget,
-                        MetaTitle = p.MetaTitle,
-                        MetaDescription = p.MetaDescription,
-                        CategoryId = p.CategoryId,
-                        BrandId = p.BrandId,
-                        CategoryName = p.Category != null ? p.Category.Name : "No Category",
-                        BrandName = p.Brand != null ? p.Brand.Name : "No Brand",
+            if (createDto.Price <= 0)
+                throw new ArgumentException("Product price must be greater than 0");
 
-                        Category = new CategoryDto
-                        {
-                            Id = p.Category.Id,
-                            Name = p.Category.Name
-                        },
-
-                        Images = p.Images.Select(i => new ProductImageDto
-                        {
-                            Id = i.Id,
-                            ImageUrl = i.ImageUrl,
-                            AltText = i.AltText
-                        }).ToList(),
-                        Variants = p.Variants.Select(v => new ProductVariantDto
-                        {
-                            Id = v.Id,
-                            Size = v.Size,
-                            Color = v.Color,
-                            StockQuantity = v.StockQuantity
-                        }).ToList(),
-                        Reviews = p.Reviews.Select(r => new ReviewDto
-                        {
-                            Id = r.Id,
-                            Rating = r.Rating,
-                            ReviewText = r.ReviewText
-                        }).ToList()
-                    })
-                    .ToList();
-
-                if (!lastProducts.Any())
-                    return OperationResult<List<ProductDto>>.Fail("No products found.");
-
-                return OperationResult<List<ProductDto>>.Success(lastProducts);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<List<ProductDto>>.Fail($"Error fetching products: {ex.Message}");
-            }
+            return Task.CompletedTask;
         }
-        public async Task<OperationResult<List<ProductDto>>> GetSalesProducts()
+
+        public virtual Task ValidateUpdateAsync(Guid id, ProductUpdateDto updateDto) => Task.CompletedTask;
+
+        public virtual async Task BeforeCreateAsync(Product entity)
         {
-            try
+            if (string.IsNullOrEmpty(entity.Sku))
             {
-                var products = await _productRepository.GetAllAsync(
-                    p => p.Category,
-                    p => p.Images,
-                    p => p.Variants,
-                    p => p.Reviews
-                );
-                products = products.Where(p => p.SalePrice > 0).ToList();
-
-                var salesProducts = products
-                    .OrderByDescending(p => p.CreatedAt)
-                    .Select(p => new ProductDto
-                    {
-                        Name = p.Name,
-                        Description = p.Description,
-                        ShortDescription = p.ShortDescription,
-                        Sku = p.Sku,
-                        Price = p.Price,
-                        SalePrice = p.SalePrice,
-                        GenderTarget = p.GenderTarget,
-                        MetaTitle = p.MetaTitle,
-                        MetaDescription = p.MetaDescription,
-                        CategoryId = p.CategoryId,
-                        BrandId = p.BrandId,
-                        CategoryName = p.Category != null ? p.Category.Name : "No Category",
-                        BrandName = p.Brand != null ? p.Brand.Name : "No Brand",
-
-                        Category = new CategoryDto
-                        {
-                            Id = p.Category.Id,
-                            Name = p.Category.Name
-                        },
-
-                        Images = p.Images.Select(i => new ProductImageDto
-                        {
-                            Id = i.Id,
-                            ImageUrl = i.ImageUrl,
-                            AltText = i.AltText
-                        }).ToList(),
-                        Variants = p.Variants.Select(v => new ProductVariantDto
-                        {
-                            Id = v.Id,
-                            Size = v.Size,
-                            Color = v.Color,
-                            StockQuantity = v.StockQuantity
-                        }).ToList(),
-                        Reviews = p.Reviews.Select(r => new ReviewDto
-                        {
-                            Id = r.Id,
-                            Rating = r.Rating,
-                            ReviewText = r.ReviewText
-                        }).ToList()
-                    })
-                    .ToList();
-
-                if (!salesProducts.Any())
-                    return OperationResult<List<ProductDto>>.Fail("No products found.");
-
-                return OperationResult<List<ProductDto>>.Success(salesProducts);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<List<ProductDto>>.Fail($"Error fetching products: {ex.Message}");
+                entity.Sku = await GenerateSkuAsync(entity.Name);
             }
         }
 
+        public virtual Task AfterCreateAsync(Product entity) => Task.CompletedTask;
+        public virtual Task BeforeUpdateAsync(Product entity) => Task.CompletedTask;
+        public virtual Task AfterUpdateAsync(Product entity) => Task.CompletedTask;
+        public virtual Task BeforeDeleteAsync(Product entity) => Task.CompletedTask;
+        public virtual Task AfterDeleteAsync(Product entity) => Task.CompletedTask;
 
-
+        #endregion
     }
 }

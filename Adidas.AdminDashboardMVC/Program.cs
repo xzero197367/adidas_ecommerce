@@ -114,10 +114,11 @@ builder.Services.AddControllersWithViews();
 // 5. NOW add your custom services (after Identity is configured)
 // builder.Services.AddScoped<ICustomerService, CustomerService>();
 // builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-// builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+ builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 //
 // builder.Services.AddScoped<IReviewService, ReviewService>();
-//builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 //builder.Services.AddAutoMapper(Program);
 
 #endregion
