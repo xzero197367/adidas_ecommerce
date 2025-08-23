@@ -42,5 +42,9 @@
     <ProjectReference Include="..\Adidas.DTOs\Adidas.DTOs.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
 
 </Project>
