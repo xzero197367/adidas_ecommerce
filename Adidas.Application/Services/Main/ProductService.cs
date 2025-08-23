@@ -54,10 +54,11 @@ namespace Adidas.Application.Services.Main
                 CategoryId = p.CategoryId,
                 BrandId = p.BrandId,
                 GenderTarget = p.GenderTarget,
-                MetaTitle = p.MetaTitle,
+                MetaTitle = p.MetaDescription,
                 MetaDescription = p.MetaDescription,
                 UpdatedAt = p.UpdatedAt,
                 CreatedAt = p.CreatedAt ?? new DateTime(),
+                IsActive = p.IsActive, // Add this line
                 CategoryName = p.Category?.Name,
                 BrandName = p.Brand?.Name,
 
@@ -111,7 +112,8 @@ namespace Adidas.Application.Services.Main
                 CategoryId = dto.CategoryId,
                 BrandId = dto.BrandId,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                IsActive = true // Add this line
             };
         }
 
