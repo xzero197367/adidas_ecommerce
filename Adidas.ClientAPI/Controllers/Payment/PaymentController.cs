@@ -238,7 +238,7 @@ namespace Adidas.ClientAPI.Controllers.Payment
         }
 
         /// <summary>
-        /// Process a regular payment (non-PayPal)
+        /// Process Cash on Delivery payment
         /// </summary>
         [HttpPost("process")]
         public async Task<IActionResult> ProcessPayment([FromBody] PaymentCreateDto paymentDto)
@@ -251,26 +251,59 @@ namespace Adidas.ClientAPI.Controllers.Payment
                 }
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                _logger.LogInformation("Processing payment for Order {OrderId}, User {UserId}", paymentDto.OrderId, userId);
+                _logger.LogInformation("Processing Cash on Delivery payment for Order {OrderId}, User {UserId}", paymentDto.OrderId, userId);
+
+                // Validate that the payment method is Cash on Delivery
+                if (!string.Equals(paymentDto.PaymentMethod, "Cash on Delivery", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(paymentDto.PaymentMethod, "COD", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Invalid payment method attempted: {PaymentMethod} for Order {OrderId}",
+                        paymentDto.PaymentMethod, paymentDto.OrderId);
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Only Cash on Delivery payment method is supported for regular payments"
+                    });
+                }
+
+                // Set payment method to standardized value
+                paymentDto.PaymentMethod = "Cash on Delivery";
 
                 var result = await _paymentService.ProcessPaymentAsync(paymentDto);
 
                 if (result.IsSuccess)
                 {
-                    _logger.LogInformation("Payment processed successfully for Order {OrderId}", paymentDto.OrderId);
+                    _logger.LogInformation("Cash on Delivery payment processed successfully for Order {OrderId}", paymentDto.OrderId);
 
-                    // Complete the checkout process
-                    await CompleteCheckoutProcess(paymentDto.OrderId, result.Data.Id, userId);
+                    // For COD, we don't complete checkout immediately - order stays pending until delivery
+                    // Update order status to confirmed/awaiting delivery instead of processing
+                    var updateResult = await _orderService.UpdateOrderStatusAsync(paymentDto.OrderId, OrderStatus.Shipped);
+                    if (!updateResult.IsSuccess)
+                    {
+                        _logger.LogWarning("Failed to update order status for COD Order {OrderId}: {Message}",
+                            paymentDto.OrderId, updateResult.ErrorMessage);
+                    }
+
+                    // Clear user's cart since order is confirmed
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        var clearCartResult = await _cartService.ClearCartAsync(userId);
+                        if (!clearCartResult.IsSuccess)
+                        {
+                            _logger.LogWarning("Failed to clear cart for user {UserId} after COD order confirmation", userId);
+                        }
+                    }
 
                     return Ok(new
                     {
                         success = true,
                         data = result.Data,
-                        message = "Payment processed successfully"
+                        message = "Cash on Delivery order confirmed successfully. Payment will be collected upon delivery."
                     });
                 }
 
-                _logger.LogWarning("Payment processing failed for Order {OrderId}: {Message}", paymentDto.OrderId, result.ErrorMessage);
+                _logger.LogWarning("Cash on Delivery payment processing failed for Order {OrderId}: {Message}",
+                    paymentDto.OrderId, result.ErrorMessage);
 
                 // Payment failed - clean up the order
                 await CleanupFailedOrder(paymentDto.OrderId);
@@ -279,7 +312,7 @@ namespace Adidas.ClientAPI.Controllers.Payment
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing payment for Order {OrderId}", paymentDto.OrderId);
+                _logger.LogError(ex, "Error processing Cash on Delivery payment for Order {OrderId}", paymentDto.OrderId);
 
                 // Clean up on exception
                 if (paymentDto?.OrderId != null)
@@ -287,7 +320,11 @@ namespace Adidas.ClientAPI.Controllers.Payment
                     await CleanupFailedOrder(paymentDto.OrderId);
                 }
 
-                return StatusCode(500, new { success = false, message = "Internal server error occurred while processing payment" });
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Internal server error occurred while processing Cash on Delivery payment"
+                });
             }
         }
 

@@ -13,14 +13,18 @@ namespace Adidas.Application.Services.Operation;
 public class PaymentService : IPaymentService
 {
     private readonly IPaymentRepository _paymentRepository;
+    private readonly IOrderRepository _orderRepository;
     private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         IPaymentRepository paymentRepository,
-        ILogger<PaymentService> logger)
+        ILogger<PaymentService> logger,
+        IOrderRepository orderRepository
+        )
     {
         _paymentRepository = paymentRepository;
         _logger = logger;
+        _orderRepository = orderRepository;
     }
 
 
@@ -64,41 +68,115 @@ public class PaymentService : IPaymentService
     {
         try
         {
-            // Create the payment record with pending status
-            var payment = dto.Adapt<Payment>();
-            payment.Id = Guid.NewGuid();
-            payment.CreatedAt = DateTime.UtcNow;
-            payment.IsActive = true;
-            payment.PaymentStatus = "Pending"; // Set initial status
-            payment.ProcessedAt = DateTime.UtcNow;
+            _logger.LogInformation("Starting payment processing for Order {OrderId}, Amount {Amount}", dto.OrderId, dto.Amount);
 
-            var createdPayment = await _paymentRepository.AddAsync(payment);
-
-            // Simulate payment processing logic
-            var isPaymentValid = ValidatePaymentData(dto);
-
-            if (isPaymentValid)
+            // Validate the order exists before creating payment
+            var orderExists = await _orderRepository.GetByIdAsync(dto.OrderId);
+            if (orderExists == null)
             {
-                // Generate a mock transaction ID
-                var transactionId = $"TXN_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N")[..8]}";
+                _logger.LogWarning("Order {OrderId} not found for payment processing", dto.OrderId);
+                return OperationResult<PaymentDto>.Fail($"Order {dto.OrderId} not found");
+            }
 
-                // Mark as successful
-                await MarkPaymentAsSuccessfulAsync(createdPayment.Entity.Id, transactionId);
-                var result = await _paymentRepository.GetByIdAsync(createdPayment.Entity.Id);
-                return OperationResult<PaymentDto>.Success(result.Adapt<PaymentDto>());
+            // Create the payment record matching your exact Payment model
+            var payment = new Payment
+            {
+                // Required fields
+                PaymentMethod = dto.PaymentMethod ?? "Cash on Delivery",
+                PaymentStatus = dto.PaymentMethod == "Cash on Delivery" ? "Pending" : "Processing",
+                Amount = dto.Amount,
+                ProcessedAt = DateTime.UtcNow,
+                OrderId = dto.OrderId,
+
+                // Nullable fields - explicitly set to avoid database issues
+                TransactionId = $"TXN_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid().ToString("N")[..8]}",
+                GatewayResponse = dto.PaymentMethod == "Cash on Delivery" ? "COD - Payment on delivery" : null,
+
+                // BaseAuditableEntity fields
+                Id = Guid.NewGuid(),
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            _logger.LogInformation("Created payment entity with ID {PaymentId} for Order {OrderId}", payment.Id, payment.OrderId);
+
+            try
+            {
+                var createdPayment = await _paymentRepository.AddAsync(payment);
+                await _paymentRepository.SaveChangesAsync();
+
+                _logger.LogInformation("Payment {PaymentId} saved to database successfully", payment.Id);
+            }
+            catch (Exception dbEx)
+            {
+                _logger.LogError(dbEx, "Database error while saving payment for Order {OrderId}. Payment: PaymentMethod={PaymentMethod}, Amount={Amount}, TransactionId={TransactionId}",
+                    dto.OrderId, payment.PaymentMethod, payment.Amount, payment.TransactionId);
+
+                // Check for specific database errors
+                if (dbEx.Message.Contains("duplicate key") || dbEx.Message.Contains("unique constraint"))
+                {
+                    return OperationResult<PaymentDto>.Fail("Duplicate payment transaction detected. Please try again.");
+                }
+
+                if (dbEx.Message.Contains("foreign key constraint"))
+                {
+                    return OperationResult<PaymentDto>.Fail("Invalid order reference. Please verify the order exists.");
+                }
+
+                return OperationResult<PaymentDto>.Fail($"Database error while saving payment: {dbEx.Message}");
+            }
+
+            // For COD, mark as confirmed immediately
+            if (string.Equals(dto.PaymentMethod, "Cash on Delivery", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dto.PaymentMethod, "COD", StringComparison.OrdinalIgnoreCase))
+            {
+                payment.PaymentStatus = "Confirmed";
+                payment.GatewayResponse = "Cash on Delivery - Payment will be collected upon delivery";
+
+                try
+                {
+                    await _paymentRepository.SaveChangesAsync();
+                    _logger.LogInformation("COD Payment {PaymentId} marked as confirmed", payment.Id);
+                }
+                catch (Exception updateEx)
+                {
+                    _logger.LogError(updateEx, "Failed to update COD payment status for Payment {PaymentId}", payment.Id);
+                }
             }
             else
             {
-                // Mark as failed
-                await MarkPaymentAsFailedAsync(createdPayment.Entity.Id, "Payment validation failed");
-                var result = await _paymentRepository.GetByIdAsync(createdPayment.Entity.Id);
-                return OperationResult<PaymentDto>.Success(result.Adapt<PaymentDto>());
+                // For other payment methods, validate and process
+                var isPaymentValid = ValidatePaymentData(dto);
+                if (isPaymentValid)
+                {
+                    await MarkPaymentAsSuccessfulAsync(payment.Id, payment.TransactionId);
+                }
+                else
+                {
+                    await MarkPaymentAsFailedAsync(payment.Id, "Payment validation failed");
+                }
             }
+
+            // Return the payment DTO directly from the created entity
+            var paymentDto = new PaymentDto
+            {
+                Id = payment.Id,
+                OrderId = payment.OrderId,
+                Amount = payment.Amount,
+                PaymentMethod = payment.PaymentMethod,
+                PaymentStatus = payment.PaymentStatus,
+                TransactionId = payment.TransactionId,
+                ProcessedAt = payment.ProcessedAt
+            };
+
+            _logger.LogInformation("Payment processing completed successfully for Order {OrderId}, Payment {PaymentId}", dto.OrderId, payment.Id);
+
+            return OperationResult<PaymentDto>.Success(paymentDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing payment");
-            return OperationResult<PaymentDto>.Fail("Error processing payment");
+            _logger.LogError(ex, "Unexpected error processing payment for Order {OrderId}", dto.OrderId);
+            return OperationResult<PaymentDto>.Fail($"Payment processing failed: {ex.Message}");
         }
     }
 

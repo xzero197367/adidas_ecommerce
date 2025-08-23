@@ -13,6 +13,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<IEnumerable<Order>> GetPendingOrdersAsync();
         decimal GetTotalSalesAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId, int pageNumber, int pageSize);
+        Task<Order?> GetByOrderNumberAsync(string orderNumber);
     }
 }
  

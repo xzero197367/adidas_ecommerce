@@ -48,7 +48,11 @@ namespace Adidas.Infra.Operation
         {
             return await FindAsync(q=>q.Where(o => o.OrderNumber == orderNumber && !o.IsDeleted));
         }
-
+        public async Task<Order?> GetByOrderNumberAsync(string orderNumber)
+        {
+            return await _context.Orders
+                .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
+        }
         public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
         {
             return await GetAll().Where(o => o.OrderStatus == OrderStatus.Pending && !o.IsDeleted).ToListAsync();

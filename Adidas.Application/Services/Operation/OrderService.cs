@@ -225,6 +225,16 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 return OperationResult<OrderDto>.Fail("Cart is empty, cannot create order.");
             }
 
+            // Generate order ID first
+            var orderId = Guid.NewGuid();
+
+            // Generate order number with better uniqueness
+            var orderNumberResult = await GenerateOrderNumberAsync();
+            if (!orderNumberResult.IsSuccess)
+            {
+                return OperationResult<OrderDto>.Fail("Failed to generate order number");
+            }
+
             // Calculate amounts
             decimal subtotal = 0;
             var orderItems = new List<OrderItem>();
@@ -239,11 +249,9 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                     continue;
                 }
 
-                // Check inventory - using a simpler approach since CheckStockAvailabilityAsync might not exist
-                // You may need to implement this method in your IInventoryService or use an alternative
+                // Check inventory
                 try
                 {
-                    // Alternative inventory check - adjust based on your actual IInventoryService implementation
                     var hasStock = await _inventoryService.HasSufficientStockAsync(cartItem.VariantId, cartItem.Quantity);
                     if (!hasStock.IsSuccess)
                     {
@@ -253,7 +261,6 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 catch (Exception inventoryEx)
                 {
                     _logger.LogWarning(inventoryEx, "Could not check inventory for variant {VariantId}, proceeding anyway", cartItem.VariantId);
-                    // Continue without inventory check if service method doesn't exist
                 }
 
                 var unitPrice = (variant.Product.SalePrice ?? variant.Product.Price) + variant.PriceAdjustment;
@@ -261,7 +268,8 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 subtotal += totalPrice;
 
                 var orderItem = new OrderItem
-                {OrderId = Guid.NewGuid(),
+                {
+                    OrderId = orderId, // ✅ Use the actual order ID
                     VariantId = cartItem.VariantId,
                     Quantity = cartItem.Quantity,
                     UnitPrice = unitPrice,
@@ -277,15 +285,9 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             var shippingAmount = CalculateShippingCost(subtotal);
             var totalAmount = subtotal + taxAmount + shippingAmount;
 
-            // Generate order number
-            var orderNumberResult = await GenerateOrderNumberAsync();
-            if (!orderNumberResult.IsSuccess)
-            {
-                return OperationResult<OrderDto>.Fail("Failed to generate order number");
-            }
-
             var order = new Order
             {
+                Id = orderId, // ✅ Set the order ID explicitly
                 OrderNumber = orderNumberResult.Data,
                 OrderStatus = OrderStatus.Pending,
                 Subtotal = subtotal,
@@ -293,13 +295,13 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 ShippingAmount = shippingAmount,
                 DiscountAmount = 0,
                 TotalAmount = totalAmount,
-                Currency = createOrderDto.Currency,
+                Currency = createOrderDto.Currency ?? "USD", // Default currency
                 OrderDate = DateTime.UtcNow,
                 ShippingAddress = createOrderDto.ShippingAddress,
                 BillingAddress = createOrderDto.BillingAddress,
                 UserId = createOrderDto.UserId,
                 OrderItems = orderItems,
-                Notes= createOrderDto.Notes ?? string.Empty
+                Notes = createOrderDto.Notes ?? string.Empty
             };
 
             // Reserve inventory for each item
@@ -312,7 +314,6 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 catch (Exception inventoryEx)
                 {
                     _logger.LogWarning(inventoryEx, "Could not reserve stock for variant {VariantId}", item.VariantId);
-                    // Continue without stock reservation if method doesn't exist
                 }
             }
 
@@ -323,7 +324,15 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             await _cartRepository.ClearCartAsync(createOrderDto.UserId);
 
             // Send notification
-            await _notificationService.SendOrderConfirmationAsync(order.Id);
+            try
+            {
+                await _notificationService.SendOrderConfirmationAsync(order.Id);
+            }
+            catch (Exception notificationEx)
+            {
+                _logger.LogWarning(notificationEx, "Failed to send order confirmation for order {OrderId}", order.Id);
+                // Don't fail the entire operation for notification issues
+            }
 
             result.State = EntityState.Detached;
             var orderDto = MapToOrderDto(order);
@@ -761,27 +770,56 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
     private async Task<OperationResult<string>> GenerateOrderNumberAsync()
     {
-        try
-        {
-            var prefix = "ADI";
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
-            var counter = 1;
-            var orderNumber = $"{prefix}{timestamp}{counter:D4}";
+        const int maxRetries = 10;
 
-            while (await _orderRepository.GetOrderByNumberAsync(orderNumber) != null)
+        for (int attempt = 0; attempt < maxRetries; attempt++)
+        {
+            string orderNumber;
+
+            if (attempt < 5)
             {
-                counter++;
-                orderNumber = $"{prefix}{timestamp}{counter:D4}";
+                // First 5 attempts: Use timestamp with milliseconds
+                orderNumber = $"ADI{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+            }
+            else
+            {
+                // Last 5 attempts: Use date + random suffix for better uniqueness
+                var randomSuffix = new Random().Next(1000, 9999);
+                orderNumber = $"ADI{DateTime.UtcNow:yyyyMMdd}{randomSuffix}";
             }
 
-            return OperationResult<string>.Success(orderNumber);
+            try
+            {
+                // Check if this order number already exists in database
+                var existingOrder = await _orderRepository.GetByOrderNumberAsync(orderNumber);
+
+                if (existingOrder == null)
+                {
+                    return OperationResult<string>.Success(orderNumber);
+                }
+
+                // If duplicate found, log and try again
+                _logger.LogWarning("Duplicate order number {OrderNumber} found on attempt {Attempt}", orderNumber, attempt + 1);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error checking order number uniqueness on attempt {Attempt}", attempt + 1);
+            }
+
+            // Wait a small random time before retry to reduce collision probability
+            await Task.Delay(Random.Shared.Next(10, 50));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating order number");
-            return OperationResult<string>.Fail(ex.Message);
-        }
+
+        // Fallback: Use GUID-based number if all attempts failed
+        var fallbackNumber = $"ADI{DateTime.UtcNow:yyyyMMdd}{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
+
+        _logger.LogWarning("All order number generation attempts failed, using fallback: {OrderNumber}", fallbackNumber);
+
+        return OperationResult<string>.Success(fallbackNumber);
     }
+
+    // Also add this method to your OrderRepository if it doesn't exist
+   
 
     private static decimal CalculateShippingCost(decimal subtotal)
     {

@@ -204,8 +204,10 @@ namespace Adidas.ClientAPI.Controllers.Operation
 
                 // Verify payment was successful
                 var paymentResult = await _paymentService.GetPaymentByIdAsync(request.PaymentId);
-                if (!paymentResult.IsSuccess || paymentResult.Data.PaymentStatus != "Completed")
-                    return BadRequest(new { success = false, message = "Payment not completed" });
+
+                // More concise null checking using null-conditional operator
+                if (!paymentResult.IsSuccess || paymentResult.Data == null || paymentResult.Data.PaymentStatus != "Completed")
+                    return BadRequest(new { success = false, message = "Payment not completed or not found" });
 
                 // Update order status to Processing
                 var updateResult = await _orderService.UpdateOrderStatusAsync(request.OrderId, OrderStatus.Processing);
@@ -232,60 +234,127 @@ namespace Adidas.ClientAPI.Controllers.Operation
             }
         }
 
-        private async Task<IActionResult> ProcessPayPalPayment(dynamic order, CheckoutRequestDto request)
-        {
-            var paypalDto = new PayPalCreatePaymentDto
-            {
-                Amount = order.TotalAmount,
-                Currency = "USD",
-                Description = $"Order #{order.Id}",
-                OrderId = order.Id,
-                ReturnUrl = $"{GetFrontendUrl()}/checkout/success",
-                CancelUrl = $"{GetFrontendUrl()}/checkout/cancel"
-            };
-
-            var paymentResult = await _payPalService.CreatePaymentAsync(paypalDto);
-            if (!paymentResult.IsSuccess)
-            {
-                throw new Exception($"PayPal payment creation failed: {paymentResult.ErrorMessage}");
-            }
-
-            return Ok(new
-            {
-                success = true,
-                paymentMethod = "paypal",
-                orderId = order.Id,
-                paymentId = paymentResult.Data.PaymentId,
-                approvalUrl = paymentResult.Data.ApprovalUrl,
-                message = "PayPal payment created. Redirect user to approval URL."
-            });
-        }
-
-
+        /// <summary>
+        /// Process regular payment (Cash on Delivery only)
+        /// </summary>
+        /// <summary>
+        /// Process regular payment (Cash on Delivery only)
+        /// </summary>
         private async Task<IActionResult> ProcessRegularPayment(dynamic order, CheckoutRequestDto request)
         {
-            var paymentDto = new PaymentCreateDto
+            try
             {
-                OrderId = order.Id,
-                Amount = order.TotalAmount,
-                PaymentMethod = request.PaymentMethod
-            };
+                // Validate payment method - only allow Cash on Delivery
+                if (!string.Equals(request.PaymentMethod, "Cash on Delivery", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(request.PaymentMethod, "COD", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new Exception($"Invalid payment method: {request.PaymentMethod}. Only 'Cash on Delivery' is supported for regular payments.");
+                }
 
-            var paymentResult = await _paymentService.ProcessPaymentAsync(paymentDto);
-            if (!paymentResult.IsSuccess)
-            {
-                throw new Exception($"Payment processing failed: {paymentResult.ErrorMessage}");
+                // Create payment DTO for Cash on Delivery
+                var paymentDto = new PaymentCreateDto
+                {
+                    OrderId = (Guid)order.Id,
+                    Amount = (decimal)order.TotalAmount,
+                    PaymentMethod = "Cash on Delivery"
+                };
+
+                ((ILogger)_logger).LogInformation("Processing Cash on Delivery for Order {OrderId}, Amount {Amount}",
+                    paymentDto.OrderId, paymentDto.Amount);
+
+                var paymentResult = await _paymentService.ProcessPaymentAsync(paymentDto);
+                if (!paymentResult.IsSuccess)
+                {
+                    throw new Exception($"Cash on Delivery processing failed: {paymentResult.ErrorMessage}");
+                }
+
+                // Check if payment data is null
+                if (paymentResult.Data == null)
+                {
+                    throw new Exception("Payment service returned success but with null payment data");
+                }
+
+                // For COD, update order status to Confirmed (not Processing since payment isn't collected yet)
+                var updateResult = await _orderService.UpdateOrderStatusAsync((Guid)order.Id, OrderStatus.Shipped);
+                if (!updateResult.IsSuccess)
+                {
+                    ((ILogger)_logger).LogWarning("Failed to update order status for COD Order {OrderId}: {Message}");
+                }
+
+                // Clear user's cart since order is confirmed
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var clearCartResult = await _cartService.ClearCartAsync(userId);
+                    if (!clearCartResult.IsSuccess)
+                    {
+                        ((ILogger)_logger).LogWarning("Failed to clear cart for user {UserId} after COD order confirmation", userId);
+                    }
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    paymentMethod = "Cash on Delivery",
+                    orderId = order.Id,
+                    paymentId = paymentResult.Data.Id,
+                    orderStatus = "Confirmed",
+                    message = "Cash on Delivery order confirmed successfully. Payment will be collected upon delivery."
+                });
             }
-
-            // If payment successful, complete the checkout
-            var completeDto = new CompleteCheckoutDto
+            catch (Exception ex)
             {
-                OrderId = order.Id,
-                PaymentId = paymentResult.Data.Id
-            };
-
-            return await CompleteCheckout(completeDto);
+                ((ILogger)_logger).LogError(ex, "Error processing Cash on Delivery payment for order {OrderId}");
+                throw; // Re-throw to be handled by the calling method
+            }
         }
+
+        /// <summary>
+        /// Process PayPal payment
+        /// </summary>
+        private async Task<IActionResult> ProcessPayPalPayment(dynamic order, CheckoutRequestDto request)
+        {
+            try
+            {
+                var paypalDto = new PayPalCreatePaymentDto
+                {
+                    Amount = (decimal)order.TotalAmount,
+                    Currency = "USD",
+                    Description = $"Order #{order.Id}",
+                    OrderId = (Guid)order.Id,
+                    ReturnUrl = $"{GetFrontendUrl()}/checkout/paypal/success",
+                    CancelUrl = $"{GetFrontendUrl()}/checkout/paypal/cancel"
+                };
+
+                ((ILogger)_logger).LogInformation("Creating PayPal payment for Order {OrderId}, Amount {Amount}");
+
+                var paymentResult = await _payPalService.CreatePaymentAsync(paypalDto);
+                if (!paymentResult.IsSuccess)
+                {
+                    throw new Exception($"PayPal payment creation failed: {paymentResult.ErrorMessage}");
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    paymentMethod = "PayPal",
+                    orderId = order.Id,
+                    paymentId = paymentResult.Data.PaymentId,
+                    approvalUrl = paymentResult.Data.ApprovalUrl,
+                    message = "PayPal payment created successfully. Redirect user to approval URL."
+                });
+            }
+            catch (Exception ex)
+            {
+                ((ILogger)_logger).LogError(ex, "Error creating PayPal payment for order {OrderId}");
+                throw; // Re-throw to be handled by the calling method
+            }
+        }
+
+        /// <summary>
+        /// Process PayPal payment
+        /// </summary>
+     
 
         private string GetFrontendUrl()
         {
@@ -301,7 +370,6 @@ namespace Adidas.ClientAPI.Controllers.Operation
         public string? CouponCode { get; set; }
         public string PaymentMethod { get; set; } = "card"; // card, paypal
         public string? Notes { get; set; }
-        public CardDetailsDto? CardDetails { get; set; }
     }
 
     public class CardDetailsDto
