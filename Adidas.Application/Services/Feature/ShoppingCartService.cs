@@ -49,10 +49,13 @@ namespace Adidas.Application.Services.Feature
                         Quantity = addCreateDto.Quantity
                     };
                     await _cartRepository.AddAsync(cartItem);
+
                 }
 
                 var updatedItem =
                     await _cartRepository.GetCartItemAsync(addCreateDto.UserId, addCreateDto.ProductVariantId);
+                var result = await _cartRepository.SaveChangesAsync();
+                if (result == 0) return OperationResult<ShoppingCartDto>.Fail("Failed to save cart item");
                 return OperationResult<ShoppingCartDto>.Success(updatedItem.Adapt<ShoppingCartDto>());
             }
             catch (Exception ex)

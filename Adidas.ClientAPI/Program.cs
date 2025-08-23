@@ -116,7 +116,7 @@ namespace Adidas.ClientAPI
             #endregion
 
             #region Application Services & Repositories
-            builder.Services.AddScoped<IAddressService, AddressService>(); 
+            builder.Services.AddScoped<IAddressService, AddressService>();
 
             // Register Services
             builder.Services.AddScoped<IProductService, ProductService>();
@@ -140,6 +140,8 @@ namespace Adidas.ClientAPI
 
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
+            builder.Services.AddScoped<IOrderCouponService, OrderCouponService>();
+
             // Register PayPal Services with HttpClient
             builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
             {

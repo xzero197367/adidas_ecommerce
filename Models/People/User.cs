@@ -17,7 +17,7 @@ namespace Models.People
         Employee = 2,
         Customer = 3
     }
-    
+
     public enum Gender
     {
         Male,

@@ -119,28 +119,6 @@ namespace Adidas.Application.Services.Feature
         }
 
 
-        // public Task<OperationResult<string>> GenerateWishlistShareLinkAsync(string userId)
-        // {
-        //     // Generate token and persist or encode the userId
-        //     return Task.FromResult(Convert.ToBase64String(Encoding.UTF8.GetBytes(userId.ToString())));
-        // }
-
-        // public Task<OperationResult<IEnumerable<WishlistDto>>> GetSharedWishlistAsync(string shareToken)
-        // {
-        //     var userId = new String(Encoding.UTF8.GetString(Convert.FromBase64String(shareToken)));
-        //     return GetWishlistByUserIdAsync(userId);
-        // }
-        //
-        // public Task<OperationResult<bool>> NotifyWhenInStockAsync(string userId, Guid productId)
-        // {
-        //     // This might update a flag in Wishlist table for notification
-        //     throw new NotImplementedException("Depends on stock notification tracking.");
-        // }
-        //
-        // public Task<OperationResult<bool>> RemoveStockNotificationAsync(string userId, Guid productId)
-        // {
-        //     // Update NotifyWhenInStock = false in Wishlist
-        //     // throw new NotImplementedException("Depends on stock notification tracking.");
-        // }
+      
     }
 }

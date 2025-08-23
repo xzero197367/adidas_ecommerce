@@ -21,6 +21,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<OperationResult<bool>> MergeCartsAsync(string fromUserId, string toUserId);
         Task<OperationResult<bool>> SaveCartForLaterAsync(string userId);
         Task<OperationResult<bool>> RestoreSavedCartAsync(string userId);
+        Task<OperationResult<bool>> MoveToWishlistAsync(string userId, Guid variantId);
     }
 }
 

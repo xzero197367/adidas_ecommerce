@@ -12,10 +12,6 @@ namespace Adidas.Application.Contracts.ServicesContracts.Feature
         Task<OperationResult<bool>> IsProductInWishlistAsync(string userId, Guid productId);
         Task<OperationResult<int>> GetWishlistCountAsync(string userId);
         Task<OperationResult<IEnumerable<WishlistDto>>> GetWishlistSummaryAsync(string userId);
-        // Task<OperationResult<bool>> MoveToCartAsync(string userId, Guid productId, Guid variantId);
-        // Task<OperationResult<string>> GenerateWishlistShareLinkAsync(string userId);
-        // Task<OperationResult<IEnumerable<WishlistDto>>> GetSharedWishlistAsync(string shareToken);
-        // Task<OperationResult<bool>> NotifyWhenInStockAsync(string userId, Guid productId);
-        // Task<OperationResult<bool>> RemoveStockNotificationAsync(string userId, Guid productId);
+       
     }
 }
