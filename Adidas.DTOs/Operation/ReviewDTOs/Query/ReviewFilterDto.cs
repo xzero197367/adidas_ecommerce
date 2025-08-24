@@ -30,7 +30,6 @@ namespace Adidas.DTOs.Operation.ReviewDTOs.Query
     public class ReviewFilterDto
     {
         public Guid? ProductId { get; set; }
-        public string? UserId { get; set; }
         public int? MinRating { get; set; }
         public int? MaxRating { get; set; }
         public bool? IsApproved { get; set; }

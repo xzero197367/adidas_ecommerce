@@ -39,8 +39,7 @@ namespace Adidas.DTOs.Operation.ReviewDTOs
         [Required]
         public Guid ProductId { get; set; }
 
-        [Required]
-        public string UserId { get; set; } = string.Empty;
+   
     }
 }
 

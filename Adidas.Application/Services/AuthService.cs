@@ -93,11 +93,12 @@ namespace Adidas.Application.Services
             .Union(userClaims)
             .Union(rolesAsClaims);
 
-            var secretKey = _configuration["Authentication:JwtSettings:SecretKey"];
-            var issuer = _configuration["Authentication:JwtSettings:Issuer"];
-            var audience = _configuration["Authentication:JwtSettings:Audience"];
+            var secretKey = _configuration["JwtSettings:SecretKey"];
+            var issuer = _configuration["JwtSettings:Issuer"];
+            var audience = _configuration["JwtSettings:Audience"];
 
-
+            if (string.IsNullOrEmpty(secretKey))
+                throw new Exception("JWT SecretKey is missing from configuration!");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -106,7 +107,8 @@ namespace Adidas.Application.Services
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(60),
+                expires: DateTime.UtcNow.AddHours(
+                    Convert.ToDouble(_configuration["JwtSettings:ExpirationInHours"] ?? "24")),
                 signingCredentials: creds
             );
 

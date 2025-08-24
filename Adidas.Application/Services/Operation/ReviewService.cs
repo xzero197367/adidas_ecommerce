@@ -46,15 +46,56 @@ namespace Adidas.Application.Services.Operation
             var reviews = await _reviewRepository.GetReviewsByUserIdAsync(userId);
             return reviews.Adapt<IEnumerable<ReviewDto>>();
         }
-
-        public async Task<ReviewDto> CreateReviewAsync(ReviewCreateDto createReviewDto)
+        public override async Task<OperationResult<ReviewDto>> UpdateAsync(ReviewUpdateDto updateDto)
         {
-            if (!await CanUserReviewProductAsync(createReviewDto.UserId, createReviewDto.ProductId))
-                throw new InvalidOperationException("User cannot review this product");
+            try
+            {
+                var existingEntity = await _repository.GetByIdAsync(updateDto.Id);
+                if (existingEntity == null)
+                    throw new KeyNotFoundException($"Review with id {updateDto.Id} not found");
+
+                await ValidateUpdateAsync(updateDto.Id, updateDto);
+
+                // Apply updates manually
+                if (updateDto.Rating.HasValue) existingEntity.Rating = updateDto.Rating.Value;
+                if (updateDto.Title != null) existingEntity.Title = updateDto.Title;
+                if (updateDto.ReviewText != null) existingEntity.ReviewText = updateDto.ReviewText;
+                if (updateDto.IsVerifiedPurchase.HasValue) existingEntity.IsVerifiedPurchase = updateDto.IsVerifiedPurchase.Value;
+                if (updateDto.IsApproved.HasValue) existingEntity.IsApproved = updateDto.IsApproved.Value;
+                if (updateDto.IsActive.HasValue) existingEntity.IsActive = updateDto.IsActive.Value;
+
+                await BeforeUpdateAsync(existingEntity);
+
+                var updatedEntityEntry = await _repository.UpdateAsync(existingEntity);
+                var updatedEntity = updatedEntityEntry.Entity;
+                await _repository.SaveChangesAsync();
+
+                // Re-fetch to ensure the latest state
+                updatedEntity = await _repository.GetByIdAsync(updateDto.Id);
+
+                updatedEntityEntry.State = EntityState.Detached;
+                await AfterUpdateAsync(updatedEntity);
+
+                return OperationResult<ReviewDto>.Success(updatedEntity.Adapt<ReviewDto>());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating review with id {Id}", updateDto.Id);
+                return OperationResult<ReviewDto>.Fail("Error updating review: " + ex.Message);
+            }
+        }
+
+
+
+        public async Task<ReviewDto> CreateReviewAsync(ReviewCreateDto createReviewDto, string userId)
+        {
+            //if (!await CanUserReviewProductAsync(createReviewDto.UserId, createReviewDto.ProductId))
+            //    throw new InvalidOperationException("User cannot review this product");
 
             await ValidateCreateAsync(createReviewDto);
 
             var review = createReviewDto.Adapt<Review>();
+            review.UserId = userId;
             review.IsApproved = false; // Reviews need approval
             review.IsActive = true;
             review.IsDeleted = false;
@@ -141,41 +182,31 @@ namespace Adidas.Application.Services.Operation
         // ✅ FIXED: Proper filtering logic
         public async Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewFilterDto filter, int pageNumber, int pageSize)
         {
-            // Start with base query (non-deleted) and include navigation props for UI mapping
-            IQueryable<Review> query = _reviewRepository.GetAll().Include(r => r.User)
-                 .Include(r => r.Product)
-            .Where(r => !r.IsDeleted);
+            IQueryable<Review> query = _reviewRepository.GetAll()
+                .Include(r => r.User)
+                .Include(r => r.Product)
+                .Where(r => !r.IsDeleted);
 
-            // Apply status filter
+            _logger.LogInformation("Applying filter: {@Filter}", filter);
+
             if (filter != null)
             {
-                // ✅ FIXED: Proper status filtering logic
-                if (filter.IsApproved.HasValue)
+                // Apply status filters with mutual exclusivity
+                bool hasStatusFilter = false;
+                if (filter.IsApproved.HasValue && filter.IsApproved.Value)
                 {
-                    if (filter.IsApproved.Value)
-                    {
-                        // Approved reviews: IsApproved = true AND IsActive = true
-                        query = query.Where(r => r.IsApproved == true && r.IsActive == true);
-                    }
-                    else
-                    {
-                        // For non-approved, we need to check if it's pending or rejected
-                        // This will be handled by additional filtering logic below
-                        query = query.Where(r => r.IsApproved == false);
-                    }
+                    query = query.Where(r => r.IsApproved && r.IsActive);
+                    hasStatusFilter = true;
                 }
-
-                // ✅ NEW: Add specific filtering for pending/rejected based on IsActive
-                if (filter.IsPending.HasValue && filter.IsPending.Value)
+                if (filter.IsPending.HasValue && filter.IsPending.Value && !hasStatusFilter)
                 {
-                    // Pending: IsApproved = false AND IsActive = true
-                    query = query.Where(r => r.IsApproved == false && r.IsActive == true);
+                    query = query.Where(r => !r.IsApproved && r.IsActive);
+                    hasStatusFilter = true;
                 }
-
-                if (filter.IsRejected.HasValue && filter.IsRejected.Value)
+                if (filter.IsRejected.HasValue && filter.IsRejected.Value && !hasStatusFilter)
                 {
-                    // Rejected: IsApproved = false AND IsActive = false
-                    query = query.Where(r => r.IsApproved == false && r.IsActive == false);
+                    query = query.Where(r => !r.IsApproved && !r.IsActive);
+                    hasStatusFilter = true;
                 }
 
                 if (filter.MinRating.HasValue)
@@ -198,10 +229,6 @@ namespace Adidas.Application.Services.Operation
                     query = query.Where(r => r.ProductId == filter.ProductId.Value);
                 }
 
-                if (!string.IsNullOrWhiteSpace(filter.UserId))
-                {
-                    query = query.Where(r => r.UserId == filter.UserId);
-                }
 
                 if (filter.StartDate.HasValue)
                 {
@@ -227,27 +254,25 @@ namespace Adidas.Application.Services.Operation
                 }
             }
 
-            // Get total count
             var totalCount = await query.CountAsync();
-
             var items = await query
                 .OrderByDescending(r => r.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Map to DTO and return PagedResultDto
             var mapped = items.Adapt<IEnumerable<ReviewDto>>();
 
             return new PagedResultDto<ReviewDto>
             {
-                Items = mapped,
+                Items = mapped.ToList(),
                 TotalCount = totalCount,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
             };
         }
+
 
         public async Task SoftDeleteAsync(Guid id)
         {

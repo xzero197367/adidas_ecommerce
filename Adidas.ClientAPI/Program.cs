@@ -1,41 +1,43 @@
 ﻿// Program.cs 
-using Adidas.Context;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using Models.People;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Adidas.Application.Contracts.ServicesContracts.People;
-using Adidas.Application.Services.People;
-using Adidas.Application.Contracts.RepositoriesContracts.People;
-using Microsoft.OpenApi.Models;
-using Mapster;
-using Adidas.Infra.People;
-
-using Adidas.Application.Contracts.RepositoriesContracts.Main;
-using Adidas.Infra.Main;
-using Adidas.Application.Contracts.ServicesContracts.Main;
-using Adidas.Application.Services.Main;
-using Adidas.Application.Contracts.RepositoriesContracts.Separator;
-using Adidas.Infra.Separator;
-using Adidas.Application.Contracts.ServicesContracts.Separator;
-using Adidas.Application.Services.Separator;
-using Adidas.Application.Contracts.ServicesContracts.Feature;
-using Adidas.Application.Services.Feature;
-using Adidas.Application.Contracts.RepositoriesContracts.Operation;
-using Adidas.Infra.Operation;
-using Adidas.Application.Services.Operation;
 using Adidas.Application.Contracts.RepositoriesContracts.Feature;
-using Adidas.Infra.Feature;
-using Adidas.Application.Contracts.ServicesContracts.Operation;
-using Adidas.Infra.Repositories.Feature;
-using Adidas.Application.Contracts.ServicesContracts.Tracker;
-using Adidas.Application.Services.Tracker;
+using Adidas.Application.Contracts.RepositoriesContracts.Main;
+using Adidas.Application.Contracts.RepositoriesContracts.Operation;
+using Adidas.Application.Contracts.RepositoriesContracts.People;
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.RepositoriesContracts.Tracker;
-using Adidas.Infra.Tracker;
+using Adidas.Application.Contracts.ServicesContracts;
+using Adidas.Application.Contracts.ServicesContracts.Feature;
+using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Contracts.ServicesContracts.Operation;
+using Adidas.Application.Contracts.ServicesContracts.People;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Static;
+using Adidas.Application.Contracts.ServicesContracts.Tracker;
+using Adidas.Application.Services;
+using Adidas.Application.Services.Feature;
+using Adidas.Application.Services.Main;
+using Adidas.Application.Services.Operation;
+using Adidas.Application.Services.People;
+using Adidas.Application.Services.Separator;
 using Adidas.Application.Services.Static;
+using Adidas.Application.Services.Tracker;
+using Adidas.Context;
+using Adidas.Infra.Feature;
+using Adidas.Infra.Main;
+using Adidas.Infra.Operation;
+using Adidas.Infra.People;
+using Adidas.Infra.Repositories.Feature;
+using Adidas.Infra.Separator;
+using Adidas.Infra.Tracker;
+using Adidas.Infrastructure.Repositories;
+using Mapster;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Models.People;
+using System.Text;
 
 
 namespace Adidas.ClientAPI
@@ -122,6 +124,15 @@ namespace Adidas.ClientAPI
             #endregion
 
             #region Application Services & Repositories
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
+            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+            builder.Services.AddScoped<IReviewService, ReviewService>();
+
+          
+
+
             builder.Services.AddScoped<IAddressService, AddressService>(); 
 
             // Register Services
