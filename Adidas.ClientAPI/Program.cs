@@ -126,9 +126,9 @@ namespace Adidas.ClientAPI
             #region Application Services & Repositories
 
             builder.Services.AddScoped<IAuthService, AuthService>();
-
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
             builder.Services.AddScoped<IReviewService, ReviewService>();
+            builder.Services.AddScoped<IUserProductViewRepository, UserProductViewRepository>();
 
           
 
@@ -136,6 +136,7 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IAddressService, AddressService>(); 
 
             // Register Services
+            builder.Services.AddScoped<IRecommendationService, RecommendationService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ICouponService, CouponService>();

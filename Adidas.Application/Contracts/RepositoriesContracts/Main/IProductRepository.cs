@@ -26,6 +26,8 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Main
             Gender? gender = null, decimal? minPrice = null, decimal? maxPrice = null,
             string? searchTerm = null);
         Task<(IEnumerable<Product> products, int totalCount)> GetFilteredProductsAsync(ProductFilterDto filter);
+        Task<List<Product>> GetByIdsAsync(List<Guid> productIds);
+
 
     }
 }

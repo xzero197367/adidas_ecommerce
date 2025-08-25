@@ -27,6 +27,6 @@ namespace Adidas.Application.Contracts.ServicesContracts.Main
         Task DeleteVariantAsync(Guid id);
         Task<OperationResult<List<ProductDto>>> GetLastAddedProducts();
         Task<OperationResult<List<ProductDto>>> GetSalesProducts();
-
+        Task<ProductDto?> GetProductWithVariantsAsync(Guid id, string? userId);
     }
 }
