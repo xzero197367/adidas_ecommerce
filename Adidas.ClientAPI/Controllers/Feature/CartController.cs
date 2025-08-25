@@ -82,7 +82,7 @@ namespace Adidas.ClientAPI.Controllers
         /// Add item to cart or update quantity if exists
         /// </summary>
         [HttpPost("add")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

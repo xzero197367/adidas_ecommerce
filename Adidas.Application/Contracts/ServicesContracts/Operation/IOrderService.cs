@@ -29,5 +29,9 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(CreateOrderDTO createOrderDto);
         Task<OperationResult<PagedResultDto<OrderDto>>> GetOrderHistoryAsync(string userId, int page = 1, int pageSize = 10, OrderStatus? status = null);
         Task<OperationResult<object>> GetOrderTrackingAsync(Guid id);
+
+        Task<OperationResult<object>> GetGuestCheckoutSummaryAsync(string guestUserId, List<GuestCartItemsDto> cartItems, string? couponCode = null);
+        Task<BillingSummaryDto> GetGuestBillingSummaryAsync(string guestUserId, List<GuestCartItemsDto> cartItems, string? promoCode = null);
+
     }
 }
