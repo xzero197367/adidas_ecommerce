@@ -7,6 +7,7 @@ using Adidas.Models.Feature;
 using Adidas.Models.Operation;
 using Adidas.Models.Tracker;
 using Models.Feature;
+using static System.Net.WebRequestMethods;
 
 namespace Adidas.Context.Seeds
 {
@@ -821,7 +822,7 @@ namespace Adidas.Context.Seeds
                     Color = colors[i % colors.Length],
                     StockQuantity = 50 + (i % 100),
                     PriceAdjustment = i % 5 == 0 ? 10 : 0,
-                    ImageUrl = $"https://example.com/products/variants/variant{i + 1}.jpg",
+                    ImageUrl = $"https://assets.adidas.com/images/w_450,f_auto,q_auto/d3cd3532b3734bac9a91af20014b26db_9366/FZ6327_02_standard_hover.jpg\r\n",
                     ProductId = products[i % products.Count].Id,
                     IsDeleted = false,
                     IsActive = true,
@@ -840,7 +841,7 @@ namespace Adidas.Context.Seeds
                 productImages.Add(new ProductImage
                 {
                     Id = Guid.NewGuid(),
-                    ImageUrl = $"https://example.com/products/images/product{i + 1}_main.jpg",
+                    ImageUrl = $"https://assets.adidas.com/images/w_1880,f_auto,q_auto/dc668effa42442b2b6715d861807af6a_9366/KL0330_01_laydown.jpg",
                     AltText = $"{products[i % products.Count].Name} - Main Image",
                     SortOrder = i + 1,
                     IsPrimary = i % 10 == 0,
