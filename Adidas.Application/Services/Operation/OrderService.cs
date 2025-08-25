@@ -5,6 +5,7 @@ using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Application.Contracts.ServicesContracts.Static;
 using Adidas.Application.Contracts.ServicesContracts.Tracker;
+using Adidas.Context;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Feature.OrderCouponDTOs;
@@ -33,6 +34,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
     private readonly INotificationService _notificationService;
     private readonly ICouponService _couponService;
     private readonly ILogger<OrderService> _logger;
+    private readonly AdidasDbContext _context;
 
     public OrderService(
         IOrderRepository orderRepository,
@@ -42,7 +44,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         IInventoryService inventoryService,
         INotificationService notificationService,
         ICouponService couponService,
-        ILogger<OrderService> logger) : base(orderRepository, logger)
+        ILogger<OrderService> logger , AdidasDbContext context) : base(orderRepository, logger)
     {
         _orderRepository = orderRepository;
         _orderItemRepository = orderItemRepository;
@@ -52,6 +54,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         _notificationService = notificationService;
         _couponService = couponService;
         _logger = logger;
+        _context = context;
     }
 
     #region Manual Mapping Methods
@@ -225,6 +228,8 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 return OperationResult<OrderDto>.Fail("Cart is empty, cannot create order.");
             }
 
+            _logger.LogInformation("Processing cart with {Count} items for user {UserId}", cartItems.Count(), createOrderDto.UserId);
+
             // Generate order ID first
             var orderId = Guid.NewGuid();
 
@@ -241,13 +246,37 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
             foreach (var cartItem in cartItems)
             {
+                _logger.LogInformation("Processing cart item - VariantId: {VariantId}, Quantity: {Quantity}",
+                    cartItem.VariantId, cartItem.Quantity);
+
+                // Get variant with product included - THIS IS CRITICAL
                 var variant = await _variantRepository.GetByIdAsync(cartItem.VariantId);
 
-                if (variant == null || variant.Product == null)
+                if (variant == null)
                 {
-                    _logger.LogWarning("Variant or Product not found for VariantId: {VariantId}", cartItem.VariantId);
+                    _logger.LogError("Variant not found for VariantId: {VariantId}", cartItem.VariantId);
                     continue;
                 }
+
+                // Make sure Product is loaded - if not, load it explicitly
+                if (variant.Product == null)
+                {
+                    _logger.LogWarning("Product not loaded for variant {VariantId}, loading explicitly", cartItem.VariantId);
+
+                    // Try to get the variant with product included
+                    variant = await _context.ProductVariants
+                        .Include(v => v.Product)
+                        .FirstOrDefaultAsync(v => v.Id == cartItem.VariantId);
+
+                    if (variant?.Product == null)
+                    {
+                        _logger.LogError("Product still not found for VariantId: {VariantId}", cartItem.VariantId);
+                        continue;
+                    }
+                }
+
+                _logger.LogInformation("Product found - Name: {ProductName}, Price: {Price}, SalePrice: {SalePrice}, PriceAdjustment: {PriceAdjustment}",
+                    variant.Product.Name, variant.Product.Price, variant.Product.SalePrice, variant.PriceAdjustment);
 
                 // Check inventory
                 try
@@ -263,45 +292,89 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                     _logger.LogWarning(inventoryEx, "Could not check inventory for variant {VariantId}, proceeding anyway", cartItem.VariantId);
                 }
 
-                var unitPrice = (variant.Product.SalePrice ?? variant.Product.Price) + variant.PriceAdjustment;
+                // Calculate unit price - Use SalePrice if available, otherwise regular Price
+                var basePrice = variant.Product.SalePrice ?? variant.Product.Price;
+                var unitPrice = basePrice + variant.PriceAdjustment;
                 var totalPrice = unitPrice * cartItem.Quantity;
+
+                _logger.LogInformation("Price calculation - BasePrice: {BasePrice}, PriceAdjustment: {PriceAdjustment}, UnitPrice: {UnitPrice}, Quantity: {Quantity}, TotalPrice: {TotalPrice}",
+                    basePrice, variant.PriceAdjustment, unitPrice, cartItem.Quantity, totalPrice);
+
                 subtotal += totalPrice;
 
                 var orderItem = new OrderItem
                 {
-                    OrderId = orderId, // ✅ Use the actual order ID
+                    Id = Guid.NewGuid(), // Add explicit ID
+                    OrderId = orderId,
                     VariantId = cartItem.VariantId,
                     Quantity = cartItem.Quantity,
                     UnitPrice = unitPrice,
                     TotalPrice = totalPrice,
                     ProductName = variant.Product.Name,
-                    VariantDetails = $"Size: {variant.Size}, Color: {variant.Color}"
+                    VariantDetails = $"Size: {variant.Size}, Color: {variant.Color}",
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
                 };
 
                 orderItems.Add(orderItem);
             }
 
+            _logger.LogInformation("Order calculation - Subtotal: {Subtotal}, Items count: {ItemsCount}", subtotal, orderItems.Count);
+
+            if (orderItems.Count == 0)
+            {
+                return OperationResult<OrderDto>.Fail("No valid items found in cart to create order.");
+            }
+
+            if (subtotal <= 0)
+            {
+                return OperationResult<OrderDto>.Fail("Order subtotal is zero or negative. Please check product prices.");
+            }
+
             var taxAmount = CalculateTax(subtotal);
             var shippingAmount = CalculateShippingCost(subtotal);
-            var totalAmount = subtotal + taxAmount + shippingAmount;
+
+            // Apply discount if coupon code is provided
+            decimal discountAmount = 0;
+            if (!string.IsNullOrEmpty(createOrderDto.CouponCode))
+            {
+                try
+                {
+                    var discountedTotal = await _couponService.CalculateCouponAmountAsync(createOrderDto.CouponCode, subtotal);
+                    discountAmount = subtotal - discountedTotal;
+                    _logger.LogInformation("Discount applied - Original: {Original}, Discounted: {Discounted}, Discount: {Discount}",
+                        subtotal, discountedTotal, discountAmount);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to apply coupon {CouponCode}", createOrderDto.CouponCode);
+                }
+            }
+
+            var totalAmount = subtotal - discountAmount + taxAmount + shippingAmount;
+
+            _logger.LogInformation("Final order totals - Subtotal: {Subtotal}, Tax: {Tax}, Shipping: {Shipping}, Discount: {Discount}, Total: {Total}",
+                subtotal, taxAmount, shippingAmount, discountAmount, totalAmount);
 
             var order = new Order
             {
-                Id = orderId, // ✅ Set the order ID explicitly
+                Id = orderId,
                 OrderNumber = orderNumberResult.Data,
                 OrderStatus = OrderStatus.Pending,
                 Subtotal = subtotal,
                 TaxAmount = taxAmount,
                 ShippingAmount = shippingAmount,
-                DiscountAmount = 0,
+                DiscountAmount = discountAmount,
                 TotalAmount = totalAmount,
-                Currency = createOrderDto.Currency ?? "USD", // Default currency
+                Currency = createOrderDto.Currency ?? "USD",
                 OrderDate = DateTime.UtcNow,
                 ShippingAddress = createOrderDto.ShippingAddress,
                 BillingAddress = createOrderDto.BillingAddress,
                 UserId = createOrderDto.UserId,
                 OrderItems = orderItems,
-                Notes = createOrderDto.Notes ?? string.Empty
+                Notes = createOrderDto.Notes ?? string.Empty,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
             };
 
             // Reserve inventory for each item
@@ -320,6 +393,9 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             var result = await _orderRepository.AddAsync(order);
             await _orderRepository.SaveChangesAsync();
 
+            _logger.LogInformation("Order created successfully - OrderId: {OrderId}, OrderNumber: {OrderNumber}, Total: {Total}",
+                order.Id, order.OrderNumber, order.TotalAmount);
+
             // Clear cart after successful order creation
             await _cartRepository.ClearCartAsync(createOrderDto.UserId);
 
@@ -331,7 +407,6 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             catch (Exception notificationEx)
             {
                 _logger.LogWarning(notificationEx, "Failed to send order confirmation for order {OrderId}", order.Id);
-                // Don't fail the entire operation for notification issues
             }
 
             result.State = EntityState.Detached;

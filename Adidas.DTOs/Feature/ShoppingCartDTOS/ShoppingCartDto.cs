@@ -15,7 +15,7 @@ namespace Adidas.DTOs.Feature.ShoppingCartDTOS
         public ProductVariantDto Variant { get; set; }
 
         // Calculated properties
-        public decimal TotalPrice => Quantity * UnitPrice;
+        public decimal TotalPrice => Quantity * Variant.Product.SalePrice ?? Variant.Product.Price;
         public bool IsAvailable => Variant != null && Variant.StockQuantity >= Quantity; // Added null check
     }
 }
