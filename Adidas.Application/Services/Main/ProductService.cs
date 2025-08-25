@@ -27,7 +27,7 @@ namespace Adidas.Application.Services.Main
         private readonly ICouponService _couponService;
         private readonly ILogger<ProductService> _logger;
         private readonly IUserProductViewRepository _userProductViewRepository;
-
+         
         public ProductService(
             IProductRepository productRepository,
             IProductVariantRepository variantRepository,
@@ -44,6 +44,7 @@ namespace Adidas.Application.Services.Main
 
         #region Mapping Methods
 
+        // ProductService - ISSUE FOUND: The variant mapping in MapToProductDto is creating new DTOs instead of using proper mapping
         private ProductDto MapToProductDto(Product p)
         {
             return new ProductDto
@@ -62,7 +63,7 @@ namespace Adidas.Application.Services.Main
                 MetaDescription = p.MetaDescription,
                 UpdatedAt = p.UpdatedAt,
                 CreatedAt = p.CreatedAt ?? new DateTime(),
-                IsActive = p.IsActive, // Add this line
+                IsActive = p.IsActive,
                 CategoryName = p.Category?.Name,
                 BrandName = p.Brand?.Name,
 
@@ -79,13 +80,25 @@ namespace Adidas.Application.Services.Main
                     AltText = i.AltText
                 }).ToList() ?? new List<ProductImageDto>(),
 
+                // FIX: This was the main issue - the variant mapping was incomplete and missing many properties
                 Variants = p.Variants?.Select(v => new ProductVariantDto
                 {
                     Id = v.Id,
+                    ProductId = v.ProductId, // This was missing
+                    Sku = v.Sku, // This was missing
                     Color = v.Color,
                     Size = v.Size,
                     StockQuantity = v.StockQuantity,
-                    PriceAdjustment = v.PriceAdjustment
+                    PriceAdjustment = v.PriceAdjustment,
+                    ColorHex = v.Color, // This was missing
+                    CreatedAt = v.CreatedAt ?? DateTime.MinValue, // This was missing
+                    IsActive = v.IsActive, // This was missing
+                    Images = v.Images?.Select(img => new ProductImageDto
+                    {
+                        Id = img.Id,
+                        ImageUrl = img.ImageUrl,
+                        AltText = img.AltText
+                    }).ToList() ?? new List<ProductImageDto>()
                 }).ToList() ?? new List<ProductVariantDto>(),
 
                 Reviews = p.Reviews?.Select(r => new ReviewDto

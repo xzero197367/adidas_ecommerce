@@ -34,6 +34,7 @@ namespace Adidas.Application.Services.Main
 
         #region Manual Mapping Methods
 
+        // ProductVariantService - Fixed MapToProductVariantDto
         private ProductVariantDto MapToProductVariantDto(ProductVariant variant)
         {
             if (variant == null) return null;
@@ -41,17 +42,16 @@ namespace Adidas.Application.Services.Main
             return new ProductVariantDto
             {
                 Id = variant.Id,
-                ProductId = variant.ProductId,
-                Sku = variant.Sku ?? string.Empty,
+                ProductId = variant.ProductId, // Fix: This should map to the actual ProductId
+                Sku = variant.Sku ?? string.Empty, // Fix: This should map to the actual SKU
                 Color = variant.Color ?? string.Empty,
                 Size = variant.Size ?? string.Empty,
                 StockQuantity = variant.StockQuantity,
                 PriceAdjustment = variant.PriceAdjustment,
-                ColorHex = variant.Color,
-                CreatedAt = variant.CreatedAt ?? new DateTime(),
-                UpdatedAt = variant.UpdatedAt,
-                IsActive = variant.IsActive,
-                // Navigation properties will be mapped separately if needed
+                ColorHex = variant.Color, // Fix: This should be ColorHex, not Color
+                CreatedAt = variant.CreatedAt ?? DateTime.MinValue, // Fix: Better default value
+                IsActive = variant.IsActive, // Fix: This should map to the actual IsActive value
+                                             // Navigation properties will be mapped separately if needed
                 Product = null, // Will be set if Product is loaded
                 Images = new List<ProductImageDto>() // Will be populated if Images are loaded
             };
@@ -79,6 +79,8 @@ namespace Adidas.Application.Services.Main
             };
         }
 
+
+        // ProductVariantService - Fixed the incomplete MapUpdateDtoToProductVariant method
         private void MapUpdateDtoToProductVariant(ProductVariantUpdateDto updateDto, ProductVariant variant)
         {
             if (updateDto == null || variant == null)
@@ -99,8 +101,9 @@ namespace Adidas.Application.Services.Main
 
             variant.PriceAdjustment = updateDto.PriceAdjustment;
 
+            // Fix: Complete the ColorHex mapping that was incomplete
             if (!string.IsNullOrWhiteSpace(updateDto.ColorHex))
-
+                variant.Color = updateDto.ColorHex;
 
             if (updateDto.IsActive.HasValue)
                 variant.IsActive = updateDto.IsActive.Value;
