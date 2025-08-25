@@ -12,6 +12,7 @@ using Adidas.Models.Tracker;
 using Models.People;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Models.Feature;
+using Models.Main;
 
 namespace Adidas.Context
 {
@@ -21,6 +22,7 @@ namespace Adidas.Context
 
         #region Core Product Catalog
         public DbSet<Product> Products { get; set; }
+        public DbSet<UserProductView> UserProductViews { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Brand> Brands { get; set; }

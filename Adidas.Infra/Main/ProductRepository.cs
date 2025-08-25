@@ -165,6 +165,9 @@ namespace Adidas.Infra.Main
                 .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
         }
 
+        public async Task<List<Product>> GetByIdsAsync(List<Guid> productIds) =>
+       await _context.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+
 
     }
 }
