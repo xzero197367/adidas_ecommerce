@@ -32,6 +32,18 @@ namespace Adidas.Infra.Main
             await _context.UserProductViews
                 .Where(v => v.ProductId == productId)
                 .ToListAsync();
+
+        Task<IEnumerable<UserProductView>> IUserProductViewRepository.GetByUserIdAsync(string userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<UserProductView>> GetByUserIdsAsync(IEnumerable<string> userIds)
+        {
+            return await _context.UserProductViews
+                                 .Where(v => userIds.Contains(v.UserId))
+                                 .ToListAsync();
+        }
     }
 
 

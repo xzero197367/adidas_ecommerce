@@ -13,6 +13,7 @@ using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Main;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Models.Main;
 using Models.People;
 using System.Linq;
 using System.Linq.Expressions;
@@ -25,17 +26,20 @@ namespace Adidas.Application.Services.Main
         private readonly IProductVariantRepository _variantRepository;
         private readonly ICouponService _couponService;
         private readonly ILogger<ProductService> _logger;
+        private readonly IUserProductViewRepository _userProductViewRepository;
 
         public ProductService(
             IProductRepository productRepository,
             IProductVariantRepository variantRepository,
             ICouponService couponService,
-            ILogger<ProductService> logger)
+            ILogger<ProductService> logger,
+            IUserProductViewRepository userProductViewRepository)
         {
             _productRepository = productRepository;
             _variantRepository = variantRepository;
             _couponService = couponService;
             _logger = logger;
+            _userProductViewRepository = userProductViewRepository;
         }
 
         #region Mapping Methods
@@ -514,6 +518,33 @@ namespace Adidas.Application.Services.Main
                 PriceAdjustment = variant.PriceAdjustment,
             };
         }
+        public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId, string? userId)
+        {
+
+            var product = await _productRepository.GetProductWithVariantsAsync(productId);
+            if (userId != null)
+            {
+                var alreadyViewed = await _userProductViewRepository
+                    .ExistsAsync(userId, productId);
+
+                if (!alreadyViewed)
+                {
+                    var userProductView = new UserProductView
+                    {
+                        UserId = userId,
+                        ProductId = productId,
+                        ViewedAt = DateTime.UtcNow
+                    };
+                    await _userProductViewRepository.AddAsync(userProductView);
+                    await _productRepository.SaveChangesAsync();
+                }
+            }
+
+
+            if (product == null) return null;
+            return MapToProductDto(product);
+        }
+
 
         public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId)
         {

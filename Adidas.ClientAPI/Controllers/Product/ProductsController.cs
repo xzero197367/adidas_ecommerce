@@ -1,6 +1,9 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Services.Main;
+using Adidas.DTOs.Main.Product_DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Adidas.ClientAPI.Controllers.Product
 {
@@ -11,12 +14,13 @@ namespace Adidas.ClientAPI.Controllers.Product
         private readonly IProductService _productService;
         private readonly IProductVariantService _productVariantService;
         private readonly IProductImageService _productImageService;
-
-        public ProductsController(IProductService productService, IProductVariantService productVariantService, IProductImageService productImageService)
+        private readonly IRecommendationService _recommendationService;
+        public ProductsController(IProductService productService, IProductVariantService productVariantService, IProductImageService productImageService, IRecommendationService recommendationService)
         {
             _productService = productService;
             _productVariantService = productVariantService;
             _productImageService = productImageService;
+            _recommendationService = recommendationService;
         }
 
         [HttpGet("GetAllProducts")]
@@ -50,7 +54,9 @@ namespace Adidas.ClientAPI.Controllers.Product
         [HttpGet("GetProductVariantsById/{id}")]
         public async Task<IActionResult> GetProductVariantsById(Guid id)
         {
-            var productVariants = await _productService.GetProductWithVariantsAsync(id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var productVariants = await _productService.GetProductWithVariantsAsync(id,userId);
             return Ok(productVariants);
         }
 
@@ -86,5 +92,14 @@ namespace Adidas.ClientAPI.Controllers.Product
 
             return BadRequest(result.ErrorMessage);
         }
+
+        [HttpGet("GetRecommendations/{productId}")]
+        public async Task<IActionResult> GetRecommendations(Guid productId)
+        {
+            var recommendations = await _recommendationService.GetRecommendationsAsync(productId);
+            return Ok(recommendations);
+        }
+
+
     }
 }

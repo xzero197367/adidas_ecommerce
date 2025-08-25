@@ -11,6 +11,9 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Main
     {
         Task AddAsync(UserProductView view);
         Task<bool> ExistsAsync(string userId, Guid productId);
+        Task<List<UserProductView>> GetByUserIdsAsync(IEnumerable<string> userIds);  
+
         Task<List<UserProductView>> GetByProductIdAsync(Guid productId);
+        Task<IEnumerable<UserProductView>> GetByUserIdAsync(string userId);
     }
 }

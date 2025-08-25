@@ -1,4 +1,5 @@
-﻿using Adidas.Models.Main;
+﻿using Adidas.DTOs.Main.Product_DTOs;
+using Adidas.Models.Main;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Main
 {
     public interface IRecommendationService
     {
-        Task<List<Product>> GetRecommendationsAsync(Guid productId);
+        Task<List<ProductDto?>> GetRecommendationsAsync(Guid productId);
 
     }
 }
