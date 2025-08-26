@@ -79,8 +79,8 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             OrderDate = order.OrderDate,
             ShippedDate = order.ShippedDate,
             DeliveredDate = order.DeliveredDate,
-            ShippingAddress = DeserializeAddress(order.ShippingAddress),
-            BillingAddress = DeserializeAddress(order.BillingAddress),
+            ShippingAddress = FormatAddress(order.ShippingAddress),
+            BillingAddress = FormatAddress(order.BillingAddress),
             Notes = order.Notes,
             UserId = order.UserId,
             UserName = order.User?.UserName,
@@ -119,7 +119,54 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             OrderItems = orderCreateDto.OrderItems?.Select(MapToOrderItem).ToList() ?? new List<OrderItem>()
         };
     }
+    private OrderDetailDto MapToOrderDetailDto(Order order)
+    {
+        if (order == null) return null;
 
+        return new OrderDetailDto
+        {
+            // Base properties from OrderDto
+            Id = order.Id,
+            OrderNumber = order.OrderNumber,
+            OrderStatus = order.OrderStatus,
+            Subtotal = order.Subtotal,
+            TaxAmount = order.TaxAmount,
+            ShippingAmount = order.ShippingAmount,
+            DiscountAmount = order.DiscountAmount,
+            TotalAmount = order.TotalAmount,
+            Currency = order.Currency,
+            OrderDate = order.OrderDate,
+            ShippedDate = order.ShippedDate,
+            DeliveredDate = order.DeliveredDate,
+            ShippingAddress = FormatAddress(order.ShippingAddress),
+            BillingAddress = FormatAddress(order.BillingAddress),
+            Notes = order.Notes,
+            UserId = order.UserId,
+            UserName = order.User?.UserName,
+            UserEmail = order.User?.Email,
+     
+
+            // Collections from base OrderDto
+            Payments = order.Payments?.Select(MapToPaymentDto).ToList() ?? new List<PaymentDto>(),
+            OrderCoupons = order.OrderCoupons?.Select(MapToOrderCouponDto).ToList() ?? new List<OrderCouponDto>(),
+
+            // Additional detailed property - OrderItems
+            OrderItems = order.OrderItems?.Select(item => new OrderItemDto
+            {
+                Id = item.Id,
+                VariantId = item.VariantId,
+                ProductName = item.Variant?.Product?.Name ?? "Unknown Product",
+                Sku = item.Variant?.Sku ?? "",
+                Size = item.Variant?.Size ?? "",
+                Color = item.Variant?.Color ?? "",
+                ImageUrl = item.Variant?.ImageUrl ?? "",
+                UnitPrice = item.UnitPrice,
+                Quantity = item.Quantity,
+                TotalPrice = item.TotalPrice,
+                VariantDetails = $"Size: {item.Variant?.Size}, Color: {item.Variant?.Color}"
+            }).ToList() ?? new List<OrderItemDto>()
+        };
+    }
     private OrderItem MapToOrderItem(OrderItemCreateDto orderItemCreateDto)
     {
         if (orderItemCreateDto == null) return null;
@@ -163,7 +210,31 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return new Dictionary<string, object>();
         }
     }
+    private string FormatAddress(string addressJson)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(addressJson))
+                return "Address not available";
 
+            var addressDict = JsonSerializer.Deserialize<Dictionary<string, object>>(addressJson);
+
+            var parts = new List<string>();
+
+            // Extract common address fields
+            if (addressDict.ContainsKey("name")) parts.Add(addressDict["name"]?.ToString());
+            if (addressDict.ContainsKey("street")) parts.Add(addressDict["street"]?.ToString());
+            if (addressDict.ContainsKey("city")) parts.Add(addressDict["city"]?.ToString());
+            if (addressDict.ContainsKey("country")) parts.Add(addressDict["country"]?.ToString());
+            if (addressDict.ContainsKey("phone")) parts.Add($"Phone: {addressDict["phone"]}");
+
+            return string.Join("\n", parts.Where(p => !string.IsNullOrEmpty(p)));
+        }
+        catch
+        {
+            return addressJson; // Return raw JSON if parsing fails
+        }
+    }
     private OrderSummaryDto MapToOrderSummaryDto(Order order, int itemCount = 0)
     {
         if (order == null) return null;
@@ -194,28 +265,22 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
     #region New Required Methods
 
-    public async Task<OperationResult<OrderDto>> GetOrderByIdAsync(Guid id)
+    public async Task<OperationResult<OrderDetailDto>> GetOrderByIdAsync(Guid id)
     {
         try
         {
-            var order = await _orderRepository.GetByIdAsync(id,
-                o => o.User,
-                o => o.OrderItems,
-                o => o.Payments,
-                o => o.OrderCoupons);
-
+            var order = await _orderRepository.GetOrderByOrderIdAsync(id);
             if (order == null)
             {
-                return OperationResult<OrderDto>.Fail($"Order with id {id} was not found.");
+                return OperationResult<OrderDetailDto>.Fail($"Order with id {id} was not found.");
             }
-
-            var orderDto = MapToOrderDto(order);
-            return OperationResult<OrderDto>.Success(orderDto);
+            var orderDto = MapToOrderDetailDto(order); // New mapping method
+            return OperationResult<OrderDetailDto>.Success(orderDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting order by id {OrderId}", id);
-            return OperationResult<OrderDto>.Fail(ex.Message);
+            return OperationResult<OrderDetailDto>.Fail(ex.Message);
         }
     }
 
@@ -1504,6 +1569,24 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
         return OperationResult<object>.Success(new { OrderId = order.Id, OrderNumber = order.OrderNumber });
     }
-
+    public class OrderDetailDto : OrderDto
+    {
+        public List<OrderItemDto> OrderItems { get; set; } = new();
+    }
+    public class OrderItemDto
+    {
+        public Guid Id { get; set; }
+        public Guid VariantId { get; set; }
+        public string ProductName { get; set; }
+        public string Sku { get; set; }
+        public string Size { get; set; }
+        public string Color { get; set; }
+        public string ImageUrl { get; set; }
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string VariantDetails { get; set; }
+    }
     #endregion
+
 }

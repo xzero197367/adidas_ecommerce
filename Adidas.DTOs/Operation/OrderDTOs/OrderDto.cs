@@ -18,8 +18,8 @@ namespace Adidas.DTOs.Operation.OrderDTOs
         public DateTime OrderDate { get; set; }
         public DateTime? ShippedDate { get; set; }
         public DateTime? DeliveredDate { get; set; }
-        public Dictionary<string, object> ShippingAddress { get; set; }
-        public Dictionary<string, object> BillingAddress { get; set; }
+        public string ShippingAddress { get; set; }
+        public string BillingAddress { get; set; }
         public string Notes { get; set; }
         public string UserId { get; set; }
         public string UserName { get; set; }

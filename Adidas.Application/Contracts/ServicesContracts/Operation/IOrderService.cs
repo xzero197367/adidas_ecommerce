@@ -2,6 +2,7 @@
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
+using static Adidas.Application.Services.Operation.OrderService;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {
@@ -25,8 +26,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         Task<OperationResult<object>> PlaceOrder(CreateOrderDTO orderCreateDTO);
 
         // New required methods
-        Task<OperationResult<OrderDto>> GetOrderByIdAsync(Guid id);
-        Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(CreateOrderDTO createOrderDto);
+        Task<OperationResult<OrderDetailDto>> GetOrderByIdAsync(Guid id);        Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(CreateOrderDTO createOrderDto);
         Task<OperationResult<PagedResultDto<OrderDto>>> GetOrderHistoryAsync(string userId, int page = 1, int pageSize = 10, OrderStatus? status = null);
         Task<OperationResult<object>> GetOrderTrackingAsync(Guid id);
 
