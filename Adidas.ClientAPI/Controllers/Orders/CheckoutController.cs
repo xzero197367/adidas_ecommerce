@@ -1,5 +1,6 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
+using Adidas.Application.Services.Static;
 using Adidas.DTOs.Feature.CouponDTOs;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
@@ -268,74 +269,116 @@ namespace Adidas.ClientAPI.Controllers.Operation
         }
 
         /// <summary>
-        /// Common method to create order and process payment
+        /// Enhanced method to create order and process payment with better error handling
         /// </summary>
         private async Task<IActionResult> CreateOrderAndProcessPayment(CreateOrderDTO createOrderDto, CheckoutRequestDto request, string? guestUserId = null)
         {
-            // Create order
-            var orderResult = await _orderService.CreateOrderFromCartAsync(createOrderDto);
-            if (!orderResult.IsSuccess)
-                return BadRequest(new { success = false, message = orderResult.ErrorMessage });
+            Guid? orderId = null;
 
-            var orderId = orderResult.Data.Id;
-            _logger.LogInformation("Order created with ID {OrderId} for user {UserId}", orderId, createOrderDto.UserId);
-
-            // Process payment based on method
             try
             {
-                if (request.PaymentMethod.ToLower() == "paypal")
+                // Create order
+                var orderResult = await _orderService.CreateOrderFromCartAsync(createOrderDto);
+                if (!orderResult.IsSuccess)
+                {
+                    _logger.LogError("Failed to create order for user {UserId}: {ErrorMessage}",
+                        createOrderDto.UserId, orderResult.ErrorMessage);
+                    return BadRequest(new { success = false, message = orderResult.ErrorMessage });
+                }
+
+                orderId = orderResult.Data.Id;
+                _logger.LogInformation("Order created with ID {OrderId} for user {UserId}", orderId, createOrderDto.UserId);
+
+                // Process payment based on method
+                var paymentMethod = request.PaymentMethod?.ToLower();
+
+                if (paymentMethod == "paypal")
                 {
                     var paypalResult = await ProcessPayPalPayment(orderResult.Data, request);
+
                     if (guestUserId != null && paypalResult is OkObjectResult okResult)
                     {
-                        // Add guest user ID to PayPal response
-                        var paypalData = okResult.Value as dynamic;
+                        // Extract the response data
+                        var responseValue = okResult.Value;
+                        var responseType = responseValue.GetType();
+
+                        // Get property values using reflection for dynamic response
+                        var successProp = responseType.GetProperty("success")?.GetValue(responseValue);
+                        var paymentIdProp = responseType.GetProperty("paymentId")?.GetValue(responseValue);
+                        var approvalUrlProp = responseType.GetProperty("approvalUrl")?.GetValue(responseValue);
+                        var messageProp = responseType.GetProperty("message")?.GetValue(responseValue);
+
                         return Ok(new
                         {
-                            success = true,
+                            success = successProp ?? true,
                             paymentMethod = "PayPal",
                             orderId = orderResult.Data.Id,
-                            paymentId = paypalData?.paymentId,
-                            approvalUrl = paypalData?.approvalUrl,
+                            paymentId = paymentIdProp,
+                            approvalUrl = approvalUrlProp,
+                            approval_url = approvalUrlProp, // Alternative naming
+                            redirectUrl = approvalUrlProp,  // Alternative naming
                             guestUserId = guestUserId,
-                            message = "PayPal payment created successfully. Redirect user to approval URL."
+                            message = messageProp ?? "PayPal payment created successfully. Redirect user to approval URL."
                         });
                     }
                     return paypalResult;
                 }
-                else
+                else if (paymentMethod == "cash on delivery" || paymentMethod == "cod")
                 {
                     var regularResult = await ProcessRegularPayment(orderResult.Data, request);
+
                     if (guestUserId != null && regularResult is OkObjectResult okResult)
                     {
-                        // Add guest user ID to regular payment response
-                        var regularData = okResult.Value as dynamic;
+                        // Extract the response data
+                        var responseValue = okResult.Value;
+                        var responseType = responseValue.GetType();
+
+                        var successProp = responseType.GetProperty("success")?.GetValue(responseValue);
+                        var paymentIdProp = responseType.GetProperty("paymentId")?.GetValue(responseValue);
+                        var messageProp = responseType.GetProperty("message")?.GetValue(responseValue);
+
                         return Ok(new
                         {
-                            success = true,
+                            success = successProp ?? true,
                             paymentMethod = "Cash on Delivery",
                             orderId = orderResult.Data.Id,
-                            paymentId = regularData?.paymentId,
+                            paymentId = paymentIdProp,
                             orderStatus = "Confirmed",
                             guestUserId = guestUserId,
-                            message = "Cash on Delivery order confirmed successfully. Payment will be collected upon delivery."
+                            message = messageProp ?? "Cash on Delivery order confirmed successfully."
                         });
                     }
                     return regularResult;
                 }
+                else
+                {
+                    throw new Exception($"Unsupported payment method: {request.PaymentMethod}");
+                }
             }
             catch (Exception paymentEx)
             {
-                _logger.LogError(paymentEx, "Payment failed for order {OrderId}, deleting order", orderId);
+                _logger.LogError(paymentEx, "Payment failed for order {OrderId}, attempting to delete order", orderId);
 
-                // Payment failed - delete the order
-                await _orderService.DeleteAsync(orderId);
+                // Payment failed - attempt to delete the order if it was created
+                if (orderId.HasValue)
+                {
+                    try
+                    {
+                        await _orderService.DeleteAsync(orderId.Value);
+                        _logger.LogInformation("Successfully deleted failed order {OrderId}", orderId.Value);
+                    }
+                    catch (Exception deleteEx)
+                    {
+                        _logger.LogError(deleteEx, "Failed to delete order {OrderId} after payment failure", orderId.Value);
+                    }
+                }
 
                 return BadRequest(new
                 {
                     success = false,
                     message = "Payment processing failed. Please try again.",
-                    error = paymentEx.Message
+                    error = paymentEx.Message,
+                    orderId = orderId // Include order ID for debugging
                 });
             }
         }
@@ -505,28 +548,63 @@ namespace Adidas.ClientAPI.Controllers.Operation
         }
 
         /// <summary>
-        /// Process PayPal payment
+        /// Fixed ProcessPayPalPayment method with enhanced error handling and logging
         /// </summary>
         private async Task<IActionResult> ProcessPayPalPayment(dynamic order, CheckoutRequestDto request)
         {
+            var egpAmount = (decimal)order.TotalAmount;
+
+            // نحول من EGP → USD
+            var usdAmount = CurrencyConverter.ConvertEgpToUsd(egpAmount);
             try
             {
                 var paypalDto = new PayPalCreatePaymentDto
                 {
-                    Amount = (decimal)order.TotalAmount,
-                    Currency = "USD",
+                    Amount = usdAmount,
+                    Currency = "USD", // Use request currency or default to USD
                     Description = $"Order #{order.Id}",
                     OrderId = (Guid)order.Id,
                     ReturnUrl = $"{GetFrontendUrl()}/checkout/paypal/success",
                     CancelUrl = $"{GetFrontendUrl()}/checkout/paypal/cancel"
                 };
 
-                _logger.LogInformation("Creating PayPal payment for Order {OrderId}, Amount {Amount}");
+                _logger.LogInformation("Creating PayPal payment for Order {OrderId}, Amount {Amount}, Currency {Currency}",
+                    paypalDto.OrderId, paypalDto.Amount, paypalDto.Currency);
 
                 var paymentResult = await _payPalService.CreatePaymentAsync(paypalDto);
+
+                // Enhanced error checking and logging
                 if (!paymentResult.IsSuccess)
                 {
+                    _logger.LogError("PayPal payment creation failed for Order {OrderId}: {ErrorMessage}",
+                        paypalDto.OrderId, paymentResult.ErrorMessage);
                     throw new Exception($"PayPal payment creation failed: {paymentResult.ErrorMessage}");
+                }
+
+                if (paymentResult.Data == null)
+                {
+                    _logger.LogError("PayPal service returned success but with null data for Order {OrderId}", paypalDto.OrderId);
+                    throw new Exception("PayPal service returned success but with null payment data");
+                }
+
+                // Log the PayPal response structure for debugging
+                _logger.LogInformation("PayPal payment created successfully for Order {OrderId}. PaymentId: {PaymentId}, ApprovalUrl: {ApprovalUrl}",
+                    paypalDto.OrderId, paymentResult.Data.PaymentId, paymentResult.Data.ApprovalUrl);
+
+                // Validate that ApprovalUrl is present and valid
+                if (string.IsNullOrEmpty(paymentResult.Data.ApprovalUrl))
+                {
+                    _logger.LogError("PayPal payment created but ApprovalUrl is missing for Order {OrderId}", paypalDto.OrderId);
+                    throw new Exception("PayPal payment created but approval URL is missing");
+                }
+
+                // Validate ApprovalUrl format
+                if (!Uri.TryCreate(paymentResult.Data.ApprovalUrl, UriKind.Absolute, out var approvalUri) ||
+                    (approvalUri.Scheme != "http" && approvalUri.Scheme != "https"))
+                {
+                    _logger.LogError("PayPal returned invalid ApprovalUrl for Order {OrderId}: {ApprovalUrl}",
+                        paypalDto.OrderId, paymentResult.Data.ApprovalUrl);
+                    throw new Exception("PayPal returned an invalid approval URL");
                 }
 
                 return Ok(new
@@ -536,20 +614,47 @@ namespace Adidas.ClientAPI.Controllers.Operation
                     orderId = order.Id,
                     paymentId = paymentResult.Data.PaymentId,
                     approvalUrl = paymentResult.Data.ApprovalUrl,
+                    // Alternative property names for frontend compatibility
+                    approval_url = paymentResult.Data.ApprovalUrl,
+                    redirectUrl = paymentResult.Data.ApprovalUrl,
+                    paypalUrl = paymentResult.Data.ApprovalUrl,
                     message = "PayPal payment created successfully. Redirect user to approval URL."
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating PayPal payment for order {OrderId}");
+                _logger.LogError(ex, "Error creating PayPal payment for order {OrderId}: {Message}");
                 throw;
             }
         }
 
+
+        /// <summary>
+        /// Enhanced GetFrontendUrl with environment-specific configuration
+        /// </summary>
         private string GetFrontendUrl()
         {
-            return Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:4200";
+            var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+
+            if (string.IsNullOrEmpty(frontendUrl))
+            {
+                // Default URLs based on environment
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+                frontendUrl = environment.ToLower() switch
+                {
+                    "development" => "http://localhost:4200",
+                    "staging" => "https://staging.yourdomain.com",
+                    "production" => "https://yourdomain.com",
+                    _ => "http://localhost:4200"
+                };
+
+                _logger.LogWarning("FRONTEND_URL environment variable not set, using default: {FrontendUrl}", frontendUrl);
+            }
+
+            return frontendUrl;
         }
+
     }
 
     // Updated DTOs
