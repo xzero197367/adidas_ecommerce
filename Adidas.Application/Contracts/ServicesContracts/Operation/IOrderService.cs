@@ -9,8 +9,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
     public interface IOrderService : IGenericService<Order, OrderDto, OrderCreateDto, OrderUpdateDto>
     {
         // Existing methods
-        Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize, OrderFilterDto? filter = null);
-        Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId);
+        Task<OperationResult<PagedResultDto<OrderDetailDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize, OrderFilterDto? filter = null);
+        Task<OperationResult<IEnumerable<OrderDetailDto>>> GetOrdersByUserIdAsync(string userId);
         Task<OperationResult<OrderDto>> GetOrderByUserIdAsync(string userId);
         Task<OperationResult<OrderDto>> GetOrderByOrderNumberAsync(string orderNumber);
         Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByStatusAsync(OrderStatus status);
@@ -26,8 +26,9 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         Task<OperationResult<object>> PlaceOrder(CreateOrderDTO orderCreateDTO);
 
         // New required methods
-        Task<OperationResult<OrderDetailDto>> GetOrderByIdAsync(Guid id);        Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(CreateOrderDTO createOrderDto);
-        Task<OperationResult<PagedResultDto<OrderDto>>> GetOrderHistoryAsync(string userId, int page = 1, int pageSize = 10, OrderStatus? status = null);
+        Task<OperationResult<OrderDetailDto>> GetOrderByIdAsync(Guid id);  
+        Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(CreateOrderDTO createOrderDto);
+        Task<OperationResult<PagedResultDto<OrderDetailDto>>> GetOrderHistoryAsync(string userId, int page = 1, int pageSize = 10, OrderStatus? status = null);
         Task<OperationResult<object>> GetOrderTrackingAsync(Guid id);
 
         Task<OperationResult<object>> GetGuestCheckoutSummaryAsync(string guestUserId, List<GuestCartItemsDto> cartItems, string? couponCode = null);

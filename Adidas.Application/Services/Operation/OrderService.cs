@@ -144,7 +144,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             UserId = order.UserId,
             UserName = order.User?.UserName,
             UserEmail = order.User?.Email,
-     
+
 
             // Collections from base OrderDto
             Payments = order.Payments?.Select(MapToPaymentDto).ToList() ?? new List<PaymentDto>(),
@@ -167,6 +167,13 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             }).ToList() ?? new List<OrderItemDto>()
         };
     }
+    private List<OrderDetailDto> MapToOrderDetailDto(IEnumerable<Order> orders)
+    {
+        if (orders == null) return new List<OrderDetailDto>();
+
+        return orders.Select(MapToOrderDetailDto).ToList();
+    }
+
     private OrderItem MapToOrderItem(OrderItemCreateDto orderItemCreateDto)
     {
         if (orderItemCreateDto == null) return null;
@@ -250,16 +257,17 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         };
     }
 
-    private PagedResultDto<OrderDto> MapToPagedOrderDto(PagedResultDto<Order> pagedOrders)
+    private PagedResultDto<OrderDetailDto> MapToPagedOrderDto(PagedResultDto<Order> pagedOrders)
     {
-        return new PagedResultDto<OrderDto>
+        return new PagedResultDto<OrderDetailDto>
         {
-            Items = MapToOrderDtoList(pagedOrders.Items),
+            Items = pagedOrders.Items.Select(MapToOrderDetailDto).ToList(),
             TotalCount = pagedOrders.TotalCount,
             PageNumber = pagedOrders.PageNumber,
             PageSize = pagedOrders.PageSize
         };
     }
+
 
     #endregion
 
@@ -630,7 +638,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         }
     }
 
-    public async Task<OperationResult<PagedResultDto<OrderDto>>> GetOrderHistoryAsync(string userId, int page = 1, int pageSize = 10, OrderStatus? status = null)
+    public async Task<OperationResult<PagedResultDto<OrderDetailDto>>> GetOrderHistoryAsync(string userId, int page = 1, int pageSize = 10, OrderStatus? status = null)
     {
         try
         {
@@ -651,12 +659,12 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             });
 
             var result = MapToPagedOrderDto(pagedOrders);
-            return OperationResult<PagedResultDto<OrderDto>>.Success(result);
+            return OperationResult<PagedResultDto<OrderDetailDto>>.Success(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting order history for user {UserId}", userId);
-            return OperationResult<PagedResultDto<OrderDto>>.Fail(ex.Message);
+            return OperationResult<PagedResultDto<OrderDetailDto>>.Fail(ex.Message);
         }
     }
 
@@ -1012,7 +1020,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         };
     }
 
-    public async Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize,
+    public async Task<OperationResult<PagedResultDto<OrderDetailDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize,
         OrderFilterDto? filter = null)
     {
         var pagedOrders = await _orderRepository.GetPagedAsync(pageNumber, pageSize, q =>
@@ -1041,21 +1049,21 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         });
 
         var result = MapToPagedOrderDto(pagedOrders);
-        return OperationResult<PagedResultDto<OrderDto>>.Success(result);
+        return OperationResult<PagedResultDto<OrderDetailDto>>.Success(result);
     }
 
-    public async Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId)
+    public async Task<OperationResult<IEnumerable<OrderDetailDto>>> GetOrdersByUserIdAsync(string userId)
     {
         try
         {
             var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
-            var orderDtos = MapToOrderDtoList(orders);
-            return OperationResult<IEnumerable<OrderDto>>.Success(orderDtos);
+            var orderDtos = MapToOrderDetailDto(orders);
+            return OperationResult<IEnumerable<OrderDetailDto>>.Success(orderDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting orders for user {UserId}", userId);
-            return OperationResult<IEnumerable<OrderDto>>.Fail(ex.Message);
+            return OperationResult<IEnumerable<OrderDetailDto>>.Fail(ex.Message);
         }
     }
 
