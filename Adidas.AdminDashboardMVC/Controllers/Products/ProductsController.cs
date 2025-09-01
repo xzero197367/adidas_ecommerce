@@ -1,6 +1,7 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -16,13 +17,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
-        private readonly ICategoryRepository _categoryService;
+        private readonly ICategoryService _categoryService;
         private readonly IBrandRepository _brandService;
         private readonly IProductVariantService _productVariantService;
 
         public ProductsController(
             IProductService productService,
-            ICategoryRepository categoryService,
+            ICategoryService categoryService,
             IBrandRepository brandService,
             IProductVariantService productVariantService)
         {
@@ -126,7 +127,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         private async Task PopulateDropdownsAsync()
         {
-            var categories = await _categoryService.GetAll().Where(p=>p.ParentCategoryId!=null).ToListAsync();
+            var categories = await _categoryService.GetFilteredCategoriesAsync("Sub", "", "");
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
