@@ -56,6 +56,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
         //    var result = await _customerService.GetCustomersAsync(filter);
         //    return PartialView("_CustomerListPartial", result.Data);
         //}
+
+        //======================================
         [HttpGet]
         public async Task<IActionResult> Details(string id)
         {
@@ -68,6 +70,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Customers
 
             return View(customer.Data);
         }
+
+
+
 
         [HttpGet]
         public async Task<IActionResult> Edit(string id)
