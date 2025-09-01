@@ -126,7 +126,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         private async Task PopulateDropdownsAsync()
         {
-            var categories = await _categoryService.GetAll().ToListAsync();
+            var categories = await _categoryService.GetAll().Where(p=>p.ParentCategoryId!=null).ToListAsync();
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),

@@ -23,13 +23,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -39,13 +39,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -55,13 +55,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -71,13 +71,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -87,13 +87,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -103,13 +103,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -119,13 +119,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -135,13 +135,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -151,13 +151,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -167,13 +167,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -183,13 +183,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -199,13 +199,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -215,13 +215,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -231,13 +231,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -247,13 +247,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -263,13 +263,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -279,13 +279,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -295,13 +295,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -311,13 +311,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -327,13 +327,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -343,13 +343,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -359,13 +359,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -375,13 +375,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -391,13 +391,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -407,13 +407,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -423,13 +423,13 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
             },
             new OrderDto()
             {
@@ -439,13 +439,14 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
+                //ShippingAddress = new Dictionary<string, object>()
+                //{
+                //    { "address", "123 Main St, Anytown, USA" },
+                //    { "city", "Anytown" },
+                //    { "state", "CA" },
+                //    { "zip", "12345" }
+                //},
+         
             },
             new OrderDto()
             {
@@ -455,14 +456,14 @@ public class FakeOrders
                 OrderStatus = OrderStatus.Pending,
                 TotalAmount = 100,
                 UserId = "dfakljdsa",
-                ShippingAddress = new Dictionary<string, object>()
-                {
-                    { "address", "123 Main St, Anytown, USA" },
-                    { "city", "Anytown" },
-                    { "state", "CA" },
-                    { "zip", "12345" }
-                },
-            },
+            //    ShippingAddress = new Dictionary<string, object>()
+            //    {
+            //        { "address", "123 Main St, Anytown, USA" },
+            //        { "city", "Anytown" },
+            //        { "state", "CA" },
+            //        { "zip", "12345" }
+            //    },
+           },
         };
         pagedOrders.TotalCount = pagedOrders.Items.Count();
         pagedOrders.TotalPages = (int)Math.Ceiling((double)pagedOrders.TotalCount / pageSize);

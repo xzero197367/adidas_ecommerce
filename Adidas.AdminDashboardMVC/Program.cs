@@ -34,6 +34,8 @@ using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Mapping;
 using Adidas.Application.Services.Separator;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Services.Main;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,7 +132,10 @@ MapsterConfig.Configure();
 #endregion
 
 #region 7. Application Services & Repositories
+builder.Services.AddScoped<IUserProductViewRepository, UserProductViewRepository>();
 
+// Register the service that depends on the repository
+builder.Services.AddScoped<IProductService, ProductService>();
 // viewlocation exapnder
 // add custom view locations
 builder.Services.Configure<RazorViewEngineOptions>(options =>
