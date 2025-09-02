@@ -138,6 +138,7 @@ public static class MyDependancyInjection
         
         // User
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserProductViewRepository, UserProductViewRepository>();
     }
 
     private static void AddSeparatorServices(IServiceCollection services)

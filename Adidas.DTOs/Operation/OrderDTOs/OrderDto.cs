@@ -4,6 +4,13 @@ using Adidas.Models.Operation;
 
 namespace Adidas.DTOs.Operation.OrderDTOs
 {
+    // public class AddressDto
+    // {
+    //     public string Address { get; set; }
+    //     public string City { get; set; }
+    //     public string State { get; set; }
+    //     public string Zip { get; set; }
+    // }
     public class OrderDto
     {
         public Guid Id { get; set; }
