@@ -63,9 +63,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
 
         // GET: Create Form
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(Guid productId)
         {
-            await PopulateDropdownsAsync();
+            await PopulateDropdownsAsync(productId);
             return View();
         }
 
@@ -73,8 +73,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([FromForm] ProductVariantCreateDto createDto)
         {
+            if (createDto.ImageFile == null)
+            {
+                ModelState.AddModelError("ImageFile", "Image is Required");
+            }
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                TempData["Error"] = string.Join(" | ", errors);
                 await PopulateDropdownsAsync();
                 return View(createDto);
             }
@@ -83,12 +89,12 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 var createdVariant = await _productVariantService.CreateAsync(createDto);
                 TempData["Success"] = "Product variant created successfully!";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Products", new { id = createDto.ProductId });
             }
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                await PopulateDropdownsAsync();
+                await PopulateDropdownsAsync(createDto.ProductId);
                 return View(createDto);
             }
         }
@@ -111,29 +117,17 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
 
 
-        private async Task PopulateDropdownsAsync()
+        private async Task PopulateDropdownsAsync(Guid? selectedProductId = null)
         {
             var results = await _productService.GetAllAsync();
             var products = results.Data;
-            ViewBag.Products = products.Select(p => new SelectListItem
-            {
-                Value = p.Id.ToString(),
-                Text = p.Name
-            }).ToList();
+            ViewBag.Products = new SelectList(products, "Id", "Name", selectedProductId);
 
             var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = categories.Data.Select(c => new SelectListItem
-            {
-                Value = c.Id.ToString(),
-                Text = c.Name
-            }).ToList();
+            ViewBag.Categories = new SelectList(categories.Data, "Id", "Name");
 
             var brands = await _brandService.GetAllAsync();
-            ViewBag.Brands = brands.Data?.Select(b => new SelectListItem
-            {
-                Value = b.Id.ToString(),
-                Text = b.Name
-            }).ToList();
+            ViewBag.Brands = new SelectList(brands.Data, "Id", "Name");
 
             ViewBag.Genders = Enum.GetValues(typeof(Gender))
                 .Cast<Gender>()
