@@ -162,6 +162,7 @@ namespace Adidas.Infra.Main
                     .ThenInclude(v => v.Images)
                 .Include(p => p.Images)
                 .Include(p => p.Reviews)
+                .Include(p=> p.Category)
                 .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
         }
 

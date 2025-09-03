@@ -35,7 +35,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         public async Task<IActionResult> Index(ProductFilterDto filter)
         {
-            var categories = await _categoryService.GetAll().ToListAsync();
+            var categories = await _categoryService.GetFilteredCategoriesAsync("Sub","","");
             ViewBag.Categories = categories
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
                 .ToList();
