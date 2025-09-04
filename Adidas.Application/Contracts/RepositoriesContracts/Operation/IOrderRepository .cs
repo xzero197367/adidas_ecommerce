@@ -1,4 +1,6 @@
 ﻿
+using System.Linq.Expressions;
+
 namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
 {
     public interface IOrderRepository : IGenericRepository<Order>
@@ -11,6 +13,9 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
         Task<Order?> GetOrderWithCouponsAsync(Guid orderId);
         Task<Order?> GetOrderByNumberAsync(string orderNumber);
         Task<IEnumerable<Order>> GetPendingOrdersAsync();
+        Task<(IEnumerable<Order> orders, int totalCount)> GetPagedOrdersAsync(
+        int pageNumber, int pageSize,
+        Expression<Func<Order, bool>>? filter = null);
         decimal GetTotalSalesAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId, int pageNumber, int pageSize);
     }

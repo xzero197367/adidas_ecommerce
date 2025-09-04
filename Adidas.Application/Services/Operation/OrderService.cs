@@ -16,6 +16,7 @@ using iTextSharp.text.pdf;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace Adidas.Application.Services.Operation;
 
@@ -100,36 +101,78 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
     }
 
 
-    public async Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize,
-        OrderFilterDto? filter = null)
+    //public async Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize,
+    //    OrderFilterDto? filter = null)
+    //{
+    //    var pagedOrders = await _orderRepository.GetPagedAsync(pageNumber, pageSize, q =>
+    //    {
+    //        var query = q.Where(o => o.IsDeleted == false).OrderByDescending(o => o.OrderDate).AsQueryable();
+    //        if (filter != null)
+    //        {
+    //            //if (filter?.OrderNumber != null)
+    //            //{
+    //            //    query = query.Where(o => o.OrderNumber.Contains(filter.OrderNumber));
+    //            //}
+    //            if (!string.IsNullOrWhiteSpace(filter.OrderNumber))
+    //            {
+    //                var number = filter.OrderNumber.Trim();
+    //                query = query.Where(o => o.OrderNumber.ToLower().Contains(number.ToLower()));
+    //            }
+
+    //            if (filter?.OrderStatus != null)
+    //            {
+    //                query = query.Where(o => o.OrderStatus == filter.OrderStatus);
+    //            }
+
+    //            //if (filter?.OrderDate != null)
+    //            //{
+    //            //    var orderDate = filter.OrderDate.Value.Date;
+    //            //    query = query.Where(o => o.OrderDate == orderDate);
+    //            //}
+    //            if (filter?.OrderDate != null)
+    //            {
+    //                var orderDate = filter.OrderDate.Value.Date;
+    //                query = query.Where(o => o.OrderDate.Date == orderDate);
+    //            }
+    //        }
+
+    //        return query;
+    //    });
+
+    //    return OperationResult<PagedResultDto<OrderDto>>.Success(pagedOrders.Adapt<PagedResultDto<OrderDto>>());
+    //}
+    public async Task<OperationResult<PagedResultDto<OrderDto>>> GetPagedOrdersAsync(
+    int pageNumber, int pageSize, OrderFilterDto? filter = null)
     {
-        var pagedOrders = await _orderRepository.GetPagedAsync(pageNumber, pageSize, q =>
+        Expression<Func<Order, bool>>? predicate = null;
+
+        if (filter != null)
         {
-            var query = q.Where(o => o.IsDeleted == false).OrderByDescending(o => o.OrderDate).AsQueryable();
-            if (filter != null)
-            {
-                if (filter?.OrderNumber != null)
-                {
-                    query = query.Where(o => o.OrderNumber.Contains(filter.OrderNumber));
-                }
+            predicate = o =>
+                !o.IsDeleted &&
+                (string.IsNullOrEmpty(filter.OrderNumber) ||
+                    o.OrderNumber.ToLower().Contains(filter.OrderNumber.Trim().ToLower())) &&
+                (!filter.OrderStatus.HasValue || o.OrderStatus == filter.OrderStatus) &&
+                (!filter.OrderDate.HasValue || o.OrderDate.Date == filter.OrderDate.Value.Date);
+        }
 
-                if (filter?.OrderStatus != null)
-                {
-                    query = query.Where(o => o.OrderStatus == filter.OrderStatus);
-                }
+        //var (orders, totalCount) = await _orderRepository.GetPagedOrdersAsync(pageNumber, pageSize, predicate);
+        var result = await _orderRepository.GetPagedOrdersAsync(pageNumber, pageSize, predicate);
+        var orders = result.orders;
+        var totalCount = result.totalCount;
 
-                if (filter?.OrderDate != null)
-                {
-                    var orderDate = filter.OrderDate.Value.Date;
-                    query = query.Where(o => o.OrderDate == orderDate);
-                }
-            }
 
-            return query;
-        });
+        var dto = new PagedResultDto<OrderDto>
+        {
+            Items = orders.Adapt<IEnumerable<OrderDto>>().ToList(),
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
 
-        return OperationResult<PagedResultDto<OrderDto>>.Success(pagedOrders.Adapt<PagedResultDto<OrderDto>>());
+        return OperationResult<PagedResultDto<OrderDto>>.Success(dto);
     }
+
 
     public async Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId)
     {

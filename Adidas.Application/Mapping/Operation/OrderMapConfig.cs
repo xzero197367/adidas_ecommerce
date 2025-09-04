@@ -31,6 +31,8 @@ public class OrderMapConfig
                 src => JsonSerializer.Serialize(src.BillingAddress, jsonOptions))
             .IgnoreNullValues(true);
 
+       
+
         TypeAdapterConfig<OrderUpdateDto, Order>.NewConfig()
             .Map(dest => dest.ShippingAddress,
                 src => JsonSerializer.Serialize(src.ShippingAddress, jsonOptions))

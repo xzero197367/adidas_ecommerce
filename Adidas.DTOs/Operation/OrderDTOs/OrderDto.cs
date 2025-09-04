@@ -9,6 +9,10 @@ namespace Adidas.DTOs.Operation.OrderDTOs
         public Guid Id { get; set; }
         public string OrderNumber { get; set; }
         public OrderStatus OrderStatus { get; set; }
+
+        public string CustomerName { get; set; }
+        public string? LastStatusUpdatedBy { get; set; }
+        public DateTime? LastStatusUpdatedAt { get; set; }
         public decimal Subtotal { get; set; }
         public decimal TaxAmount { get; set; }
         public decimal ShippingAmount { get; set; }

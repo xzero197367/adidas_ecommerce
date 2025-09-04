@@ -21,9 +21,9 @@
                     <h3 class="card-title">Orders Management</h3>
                     @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
                     {
-                        <a asp-action="Create" asp-controller="Orders" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Create New Order
-                        </a>
+                        @* <a asp-action="Create" asp-controller="Orders" class="btn btn-primary"> *@
+                        @*     <i class="fas fa-plus"></i> Create New Order *@
+                        @* </a> *@
                     }
                 </div>
 

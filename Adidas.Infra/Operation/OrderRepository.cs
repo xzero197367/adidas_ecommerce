@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using System.Linq;
 
 namespace Adidas.Infra.Operation
 {
@@ -67,6 +69,30 @@ namespace Adidas.Infra.Operation
 
             return  query.Sum(o => o.TotalAmount);
         }
+
+        public async Task<(IEnumerable<Order> orders, int totalCount)> GetPagedOrdersAsync(
+        int pageNumber, int pageSize,
+        Expression<Func<Order, bool>>? filter = null)
+        {
+            var query = _context.Orders
+                .Include(o => o.User)  // ✅ ensures User is loaded
+                .Where(o => !o.IsDeleted);
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (orders, totalCount);
+        }
+
+
 
 
         public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId,

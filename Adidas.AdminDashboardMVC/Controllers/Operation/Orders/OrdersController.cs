@@ -7,6 +7,7 @@ using Adidas.Models.Operation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models.People;
+using System.Text.Json;
 
 namespace Adidas.Web.Controllers
 {
@@ -15,10 +16,13 @@ namespace Adidas.Web.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly UserManager<User> _userManager;
+        private readonly IOrderEditService _orderEditService;
 
-        public OrdersController(IOrderService orderService, UserManager<User> userManager)
+
+        public OrdersController(IOrderService orderService, IOrderEditService orderEditService, UserManager<User> userManager)
         {
             _orderService = orderService;
+            _orderEditService = orderEditService;
             _userManager = userManager;
         }
 
@@ -131,8 +135,15 @@ namespace Adidas.Web.Controllers
                 DiscountAmount = result.Data.DiscountAmount,
                 TotalAmount = result.Data.TotalAmount,
                 Currency = result.Data.Currency,
-                ShippingAddress = result.Data.ShippingAddress?.ToString(),
-                BillingAddress = result.Data.BillingAddress?.ToString(),
+                //ShippingAddress = result.Data.ShippingAddress?.ToString(),
+                //BillingAddress = result.Data.BillingAddress?.ToString(),
+                ShippingAddress = result.Data.ShippingAddress != null
+    ? JsonSerializer.Serialize(result.Data.ShippingAddress, new JsonSerializerOptions { WriteIndented = true })
+    : string.Empty,
+
+                BillingAddress = result.Data.BillingAddress != null
+    ? JsonSerializer.Serialize(result.Data.BillingAddress, new JsonSerializerOptions { WriteIndented = true })
+    : string.Empty,
                 Notes = result.Data.Notes,
                 UserId = result.Data.UserId
             };
@@ -141,6 +152,42 @@ namespace Adidas.Web.Controllers
         }
 
         // POST: Order/Edit/5
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //[Authorize(Roles = "Admin,Employee")]
+        //public async Task<IActionResult> Edit(Guid id, OrderUpdateDto orderDto)
+        //{
+        //    if (id != orderDto.Id)
+        //    {
+        //        TempData["Error"] = "Invalid order ID.";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return View(orderDto);
+        //    }
+
+        //    try
+        //    {
+        //        var result = await _orderService.UpdateAsync(orderDto);
+
+        //        if (result.IsSuccess)
+        //        {
+        //            TempData["Success"] = "Order updated successfully!";
+        //            return RedirectToAction(nameof(Details), new { id });
+        //        }
+
+        //        TempData["Error"] = result.ErrorMessage;
+        //        return View(orderDto);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["Error"] = "An error occurred while updating the order.";
+        //        return View(orderDto);
+        //    }
+        //}
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Employee")]
@@ -157,24 +204,23 @@ namespace Adidas.Web.Controllers
                 return View(orderDto);
             }
 
-            try
-            {
-                var result = await _orderService.UpdateAsync(orderDto);
+            //var user = await _userManager.GetUserAsync(User);
+            //var result = await _orderEditService.EditAsync(orderDto, user?.UserName ?? User.Identity?.Name ?? "Unknown");
+            var user = await _userManager.GetUserAsync(User);
+            var displayName = user?.Email ?? user?.UserName ?? User.Identity?.Name ?? "Unknown";
+            var result = await _orderEditService.EditAsync(orderDto, displayName);
 
-                if (result.IsSuccess)
-                {
-                    TempData["Success"] = "Order updated successfully!";
-                    return RedirectToAction(nameof(Details), new { id });
-                }
 
-                TempData["Error"] = result.ErrorMessage;
-                return View(orderDto);
-            }
-            catch (Exception ex)
+
+
+            if (result.IsSuccess)
             {
-                TempData["Error"] = "An error occurred while updating the order.";
-                return View(orderDto);
+                TempData["Success"] = "Order updated successfully!";
+                return RedirectToAction(nameof(Details), new { id });
             }
+
+            TempData["Error"] = result.ErrorMessage;
+            return View(orderDto);
         }
 
         // GET: Order/Delete/5

@@ -27,6 +27,9 @@ public class Order : BaseAuditableEntity
     public required string Currency { get; set; }
     public required DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
+    public string? LastStatusUpdatedBy { get; set; }
+    public DateTime? LastStatusUpdatedAt { get; set; }
+
     public DateTime? ShippedDate { get; set; }
 
     public DateTime? DeliveredDate { get; set; }

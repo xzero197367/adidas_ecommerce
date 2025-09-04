@@ -2,6 +2,7 @@
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.OrderDTOs;
 using Adidas.DTOs.Operation.OrderDTOs.Create;
+using System.Linq.Expressions;
 
 namespace Adidas.Application.Contracts.ServicesContracts.Operation
 {
@@ -18,7 +19,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         Task<OperationResult<OrderDto>> GetOrderWithItemsAsync(Guid orderId);
         Task<OperationResult<decimal>> CalculateOrderTotalAsync(string userId, string? discountCode = null);
         Task<OperationResult<bool>> CancelOrderAsync(Guid orderId, string reason);
-
+        // ✅ new method for paging
+        
         Task<OperationResult<OrderSummaryDto>> GetOrderSummaryAsync(DateTime? startDate = null,
             DateTime? endDate = null);
         
