@@ -24,6 +24,12 @@ public class OrderMapConfig
                 src => JsonSerializer.Serialize(src.BillingAddress, jsonOptions))
             .IgnoreNullValues(true);
 
+
+        TypeAdapterConfig<Order, OrderWithCreatorDto>.NewConfig()
+    .Map(dest => dest.AddedById, src => src.AddedById)
+    .Map(dest => dest.AddedByName, src => src.AddedBy != null ? src.AddedBy.UserName : null)
+    .Map(dest => dest.AddedByEmail, src => src.AddedBy != null ? src.AddedBy.Email : null);
+
         TypeAdapterConfig<OrderCreateDto, Order>.NewConfig()
             .Map(dest => dest.ShippingAddress,
                 src => JsonSerializer.Serialize(src.ShippingAddress, jsonOptions))

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models.People;
 using System.Text.Json;
+using Mapster;
 
 namespace Adidas.Web.Controllers
 {
@@ -54,7 +55,19 @@ namespace Adidas.Web.Controllers
             return View(result.Data);
         }
 
-        // GET: Order/Details/5
+        //// GET: Order/Details/5
+        //public async Task<IActionResult> Details(Guid id)
+        //{
+        //    var result = await _orderService.GetOrderWithItemsAsync(id);
+
+        //    if (!result.IsSuccess)
+        //    {
+        //        TempData["Error"] = result.ErrorMessage;
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    return View(result.Data);
+        //}
         public async Task<IActionResult> Details(Guid id)
         {
             var result = await _orderService.GetOrderWithItemsAsync(id);
@@ -65,7 +78,10 @@ namespace Adidas.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(result.Data);
+            // 🔄 Adapt to new DTO with AddedBy info
+            var dto = result.Data.Adapt<OrderWithCreatorDto>();
+
+            return View(dto);
         }
 
         // GET: Order/Create

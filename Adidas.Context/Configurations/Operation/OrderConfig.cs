@@ -18,6 +18,8 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.HasIndex(e => e.OrderStatus);
         builder.HasIndex(e => e.OrderDate);
         
+
+
        builder.Property(e=>e.OrderNumber).IsRequired().HasMaxLength(100);
        builder.Property(e => e.OrderStatus).IsRequired();
        builder.Property(e => e.OrderDate).IsRequired();
