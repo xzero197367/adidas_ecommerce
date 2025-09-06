@@ -143,14 +143,14 @@ namespace Adidas.ClientAPI.Controllers.Operation
         /// For authenticated users only (guests handle coupons in checkout summary)
         /// </summary>
         [HttpPost("apply-coupon")]
-        [Authorize] // Authenticated users only
+      //  [Authorize] // Authenticated users only
         public async Task<IActionResult> ApplyCoupon([FromBody] ApplyCouponRequestDto dto)
         {
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
-                    return Unauthorized("User not authenticated.");
+                //if (string.IsNullOrEmpty(userId))
+                //    return Unauthorized("User not authenticated.");
 
                 var result = await _couponService.ApplyCouponToOrderAsync(dto.OrderId, dto.CouponCode);
                 if (!result.Success)

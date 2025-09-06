@@ -9,18 +9,23 @@ using System.Data.Entity.Infrastructure;
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.Models.Main;
+using Adidas.Application.Contracts.ServicesContracts.Main;
 
 namespace Adidas.Application.Services.Separator
 {
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IProductService _productService;
 
         public CategoryService(
             ICategoryRepository categoryRepository
+            ,
+            IProductService productService
         )
         {
             _categoryRepository = categoryRepository;
+            _productService = productService;
         }
 
         public async Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync()
@@ -297,7 +302,7 @@ namespace Adidas.Application.Services.Separator
             // Map products if available
             if (category.Products != null)
             {
-                dto.Products = category.Products.Select(p => MapToProductDto(p)).ToList();
+                dto.Products = category.Products.Select(p => _productService.MapToProductDto(p)).ToList();
             }
 
             // Map subcategories if requested or if relations should be included
@@ -338,18 +343,33 @@ namespace Adidas.Application.Services.Separator
             };
         }
 
-        private ProductDto MapToProductDto(Product product)
-        {
-            if (product == null) return null;
+        //private ProductDto MapToProductDto(Product product)
+        //{
+        //    if (product == null) return null;
 
-            return new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name ?? string.Empty,
-                Description = product.Description,
-                Price = product.Price,
-                IsActive = product.IsActive
-            };
-        }
+        //    return new ProductDto
+        //    {
+        //        Id = product.Id,
+        //        Name = product.Name ?? string.Empty,
+        //        Description = product.Description,
+        //        Price = product.Price,
+        //        IsActive = product.IsActive,
+        //        CategoryId = product.CategoryId,
+        //        BrandId = product.BrandId,
+        //        CreatedAt = product.CreatedAt ?? DateTime.MinValue,
+        //        UpdatedAt = product.UpdatedAt,
+        //        InStock = product.Variants != null && product.Variants.Any(v => v.StockQuantity > 0),
+        //        SalePrice = product.SalePrice,
+        //        GenderTarget = product.GenderTarget,
+        //        ShortDescription = product.ShortDescription ?? string.Empty,
+        //        Sku = product.Sku ?? string.Empty,
+        //        MetaTitle = product.MetaTitle,
+        //        MetaDescription = product.MetaDescription,
+        //        CategoryName = product.Category?.Name ?? "No Category",
+        //        BrandName = product.Brand?.Name ?? "No Brand"
+             
+
+        //    };
+        //}
     }
 }

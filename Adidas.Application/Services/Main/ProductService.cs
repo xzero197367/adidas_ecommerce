@@ -45,7 +45,7 @@ namespace Adidas.Application.Services.Main
         #region Mapping Methods
 
         // ProductService - ISSUE FOUND: The variant mapping in MapToProductDto is creating new DTOs instead of using proper mapping
-        private ProductDto MapToProductDto(Product p)
+        public ProductDto MapToProductDto(Product p)
         {
             return new ProductDto
             {
