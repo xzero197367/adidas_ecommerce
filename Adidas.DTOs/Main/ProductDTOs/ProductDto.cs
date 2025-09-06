@@ -54,7 +54,7 @@ namespace Adidas.DTOs.Main.Product_DTOs
 
         // Computed properties
         public decimal DisplayPrice => SalePrice ?? Price;
-        public bool IsOnSale => SalePrice.HasValue && SalePrice < Price;
+        public bool IsOnSale => SalePrice.HasValue;
         public double AverageRating => Reviews.Any() ? Reviews.Average(r => r.Rating) : 0;
         public int ReviewCount => Reviews.Count;
     }
