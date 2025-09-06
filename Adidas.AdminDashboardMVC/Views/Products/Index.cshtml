@@ -5,46 +5,10 @@
     var request = Context.Request;
 }
 
-
 <link href="~/css/Product.css" rel="stylesheet" />
-<div class="main-headerr my-5 ">
-    <div class="container">
-        <div class="header-content text-center">
-            <h1 class="mb-0">
-                <i class="fas fa-boxes me-2"></i>
-                Products Management System
-            </h1>
-            <p class="mb-0 mt-2 opacity-75">Manage your product catalog efficiently</p>
-        </div>
-    </div>
-</div>
 
 <div class="container-fluid">
     <div class="tab-container">
-        <!-- Navigation Tabs -->
-        <ul class="nav nav-tabs" id="productTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="all-products-tab" data-bs-toggle="tab" data-bs-target="#all-products" type="button" role="tab">
-                    <i class="fas fa-th-list me-1"></i>All Products
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="on-sale-tab" data-bs-toggle="tab" data-bs-target="#on-sale" type="button" role="tab">
-                    <i class="fas fa-tags me-1"></i>On Sale
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="out-of-stock-tab" data-bs-toggle="tab" data-bs-target="#out-of-stock" type="button" role="tab">
-                    <i class="fas fa-exclamation-triangle me-1"></i>Out of Stock
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
-                    <i class="fas fa-chart-bar me-1"></i>Analytics
-                </button>
-            </li>
-        </ul>
-
         <!-- Tab Content -->
         <div class="tab-content" id="productTabContent">
             <!-- All Products Tab -->
@@ -83,38 +47,111 @@
                         Advanced Filters
                     </h3>
 
-                    <form method="get" asp-action="Index" id="filterForm">
+                    <form method="get" asp-action="Index" id="filterForm" onsubmit="return validateFilters();">
                         <div class="row g-3">
+                            <!-- Search -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </label>
+                                <input type="text" name="SearchTerm"
+                                       value="@request.Query["SearchTerm"]"
+                                       class="form-control" placeholder="Search by name, brand, category..." />
+                            </div>
+
+                            <!-- Category -->
                             <div class="col-md-6 col-lg-3">
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-layer-group me-1"></i>Category
                                 </label>
                                 @Html.DropDownList("CategoryId",
-                                new SelectList(ViewBag.Categories, "Value", "Text", request.Query["CategoryId"]),
-                                                                "All Categories",
-                                                                new { @class = "form-control" })
+                                         new SelectList(ViewBag.Categories, "Value", "Text", request.Query["CategoryId"]),
+                                         "All Categories",
+                                         new { @class = "form-control" })
                             </div>
 
-                            <div class="col-md-6 col-lg-3">
-                                <label class="form-label fw-semibold">
-                                    <i class="fas fa-copyright me-1"></i>Brand
-                                </label>
-                                @Html.DropDownList("BrandId",
-                                                                new SelectList(ViewBag.Brands, "Value", "Text", request.Query["BrandId"]),
-                                                                "All Brands",
-                                                                new { @class = "form-control" })
-                            </div>
-
+                            <!-- Gender -->
                             <div class="col-md-6 col-lg-3">
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-venus-mars me-1"></i>Gender
                                 </label>
                                 @Html.DropDownList("Gender",
-                                                                new SelectList(ViewBag.Genders, "Value", "Text", request.Query["Gender"]),
-                                                                "All Genders",
-                                                                new { @class = "form-control" })
+                                         new SelectList(ViewBag.Genders, "Value", "Text", request.Query["Gender"]),
+                                         "All Genders",
+                                         new { @class = "form-control" })
                             </div>
 
+                            <!-- Min Price -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-dollar-sign me-1"></i>Min Price
+                                </label>
+                                <input type="number" step="0.01" name="MinPrice" id="minPrice"
+                                       value="@request.Query["MinPrice"]"
+                                       class="form-control" placeholder="0.00" />
+                            </div>
+
+                            <!-- Max Price -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-dollar-sign me-1"></i>Max Price
+                                </label>
+                                <input type="number" step="0.01" name="MaxPrice" id="maxPrice"
+                                       value="@request.Query["MaxPrice"]"
+                                       class="form-control" placeholder="9999.99" />
+                            </div>
+
+                            <!-- Min Stock -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-box me-1"></i>Min Stock
+                                </label>
+                                <input type="number" name="MinStock" id="minStock"
+                                       value="@request.Query["MinStock"]"
+                                       class="form-control" placeholder="0" />
+                            </div>
+
+                            <!-- Max Stock -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-box me-1"></i>Max Stock
+                                </label>
+                                <input type="number" name="MaxStock" id="maxStock"
+                                       value="@request.Query["MaxStock"]"
+                                       class="form-control" placeholder="1000" />
+                            </div>
+
+                            <!-- In Stock -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-warehouse me-1"></i>In Stock
+                                </label>
+                                @Html.DropDownList("InStock",
+                                         new SelectList(new[]
+                                         {
+                                new { Value = "", Text = "All" },
+                                new { Value = "true", Text = "Yes" },
+                                new { Value = "false", Text = "No" }
+                                }, "Value", "Text", request.Query["InStock"]),
+                                         new { @class = "form-control" })
+                            </div>
+
+                            <!-- On Sale -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-percent me-1"></i>On Sale
+                                </label>
+                                @Html.DropDownList("IsOnSale",
+                                         new SelectList(new[]
+                                         {
+                                new { Value = "", Text = "All" },
+                                new { Value = "true", Text = "Yes" },
+                                new { Value = "false", Text = "No" }
+                                }, "Value", "Text", request.Query["IsOnSale"]),
+                                         new { @class = "form-control" })
+                            </div>
+
+                            <!-- Buttons -->
                             <div class="col-md-6 col-lg-3">
                                 <label class="form-label fw-semibold d-block d-md-none">&nbsp;</label>
                                 <div class="d-flex gap-2 mt-4">
@@ -173,8 +210,6 @@
                                                     @product.Description
                                                 </div>
                                             </td>
-
-
                                             <td class="price-display">
                                                 @product.DisplayPrice.ToString("C")
                                                 <br />
@@ -183,8 +218,6 @@
                                                     <small class="text-muted"><s>@product.Price.ToString("C")</s></small>
                                                 }
                                             </td>
-
-
                                             <td class="d-none d-md-table-cell">@product.CategoryName</td>
                                             <td class="d-none d-lg-table-cell">@product.BrandName</td>
                                             <td class="d-none d-lg-table-cell">@product.GenderTarget</td>
@@ -200,15 +233,12 @@
                                                     <span class="d-none d-sm-inline">@(product.InStock ? "Yes" : "No")</span>
                                                 </span>
                                             </td>
-
-
                                             <td>
                                                 <div class="action-buttons">
                                                     <a href="@Url.Action("Details", "Products", new { id = product.Id })"
                                                        class="btn-action btn-view" title="View Details">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-
                                                     <a href="@Url.Action("Edit", new { id = product.Id })"
                                                        class="btn-action btn-edit"
                                                        title="Edit Product">
@@ -252,8 +282,13 @@
                                 <li class="page-item">
                                     <a class="page-link" asp-action="Index"
                                        asp-route-CategoryId="@request.Query["CategoryId"]"
-                                       asp-route-BrandId="@request.Query["BrandId"]"
                                        asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-MinPrice="@request.Query["MinPrice"]"
+                                       asp-route-MaxPrice="@request.Query["MaxPrice"]"
+                                       asp-route-MinStock="@request.Query["MinStock"]"
+                                       asp-route-MaxStock="@request.Query["MaxStock"]"
+                                       asp-route-InStock="@request.Query["InStock"]"
+                                       asp-route-IsOnSale="@request.Query["IsOnSale"]"
                                        asp-route-PageNumber="1"
                                        title="First Page">
                                         <i class="fas fa-angle-double-left"></i>
@@ -262,8 +297,13 @@
                                 <li class="page-item">
                                     <a class="page-link" asp-action="Index"
                                        asp-route-CategoryId="@request.Query["CategoryId"]"
-                                       asp-route-BrandId="@request.Query["BrandId"]"
                                        asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-MinPrice="@request.Query["MinPrice"]"
+                                       asp-route-MaxPrice="@request.Query["MaxPrice"]"
+                                       asp-route-MinStock="@request.Query["MinStock"]"
+                                       asp-route-MaxStock="@request.Query["MaxStock"]"
+                                       asp-route-InStock="@request.Query["InStock"]"
+                                       asp-route-IsOnSale="@request.Query["IsOnSale"]"
                                        asp-route-PageNumber="@(Model.PageNumber - 1)"
                                        title="Previous Page">
                                         <i class="fas fa-chevron-left d-md-none"></i>
@@ -277,8 +317,13 @@
                                 <li class="page-item @(i == Model.PageNumber ? "active" : "")">
                                     <a class="page-link" asp-action="Index"
                                        asp-route-CategoryId="@request.Query["CategoryId"]"
-                                       asp-route-BrandId="@request.Query["BrandId"]"
                                        asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-MinPrice="@request.Query["MinPrice"]"
+                                       asp-route-MaxPrice="@request.Query["MaxPrice"]"
+                                       asp-route-MinStock="@request.Query["MinStock"]"
+                                       asp-route-MaxStock="@request.Query["MaxStock"]"
+                                       asp-route-InStock="@request.Query["InStock"]"
+                                       asp-route-IsOnSale="@request.Query["IsOnSale"]"
                                        asp-route-PageNumber="@i">
                                         @i
                                     </a>
@@ -290,8 +335,13 @@
                                 <li class="page-item">
                                     <a class="page-link" asp-action="Index"
                                        asp-route-CategoryId="@request.Query["CategoryId"]"
-                                       asp-route-BrandId="@request.Query["BrandId"]"
                                        asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-MinPrice="@request.Query["MinPrice"]"
+                                       asp-route-MaxPrice="@request.Query["MaxPrice"]"
+                                       asp-route-MinStock="@request.Query["MinStock"]"
+                                       asp-route-MaxStock="@request.Query["MaxStock"]"
+                                       asp-route-InStock="@request.Query["InStock"]"
+                                       asp-route-IsOnSale="@request.Query["IsOnSale"]"
                                        asp-route-PageNumber="@(Model.PageNumber + 1)"
                                        title="Next Page">
                                         <i class="fas fa-chevron-right d-md-none"></i>
@@ -301,8 +351,13 @@
                                 <li class="page-item">
                                     <a class="page-link" asp-action="Index"
                                        asp-route-CategoryId="@request.Query["CategoryId"]"
-                                       asp-route-BrandId="@request.Query["BrandId"]"
                                        asp-route-Gender="@request.Query["Gender"]"
+                                       asp-route-MinPrice="@request.Query["MinPrice"]"
+                                       asp-route-MaxPrice="@request.Query["MaxPrice"]"
+                                       asp-route-MinStock="@request.Query["MinStock"]"
+                                       asp-route-MaxStock="@request.Query["MaxStock"]"
+                                       asp-route-InStock="@request.Query["InStock"]"
+                                       asp-route-IsOnSale="@request.Query["IsOnSale"]"
                                        asp-route-PageNumber="@Model.TotalPages"
                                        title="Last Page">
                                         <i class="fas fa-angle-double-right"></i>
@@ -326,7 +381,6 @@
                 </div>
             </div>
 
-
             <!-- Out of Stock Tab -->
             <div class="tab-pane fade" id="out-of-stock" role="tabpanel">
                 <div id="out-of-stock-content" class="empty-tabs text-center">
@@ -338,9 +392,6 @@
                     </button>
                 </div>
             </div>
-
-
-
         </div>
     </div>
 </div>
@@ -348,10 +399,7 @@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-
-
         function confirmDelete(id, name, hasVariants) {
           if (hasVariants) {
             Swal.fire({
@@ -360,9 +408,8 @@
               icon: 'warning',
               confirmButtonText: 'OK'
             });
-            return; // Prevent deletion
+            return;
           }
-
           Swal.fire({
             title: `Are you sure you want to delete "${name}"?`,
             text: "This action cannot be undone!",
@@ -379,26 +426,89 @@
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/x-www-form-urlencoded',
-                  'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                  'RequestVerificationToken': '@Antiforgery.GetAndStoreTokens(Context).RequestToken'
                 },
-                body: `id=${id}&__RequestVerificationToken=${document.querySelector('input[name="__RequestVerificationToken"]').value}`
+                body: `id=${id}`
               })
               .then(response => {
                 if (response.ok) {
-                  window.location.reload();
-                } else {
-                  response.text().then(text => {
-                    Swal.fire('Error', text || 'Failed to delete product', 'error');
+                  Swal.fire({
+                    title: 'Deleted!',
+                    text: 'Product has been deleted successfully.',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                  }).then(() => {
+                    location.reload();
                   });
+                } else {
+                  Swal.fire('Error!', 'Failed to delete product.', 'error');
                 }
               })
-              .catch(error => {
-                Swal.fire('Error', 'An error occurred', 'error');
+              .catch(() => {
+                Swal.fire('Error!', 'An error occurred while deleting.', 'error');
               });
             }
           });
         }
-    </script>
+   
+        function validateFilters() {
+            var minPrice = parseFloat(document.getElementById("minPrice").value) || 0;
+            var maxPrice = parseFloat(document.getElementById("maxPrice").value) || Infinity;
+            var minStock = parseInt(document.getElementById("minStock").value) || 0;
+            var maxStock = parseInt(document.getElementById("maxStock").value) || Infinity;
 
-    @Html.AntiForgeryToken()
+            // Positive value check
+            if (minPrice < 0 || maxPrice < 0) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'Price values must be positive',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return false;
+            }
+
+            if (minStock < 0 || maxStock < 0) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'Stock values must be positive',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return false;
+            }
+
+            // Min <= Max check
+            if (minPrice > maxPrice) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'Min Price cannot be greater than Max Price',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return false;
+            }
+
+            if (minStock > maxStock) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'Min Stock cannot be greater than Max Stock',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return false;
+            }
+
+            return true; // submit form
+        }
+    </script>
 }
