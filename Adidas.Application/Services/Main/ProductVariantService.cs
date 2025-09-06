@@ -511,16 +511,30 @@ namespace Adidas.Application.Services.Main
                 if (id == Guid.Empty)
                     return OperationResult<ProductVariant>.Fail("Invalid product variant ID");
 
-                var entity = await _productVariantRepository.GetByIdAsync(id);
+                // Load entity with children
+                var entity = await _productVariantRepository.GetByIdAsync(
+                    id,
+                    c => c.OrderItems,
+                    c => c.CartItems
+                );
+
                 if (entity == null || entity.IsDeleted)
-                    return OperationResult<ProductVariant>.Fail("Product variant not found");
+                    return OperationResult<ProductVariant>.Fail("Product variant not found or already deleted");
+
+                // 🔎 Check if it has children
+                if ((entity.OrderItems?.Any() ?? false) || (entity.CartItems?.Any() ?? false))
+                {
+                    return OperationResult<ProductVariant>.Fail("Cannot delete product variant because it has related order items or cart items.");
+                }
 
                 await BeforeDeleteAsync(entity);
-                var result = await _productVariantRepository.SoftDeleteAsync(id);
+
+                await _productVariantRepository.HardDeleteAsync(id);
                 await _productVariantRepository.SaveChangesAsync();
+
                 await AfterDeleteAsync(entity);
 
-                return OperationResult<ProductVariant>.Success(result.Entity);
+                return OperationResult<ProductVariant>.Success(entity);
             }
             catch (Exception ex)
             {

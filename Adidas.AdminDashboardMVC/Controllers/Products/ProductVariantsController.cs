@@ -105,16 +105,27 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         {
             try
             {
-                await _productVariantService.DeleteAsync(id);
-                TempData["Success"] = "Product variant deleted successfully.";
+                var result = await _productVariantService.DeleteAsync(id);
+
+                if (result.IsSuccess)
+                    TempData["Success"] = "Product variant deleted successfully.";
+                else
+                    TempData["Error"] = result.ErrorMessage ?? "Unknown error occurred.";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error deleting variant: {ex.Message}";
             }
 
-            return RedirectToAction(nameof(Index));
+            // 👇 get the page that called me
+            var referer = Request.Headers["Referer"].ToString();
+
+            if (!string.IsNullOrEmpty(referer))
+                return Redirect(referer); // go back to previous page
+            else
+                return RedirectToAction(nameof(Index)); // fallback
         }
+
 
 
         private async Task PopulateDropdownsAsync(Guid? selectedProductId = null)

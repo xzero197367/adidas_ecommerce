@@ -1,304 +1,329 @@
 ﻿@model Adidas.DTOs.Main.Product_DTOs.ProductDto
 @using Microsoft.AspNetCore.Http
-<link href="~/css/Product.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.32/sweetalert2.all.min.js"></script>
 
-<div class="container-fluid py-4">
+<div class="container mt-4">
+    <!-- Breadcrumb and Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-controller="Products" asp-action="Index" class="text-decoration-none">
+                        <i class="fas fa-arrow-left me-2"></i>Products
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">@Model.Name</li>
+            </ol>
+        </nav>
+        <div class="btn-group">
+            <a asp-controller="Products" asp-action="Edit" asp-route-id="@Model.Id"
+               class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-edit me-1"></i>Edit Product
+            </a>
+            <a asp-controller="ProductVariants" asp-action="Create" asp-route-productId="@Model.Id"
+               class="btn btn-success btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Variant
+            </a>
+        </div>
+    </div>
 
-    <!-- Product Header Section -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <div class="row align-items-center">
-                <div class="col-md-4">
-                    @if (Model.Images != null && Model.Images.Any())
-                    {
-                        <img src="@Model.Images.First().ImageUrl" class="img-fluid rounded shadow-sm" alt="@Model.Name" />
-                    }
-                    else
-                    {
-                        <div class="d-flex align-items-center justify-content-center bg-light rounded" style="height:250px;">
-                            <div class="text-center">
-                                <i class="fas fa-image fa-3x text-muted mb-2"></i>
-                                <p class="text-muted small mb-0">No Product Image</p>
-                            </div>
-                        </div>
-                    }
-                </div>
+    <!-- Product Information Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h1 class="h3 mb-0">@Model.Name</h1>
+            <span class="badge bg-secondary">@Model.CategoryName</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
                 <div class="col-md-8">
-                    <h2 class="fw-bold mb-2">@Model.Name</h2>
-                    <p class="text-muted">@Model.Description</p>
+                    <p class="text-muted mb-3">@Model.Description</p>
 
-                    <div class="mb-3">
-                        <span class="badge bg-info me-2">Category: @Model.CategoryName</span>
-                        @* <span class="badge bg-secondary">Brand: @Model.BrandName</span> *@
+                    <!-- Rating -->
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Floor(Model.AverageRating))
+                                {
+                                    <i class="fas fa-star text-warning"></i>
+                                }
+                                else if (i - 0.5 <= Model.AverageRating)
+                                {
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star text-warning"></i>
+                                }
+                            }
+                        </div>
+                        <span class="text-muted">
+                            @Model.AverageRating.ToString("0.0") (@Model.ReviewCount reviews)
+                        </span>
                     </div>
-
-                    <div class="mb-3">
-                        <span class="h4 text-dark fw-bold">@Model.DisplayPrice.ToString("C")</span>
+                </div>
+                <div class="col-md-4">
+                    <!-- Price -->
+                    <div class="text-end">
+                        <div class="h4 text-primary mb-1">@Model.DisplayPrice.ToString("C")</div>
                         @if (Model.IsOnSale)
                         {
-                            <span class="text-muted text-decoration-line-through ms-2">@Model.Price.ToString("C")</span>
+                            <div class="text-muted">
+                                <del>@Model.Price.ToString("C")</del>
+                                <span class="badge bg-danger ms-2">ON SALE</span>
+                            </div>
                         }
                     </div>
 
-                    <div class="mb-3">
-                        <i class="fas fa-star text-warning"></i>
-                        <span class="fw-bold">@Model.AverageRating.ToString("0.0")</span>
-                        <small class="text-muted">(@Model.ReviewCount reviews)</small>
-                    </div>
-
-                    <div class="mt-3">
-                        <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Back to List
-                        </a>
-                        <a asp-controller="ProductVariants" asp-action="Create" asp-route-productId="@Model.Id" class="btn btn-success">
-                            <i class="fas fa-plus me-1"></i> Add New Variant
-                        </a>
+                    <!-- Stats -->
+                    <div class="row text-center mt-3">
+                        <div class="col">
+                            <div class="h5 mb-0 text-primary">@Model.Variants.Count()</div>
+                            <small class="text-muted">Variants</small>
+                        </div>
+                        <div class="col">
+                            <div class="h5 mb-0 text-success">@Model.Variants.Sum(v => v.StockQuantity)</div>
+                            <small class="text-muted">Total Stock</small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Variants Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold text-dark">Variants</h3>
-            <p class="text-muted mb-0">Manage and view all product variants</p>
+    <!-- Variants Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0">
+                    <i class="fas fa-layer-group me-2"></i>Product Variants
+                </h5>
+                <small class="text-muted">Manage colors, sizes, and inventory</small>
+            </div>
+            <span class="badge bg-primary fs-6">@Model.Variants.Count() Variants</span>
         </div>
-        <div class="text-end">
-            <span class="badge bg-primary fs-6">@Model.Variants.Count() Total Variants</span>
-        </div>
-    </div>
 
-    <!-- Search Section -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <form method="get" asp-action="Details" asp-route-id="@Model.Id" class="row g-3">
-                <div class="col-md-8">
-                    <div class="input-group input-group-lg">
-                        <input type="text"
-                               name="sku"
-                               class="form-control border-start-0"
-                               placeholder="Search by SKU"
-                               value="@Context.Request.Query["sku"]" />
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-lg w-100 btn-search">
-                        <i class="fas fa-search me-2"></i>Search Variants
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Variants Grid -->
-    <div class="row g-4">
         @if (!Model.Variants.Any())
         {
-            <div class="col-12">
-                <div class="text-center py-5">
-                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                    <h4 class="text-muted">No variants found</h4>
-                    <p class="text-muted">Try adjusting your search criteria or add new variants.</p>
+            <!-- Empty State -->
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-box-open fa-3x text-muted"></i>
                 </div>
+                <h5 class="text-muted">No Variants Created Yet</h5>
+                <p class="text-muted mb-4">Start by creating your first product variant with different colors, sizes, or configurations</p>
+                <a asp-controller="ProductVariants" asp-action="Create" asp-route-productId="@Model.Id"
+                   class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create First Variant
+                </a>
             </div>
         }
         else
         {
-            @foreach (var variant in Model.Variants)
-            {
-                <div class="col-lg-4 col-md-6">
-                    <div class="card border-0 shadow-sm h-100 variant-card position-relative">
-
-                        <!-- Stock Status Badge -->
-                        <div class="position-absolute top-0 end-0 m-3 z-index-1">
-                            @if (variant.StockQuantity > 10)
-                            {
-                                <span class="badge bg-success">In Stock</span>
-                            }
-                            else if (variant.StockQuantity > 0)
-                            {
-                                <span class="badge bg-warning">Low Stock</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">Out of Stock</span>
-                            }
-                        </div>
-
-                        <!-- Product Image -->
-                        <div class="position-relative overflow-hidden" style="height: 250px;">
-                            @if (variant.Images != null && variant.Images.Any())
-                            {
-                                <img src="@variant.Images.First().ImageUrl"
-                                     class="card-img-top variant-image"
-                                     alt="@Model.Name - @variant.Color"
-                                     style="height: 100%; object-fit: cover; transition: transform 0.3s ease;" />
-                            }
-                            else
-                            {
-                                <div class="d-flex align-items-center justify-content-center h-100 bg-light">
-                                    <div class="text-center">
-                                        <i class="fas fa-image fa-2x text-muted mb-2"></i>
-                                        <p class="text-muted small mb-0">No Image</p>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <div class="card-body p-4">
-
-                            <!-- SKU Header -->
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="card-title mb-0 fw-bold">SKU: @variant.Sku</h5>
-                                <div class="text-end">
-                                    <span class="h5 text-primary mb-0 fw-bold">@variant.PriceAdjustment.ToString("C")</span>
-                                    <small class="text-muted d-block">Price Adj.</small>
-                                </div>
-                            </div>
-
-                            <!-- Variant Details -->
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
+            <!-- Variants Table -->
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Image</th>
+                            <th>Size</th>
+                            <th>Color</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th width="120">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var variant in Model.Variants)
+                        {
+                            var finalPrice = Model.DisplayPrice + variant.PriceAdjustment;
+                            <tr>
+                                <td>
+                                    <img src="@variant.ImageUrl" alt="Alternate Text" class="img-thumbnail" style="width:50px; height:50px; object-fit:cover;" />
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">@variant.Size</span>
+                                </td>
+                                <td>
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-ruler-combined text-muted me-2"></i>
-                                        <div>
-                                            <small class="text-muted d-block">Size</small>
-                                            <span class="fw-medium">@variant.Size</span>
-                                        </div>
+                                        <div class="color-dot me-2"
+                                             style="width: 20px; height: 20px; background-color: @variant.Color; border-radius: 50%; border: 2px solid #dee2e6;"
+                                             title="@variant.Color"></div>
+                                        <span>@variant.Color</span>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-palette text-muted me-2"></i>
-                                        <div>
-                                            <small class="text-muted d-block">Color</small>
-                                            <span class="fw-medium">@variant.Color</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Stock Information -->
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <small class="text-muted">Stock Quantity</small>
-                                    <span class="fw-bold">@variant.StockQuantity units</span>
-                                </div>
-                                <div class="progress" style="height: 6px;">
-                                    @{
-                                        var stockPercentage = Math.Min(100, (variant.StockQuantity / 50.0) * 100);
-                                        var progressClass = variant.StockQuantity > 10 ? "bg-success" :
-                                        variant.StockQuantity > 0 ? "bg-warning" : "bg-danger";
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-primary">@finalPrice.ToString("C")</div>
+                                    @if (variant.PriceAdjustment != 0)
+                                    {
+                                        <small class="text-muted">
+                                            (@(variant.PriceAdjustment > 0 ? "+" : "")@variant.PriceAdjustment.ToString("C"))
+                                        </small>
                                     }
-                                    <div class="progress-bar @progressClass"
-                                         role="progressbar"
-                                         style="width: @stockPercentage%"></div>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="d-grid gap-2">
-                                <div class="btn-group">
-                                    <a asp-controller="ProductVariants"
-                                       asp-action="Edit"
-                                       asp-route-id="@variant.Id"
-                                       class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </a>
-                                </div>
-                                <form method="post"
-                                      asp-action="DeleteVariant"
-                                      asp-route-id="@variant.Id"
-                                      asp-route-productId="@Model.Id"
-                                      onsubmit="return confirm('⚠️ Are you sure you want to delete this variant?\n\nSKU: @variant.Sku\nColor: @variant.Color\nSize: @variant.Size\n\nThis action cannot be undone.');"
-                                      class="d-inline">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-                                        <i class="fas fa-trash me-1"></i>Delete Variant
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">@variant.StockQuantity</span>
+                                        <div class="progress" style="width: 60px; height: 8px;">
+                                            @{
+                                                var stockPercentage = Math.Min(100, (variant.StockQuantity / 50.0) * 100);
+                                                var progressClass = variant.StockQuantity > 10 ? "bg-success" :
+                                                variant.StockQuantity > 0 ? "bg-warning" : "bg-danger";
+                                            }
+                                            <div class="progress-bar @progressClass"
+                                                 role="progressbar"
+                                                 style="width: @stockPercentage%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (variant.StockQuantity > 10)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>In Stock
+                                        </span>
+                                    }
+                                    else if (variant.StockQuantity > 0)
+                                    {
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Low Stock
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>Out of Stock
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-controller="ProductVariants"
+                                           asp-action="Edit"
+                                           asp-route-id="@variant.Id"
+                                           class="btn btn-outline-primary btn-sm"
+                                           title="Edit Variant">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                onclick="confirmDelete('@variant.Id', '@Model.Id', '@variant.Sku', '@variant.Color', '@variant.Size')"
+                                                title="Delete Variant">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
     </div>
 </div>
 
 <style>
-    .variant-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border-radius: 12px;
-    }
-
-        .variant-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
-        }
-
-    .variant-image:hover {
-        transform: scale(1.05);
-    }
-
-    .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-    }
-
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.5rem 0.75rem;
-        border-radius: 20px;
+    .color-dot {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        flex-shrink: 0;
     }
 
     .progress {
-        border-radius: 10px;
         background-color: #e9ecef;
     }
 
-    .progress-bar {
-        border-radius: 10px;
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
     }
 
-    .btn-outline-primary:hover,
-    .btn-outline-info:hover,
-    .btn-outline-danger:hover {
-        transform: translateY(-1px);
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
     }
 
-    .z-index-1 {
-        z-index: 1;
-    }
-  
-    .card-body {
-        padding: 1rem !important;
+    .table td {
+        vertical-align: middle;
     }
 
+    .card {
+        border: 1px solid #e3e6f0;
+    }
+
+    .card-header {
+        border-bottom: 1px solid #e3e6f0;
+    }
+
+    code {
+        font-family: 'Courier New', monospace;
+        font-size: 0.85em;
     }
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Search loading state
-        const searchForm = document.querySelector('form[method="get"]');
-        const searchButton = searchForm?.querySelector('button[type="submit"]');
-        if (searchForm && searchButton) {
-            searchForm.addEventListener('submit', function() {
-                searchButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
-                searchButton.disabled = true;
-            });
-        }
+    // SweetAlert Delete Confirmation
+    function confirmDelete(variantId, productId, sku, color, size) {
+        Swal.fire({
+            title: 'Delete Variant?',
+            html: `
+                <div class="text-start bg-light p-3 rounded mb-3">
+                    <div class="mb-2">
+                        <strong>SKU:</strong>
+                        <code class="bg-secondary text-white px-2 py-1 rounded">${sku}</code>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Color:</strong>
+                        <span style="display: inline-block; width: 16px; height: 16px; background: ${color}; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); vertical-align: middle; margin-right: 8px;"></span>
+                        ${color}
+                    </div>
+                    <div>
+                        <strong>Size:</strong>
+                        <span class="badge bg-primary">${size}</span>
+                    </div>
+                </div>
+                <p class="text-danger fw-bold mb-0">This action cannot be undone!</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> Delete',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Deleting...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
 
-        // Delete button loading state
-        const deleteForms = document.querySelectorAll('form[asp-action="DeleteVariant"]');
-        deleteForms.forEach(form => {
-            form.addEventListener('submit', function() {
-                const button = this.querySelector('button[type="submit"]');
-                button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
-                button.disabled = true;
-            });
+                // Create and submit form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/ProductVariants/Delete/${variantId}`;
+
+                // Add CSRF token if available
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = token.value;
+                    form.appendChild(tokenInput);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
         });
-    });
+    }
 </script>
