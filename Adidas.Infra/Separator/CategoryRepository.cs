@@ -36,8 +36,27 @@ namespace Adidas.Infra.Separator
 
         public async Task<Category?> GetCategoryBySlugAsync(string slug)
         {
+            // get all gategories including its all related entities 
             return await _dbSet
-                .FirstOrDefaultAsync(c => c.Slug == slug);
+                .Include(c => c.ParentCategory)
+                .Include(c => c.Products)
+                .Include(c => c.SubCategories)
+                .ThenInclude(sc => sc.Products)
+                .FirstOrDefaultAsync(c => c.Slug == slug && !c.IsDeleted && c.IsActive);
+
+        }
+
+        public async Task<Category?> GetCategoryByIdAsync(Guid categoryId)
+        {
+            // get all gategories including its all related entities 
+
+            return await _dbSet
+                .Include(c => c.ParentCategory)
+                .Include(c => c.Products)
+                .Include(c => c.SubCategories)
+                .ThenInclude(sc => sc.Products)
+                .FirstOrDefaultAsync(c => c.Id == categoryId && !c.IsDeleted && c.IsActive);
+
         }
 
         public async Task<List<Category>> GetCategoryHierarchyAsync(Guid categoryId)

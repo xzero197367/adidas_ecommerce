@@ -196,15 +196,47 @@ namespace Adidas.Application.Services.Separator
 
         public async Task<CategoryDto> GetCategoryDetailsAsync(Guid id)
         {
-            var category = await _categoryRepository.GetByIdAsync(id,
-                c => c.SubCategories,
-                c => c.Products,
-                c => c.ParentCategory);
+            // check if the category is main category , if its make its products = all products of its subcategories
 
-            if (category == null)
-                return null;
+            var category = await _categoryRepository.GetCategoryByIdAsync(id);
 
+            if (category == null) return null;
+            if (category.ParentCategoryId == null)
+            {
+                var subCategories = await _categoryRepository.GetSubCategoriesAsync(category.Id);
+                var allProducts = subCategories.SelectMany(sc => sc.Products).ToList();
+                category.Products = allProducts;
+            }
             return MapToCategoryDto(category, includeRelations: true);
+            //if (category == null)
+            //    return null;
+
+            //if (category.ParentCategoryId == null)
+            //{
+            //    var subCategories = await _categoryRepository.GetSubCategoriesAsync(category.Id);
+            //    var allProducts = subCategories.SelectMany(sc => sc.Products).ToList();
+            //    category.Products = allProducts;
+            //}
+
+            //return MapToCategoryDto(category, includeRelations: true);
+        }
+
+        public async Task<CategoryDto> GetCategoryBySlugAsync(string slug)
+        {
+            // check if the category is main category , if its make its products = all products of its subcategories
+            var category = await _categoryRepository.GetCategoryBySlugAsync(slug);
+            if (category == null) return null;
+            if (category.ParentCategoryId == null)
+            {
+                var subCategories = await _categoryRepository.GetSubCategoriesAsync(category.Id);
+                var allProducts = subCategories.SelectMany(sc => sc.Products).ToList();
+                category.Products = allProducts;
+            }
+            return MapToCategoryDto(category, includeRelations: true);
+            // if its subcategory return it with its products
+
+            //var category = await _categoryRepository.GetCategoryBySlugAsync(slug);
+            //return category != null ? MapToCategoryDto(category, includeRelations: true) : null;
         }
 
         public async Task<CategoryDto> GetSubCategoriesByCategorySlug(string slug)
