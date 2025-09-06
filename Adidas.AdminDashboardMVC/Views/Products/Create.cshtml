@@ -97,6 +97,13 @@
             border-color: #ced4da;
         }
 
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
     select.form-control {
         cursor: pointer;
     }
@@ -150,6 +157,16 @@
             font-size: 1.1rem;
             font-weight: 600;
         }
+
+    .sale-price-info {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+        border: 1px solid #ffc107;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #856404;
+    }
 
     .description-section {
         background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
@@ -340,7 +357,7 @@
             animation: spin 1s linear infinite;
         }
 
-    spin {
+     spin {
         0%
 
     {
@@ -351,9 +368,10 @@
         transform: rotate(360deg);
     }
 
+    }
 
     /* Responsive design */
-    (max-width: 768 px) {
+     (max-width: 768px) {
         .product-form-container
 
     {
@@ -391,7 +409,7 @@
 
     }
 
-    (max-width: 480 px) {
+     (max-width: 480px) {
         .product-form-container
 
     {
@@ -420,7 +438,6 @@
         }
 
     }
-    }
 </style>
 
 <link href="~/css/Product.css" rel="stylesheet" />
@@ -435,7 +452,6 @@
         </div>
     </div>
 </div>
-
 
 <div class="form-card">
     <form asp-action="Create" method="post" id="createProductForm">
@@ -458,13 +474,13 @@
                     </select>
                     <span asp-validation-for="CategoryId" class="text-danger"></span>
                 </div>
-                <div class="form-group required-field">
-                    <label asp-for="BrandId">🏷️ Brand</label>
-                    <select asp-for="BrandId" class="form-control" asp-items="ViewBag.Brands">
-                        <option value="">Select a brand</option>
-                    </select>
-                    <span asp-validation-for="BrandId" class="text-danger"></span>
-                </div>
+                 <div class="form-group required-field">  
+                    <label asp-for="BrandId">🏷️ Brand</label>  
+                    <select asp-for="BrandId" class="form-control" asp-items="ViewBag.Brands"> 
+                         <option value="">Select a brand</option> 
+                     </select>  
+                     <span asp-validation-for="BrandId" class="text-danger"></span> 
+                </div>  
             </div>
 
             <div class="form-group required-field">
@@ -479,20 +495,38 @@
         <!-- Step 2: Pricing -->
         <div class="price-section" id="step2">
             <h4>💰 Step 2: Pricing Information</h4>
-            <div class="form-group required-field">
-                <label asp-for="Price">Product Price</label>
-                <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-                @* <label asp-for="Sale">On Sale</label>
-                <input asp-for="Sale" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" /> *@
 
+            <div class="form-row">
+                <div class="form-group required-field">
+                    <label asp-for="Price">Regular Price</label>
+                    <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="SalePrice">🏷️ Sale Price (Optional)</label>
+                    <input asp-for="SalePrice" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" id="salePriceInput" />
+                    <span asp-validation-for="SalePrice" class="text-danger"></span>
+                </div>
+            </div>
+
+            @* <div class="checkbox-group"> *@
+            @*     <div class="form-check"> *@
+            @*         <input asp-for="Sale" class="form-check-input" type="checkbox" id="saleCheckbox" /> *@
+            @*         <label asp-for="Sale" class="form-check-label"> *@
+            @*             🔥 Product is on sale *@
+            @*         </label> *@
+            @*     </div> *@
+            @* </div> *@
+
+            <div class="sale-price-info" id="salePriceInfo" style="display: none;">
+                <strong>💡 Sale Information:</strong> When a sale price is set and the product is marked as on sale, customers will see the discounted price with the original price crossed out.
             </div>
         </div>
 
         <!-- Step 3: Descriptions -->
         <div class="description-section" id="step3">
             <h4>📝 Step 3: Product Details</h4>
-
 
             <div class="form-group">
                 <label asp-for="Description">Full Description</label>
@@ -504,11 +538,9 @@
             </div>
         </div>
 
-
         <!-- Action Buttons -->
         <div class="button-group">
-
-            <button type="submit" class="btn .btn-search" id="submitBtn">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
                 ✅ Create Product
             </button>
             <a asp-action="Index" class="btn btn-secondary">
@@ -517,7 +549,6 @@
         </div>
     </form>
 </div>
-
 
 @section Scripts {
     @{
@@ -528,6 +559,58 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('createProductForm');
             const submitBtn = document.getElementById('submitBtn');
+            const saleCheckbox = document.getElementById('saleCheckbox');
+            const salePriceInput = document.getElementById('salePriceInput');
+            const salePriceInfo = document.getElementById('salePriceInfo');
+            const priceInput = document.querySelector('input[asp-for="Price"]');
+
+            // Sale price functionality
+            function toggleSalePrice() {
+                const isOnSale = saleCheckbox.checked;
+                const hasSalePrice = salePriceInput.value && parseFloat(salePriceInput.value) > 0;
+
+                if (isOnSale || hasSalePrice) {
+                    salePriceInfo.style.display = 'block';
+                } else {
+                    salePriceInfo.style.display = 'none';
+                }
+
+                // Auto-check sale checkbox when sale price is entered
+                if (hasSalePrice && !isOnSale) {
+                    saleCheckbox.checked = true;
+                }
+            }
+
+            // Validate sale price against regular price
+            function validateSalePrice() {
+                const regularPrice = parseFloat(priceInput.value) || 0;
+                const salePrice = parseFloat(salePriceInput.value) || 0;
+                const salePriceGroup = salePriceInput.closest('.form-group');
+                const existingWarning = salePriceGroup.querySelector('.sale-price-warning');
+
+                // Remove existing warning
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+
+                if (salePrice > 0 && regularPrice > 0 && salePrice >= regularPrice) {
+                    const warning = document.createElement('div');
+                    warning.className = 'text-danger sale-price-warning';
+                    warning.textContent = 'Sale price should be less than regular price';
+                    salePriceGroup.appendChild(warning);
+                    salePriceGroup.classList.add('has-error');
+                } else {
+                    salePriceGroup.classList.remove('has-error');
+                }
+            }
+
+            // Event listeners for sale functionality
+            saleCheckbox.addEventListener('change', toggleSalePrice);
+            salePriceInput.addEventListener('input', function() {
+                toggleSalePrice();
+                validateSalePrice();
+            });
+            priceInput.addEventListener('input', validateSalePrice);
 
             // Progress tracking
             function updateProgress() {
@@ -536,7 +619,6 @@
                     step1: ['input[asp-for="Name"]', 'select[asp-for="CategoryId"]', 'select[asp-for="BrandId"]', 'select[asp-for="GenderTarget"]'],
                     step2: ['input[asp-for="Price"]'],
                     step3: [], // Optional fields
-                    step4: [] // Optional checkbox
                 };
 
                 let completedSteps = 0;
@@ -549,15 +631,19 @@
                     });
 
                     if (allFilled || stepFields.length === 0) {
-                        steps[index].classList.add('active');
-                        completedSteps++;
+                        if (steps[index]) {
+                            steps[index].classList.add('active');
+                            completedSteps++;
+                        }
                     } else {
-                        steps[index].classList.remove('active');
+                        if (steps[index]) {
+                            steps[index].classList.remove('active');
+                        }
                     }
                 });
 
                 // Always show at least step 1 as active
-                if (completedSteps === 0) {
+                if (completedSteps === 0 && steps[0]) {
                     steps[0].classList.add('active');
                 }
             }
@@ -601,7 +687,6 @@
                 }
             }
 
-            setupCharacterCounter('input[asp-for="ShortDescription"]', 'shortDescCounter', 100);
             setupCharacterCounter('textarea[asp-for="Description"]', 'descCounter', 1000);
 
             // Form validation with enhanced feedback
@@ -615,6 +700,7 @@
                     group.classList.remove('has-error', 'has-success');
                 });
 
+                // Check required fields
                 requiredFields.forEach(field => {
                     const formGroup = field.closest('.form-group');
 
@@ -631,22 +717,22 @@
                     }
                 });
 
-                      if (hasErrors) {
-            e.preventDefault();
+                // Validate sale price
+                validateSalePrice();
+                if (document.querySelector('.sale-price-warning')) {
+                    hasErrors = true;
+                }
 
-            // ❌ Remove or comment out this block
-            // const errorMsg = `Please fill in the following required fields:\n• ${errorMessages.join('\n• ')}`;
-            // alert(errorMsg);
+                if (hasErrors) {
+                    e.preventDefault();
 
-            // Scroll to first error and focus
-            const firstError = document.querySelector('.has-error .form-control');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => firstError.focus(), 300);
-            }
-        }
-
-                 else {
+                    // Scroll to first error and focus
+                    const firstError = document.querySelector('.has-error .form-control');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => firstError.focus(), 300);
+                    }
+                } else {
                     // Show loading state
                     submitBtn.classList.add('btn-loading');
                     submitBtn.disabled = true;
@@ -660,9 +746,10 @@
             });
 
             // Price input formatting and validation
-            const priceInput = document.querySelector('input[asp-for="Price"]');
-            if (priceInput) {
-                priceInput.addEventListener('blur', function () {
+            function setupPriceInput(input) {
+                if (!input) return;
+
+                input.addEventListener('blur', function () {
                     if (this.value && !isNaN(this.value)) {
                         const value = parseFloat(this.value);
                         if (value >= 0) {
@@ -671,7 +758,7 @@
                     }
                 });
 
-                priceInput.addEventListener('input', function () {
+                input.addEventListener('input', function () {
                     // Remove non-numeric characters except decimal point
                     this.value = this.value.replace(/[^0-9.]/g, '');
 
@@ -688,10 +775,14 @@
                 });
             }
 
+            setupPriceInput(priceInput);
+            setupPriceInput(salePriceInput);
+
             // Initial progress update
             updateProgress();
 
-            // Auto-save to localStorage (optional enhancement)
+            // Auto-save functionality (commented out since localStorage is not supported in artifacts)
+            /*
             function saveFormData() {
                 const formData = new FormData(form);
                 const data = {};
@@ -721,6 +812,7 @@
                             }
                         });
                         updateProgress();
+                        toggleSalePrice();
                     }
                 } catch (e) {
                     // Error loading data, ignore
@@ -745,6 +837,7 @@
                     }
                 }
             });
+            */
         });
     </script>
 }
