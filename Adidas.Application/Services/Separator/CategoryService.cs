@@ -208,17 +208,6 @@ namespace Adidas.Application.Services.Separator
                 category.Products = allProducts;
             }
             return MapToCategoryDto(category, includeRelations: true);
-            //if (category == null)
-            //    return null;
-
-            //if (category.ParentCategoryId == null)
-            //{
-            //    var subCategories = await _categoryRepository.GetSubCategoriesAsync(category.Id);
-            //    var allProducts = subCategories.SelectMany(sc => sc.Products).ToList();
-            //    category.Products = allProducts;
-            //}
-
-            //return MapToCategoryDto(category, includeRelations: true);
         }
 
         public async Task<CategoryDto> GetCategoryBySlugAsync(string slug)
@@ -233,10 +222,7 @@ namespace Adidas.Application.Services.Separator
                 category.Products = allProducts;
             }
             return MapToCategoryDto(category, includeRelations: true);
-            // if its subcategory return it with its products
-
-            //var category = await _categoryRepository.GetCategoryBySlugAsync(slug);
-            //return category != null ? MapToCategoryDto(category, includeRelations: true) : null;
+       
         }
 
         public async Task<CategoryDto> GetSubCategoriesByCategorySlug(string slug)
