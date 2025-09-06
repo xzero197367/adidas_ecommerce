@@ -159,13 +159,28 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ProductUpdateDto model)
         {
+            if (model.SalePrice >= model.Price)
+            {
+                ModelState.AddModelError("SalePrice", "SalePrice must be Less than the price");
+            }
             if (!ModelState.IsValid)
             {
                 await PopulateDropdownsAsync();
                 return View(model);
             }
 
-            await _productService.UpdateAsync(model);
+           var result =  await _productService.UpdateAsync(model);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage); // Show specific error (e.g., slug exists)
+                TempData["Error"] = result.ErrorMessage;
+
+                await PopulateDropdownsAsync();
+                return View(model);
+            }
+
+            TempData["Success"] = "Product created successfully!";
+
             return RedirectToAction(nameof(Index));
         }
 
