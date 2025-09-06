@@ -66,7 +66,7 @@ namespace Adidas.Application.Services.Main
                 IsActive = p.IsActive,
                 CategoryName = p.Category?.Name,
                 BrandName = p.Brand?.Name,
-
+                
                 Category = p.Category != null ? new CategoryDto
                 {
                     Id = p.Category.Id,
@@ -309,18 +309,33 @@ namespace Adidas.Application.Services.Main
         {
             try
             {
+                // Check if product name already exists
+                bool nameExists = await _productRepository.ExistsAsync(p => p.Name == createDto.Name);
+                if (nameExists)
+                    return OperationResult<ProductDto>.Fail("Error creating product: Proudct with this name already exists");
+
+                // Domain-specific validation
                 await ValidateCreateAsync(createDto);
 
+                // Map DTO to entity
                 var entity = MapToProduct(createDto);
+
+                // Pre-create hook
                 await BeforeCreateAsync(entity);
 
+                // Add entity
                 var createdEntityEntry = await _productRepository.AddAsync(entity);
                 await _productRepository.SaveChangesAsync();
 
                 var createdEntity = createdEntityEntry.Entity;
+
+                // Post-create hook
                 await AfterCreateAsync(createdEntity);
 
-                return OperationResult<ProductDto>.Success(MapToProductDto(createdEntity));
+                // Map to DTO
+                var productDto = MapToProductDto(createdEntity);
+
+                return OperationResult<ProductDto>.Success(productDto);
             }
             catch (Exception ex)
             {
