@@ -37,7 +37,9 @@ namespace Adidas.Infra.Separator
         public async Task<Category?> GetCategoryBySlugAsync(string slug)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(c => c.Slug == slug);
+      .Include(c => c.ParentCategory)
+      .Include(c => c.SubCategories)
+      .FirstOrDefaultAsync(c => c.Slug == slug && !c.IsDeleted);
         }
 
         public async Task<List<Category>> GetCategoryHierarchyAsync(Guid categoryId)

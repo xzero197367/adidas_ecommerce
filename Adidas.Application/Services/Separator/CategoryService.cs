@@ -1,14 +1,12 @@
-﻿using System.Data.Entity;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Models.Separator;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.DTOs.Common_DTOs;
 using Microsoft.Data.SqlClient;
-using System.Data.Entity.Infrastructure;
 using Adidas.DTOs.CommonDTOs;
-using Adidas.DTOs.Main.Product_DTOs;
-using Adidas.Models.Main;
 using Adidas.Application.Contracts.ServicesContracts.Main;
 
 namespace Adidas.Application.Services.Separator
