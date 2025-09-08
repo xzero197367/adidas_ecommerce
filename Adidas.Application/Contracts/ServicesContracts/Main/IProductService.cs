@@ -10,6 +10,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Main
 {
     public interface IProductService : IGenericService<Product, ProductDto, ProductCreateDto, ProductUpdateDto>
     {
+        public ProductDto MapToProductDto(Product p);
         Task<ProductVariantDto?> GetVariantByIdAsync(Guid id);
         Task<OperationResult<IEnumerable<ProductDto>>> GetProductsByCategoryAsync(Guid categoryId);
         Task<OperationResult<IEnumerable<ProductDto>>> GetProductsByBrandAsync(Guid brandId);

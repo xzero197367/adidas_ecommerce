@@ -1,4 +1,5 @@
 ﻿// Program.cs 
+
 using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Operation;
@@ -52,69 +53,78 @@ namespace Adidas.ClientAPI
             var builder = WebApplication.CreateBuilder(args);
 
             #region DbContext
+
             builder.Services.AddDbContext<AdidasDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
             #endregion
 
             #region Identity
+
             builder.Services.AddIdentity<User, IdentityRole>(options =>
-            {
-                // Password settings
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequiredLength = 6;
+                {
+                    // Password settings
+                    options.Password.RequireDigit = true;
+                    options.Password.RequireLowercase = true;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequiredLength = 6;
 
-                // User settings
-                options.User.RequireUniqueEmail = true;
+                    // User settings
+                    options.User.RequireUniqueEmail = true;
 
-                // Lockout settings
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-                options.Lockout.MaxFailedAccessAttempts = 5;
+                    // Lockout settings
+                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                    options.Lockout.MaxFailedAccessAttempts = 5;
 
-                // Sign-in settings
-                options.SignIn.RequireConfirmedEmail = false; // Set to true in production
-            })
-            .AddEntityFrameworkStores<AdidasDbContext>()
-            .AddDefaultTokenProviders();
+                    // Sign-in settings
+                    options.SignIn.RequireConfirmedEmail = false; // Set to true in production
+                })
+                .AddEntityFrameworkStores<AdidasDbContext>()
+                .AddDefaultTokenProviders();
+
             #endregion
 
             #region Authentication - JWT
+
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"];
 
             builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings["Issuer"],
-                    ValidAudience = jwtSettings["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey)),
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidAudience = jwtSettings["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey)),
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
             #endregion
 
             #region Authentication - Google
+
             builder.Services.AddAuthentication()
                 .AddGoogle(options =>
                 {
                     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
                     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
                 });
+
             #endregion
 
             #region Authorization
+
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("CustomerOnly", policy =>
@@ -124,6 +134,7 @@ namespace Adidas.ClientAPI
                     policy.RequireAssertion(context =>
                         context.User.Identity.IsAuthenticated));
             });
+
             #endregion
             #region CloudinaryDotNet
             builder.Services.Configure<CloudinarySettings>(
@@ -146,9 +157,8 @@ namespace Adidas.ClientAPI
 
 
 
-
-            builder.Services.AddScoped<IAddressService, AddressService>(); 
-
+            builder.Services.AddScoped<IAddressService, AddressService>();
+            builder.Services.AddScoped<ProductReviewService, ProductReviewService>();
             // Register Services
             builder.Services.AddScoped<IRecommendationService, RecommendationService>();
             builder.Services.AddScoped<IProductService, ProductService>();
@@ -186,10 +196,13 @@ namespace Adidas.ClientAPI
 
 
             #region Controllers
+
             builder.Services.AddControllers();
+
             #endregion
 
             #region Swagger
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -203,7 +216,8 @@ namespace Adidas.ClientAPI
                 // Add JWT Authentication to Swagger
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+                    Description =
+                        "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey,
@@ -225,35 +239,38 @@ namespace Adidas.ClientAPI
                     }
                 });
             });
+
             #endregion
 
             #region CORS
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngular", policy =>
                 {
                     policy.WithOrigins("http://localhost:4200") // Angular default port
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
+
             #endregion
 
             #region Mapster
+
             builder.Services.AddMapster();
+
             #endregion
 
             var app = builder.Build();
 
             #region Middleware
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Adidas Client API v1");
-                });
+                app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Adidas Client API v1"); });
             }
 
             app.UseCors("AllowAngular");
@@ -261,10 +278,12 @@ namespace Adidas.ClientAPI
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
+
             #endregion
+
             // Ensure roles exist
-            using(var scope = app.Services.CreateScope())
-{
+            using (var scope = app.Services.CreateScope())
+            {
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
                 string[] roleNames = { "Admin", "Customer" };
@@ -277,8 +296,6 @@ namespace Adidas.ClientAPI
                     }
                 }
             }
-
-
 
 
             app.Run();

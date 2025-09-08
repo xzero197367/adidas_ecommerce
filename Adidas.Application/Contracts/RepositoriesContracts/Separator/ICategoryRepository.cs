@@ -14,6 +14,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Separator
         Task<IEnumerable<Category>> GetMainCategoriesAsync();
         Task<IEnumerable<Category>> GetSubCategoriesAsync(Guid parentCategoryId);
         Task<Category?> GetCategoryBySlugAsync(string slug);
+        Task<Category?> GetCategoryByIdAsync(Guid categoryId);
         Task<List<Category>> GetCategoryHierarchyAsync(Guid categoryId);
         Task<Category> GetCategoryByNameAsync(string name);
        

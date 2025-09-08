@@ -79,19 +79,21 @@
                         <div class="card-header">
                             <h5 class="card-title mb-0">Shipping Address</h5>
                         </div>
-                        <div class="card-body">
-                            @if (Model.ShippingAddress != null)
-                            {
-                                @foreach (var item in Model.ShippingAddress)
-                                {
-                                    @* <p><strong>@item.Key:</strong> @item.Value</p> *@
-                                }
-                            }
-                            else
-                            {
-                                <p class="text-muted">No shipping address available</p>
-                            }
-                        </div>
+
+                        @* <div class="card-body"> *@
+                        @*     @if (Model.ShippingAddress != null) *@
+                        @*     { *@
+                        @*         @foreach (var item in Model.ShippingAddress) *@
+                        @*         { *@
+                        @*             <p><strong>@item.Key:</strong> @item.Value</p> *@
+                        @*         } *@
+                        @*     } *@
+                        @*     else *@
+                        @*     { *@
+                        @*         <p class="text-muted">No shipping address available</p> *@
+                        @*     } *@
+                        @* </div> *@
+ 
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -99,19 +101,20 @@
                         <div class="card-header">
                             <h5 class="card-title mb-0">Billing Address</h5>
                         </div>
-                        <div class="card-body">
-                            @if (Model.BillingAddress != null)
-                            {
-                                @foreach (var item in Model.BillingAddress)
-                                {
-                                    @* <p><strong>@item.Key:</strong> @item.Value</p> *@
-                                }
-                            }
-                            else
-                            {
-                                <p class="text-muted">No billing address available</p>
-                            }
-                        </div>
+                        @* <div class="card-body"> *@
+                        @*     @if (Model.BillingAddress != null) *@
+                        @*     { *@
+                        @*         @foreach (var item in Model.BillingAddress) *@
+                        @*         { *@
+                        @*             <p><strong>@item.Key:</strong> @item.Value</p> *@
+                        @*         } *@
+                        @*     } *@
+                        @*     else *@
+                        @*     { *@
+                        @*         <p class="text-muted">No billing address available</p> *@
+                        @*     } *@
+                        @* </div> *@
+ 
                     </div>
                 </div>
             </div>

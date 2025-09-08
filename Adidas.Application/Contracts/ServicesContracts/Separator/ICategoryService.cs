@@ -15,6 +15,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Separator
         Task<Result> UpdateAsync(CategoryUpdateDto updateCategoryDto);
         Task<CategoryUpdateDto> GetCategoryToEditByIdAsync(Guid id);
         Task<CategoryDto> GetCategoryDetailsAsync(Guid id);
+        Task<CategoryDto> GetCategoryBySlugAsync(string slug);
         Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter, string searchTerm);
         Task<Result> ToggleCategoryStatusAsync(Guid categoryId);
         Task<CategoryDto> GetSubCategoriesByCategoryId(Guid id);

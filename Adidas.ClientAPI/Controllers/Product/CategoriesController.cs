@@ -59,6 +59,14 @@ namespace Adidas.ClientAPI.Controllers.Product
                 return NotFound();
             return Ok(category);
         }
+        [HttpGet("GetCategoryDetailsBySlug/{slug}")]
+        public async Task<IActionResult> GetCategoryDetailsBySlug(string slug)
+        {
+            var category = await _categoryService.GetCategoryBySlugAsync(slug);
+            if (category == null)
+                return NotFound();
+            return Ok(category);
+        }
 
         [HttpGet("GetFilteredCategories")]
         public async Task<IActionResult> GetFilteredCategories(
