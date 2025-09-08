@@ -3,43 +3,27 @@
     ViewData["Title"] = "Edit Product Variant";
 }
 
-<!-- Custom CSS -->
+<!-- Enhanced CSS -->
 <style>
     .edit-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 2rem 0;
         margin-bottom: 2rem;
-        border-radius: 0 0 20px 20px;
-        position: relative;
-        overflow: hidden;
+        border-radius: 0 0 15px 15px;
     }
-
-        .edit-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="20" cy="80" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-        }
 
     .edit-title {
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        position: relative;
-        z-index: 1;
     }
 
     .edit-subtitle {
         font-size: 1.1rem;
         opacity: 0.9;
-        margin-bottom: 0;
-        position: relative;
-        z-index: 1;
+        margin-bottom: 1rem;
     }
 
     .breadcrumb-nav {
@@ -48,8 +32,9 @@
         border-radius: 25px;
         padding: 0.5rem 1rem;
         margin-top: 1rem;
-        position: relative;
-        z-index: 1;
+        display: inline-flex;
+        gap: 0.5rem;
+        align-items: center;
     }
 
         .breadcrumb-nav a {
@@ -62,23 +47,18 @@
                 color: white;
             }
 
-    .form-container {
-        background: white;
-        border-radius: 25px;
-        box-shadow: 0 15px 45px rgba(0,0,0,0.1);
+    .wizard-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         overflow: hidden;
-        margin-bottom: 2rem;
-    }
-
-    .form-content {
-        padding: 2.5rem;
     }
 
     .form-section {
-        margin-bottom: 2rem;
-        padding: 1.5rem;
         background: #f8f9fa;
-        border-radius: 15px;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
         border-left: 4px solid #667eea;
     }
 
@@ -86,72 +66,44 @@
         font-size: 1.2rem;
         font-weight: 600;
         color: #495057;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .form-group {
         margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .form-control-modern {
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        padding: 0.875rem 1rem;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        background: white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    .section-icon {
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
     }
 
-        .form-control-modern:focus {
+    .form-control-enhanced {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+        .form-control-enhanced:focus {
             border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            box-shadow: 0 0 0 0.15rem rgba(102, 126, 234, 0.25);
             transform: translateY(-1px);
-            background: white;
         }
 
-        .form-control-modern:hover {
-            border-color: #ced4da;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .form-control-modern[readonly] {
+        .form-control-enhanced[readonly] {
             background: #f8f9fa;
             border-color: #dee2e6;
             color: #6c757d;
             cursor: not-allowed;
         }
-
-    .input-group-modern {
-        position: relative;
-    }
-
-    .input-icon {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-        z-index: 10;
-        pointer-events: none;
-    }
-
-    .form-control-modern.with-icon {
-        padding-left: 2.5rem;
-    }
 
     .current-image-container {
         background: white;
@@ -184,9 +136,6 @@
         color: #6c757d;
         font-size: 1.1rem;
         padding: 2rem;
-        background: #f8f9fa;
-        border-radius: 12px;
-        border: 2px dashed #dee2e6;
     }
 
     .file-upload-area {
@@ -225,123 +174,6 @@
         color: #6c757d;
         font-size: 0.9rem;
         margin-top: 0.5rem;
-    }
-
-    .file-input-hidden {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-    }
-
-    .validation-message {
-        background: #f8d7da;
-        color: #721c24;
-        padding: 0.5rem 0.75rem;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        margin-top: 0.5rem;
-        border-left: 3px solid #dc3545;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .form-actions {
-        background: #f8f9fa;
-        padding: 2rem;
-        border-top: 1px solid #e9ecef;
-        display: flex;
-        gap: 1rem;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .btn-modern {
-        padding: 0.875rem 2rem;
-        border-radius: 25px;
-        font-weight: 600;
-        font-size: 1rem;
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-primary-modern {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    }
-
-        .btn-primary-modern:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
-    .btn-secondary-modern {
-        background: #6c757d;
-        color: white;
-        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
-    }
-
-        .btn-secondary-modern:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
-            color: white;
-        }
-
-    .btn-loading {
-        position: relative;
-    }
-
-        .btn-loading::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            margin: auto;
-            border: 2px solid transparent;
-            border-top-color: #ffffff;
-            border-radius: 50%;
-            animation: button-loading-spinner 1s ease infinite;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-    button-loading-spinner {
-        from
-
-    {
-        transform: translate(-50%, -50%) rotate(0turn);
-    }
-
-    to {
-        transform: translate(-50%, -50%) rotate(1turn);
-    }
-
-    }
-
-    .helper-text {
-        font-size: 0.875rem;
-        color: #6c757d;
-        margin-top: 0.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
     }
 
     .stock-indicator {
@@ -385,6 +217,73 @@
         font-weight: 500;
     }
 
+    .btn-edit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .btn-loading {
+        position: relative;
+    }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: button-loading-spinner 1s ease infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+     button-loading-spinner {
+        from
+
+    {
+        transform: translate(-50%, -50%) rotate(0turn);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(1turn);
+    }
+
+    }
+
+    .progress-bar-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s ease;
+    }
+
     (max-width: 768px) {
         .edit-title
 
@@ -392,7 +291,7 @@
         font-size: 2rem;
     }
 
-    .form-content {
+    .card-body {
         padding: 1.5rem;
     }
 
@@ -400,12 +299,12 @@
         padding: 1rem;
     }
 
-    .form-actions {
+    .card-footer {
         flex-direction: column;
         gap: 1rem;
     }
 
-    .btn-modern {
+    .btn-edit {
         width: 100%;
         justify-content: center;
     }
@@ -413,13 +312,22 @@
     }
 </style>
 
+<div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progressBar"></div>
+</div>
+
 <div class="edit-header">
     <div class="container">
-        <h1 class="edit-title">✏️ @ViewData["Title"]</h1>
+        <h1 class="edit-title">
+            <i class="fas fa-edit"></i>
+            @ViewData["Title"]
+        </h1>
         <p class="edit-subtitle">Update product variant details and specifications</p>
         <nav class="breadcrumb-nav">
-            <a href="/" class="text-decoration-none">🏠 Home</a> /
-            <a asp-action="Index" class="text-decoration-none">📦 Product Variants</a> /
+            <a href="/" class="text-decoration-none"><i class="fas fa-home"></i> Home</a>
+            <span>/</span>
+            <a asp-action="Index" class="text-decoration-none"><i class="fas fa-box"></i> Product Variants</a>
+            <span>/</span>
             <span>Edit Variant</span>
         </nav>
     </div>
@@ -427,143 +335,117 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
-            <div class="form-container">
-                <form asp-action="Edit" asp-controller="ProductVariants" method="post" enctype="multipart/form-data" id="editVariantForm">
-                    <div class="form-content">
+        <div class="col-lg-10 col-xl-8">
+            <div class="card wizard-card">
+                <div class="card-body p-4">
+                    <!-- START FORM -->
+                    <form asp-action="Edit" asp-controller="ProductVariants" method="post" enctype="multipart/form-data" id="editVariantForm">
                         <input type="hidden" asp-for="Id" />
 
                         <!-- Product Information Section -->
                         <div class="form-section" style="display: none;">
-                            <h3 class="section-title">
-                                <i class="fas fa-tag"></i>
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-tag"></i>
+                                </div>
                                 Product Information
-                            </h3>
+                            </h4>
 
-                            <div class="form-group">
-                                <label asp-for="ProductId" class="form-label">
-                                    <i class="fas fa-barcode"></i>
+                            <div class="mb-3">
+                                <label asp-for="ProductId" class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-1"></i>
                                     Product ID
                                 </label>
-                                <div class="input-group-modern">
-                                    <i class="input-icon fas fa-barcode"></i>
-                                    <input asp-for="ProductId" class="form-control form-control-modern with-icon" readonly />
-                                </div>
-                                <div class="helper-text">
-                                    <i class="fas fa-info-circle"></i>
-                                    Product identifier (read-only)
-                                </div>
+                                <input asp-for="ProductId" class="form-control form-control-enhanced" readonly />
+                                <small class="form-text text-muted">Product identifier (read-only)</small>
                             </div>
                         </div>
 
                         <!-- Variant Details Section -->
                         <div class="form-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-palette"></i>
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-palette"></i>
+                                </div>
                                 Variant Details
-                            </h3>
+                            </h4>
 
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="Color" class="form-label">
-                                            <i class="fas fa-palette"></i>
-                                            Color
-                                        </label>
-                                        <div class="input-group-modern">
-                                            <i class="input-icon fas fa-palette"></i>
-                                            <input asp-for="Color" class="form-control form-control-modern with-icon"  />
-                                        </div>
-                                       
-                                    </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="ColorHex" class="form-label">Choose Color *</label>
+                                    <input asp-for="ColorHex" type="color" class="form-control form-control-color" id="ColorHexPicker" value="@Model.ColorHex" />
+                                    <span asp-validation-for="ColorHex" class="text-danger"></span>
+                                    <input type="hidden" asp-for="Color" id="ColorInput" />
                                 </div>
 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="Size" class="form-label">
-                                            <i class="fas fa-ruler"></i>
-                                            Size
-                                        </label>
-                                        <div class="input-group-modern">
-                                            <i class="input-icon fas fa-ruler"></i>
-                                            <input asp-for="Size" class="form-control form-control-modern with-icon" />
-                                        </div>
-                                     
-                                    </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Size" class="form-label fw-bold">
+                                        <i class="fas fa-ruler me-1"></i>
+                                        Size <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="Size" class="form-select form-control-enhanced">
+                                        <option value="">-- Select Size --</option>
+                                        <option value="XS">XS</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="XXL">XXL</option>
+                                    </select>
+                                    <span asp-validation-for="Size" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Inventory & Pricing Section -->
                         <div class="form-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-warehouse"></i>
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
                                 Inventory & Pricing
-                            </h3>
+                            </h4>
 
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="StockQuantity" class="form-label">
-                                            <i class="fas fa-boxes"></i>
-                                            Stock Quantity
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="StockQuantity" class="form-label fw-bold">
+                                            <i class="fas fa-boxes me-1"></i>
+                                            Stock Quantity <span class="text-danger">*</span>
                                         </label>
-                                        <div class="input-group-modern">
-                                            <i class="input-icon fas fa-boxes"></i>
-                                            <input asp-for="StockQuantity" class="form-control form-control-modern with-icon" type="number" min="0" id="stockInput" />
-                                        </div>
+                                        <input asp-for="StockQuantity" class="form-control form-control-enhanced" type="number" min="0" id="stockInput" />
                                         <div id="stockIndicator" class="stock-indicator" style="display: none;"></div>
-                                   
+                                        <span asp-validation-for="StockQuantity" class="text-danger"></span>
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="PriceAdjustment" class="form-label">
-                                            <i class="fas fa-dollar-sign"></i>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="PriceAdjustment" class="form-label fw-bold">
+                                            <i class="fas fa-dollar-sign me-1"></i>
                                             Price Adjustment
                                         </label>
-                                        <div class="input-group-modern">
-                                            <i class="input-icon fas fa-dollar-sign"></i>
-                                            <input asp-for="PriceAdjustment" class="form-control form-control-modern with-icon" type="number" step="0.01" id="priceInput" />
-                                        </div>
-                                        <div class="helper-text">
-                                            <i class="fas fa-info-circle"></i>
-                                            Additional cost or discount for this variant
-                                        </div>
+                                        <input asp-for="PriceAdjustment" class="form-control form-control-enhanced" type="number" step="0.01" id="priceInput" />
+                                        <small class="form-text text-muted">Additional cost (+) or discount (-)</small>
                                         <div id="pricePreview" class="price-preview" style="display: none;"></div>
-                                   
+                                        <span asp-validation-for="PriceAdjustment" class="text-danger"></span>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label asp-for="SortOrder" class="form-label">
-                                    <i class="fas fa-sort"></i>
-                                    Sort Order
-                                </label>
-                                <div class="input-group-modern">
-                                    <i class="input-icon fas fa-sort"></i>
-                                    <input asp-for="SortOrder" class="form-control form-control-modern with-icon" type="number" />
-                                </div>
-                                <div class="helper-text">
-                                    <i class="fas fa-info-circle"></i>
-                                    Display order (lower numbers appear first)
-                                </div>
-                            
                             </div>
                         </div>
 
                         <!-- Image Management Section -->
                         <div class="form-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-image"></i>
+                            <h4 class="section-title">
+                                <div class="section-icon">
+                                    <i class="fas fa-camera"></i>
+                                </div>
                                 Image Management
-                            </h3>
+                            </h4>
 
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i class="fas fa-eye"></i>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-eye me-1"></i>
                                     Current Image
                                 </label>
                                 <div class="current-image-container">
@@ -585,50 +467,62 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i class="fas fa-upload"></i>
+                            <!-- Fixed file upload section -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-upload me-1"></i>
                                     Upload New Image (Optional)
                                 </label>
                                 <div class="file-upload-area" id="fileUploadArea">
-                                    <input asp-for="ImageFile" type="file" class="file-input-hidden" id="imageFileInput" accept="image/*" />
-                                    <i class="upload-icon fas fa-cloud-upload-alt"></i>
-                                    <div class="upload-text">Click to browse or drag and drop</div>
-                                    <div class="upload-subtext">Supports: JPG, PNG, GIF (Max 5MB)</div>
+                                    <input asp-for="ImageFile"
+                                           type="file"
+                                           class="form-control"
+                                           id="imageFileInput"
+                                           accept="image/*"
+                                           style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;" />
+                                    <div id="uploadAreaContent">
+                                        <i class="upload-icon fas fa-cloud-upload-alt"></i>
+                                        <div class="upload-text">Click to browse or drag and drop</div>
+                                        <div class="upload-subtext">Supports: JPG, PNG, GIF • Max size: 5MB</div>
+                                    </div>
                                 </div>
-                        
+                                <span asp-validation-for="ImageFile" class="text-danger"></span>
+
                                 <div id="imagePreview" style="display: none; margin-top: 1rem;">
                                     <img id="previewImg" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFileSelection()">
+                                            <i class="fas fa-times"></i> Remove
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </form>
+                    <!-- END FORM -->
+                </div>
 
-                    <div class="form-actions">
-                        <div>
-                            <button type="submit" class="btn-modern btn-primary-modern" id="saveButton">
-                                <i class="fas fa-save"></i>
-                                Save Changes
-                            </button>
-                            <a asp-action="Index" class="btn-modern btn-secondary-modern">
-                                <i class="fas fa-times"></i>
-                                Cancel
-                            </a>
-                        </div>
-                        <div class="helper-text">
-                            <i class="fas fa-info-circle"></i>
-                            All changes will be saved immediately
-                        </div>
-                    </div>
-                </form>
+                <div class="card-footer bg-light text-center py-3">
+                    <button type="submit" form="editVariantForm" class="btn-edit me-2" id="saveButton">
+                        <i class="fas fa-save me-2"></i>
+                        Save Changes
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to List
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Scripts -->
+<!-- Fixed Scripts -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editVariantForm');
+        const progressBar = document.getElementById('progressBar');
+
         // Stock quantity indicator
         const stockInput = document.getElementById('stockInput');
         const stockIndicator = document.getElementById('stockIndicator');
@@ -664,7 +558,7 @@
 
         if (stockInput) {
             stockInput.addEventListener('input', updateStockIndicator);
-            updateStockIndicator(); // Initialize
+            updateStockIndicator();
         }
 
         // Price adjustment preview
@@ -688,95 +582,198 @@
 
         if (priceInput) {
             priceInput.addEventListener('input', updatePricePreview);
-            updatePricePreview(); // Initialize
+            updatePricePreview();
         }
 
-        // File upload handling
+        // Fixed file upload handling
         const fileUploadArea = document.getElementById('fileUploadArea');
         const fileInput = document.getElementById('imageFileInput');
         const imagePreview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
+        const uploadAreaContent = document.getElementById('uploadAreaContent');
 
-        fileUploadArea.addEventListener('click', () => fileInput.click());
+        // Prevent the click event from bubbling when clicking the file input
+        fileInput.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
 
-        fileUploadArea.addEventListener('dragover', (e) => {
+        // Handle clicks on the upload area
+        fileUploadArea.addEventListener('click', function(e) {
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+
+        // Drag and drop handlers
+        fileUploadArea.addEventListener('dragover', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             fileUploadArea.classList.add('drag-over');
         });
 
-        fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             fileUploadArea.classList.remove('drag-over');
         });
 
-        fileUploadArea.addEventListener('drop', (e) => {
+        fileUploadArea.addEventListener('drop', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             fileUploadArea.classList.remove('drag-over');
 
             const files = e.dataTransfer.files;
             if (files.length > 0) {
+                // Manually assign the files to the input
                 fileInput.files = files;
                 handleFileSelect(files[0]);
             }
         });
 
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
+        // Handle file input change
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files.length > 0) {
                 handleFileSelect(e.target.files[0]);
+            } else {
+                clearFileSelection();
             }
         });
 
         function handleFileSelect(file) {
+            console.log('File selected:', file.name, file.size, file.type);
+
             // Validate file type
             if (!file.type.startsWith('image/')) {
                 alert('Please select an image file.');
+                fileInput.value = '';
                 return;
             }
 
             // Validate file size (5MB max)
             if (file.size > 5 * 1024 * 1024) {
                 alert('File size must be less than 5MB.');
+                fileInput.value = '';
                 return;
             }
 
             // Show preview
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = function(e) {
                 previewImg.src = e.target.result;
                 imagePreview.style.display = 'block';
 
                 // Update upload area text
-                fileUploadArea.innerHTML = `
+                uploadAreaContent.innerHTML = `
                     <i class="upload-icon fas fa-check-circle" style="color: #28a745;"></i>
                     <div class="upload-text" style="color: #28a745;">File selected: ${file.name}</div>
-                    <div class="upload-subtext">Click to change or drag a new file</div>
+                    <div class="upload-subtext">File size: ${(file.size / 1024 / 1024).toFixed(2)}MB</div>
                 `;
             };
             reader.readAsDataURL(file);
         }
 
-        // Form submission with loading state
-        const form = document.getElementById('editVariantForm');
+        function resetUploadAreaText() {
+            uploadAreaContent.innerHTML = `
+                <i class="upload-icon fas fa-cloud-upload-alt"></i>
+                <div class="upload-text">Click to browse or drag and drop</div>
+                <div class="upload-subtext">Supports: JPG, PNG, GIF • Max size: 5MB</div>
+            `;
+        }
+
+        // Global function for clearing file selection
+        window.clearFileSelection = function() {
+            // Clear the file input
+            fileInput.value = '';
+
+            // Hide preview
+            imagePreview.style.display = 'none';
+
+            // Reset upload area text
+            resetUploadAreaText();
+
+            console.log('File selection cleared');
+        }
+
+        // Color picker handler
+        const colorPicker = document.getElementById("ColorHexPicker");
+        const colorInput = document.getElementById("ColorInput");
+
+        if (colorPicker && colorInput) {
+            colorPicker.addEventListener("input", function() {
+                colorInput.value = colorPicker.value;
+                console.log('Color updated:', colorPicker.value);
+            });
+        }
+
+        // Enhanced form submission with validation
         const saveButton = document.getElementById('saveButton');
 
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitting...');
+
+            // Debug: Check the file input before submission
+            if (fileInput.files && fileInput.files.length > 0) {
+                console.log('✓ File attached:', fileInput.files[0].name, fileInput.files[0].size + ' bytes');
+            } else {
+                console.log('ℹ No new file selected - will use existing image');
+            }
+
+            // Validate required fields
+            const requiredFields = ['Color', 'Size', 'StockQuantity'];
+            let hasErrors = false;
+
+            requiredFields.forEach(fieldName => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field && (!field.value || field.value.toString().trim() === '')) {
+                    console.error(`❌ Required field missing: ${fieldName}`);
+                    hasErrors = true;
+                    field.classList.add('is-invalid');
+                } else if (field) {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (hasErrors) {
+                e.preventDefault();
+                alert('Please fill in all required fields before submitting.');
+                return false;
+            }
+
+            // UI loading state
             saveButton.classList.add('btn-loading');
             saveButton.innerHTML = '<span style="opacity: 0;">Saving Changes...</span>';
             saveButton.disabled = true;
+            progressBar.style.width = '100%';
+
+            console.log('Form validation passed, submitting...');
         });
 
-        // Auto-save indication (visual feedback only)
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            if (input.type !== 'hidden' && input.type !== 'file') {
-                input.addEventListener('change', function() {
-                    // Add subtle visual feedback for changes
-                    this.style.borderColor = '#28a745';
-                    setTimeout(() => {
-                        this.style.borderColor = '';
-                    }, 2000);
-                });
+        // Progress tracking based on filled fields
+        function updateProgress() {
+            const requiredFields = ['Color', 'Size', 'StockQuantity'];
+            let filledFields = 0;
+
+            requiredFields.forEach(fieldName => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field && field.value.trim() !== '') {
+                    filledFields++;
+                }
+            });
+
+            const percentage = (filledFields / requiredFields.length) * 100;
+            progressBar.style.width = percentage + '%';
+        }
+
+        // Add listeners to track progress
+        const trackableFields = form.querySelectorAll('input, select, textarea');
+        trackableFields.forEach(field => {
+            if (field.type !== 'hidden' && field.type !== 'file') {
+                field.addEventListener('input', updateProgress);
+                field.addEventListener('change', updateProgress);
             }
         });
+
+        updateProgress();
     });
 </script>
 

@@ -11,6 +11,7 @@ using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using iTextSharp.text.log;
 
 namespace Adidas.Application.Services.Main
 {
@@ -54,6 +55,7 @@ namespace Adidas.Application.Services.Main
                 ColorHex = variant.Color,            // ✅ fix
                 CreatedAt = variant.CreatedAt ?? DateTime.MinValue,
                 IsActive = variant.IsActive,
+                ImageUrl = variant.ImageUrl,
                 Product = null,
                 Images = new List<ProductImageDto>()
             };
@@ -82,6 +84,7 @@ namespace Adidas.Application.Services.Main
             };
         }
 
+
         private void MapUpdateDtoToProductVariant(ProductVariantUpdateDto updateDto, ProductVariant variant)
         {
             if (updateDto == null || variant == null)
@@ -90,7 +93,10 @@ namespace Adidas.Application.Services.Main
             if (updateDto.ProductId != Guid.Empty)
                 variant.ProductId = updateDto.ProductId;
 
-            if (!string.IsNullOrWhiteSpace(updateDto.Color))
+            // Use ColorHex if provided, otherwise use Color
+            if (!string.IsNullOrWhiteSpace(updateDto.ColorHex))
+                variant.Color = updateDto.ColorHex; // Store hex in Color field
+            else if (!string.IsNullOrWhiteSpace(updateDto.Color))
                 variant.Color = updateDto.Color;
 
             if (!string.IsNullOrWhiteSpace(updateDto.Size))
@@ -101,18 +107,12 @@ namespace Adidas.Application.Services.Main
 
             variant.PriceAdjustment = updateDto.PriceAdjustment;
 
-            // ✅ fix: set ColorHex, do not overwrite Color
-            if (!string.IsNullOrWhiteSpace(updateDto.ColorHex))
-                variant.Color = updateDto.ColorHex;
-
             if (updateDto.IsActive.HasValue)
                 variant.IsActive = updateDto.IsActive.Value;
 
-            if (!string.IsNullOrWhiteSpace(updateDto.ImageUrl))
-                variant.ImageUrl = updateDto.ImageUrl;
-
             variant.UpdatedAt = DateTime.UtcNow;
         }
+
 
         #endregion
 
@@ -395,6 +395,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
+
         public virtual async Task<OperationResult<ProductVariantDto>> UpdateAsync(ProductVariantUpdateDto updateDto)
         {
             try
@@ -422,22 +423,40 @@ namespace Adidas.Application.Services.Main
                 if (duplicates.Any())
                     return OperationResult<ProductVariantDto>.Fail("A product variant with the same Product, Size, and Color already exists.");
 
-                // If new image uploaded -> upload, delete old from Cloudinary, set new URL
+                // Handle image upload first (following CreateAsync pattern)
+                string imageUrlToUse = existingEntity.ImageUrl; // Keep existing URL as default
+
                 if (updateDto.ImageFile != null && updateDto.ImageFile.Length > 0)
                 {
                     var imageUploadResult = await HandleImageUploadAsync(updateDto.ImageFile);
                     if (imageUploadResult.IsSuccess)
                     {
-                        await DeleteOldImageAsync(existingEntity.ImageUrl);
-                        existingEntity.ImageUrl = imageUploadResult.Data;
+                        imageUrlToUse = imageUploadResult.Data;
+                        _logger.LogInformation("Successfully updated image for product variant {Id}", updateDto.Id);
+
+                        // Store old image URL for cleanup after successful update
+                        string oldImageUrl = existingEntity.ImageUrl;
+
+                        // Clean up old image immediately after successful upload (like in CreateAsync)
+                        if (!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl != DefaultImageUrl)
+                        {
+                            await DeleteOldImageAsync(oldImageUrl);
+                        }
                     }
                     else
                     {
+                        // Following CreateAsync pattern - log warning but continue with existing image
                         _logger.LogWarning("Failed to upload image for product variant {Id}: {Error}", updateDto.Id, imageUploadResult.ErrorMessage);
+                        // Keep existing imageUrlToUse (don't change it)
                     }
                 }
 
+                // Map other properties (following CreateAsync pattern)
                 MapUpdateDtoToProductVariant(updateDto, existingEntity);
+
+                // Set the image URL (either new or existing)
+                existingEntity.ImageUrl = imageUrlToUse;
+
                 await BeforeUpdateAsync(existingEntity);
 
                 var updatedEntityEntry = await _productVariantRepository.UpdateAsync(existingEntity);
@@ -454,7 +473,6 @@ namespace Adidas.Application.Services.Main
                 return OperationResult<ProductVariantDto>.Fail($"Error updating product variant: {ex.Message}");
             }
         }
-
         public virtual async Task<OperationResult<IEnumerable<ProductVariantDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductVariantUpdateDto>> updates)
         {
             try
@@ -684,6 +702,7 @@ namespace Adidas.Application.Services.Main
 
         #region Private Helper Methods
 
+
         private async Task<OperationResult<string>> HandleImageUploadAsync(IFormFile imageFile)
         {
             try
@@ -705,14 +724,28 @@ namespace Adidas.Application.Services.Main
                 var uploadParams = new ImageUploadParams
                 {
                     File = new FileDescription(imageFile.FileName, stream),
-                    Folder = "product_variants"
+                    Folder = "product_variants",
+                    // Add these for better control
+                    Overwrite = false,
+                    UniqueFilename = true,
+                    UseFilename = false
                 };
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
                 if (uploadResult.Error != null)
-                    return OperationResult<string>.Fail(uploadResult.Error.Message);
+                {
+                    _logger.LogError("Cloudinary upload error: {Error}", uploadResult.Error.Message);
+                    return OperationResult<string>.Fail($"Image upload failed: {uploadResult.Error.Message}");
+                }
 
+                if (string.IsNullOrEmpty(uploadResult.SecureUrl?.AbsoluteUri))
+                {
+                    _logger.LogError("Cloudinary upload returned null or empty URL");
+                    return OperationResult<string>.Fail("Image upload failed: No URL returned");
+                }
+
+                _logger.LogInformation("Successfully uploaded image to Cloudinary: {PublicId}", uploadResult.PublicId);
                 return OperationResult<string>.Success(uploadResult.SecureUrl.AbsoluteUri);
             }
             catch (Exception ex)
@@ -729,23 +762,18 @@ namespace Adidas.Application.Services.Main
                 if (string.IsNullOrWhiteSpace(imageUrl))
                     return;
 
-                // We only try to delete if it's a Cloudinary URL
-                // Typical format: https://res.cloudinary.com/<cloud>/image/upload/v123456/product_variants/abc123.jpg
                 if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
                     return;
 
-                // Only delete Cloudinary-hosted resources
                 if (!uri.Host.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase))
                     return;
 
-                // Extract publicId: everything after '/upload/' minus file extension
-                // e.g., "/<cloud>/image/upload/v123/product_variants/myfile.jpg" -> "product_variants/myfile"
                 var path = uri.AbsolutePath;
                 var uploadIndex = path.IndexOf("/upload/", StringComparison.OrdinalIgnoreCase);
                 if (uploadIndex < 0) return;
 
                 var afterUpload = path.Substring(uploadIndex + "/upload/".Length);
-                // Remove the version segment if present (starts with v12345/)
+
                 var segments = afterUpload.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
                 if (segments.Count > 0 && segments[0].StartsWith("v") && int.TryParse(segments[0].Substring(1), out _))
                 {
@@ -754,15 +782,19 @@ namespace Adidas.Application.Services.Main
                 if (!segments.Any()) return;
 
                 var publicIdWithExt = string.Join("/", segments);
-                var publicId = System.IO.Path.ChangeExtension(publicIdWithExt, null);
+                var publicId = Path.ChangeExtension(publicIdWithExt, null);
 
                 var deletionParams = new DeletionParams(publicId);
                 var result = await _cloudinary.DestroyAsync(deletionParams);
 
-                if (!string.Equals(result.Result, "ok", StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(result.Result, "not found", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(result.Result, "ok", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(result.Result, "not found", StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogWarning("Cloudinary deletion returned: {Result} for {PublicId}", result.Result, publicId);
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully deleted Cloudinary image: {PublicId}", publicId);
                 }
             }
             catch (Exception ex)
@@ -840,3 +872,5 @@ namespace Adidas.Application.Services.Main
         #endregion
     }
 }
+
+ 
