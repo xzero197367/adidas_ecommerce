@@ -12,6 +12,7 @@ namespace Adidas.DTOs.Main.ProductDTOs
         [Required, MaxLength(2000)]
         public string Description { get; set; } = string.Empty;
 
+
         [MaxLength(500)]
         public string ShortDescription { get; set; } = string.Empty;
 
@@ -29,7 +30,7 @@ namespace Adidas.DTOs.Main.ProductDTOs
 
         [Required]
         public Gender GenderTarget { get; set; }
-
+        
         public int SortOrder { get; set; }
         public string? MetaTitle { get; set; }
         public string? MetaDescription { get; set; }

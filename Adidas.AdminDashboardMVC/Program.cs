@@ -34,6 +34,11 @@ using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.Application.Mapping;
 using Adidas.Application.Services.Separator;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Services.Main;
+using CloudinaryDotNet;
+using Microsoft.Extensions.Options;
+using Adidas.Infra.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +49,17 @@ builder.Services.AddDbContext<AdidasDbContext>(options =>
 
 #endregion
 
+#region CloudinaryDotNet
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
 
+builder.Services.AddSingleton<Cloudinary>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+    var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
+    return new Cloudinary(account);
+});
+#endregion
 #region 2. Identity Configuration
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -130,7 +145,10 @@ MapsterConfig.Configure();
 #endregion
 
 #region 7. Application Services & Repositories
+builder.Services.AddScoped<IUserProductViewRepository, UserProductViewRepository>();
 
+// Register the service that depends on the repository
+builder.Services.AddScoped<IProductService, ProductService>();
 // viewlocation exapnder
 // add custom view locations
 builder.Services.Configure<RazorViewEngineOptions>(options =>

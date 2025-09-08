@@ -6,7 +6,7 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
 {
     public class ProductVariantUpdateDto: BaseUpdateDto
     {
-
+        
         [Required]
         public Guid ProductId { get; set; }  
 

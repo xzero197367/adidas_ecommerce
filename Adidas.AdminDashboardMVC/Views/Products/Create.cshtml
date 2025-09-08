@@ -35,18 +35,18 @@
         border-bottom: 2px solid #f8f9fa;
     }
 
-    .page-header h2 {
-        color: #2c3e50;
-        font-weight: 600;
-        margin: 0;
-        font-size: 2rem;
-    }
+        .page-header h2 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin: 0;
+            font-size: 2rem;
+        }
 
-    .page-header p {
-        color: #6c757d;
-        margin: 0.5rem 0 0 0;
-        font-size: 1.1rem;
-    }
+        .page-header p {
+            color: #6c757d;
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+        }
 
     .form-card {
         background: #ffffff;
@@ -67,13 +67,13 @@
         margin-bottom: 1.5rem;
     }
 
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.95rem;
-    }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.95rem;
+        }
 
     .form-control {
         width: 100%;
@@ -86,16 +86,23 @@
         box-sizing: border-box;
     }
 
-    .form-control:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
-        transform: translateY(-1px);
-    }
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
+            transform: translateY(-1px);
+        }
 
-    .form-control:hover {
-        border-color: #ced4da;
-    }
+        .form-control:hover {
+            border-color: #ced4da;
+        }
+
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
 
     select.form-control {
         cursor: pointer;
@@ -144,11 +151,21 @@
         border: 1px solid #dee2e6;
     }
 
-    .price-section h4 {
-        margin: 0 0 1rem 0;
-        color: #495057;
-        font-size: 1.1rem;
-        font-weight: 600;
+        .price-section h4 {
+            margin: 0 0 1rem 0;
+            color: #495057;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+    .sale-price-info {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+        border: 1px solid #ffc107;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #856404;
     }
 
     .description-section {
@@ -159,12 +176,12 @@
         border: 1px solid #ffcc02;
     }
 
-    .description-section h4 {
-        margin: 0 0 1rem 0;
-        color: #e65100;
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
+        .description-section h4 {
+            margin: 0 0 1rem 0;
+            color: #e65100;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
 
     .button-group {
         display: flex;
@@ -197,11 +214,11 @@
         box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
     }
 
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
-    }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+        }
 
     .btn-secondary {
         background: #6c757d;
@@ -209,13 +226,13 @@
         text-decoration: none;
     }
 
-    .btn-secondary:hover {
-        background: #545b62;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
-        color: white;
-        text-decoration: none;
-    }
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+            color: white;
+            text-decoration: none;
+        }
 
     .text-danger {
         color: #dc3545;
@@ -239,12 +256,12 @@
         border-left: 4px solid #2196f3;
     }
 
-    .form-step h4 {
-        margin: 0 0 1rem 0;
-        color: #1976d2;
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
+        .form-step h4 {
+            margin: 0 0 1rem 0;
+            color: #1976d2;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
 
     /* Progress indicator */
     .form-progress {
@@ -261,36 +278,36 @@
         padding: 1rem 0.5rem;
     }
 
-    .progress-step::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 50%;
-        width: 30px;
-        height: 30px;
-        background: #e9ecef;
-        border-radius: 50%;
-        transform: translateX(-50%);
-        border: 2px solid #dee2e6;
-    }
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            border: 2px solid #dee2e6;
+        }
 
-    .progress-step.active::before {
-        background: #007bff;
-        border-color: #007bff;
-    }
+        .progress-step.active::before {
+            background: #007bff;
+            border-color: #007bff;
+        }
 
-    .progress-step span {
-        display: block;
-        margin-top: 40px;
-        font-size: 0.9rem;
-        color: #6c757d;
-        font-weight: 500;
-    }
+        .progress-step span {
+            display: block;
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
 
-    .progress-step.active span {
-        color: #007bff;
-        font-weight: 600;
-    }
+        .progress-step.active span {
+            color: #007bff;
+            font-weight: 600;
+        }
 
     /* Enhanced form validation styles */
     .form-group.has-error .form-control {
@@ -311,13 +328,13 @@
         margin-top: 0.25rem;
     }
 
-    .character-counter.warning {
-        color: #ffc107;
-    }
+        .character-counter.warning {
+            color: #ffc107;
+        }
 
-    .character-counter.danger {
-        color: #dc3545;
-    }
+        .character-counter.danger {
+            color: #dc3545;
+        }
 
     /* Loading state for submit button */
     .btn-loading {
@@ -325,83 +342,92 @@
         color: transparent;
     }
 
-    .btn-loading::after {
-        content: '';
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        top: 50%;
-        left: 50%;
-        margin-left: -8px;
-        margin-top: -8px;
-        border: 2px solid transparent;
-        border-top: 2px solid #ffffff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+     spin {
+        0%
+
+    {
+        transform: rotate(0deg);
     }
 
-    spin {
-        0% {
-            transform: rotate(0deg);
-        }
+    100% {
+        transform: rotate(360deg);
+    }
 
-        100% {
-            transform: rotate(360deg);
-        }
+    }
 
+    /* Responsive design */
+     (max-width: 768px) {
+        .product-form-container
 
-        /* Responsive design */
-    (max-width: 768 px) {
-        .product-form-container {
-            padding: 1rem;
-        }
+    {
+        padding: 1rem;
+    }
 
-        .form-card {
-            padding: 1.5rem;
-        }
+    .form-card {
+        padding: 1.5rem;
+    }
 
-        .form-row {
-            flex-direction: column;
-            gap: 0;
-        }
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
 
-        .button-group {
-            flex-direction: column;
-        }
+    .button-group {
+        flex-direction: column;
+    }
 
-        .btn {
-            width: 100%;
-        }
+    .btn {
+        width: 100%;
+    }
 
-        .progress-step {
-            padding: 1rem 0.25rem;
-        }
+    .progress-step {
+        padding: 1rem 0.25rem;
+    }
 
         .progress-step span {
             font-size: 0.8rem;
         }
 
-        .page-header h2 {
-            font-size: 1.6rem;
-        }
+    .page-header h2 {
+        font-size: 1.6rem;
+    }
 
-    }(max-width: 480 px) {
-        .product-form-container {
-            padding: 0.5rem;
-        }
+    }
 
-        .form-card {
-            padding: 1rem;
-            border-radius: 8px;
-        }
+     (max-width: 480px) {
+        .product-form-container
 
-        .form-step, .price-section, .description-section {
-            padding: 1rem;
-        }
+    {
+        padding: 0.5rem;
+    }
 
-        .page-header {
-            padding: 1rem;
-        }
+    .form-card {
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .form-step, .price-section, .description-section {
+        padding: 1rem;
+    }
+
+    .page-header {
+        padding: 1rem;
+    }
 
         .page-header h2 {
             font-size: 1.4rem;
@@ -410,12 +436,11 @@
         .page-header p {
             font-size: 1rem;
         }
-    }
-    }
 
+    }
 </style>
 
-<link href="~/css/Product.css" rel="stylesheet"/>
+<link href="~/css/Product.css" rel="stylesheet" />
 <div class="main-headerr my-5 ">
     <div class="container">
         <div class="header-content text-center">
@@ -428,7 +453,6 @@
     </div>
 </div>
 
-
 <div class="form-card">
     <form asp-action="Create" method="post" id="createProductForm">
 
@@ -438,7 +462,7 @@
 
             <div class="form-group required-field">
                 <label asp-for="Name">Product Name</label>
-                <input asp-for="Name" class="form-control" placeholder="Enter product name (e.g., UltraBoost 22)"/>
+                <input asp-for="Name" class="form-control" placeholder="Enter product name (e.g., UltraBoost 22)" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
@@ -450,13 +474,13 @@
                     </select>
                     <span asp-validation-for="CategoryId" class="text-danger"></span>
                 </div>
-                <div class="form-group required-field">
-                    <label asp-for="BrandId">🏷️ Brand</label>
-                    <select asp-for="BrandId" class="form-control" asp-items="ViewBag.Brands">
-                        <option value="">Select a brand</option>
-                    </select>
-                    <span asp-validation-for="BrandId" class="text-danger"></span>
-                </div>
+                 <div class="form-group required-field">  
+                    <label asp-for="BrandId">🏷️ Brand</label>  
+                    <select asp-for="BrandId" class="form-control" asp-items="ViewBag.Brands"> 
+                         <option value="">Select a brand</option> 
+                     </select>  
+                     <span asp-validation-for="BrandId" class="text-danger"></span> 
+                </div>  
             </div>
 
             <div class="form-group required-field">
@@ -471,20 +495,38 @@
         <!-- Step 2: Pricing -->
         <div class="price-section" id="step2">
             <h4>💰 Step 2: Pricing Information</h4>
-            <div class="form-group required-field">
-                <label asp-for="Price">Product Price</label>
-                <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" placeholder="0.00"/>
-                <span asp-validation-for="Price" class="text-danger"></span>
-                @* <label asp-for="Sale">On Sale</label>
-                <input asp-for="Sale" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" /> *@
 
+            <div class="form-row">
+                <div class="form-group required-field">
+                    <label asp-for="Price">Regular Price</label>
+                    <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="SalePrice">🏷️ Sale Price (Optional)</label>
+                    <input asp-for="SalePrice" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" id="salePriceInput" />
+                    <span asp-validation-for="SalePrice" class="text-danger"></span>
+                </div>
+            </div>
+
+            @* <div class="checkbox-group"> *@
+            @*     <div class="form-check"> *@
+            @*         <input asp-for="Sale" class="form-check-input" type="checkbox" id="saleCheckbox" /> *@
+            @*         <label asp-for="Sale" class="form-check-label"> *@
+            @*             🔥 Product is on sale *@
+            @*         </label> *@
+            @*     </div> *@
+            @* </div> *@
+
+            <div class="sale-price-info" id="salePriceInfo" style="display: none;">
+                <strong>💡 Sale Information:</strong> When a sale price is set and the product is marked as on sale, customers will see the discounted price with the original price crossed out.
             </div>
         </div>
 
         <!-- Step 3: Descriptions -->
         <div class="description-section" id="step3">
             <h4>📝 Step 3: Product Details</h4>
-
 
             <div class="form-group">
                 <label asp-for="Description">Full Description</label>
@@ -496,11 +538,9 @@
             </div>
         </div>
 
-
         <!-- Action Buttons -->
         <div class="button-group">
-
-            <button type="submit" class="btn .btn-search" id="submitBtn">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
                 ✅ Create Product
             </button>
             <a asp-action="Index" class="btn btn-secondary">
@@ -509,7 +549,6 @@
         </div>
     </form>
 </div>
-
 
 @section Scripts {
     @{
@@ -520,6 +559,58 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('createProductForm');
             const submitBtn = document.getElementById('submitBtn');
+            const saleCheckbox = document.getElementById('saleCheckbox');
+            const salePriceInput = document.getElementById('salePriceInput');
+            const salePriceInfo = document.getElementById('salePriceInfo');
+            const priceInput = document.querySelector('input[asp-for="Price"]');
+
+            // Sale price functionality
+            function toggleSalePrice() {
+                const isOnSale = saleCheckbox.checked;
+                const hasSalePrice = salePriceInput.value && parseFloat(salePriceInput.value) > 0;
+
+                if (isOnSale || hasSalePrice) {
+                    salePriceInfo.style.display = 'block';
+                } else {
+                    salePriceInfo.style.display = 'none';
+                }
+
+                // Auto-check sale checkbox when sale price is entered
+                if (hasSalePrice && !isOnSale) {
+                    saleCheckbox.checked = true;
+                }
+            }
+
+            // Validate sale price against regular price
+            function validateSalePrice() {
+                const regularPrice = parseFloat(priceInput.value) || 0;
+                const salePrice = parseFloat(salePriceInput.value) || 0;
+                const salePriceGroup = salePriceInput.closest('.form-group');
+                const existingWarning = salePriceGroup.querySelector('.sale-price-warning');
+
+                // Remove existing warning
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+
+                if (salePrice > 0 && regularPrice > 0 && salePrice >= regularPrice) {
+                    const warning = document.createElement('div');
+                    warning.className = 'text-danger sale-price-warning';
+                    warning.textContent = 'Sale price should be less than regular price';
+                    salePriceGroup.appendChild(warning);
+                    salePriceGroup.classList.add('has-error');
+                } else {
+                    salePriceGroup.classList.remove('has-error');
+                }
+            }
+
+            // Event listeners for sale functionality
+            saleCheckbox.addEventListener('change', toggleSalePrice);
+            salePriceInput.addEventListener('input', function() {
+                toggleSalePrice();
+                validateSalePrice();
+            });
+            priceInput.addEventListener('input', validateSalePrice);
 
             // Progress tracking
             function updateProgress() {
@@ -528,7 +619,6 @@
                     step1: ['input[asp-for="Name"]', 'select[asp-for="CategoryId"]', 'select[asp-for="BrandId"]', 'select[asp-for="GenderTarget"]'],
                     step2: ['input[asp-for="Price"]'],
                     step3: [], // Optional fields
-                    step4: [] // Optional checkbox
                 };
 
                 let completedSteps = 0;
@@ -541,15 +631,19 @@
                     });
 
                     if (allFilled || stepFields.length === 0) {
-                        steps[index].classList.add('active');
-                        completedSteps++;
+                        if (steps[index]) {
+                            steps[index].classList.add('active');
+                            completedSteps++;
+                        }
                     } else {
-                        steps[index].classList.remove('active');
+                        if (steps[index]) {
+                            steps[index].classList.remove('active');
+                        }
                     }
                 });
 
                 // Always show at least step 1 as active
-                if (completedSteps === 0) {
+                if (completedSteps === 0 && steps[0]) {
                     steps[0].classList.add('active');
                 }
             }
@@ -593,7 +687,6 @@
                 }
             }
 
-            setupCharacterCounter('input[asp-for="ShortDescription"]', 'shortDescCounter', 100);
             setupCharacterCounter('textarea[asp-for="Description"]', 'descCounter', 1000);
 
             // Form validation with enhanced feedback
@@ -607,6 +700,7 @@
                     group.classList.remove('has-error', 'has-success');
                 });
 
+                // Check required fields
                 requiredFields.forEach(field => {
                     const formGroup = field.closest('.form-group');
 
@@ -623,17 +717,19 @@
                     }
                 });
 
+                // Validate sale price
+                validateSalePrice();
+                if (document.querySelector('.sale-price-warning')) {
+                    hasErrors = true;
+                }
+
                 if (hasErrors) {
                     e.preventDefault();
-
-                    // Show error message
-                    const errorMsg = `Please fill in the following required fields:\n• ${errorMessages.join('\n• ')}`;
-                    alert(errorMsg);
 
                     // Scroll to first error and focus
                     const firstError = document.querySelector('.has-error .form-control');
                     if (firstError) {
-                        firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         setTimeout(() => firstError.focus(), 300);
                     }
                 } else {
@@ -650,9 +746,10 @@
             });
 
             // Price input formatting and validation
-            const priceInput = document.querySelector('input[asp-for="Price"]');
-            if (priceInput) {
-                priceInput.addEventListener('blur', function () {
+            function setupPriceInput(input) {
+                if (!input) return;
+
+                input.addEventListener('blur', function () {
                     if (this.value && !isNaN(this.value)) {
                         const value = parseFloat(this.value);
                         if (value >= 0) {
@@ -661,7 +758,7 @@
                     }
                 });
 
-                priceInput.addEventListener('input', function () {
+                input.addEventListener('input', function () {
                     // Remove non-numeric characters except decimal point
                     this.value = this.value.replace(/[^0-9.]/g, '');
 
@@ -678,10 +775,14 @@
                 });
             }
 
+            setupPriceInput(priceInput);
+            setupPriceInput(salePriceInput);
+
             // Initial progress update
             updateProgress();
 
-            // Auto-save to localStorage (optional enhancement)
+            // Auto-save functionality (commented out since localStorage is not supported in artifacts)
+            /*
             function saveFormData() {
                 const formData = new FormData(form);
                 const data = {};
@@ -711,6 +812,7 @@
                             }
                         });
                         updateProgress();
+                        toggleSalePrice();
                     }
                 } catch (e) {
                     // Error loading data, ignore
@@ -735,6 +837,7 @@
                     }
                 }
             });
+            */
         });
     </script>
 }

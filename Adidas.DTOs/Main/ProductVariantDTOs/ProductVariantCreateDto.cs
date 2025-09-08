@@ -23,9 +23,9 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
         public string? ColorHex { get; set; }
 
         public int SortOrder { get; set; }
-
+        
         public IFormFile? ImageFile { get; set; }
-
+      
         public string? ImageUrl { get; set; }
     }
 }

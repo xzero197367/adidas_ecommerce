@@ -35,7 +35,6 @@ namespace Adidas.DTOs.Main.Product_DTOs
         public bool ComputedInStock => Variants != null && Variants.Any(v => v.StockQuantity > 0);
         public Guid CategoryId { get; set; }
         public Guid BrandId { get; set; }
-
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (SalePrice.HasValue && SalePrice > Price)
@@ -54,7 +53,7 @@ namespace Adidas.DTOs.Main.Product_DTOs
 
         // Computed properties
         public decimal DisplayPrice => SalePrice ?? Price;
-        public bool IsOnSale => SalePrice.HasValue && SalePrice < Price;
+        public bool IsOnSale => SalePrice.HasValue;
         public double AverageRating => Reviews.Any() ? Reviews.Average(r => r.Rating) : 0;
         public int ReviewCount => Reviews.Count;
     }

@@ -11,6 +11,7 @@ using Adidas.DTOs.Operation.ReviewDTOs.Query;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Main;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.Main;
@@ -66,18 +67,20 @@ namespace Adidas.Application.Services.Main
                 IsActive = p.IsActive,
                 CategoryName = p.Category?.Name,
                 BrandName = p.Brand?.Name,
-
+                
                 Category = p.Category != null ? new CategoryDto
                 {
                     Id = p.Category.Id,
                     Name = p.Category.Name
                 } : null,
 
-                Images = p.Images?.Select(i => new ProductImageDto
+                Images = p.Variants?.Select(i => new ProductImageDto
                 {
-                    Id = i.Id,
+                    ProductId = p.Id,
+                    VariantId = i.Id,
                     ImageUrl = i.ImageUrl,
-                    AltText = i.AltText
+                    //AltText = i.AltText
+
                 }).ToList() ?? new List<ProductImageDto>(),
 
                 // FIX: This was the main issue - the variant mapping was incomplete and missing many properties
@@ -88,11 +91,13 @@ namespace Adidas.Application.Services.Main
                     Sku = v.Sku, // This was missing
                     Color = v.Color,
                     Size = v.Size,
+                    ImageUrl = v.ImageUrl,
                     StockQuantity = v.StockQuantity,
                     PriceAdjustment = v.PriceAdjustment,
                     ColorHex = v.Color, // This was missing
                     CreatedAt = v.CreatedAt ?? DateTime.MinValue, // This was missing
                     IsActive = v.IsActive, // This was missing
+                    
                     Images = v.Images?.Select(img => new ProductImageDto
                     {
                         Id = img.Id,
@@ -309,18 +314,33 @@ namespace Adidas.Application.Services.Main
         {
             try
             {
+                // Check if product name already exists
+                bool nameExists = await _productRepository.ExistsAsync(p => p.Name == createDto.Name);
+                if (nameExists)
+                    return OperationResult<ProductDto>.Fail("Error creating product: Proudct with this name already exists");
+
+                // Domain-specific validation
                 await ValidateCreateAsync(createDto);
 
+                // Map DTO to entity
                 var entity = MapToProduct(createDto);
+
+                // Pre-create hook
                 await BeforeCreateAsync(entity);
 
+                // Add entity
                 var createdEntityEntry = await _productRepository.AddAsync(entity);
                 await _productRepository.SaveChangesAsync();
 
                 var createdEntity = createdEntityEntry.Entity;
+
+                // Post-create hook
                 await AfterCreateAsync(createdEntity);
 
-                return OperationResult<ProductDto>.Success(MapToProductDto(createdEntity));
+                // Map to DTO
+                var productDto = MapToProductDto(createdEntity);
+
+                return OperationResult<ProductDto>.Success(productDto);
             }
             catch (Exception ex)
             {
@@ -372,6 +392,10 @@ namespace Adidas.Application.Services.Main
                 var existingEntity = await _productRepository.GetByIdAsync(updateDto.Id);
                 if (existingEntity == null)
                     return OperationResult<ProductDto>.Fail($"Product with id {updateDto.Id} not found");
+                var countName = await _productRepository.CountAsync(p => p.Name == updateDto.Name);
+                     
+                if (countName==1 && existingEntity.Name != updateDto.Name)
+                    return OperationResult<ProductDto>.Fail("Error Updating product: Proudct with this name already exists");
 
                 await ValidateUpdateAsync(updateDto.Id, updateDto);
 
