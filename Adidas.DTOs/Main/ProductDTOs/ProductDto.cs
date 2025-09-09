@@ -4,6 +4,7 @@ using Adidas.DTOs.Main.ProductImageDTOs;
 using Adidas.DTOs.Operation.ReviewDTOs.Query;
 using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
+using Adidas.Models.Operation;
 using Models.People;
 using System;
 using System.Collections.Generic;
@@ -49,7 +50,7 @@ namespace Adidas.DTOs.Main.Product_DTOs
         public BrandDto Brand { get; set; } = new();
         public ICollection<ProductImageDto> Images { get; set; } = new List<ProductImageDto>();
         public ICollection<ProductVariantDto> Variants { get; set; } = new List<ProductVariantDto>();
-        public ICollection<ReviewDto> Reviews { get; set; } = new List<ReviewDto>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
 
         // Computed properties
         public decimal DisplayPrice => SalePrice ?? Price;

@@ -99,12 +99,17 @@ namespace Adidas.Application.Services.Main
                     PriceAdjustment = v.PriceAdjustment
                 }).ToList() ?? new List<ProductVariantDto>(),
 
-                Reviews = p.Reviews?.Select(r => new ReviewDto
+                Reviews = p.Reviews?.Select(r => new Review
                 {
                     Id = r.Id,
+                    UserId = r.UserId,
+                    ProductId = r.ProductId,
+                    IsApproved = r.IsApproved,
+                    IsVerifiedPurchase = r.IsVerifiedPurchase,
+                    Title = r.Title,
                     Rating = r.Rating,
                     ReviewText = r.ReviewText
-                }).ToList() ?? new List<ReviewDto>(),
+                }).ToList() ?? new List<Review>(),
 
                 InStock = p.Variants?.Any(v => v.StockQuantity > 0) ?? false
             };

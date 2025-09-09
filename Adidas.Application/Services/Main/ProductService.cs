@@ -7,8 +7,6 @@ using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
-using Adidas.DTOs.Operation.ReviewDTOs.Query;
-using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Main;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -106,12 +104,20 @@ namespace Adidas.Application.Services.Main
                     }).ToList() ?? new List<ProductImageDto>()
                 }).ToList() ?? new List<ProductVariantDto>(),
 
-                Reviews = p.Reviews?.Select(r => new ReviewDto
+                Reviews = p.Reviews?.Select(r => new Review
                 {
                     Id = r.Id,
                     Rating = r.Rating,
+                    UserId = r.UserId,
+                    ProductId = r.ProductId,
+                    CreatedAt = r.CreatedAt ?? new DateTime(),
+                    UpdatedAt = r.UpdatedAt,
+                    IsApproved = r.IsApproved,
+                    IsActive = r.IsActive,
+                    Title = r.Title,
+                    IsVerifiedPurchase = r.IsVerifiedPurchase,
                     ReviewText = r.ReviewText
-                }).ToList() ?? new List<ReviewDto>(),
+                }).ToList() ?? new List<Review>(),
 
                 InStock = p.Variants?.Any(v => v.StockQuantity > 0) ?? false
             };

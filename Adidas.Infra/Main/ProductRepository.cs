@@ -10,7 +10,7 @@ namespace Adidas.Infra.Main
     {
         public ProductRepository(AdidasDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(Guid categoryId)
+        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(Guid categoryId) 
         {
             return await _dbSet
                 .Include(p => p.Category)
@@ -241,13 +241,20 @@ namespace Adidas.Infra.Main
 
         public async Task<Product?> GetProductWithVariantsAsync(Guid productId)
         {
+            // i want to return the reviews just approved
             return await _context.Products
                 .Include(p => p.Variants)
                     .ThenInclude(v => v.Images)
                 .Include(p => p.Images)
-                .Include(p => p.Reviews)
-                .Include(p=> p.Category)
+                .Include(p => p.Reviews.Where(r => r.IsApproved)) // Include only approved reviews
                 .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
+            //return await _context.Products
+            //    .Include(p => p.Variants)
+            //        .ThenInclude(v => v.Images)
+            //    .Include(p => p.Images)
+
+            //    .Include(p => p.Reviews )
+            //    .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
         }
 
         public async Task<List<Product>> GetByIdsAsync(List<Guid> productIds) =>
