@@ -67,6 +67,22 @@ namespace Adidas.ClientAPI.Controllers.Product
             return Ok(productVariant);
         }
 
+
+        [HttpGet("GetPreviouslyPurchasedProducts")]
+        public async Task<IActionResult> GetPreviouslyPurchasedProducts()
+        {
+            var result = await _productService.GetPreviouslyPurchasedProductsForAllUsersAsync();
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Data);
+            }
+
+            return BadRequest(result.ErrorMessage);
+        }
+
+
+
         [HttpGet("GetImagesByProductVariantId/{id}")]
         public async Task<IActionResult> GetImagesByProductVariantId(Guid id)
         {

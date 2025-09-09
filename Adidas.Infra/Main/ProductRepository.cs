@@ -249,17 +249,18 @@ namespace Adidas.Infra.Main
                 .Include(p => p.Category)
                 .Include(p => p.Reviews.Where(r => r.IsApproved)) // Include only approved reviews
                 .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
-            //return await _context.Products
-            //    .Include(p => p.Variants)
-            //        .ThenInclude(v => v.Images)
-            //    .Include(p => p.Images)
-
-            //    .Include(p => p.Reviews )
-            //    .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
         }
 
         public async Task<List<Product>> GetByIdsAsync(List<Guid> productIds) =>
-       await _context.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+    await _context.Products
+        .Where(p => productIds.Contains(p.Id))
+        .Include(p => p.Category)
+        .Include(p => p.Brand)
+        .Include(p => p.Images)
+        .Include(p => p.Variants)
+        .Include(p => p.Reviews)
+        .ToListAsync();
+
 
 
     }

@@ -588,6 +588,7 @@ namespace Adidas.Application.Services.Main
             return MapToProductDto(product);
         }
 
+        // get others bught this product service 
 
         public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId)
         {
@@ -896,6 +897,47 @@ namespace Adidas.Application.Services.Main
         public virtual Task AfterUpdateAsync(Product entity) => Task.CompletedTask;
         public virtual Task BeforeDeleteAsync(Product entity) => Task.CompletedTask;
         public virtual Task AfterDeleteAsync(Product entity) => Task.CompletedTask;
+        public async Task<OperationResult<IEnumerable<ProductDto>>> GetPreviouslyPurchasedProductsForAllUsersAsync()
+        {
+            try
+            {
+                // First, get the product IDs that have been purchased
+                var purchasedProductIds = await _productRepository.GetAll()
+                    .Where(p => p.Variants.Any(v => v.OrderItems.Any()))
+                    .SelectMany(p => p.Variants
+                        .SelectMany(v => v.OrderItems
+                            .Select(oi => new { ProductId = p.Id, OrderDate = oi.Order.CreatedAt })))
+                    .OrderByDescending(x => x.OrderDate)
+                    .Take(10)
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!purchasedProductIds.Any())
+                    return OperationResult<IEnumerable<ProductDto>>.Fail("No purchased products found.");
+
+                // Then fetch the complete product data with all includes
+                var purchasedProducts = await _productRepository.GetAll()
+                    .Include(p => p.Category)
+                    .Include(p => p.Brand)
+                    .Include(p => p.Images)
+                    .Include(p => p.Variants)
+                        .ThenInclude(v => v.Images) // Include variant images too
+                    .Include(p => p.Reviews)
+                    .Where(p => purchasedProductIds.Contains(p.Id))
+                    .ToListAsync();
+
+                var productDtos = purchasedProducts.Select(MapToProductDto);
+                return OperationResult<IEnumerable<ProductDto>>.Success(productDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting previously purchased products");
+                return OperationResult<IEnumerable<ProductDto>>.Fail($"Error fetching purchased products: {ex.Message}");
+            }
+        }
+
+
 
         #endregion
     }
