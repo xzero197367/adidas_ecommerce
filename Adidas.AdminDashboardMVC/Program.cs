@@ -130,6 +130,8 @@ MapsterConfig.Configure();
 
 #region 7. Application Services & Repositories
 builder.Services.AddScoped<IOrderEditService, OrderEditService>();
+builder.Services.AddScoped<IOrderFilterService, OrderFilterService>();
+
 
 // viewlocation exapnder
 // add custom view locations

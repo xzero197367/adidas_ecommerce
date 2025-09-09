@@ -7,6 +7,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
     {
         //Task<OperationResult<OrderDto>> EditAsync(OrderUpdateDto dto);
         Task<OperationResult<OrderDto>> EditAsync(OrderUpdateDto dto, string changedByUserId);
+        Task<OperationResult<OrderLastUpdateDto>> EditWithTrackingAsync(OrderUpdateDto dto, string changedByUserId);
+
 
     }
 }

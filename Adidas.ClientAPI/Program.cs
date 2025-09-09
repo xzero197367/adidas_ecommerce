@@ -30,6 +30,7 @@ using Adidas.Application.Contracts.RepositoriesContracts.Feature;
 using Adidas.Infra.Feature;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.Infra.Repositories.Feature;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 
 
 namespace Adidas.ClientAPI
@@ -142,6 +143,8 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
             builder.Services.AddScoped<IOrderCouponService, OrderCouponService>();
             builder.Services.AddScoped<IOrderEditService, OrderEditService>();
+            builder.Services.AddScoped<IOrderFilterService, OrderFilterService>();
+
 
 
             // Register PayPal Services with HttpClient

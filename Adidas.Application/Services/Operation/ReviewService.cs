@@ -40,6 +40,81 @@ namespace Adidas.Application.Services.Operation
                 TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
             };
         }
+        //    public async Task<PagedResultDto<ReviewDto>> GetReviewsByProductNameAsync(
+        //ReviewProductFilterDto filter, int pageNumber, int pageSize)
+        //    {
+        //        var result = await _reviewRepository
+        //            .GetReviewsByProductNameAsync(filter.ProductName ?? "", pageNumber, pageSize);
+
+        //        var mapped = result.Items.Select(r => new ReviewDto
+        //        {
+        //            Id = r.Id,
+        //            Rating = r.Rating,
+        //            Title = r.Title,
+        //            ReviewText = r.ReviewText,
+        //            IsApproved = r.IsApproved,
+        //            IsVerifiedPurchase = r.IsVerifiedPurchase,
+        //            //CreatedAt = r.CreatedAt,
+        //            UpdatedAt = r.UpdatedAt,
+        //            ProductId = r.ProductId,
+        //            ProductName = r.Product?.Name,   // ✅ For display
+        //            UserId = r.UserId,
+        //            UserEmail = r.User?.Email
+        //        }).ToList();
+
+        //        return new PagedResultDto<ReviewDto>
+        //        {
+        //            Items = mapped,
+        //            TotalCount = result.TotalCount,
+        //            PageNumber = result.PageNumber,
+        //            PageSize = result.PageSize,
+        //            TotalPages = result.TotalPages
+        //        };
+        //    }
+        public async Task<PagedResultDto<ReviewDto>> GetReviewsByProductNameAsync(
+     ReviewProductFilterDto filter,
+     int pageNumber,
+     int pageSize)
+        {
+            var result = await _reviewRepository
+                .GetReviewsByProductNameAsync(filter.ProductName ?? string.Empty, pageNumber, pageSize);
+
+            var mapped = result.Items.Select(r => new ReviewDto
+            {
+                Id = r.Id,
+                Rating = r.Rating,
+                Title = r.Title,
+                ReviewText = r.ReviewText,
+                IsApproved = r.IsApproved,
+                IsVerifiedPurchase = r.IsVerifiedPurchase,
+                IsActive = r.IsActive,
+                IsDeleted = r.IsDeleted,
+
+                // ✅ Direct assignment (entity is already DateTime, not nullable)
+                //CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+
+                ProductId = r.ProductId,
+                ProductName = r.Product?.Name,
+                UserId = r.UserId,
+                UserEmail = r.User?.Email,
+
+                //CreatedBy = r.CreatedBy,
+                ModifiedAt = r.UpdatedAt,   // optional if your DTO allows null
+                //ModifiedBy = r.UpdatedBy,
+                RejectionReason = r.RejectionReason
+            }).ToList();
+
+            return new PagedResultDto<ReviewDto>
+            {
+                Items = mapped,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize,
+                TotalPages = result.TotalPages
+            };
+        }
+
 
         public async Task<IEnumerable<ReviewDto>> GetReviewsByUserIdAsync(string userId)
         {

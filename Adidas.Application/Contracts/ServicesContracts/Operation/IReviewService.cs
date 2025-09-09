@@ -16,6 +16,12 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         // in IReviewService
         Task<PagedResultDto<ReviewDto>> GetFilteredReviewsAsync(ReviewFilterDto filter, int pageNumber, int pageSize);
 
+        Task<PagedResultDto<ReviewDto>> GetReviewsByProductNameAsync(
+    ReviewProductFilterDto filter,
+    int pageNumber,
+    int pageSize);
+
+
         Task<(bool Success, string Message)> ApproveReviewAsync(Guid reviewId);
         Task<(bool Success, string Message)> RejectReviewAsync(Guid reviewId, string reason);
         Task<ProductReviewSummaryDto> GetProductReviewSummaryAsync(Guid productId);
