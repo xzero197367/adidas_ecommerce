@@ -17,62 +17,62 @@
                         <i class="fas fa-chart-bar"></i> Order Summary Report
                     </h3>
                 </div>
-                <div class="card-body">
-                    <!-- Date Range Filter -->
-                    <form method="get" asp-action="Summary" asp-controller="Orders" class="row">
-                        <div class="col-md-3">
-                            <label for="startDate" class="form-label">Start Date:</label>
-                            <input type="date" id="startDate" name="startDate" value="@startDate" class="form-control">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="endDate" class="form-label">End Date:</label>
-                            <input type="date" id="endDate" name="endDate" value="@endDate" class="form-control">
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary mr-2">
-                                <i class="fas fa-search"></i> Generate Report
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="clearDates()">
-                                <i class="fas fa-times"></i> Clear
-                            </button>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end justify-content-end">
-                            <div class="btn-group me-2">
-                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
-                                        aria-expanded="false">
-                                    <i class="fas fa-download"></i> Export
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" onclick="exportReport('pdf')"><i
-                                                class="far fa-file-pdf text-danger"></i> Export as PDF</a></li>
-                                    <li><a class="dropdown-item" onclick="exportReport('xlsx')"><i
-                                                class="far fa-file-excel text-success"></i> Export as Excel</a></li>
-                                </ul>
-                            </div>
+                @* <div class="card-body"> *@
+                @*     <!-- Date Range Filter --> *@
+                    
+                @*         <div class="col-md-3"> *@
+                @*             <label for="startDate" class="form-label">Start Date:</label> *@
+                @*             <input type="date" id="startDate" name="startDate" value="@startDate" class="form-control"> *@
+                @*         </div> *@
+                @*         <div class="col-md-3"> *@
+                @*             <label for="endDate" class="form-label">End Date:</label> *@
+                @*             <input type="date" id="endDate" name="endDate" value="@endDate" class="form-control"> *@
+                @*         </div> *@
+                @*         <div class="col-md-3 d-flex align-items-end"> *@
+                @*             <button type="submit" class="btn btn-primary mr-2"> *@
+                @*                 <i class="fas fa-search"></i> Generate Report *@
+                @*             </button> *@
+                @*             <button type="button" class="btn btn-outline-secondary" onclick="clearDates()"> *@
+                @*                 <i class="fas fa-times"></i> Clear *@
+                @*             </button> *@
+                @*         </div> *@
+                @*         <div class="col-md-3 d-flex align-items-end justify-content-end"> *@
+                @*             <div class="btn-group me-2"> *@
+                @*                 <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" *@
+                @*                         aria-expanded="false"> *@
+                @*                     <i class="fas fa-download"></i> Export *@
+                @*                 </button> *@
+                @*                 <ul class="dropdown-menu"> *@
+                @*                     <li><a class="dropdown-item" onclick="exportReport('pdf')"><i *@
+                @*                                 class="far fa-file-pdf text-danger"></i> Export as PDF</a></li> *@
+                @*                     <li><a class="dropdown-item" onclick="exportReport('xlsx')"><i *@
+                @*                                 class="far fa-file-excel text-success"></i> Export as Excel</a></li> *@
+                @*                 </ul> *@
+                @*             </div> *@
                        
-                        </div>
+                @*         </div> *@
 
-                    </form>
-                    @if (!string.IsNullOrEmpty(startDate) || !string.IsNullOrEmpty(endDate))
-                    {
-                        <div class="alert alert-info mt-3">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Report Period:</strong>
-                            @if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
-                            {
-                                <span>From @DateTime.Parse(startDate).ToString("MMM dd, yyyy") to @DateTime.Parse(endDate).ToString("MMM dd, yyyy")</span>
-                            }
-                            else if (!string.IsNullOrEmpty(startDate))
-                            {
-                                <span>From @DateTime.Parse(startDate).ToString("MMM dd, yyyy") to Present</span>
-                            }
-                            else
-                            {
-                                <span>Up to @DateTime.Parse(endDate).ToString("MMM dd, yyyy")</span>
-                            }
-                        </div>
-                    }
-                </div>
+                    
+                @*     @if (!string.IsNullOrEmpty(startDate) || !string.IsNullOrEmpty(endDate)) *@
+                @*     { *@
+                @*         <div class="alert alert-info mt-3"> *@
+                @*             <i class="fas fa-info-circle"></i> *@
+                @*             <strong>Report Period:</strong> *@
+                @*             @if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate)) *@
+                @*             { *@
+                @*                 <span>From @DateTime.Parse(startDate).ToString("MMM dd, yyyy") to @DateTime.Parse(endDate).ToString("MMM dd, yyyy")</span> *@
+                @*             } *@
+                @*             else if (!string.IsNullOrEmpty(startDate)) *@
+                @*             { *@
+                @*                 <span>From @DateTime.Parse(startDate).ToString("MMM dd, yyyy") to Present</span> *@
+                @*             } *@
+                @*             else *@
+                @*             { *@
+                @*                 <span>Up to @DateTime.Parse(endDate).ToString("MMM dd, yyyy")</span> *@
+                @*             } *@
+                @*         </div> *@
+                @*     } *@
+                @* </div> *@
             </div>
         </div>
     </div>

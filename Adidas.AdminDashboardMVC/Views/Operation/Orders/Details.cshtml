@@ -1,4 +1,138 @@
-﻿@using Adidas.DTOs.Operation.OrderDTOs
+﻿@* @using Adidas.DTOs.Operation.OrderDTOs *@
+@* @using Adidas.Models.Operation *@
+@* @model OrderWithCreatorDto *@
+
+@* @{ *@
+@*     ViewData["Title"] = $"Order Details - {Model.OrderNumber}"; *@
+@* } *@
+
+@* <div class="container-fluid"> *@
+@*     <div class="row"> *@
+@*         <div class="col-12"> *@
+@*             <div class="card"> *@
+@*                 <div class="card-header"> *@
+@*                     <h3 class="card-title">Order Details - @Model.OrderNumber</h3> *@
+@*                 </div> *@
+
+@*                 <div class="card-body"> *@
+@*                     <div class="row"> *@
+@*                         <!-- Order Info --> *@
+@*                         <div class="col-md-6"> *@
+@*                             <h5 class="mb-3">Order Information</h5> *@
+
+@*                             <p><strong>Order Number:</strong> @Model.OrderNumber</p> *@
+@*                             <p><strong>Status:</strong> @Model.OrderStatus</p> *@
+
+@*                             @* ✅ Show who added the order *@ 
+@*                             @if (!string.IsNullOrEmpty(Model.AddedByName)) *@
+@*                             { *@
+@*                                 <div class="alert alert-info mt-2"> *@
+@*                                     <i class="fas fa-user"></i> *@
+@*                                     Order added by <strong>@Model.AddedByName</strong> *@
+@*                                     @if (!string.IsNullOrEmpty(Model.AddedByEmail)) *@
+@*                                     { *@
+@*                                         <span>(@Model.AddedByEmail)</span> *@
+@*                                     } *@
+@*                                 </div> *@
+@*                             } *@
+
+@*                             @* ✅ Show who last updated the order (from TempData) *@ 
+@*                             @if (TempData["LastUpdatedBy"] != null) *@
+@*                             { *@
+@*                                 <div class="alert alert-warning mt-2"> *@
+@*                                     <i class="fas fa-user-edit"></i> *@
+@*                                     Status last updated by <strong>@TempData["LastUpdatedBy"]</strong> *@
+@*                                     on @TempData["LastUpdatedAt"] *@
+@*                                 </div> *@
+@*                             } *@
+
+@*                             <p><strong>Order Date:</strong> @Model.OrderDate.ToString("yyyy-MM-dd HH:mm")</p> *@
+@*                             <p><strong>Shipped Date:</strong> @(Model.ShippedDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</p> *@
+@*                             <p><strong>Delivered Date:</strong> @(Model.DeliveredDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</p> *@
+@*                         </div> *@
+
+@*                         <!-- Customer Info --> *@
+@*                         <div class="col-md-6"> *@
+@*                             <h5 class="mb-3">Customer Information</h5> *@
+@*                             <p><strong>Customer ID:</strong> @Model.UserId</p> *@
+@*                             <p><strong>Name:</strong> @Model.UserName</p> *@
+@*                             <p><strong>Email:</strong> @Model.UserEmail</p> *@
+@*                             <p><strong>Notes:</strong> @(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)</p> *@
+@*                         </div> *@
+@*                     </div> *@
+
+@*                     <hr /> *@
+
+@*                     <!-- Address Info --> *@
+@*                     <div class="row"> *@
+@*                         <div class="col-md-6"> *@
+@*                             <h5 class="mb-3">Shipping Address</h5> *@
+@*                             @if (Model.ShippingAddress != null && Model.ShippingAddress.Any()) *@
+@*                             { *@
+@*                                 <ul class="list-unstyled"> *@
+@*                                     @foreach (var kvp in Model.ShippingAddress) *@
+@*                                     { *@
+@*                                         <li><strong>@kvp.Key:</strong> @kvp.Value</li> *@
+@*                                     } *@
+@*                                 </ul> *@
+@*                             } *@
+@*                             else *@
+@*                             { *@
+@*                                 <p>-</p> *@
+@*                             } *@
+@*                         </div> *@
+@*                         <div class="col-md-6"> *@
+@*                             <h5 class="mb-3">Billing Address</h5> *@
+@*                             @if (Model.BillingAddress != null && Model.BillingAddress.Any()) *@
+@*                             { *@
+@*                                 <ul class="list-unstyled"> *@
+@*                                     @foreach (var kvp in Model.BillingAddress) *@
+@*                                     { *@
+@*                                         <li><strong>@kvp.Key:</strong> @kvp.Value</li> *@
+@*                                     } *@
+@*                                 </ul> *@
+@*                             } *@
+@*                             else *@
+@*                             { *@
+@*                                 <p>-</p> *@
+@*                             } *@
+@*                         </div> *@
+@*                     </div> *@
+
+@*                     <hr /> *@
+
+@*                     <!-- Pricing Info --> *@
+@*                     <div class="row"> *@
+@*                         <div class="col-md-6"> *@
+@*                             <h5 class="mb-3">Pricing Details</h5> *@
+@*                             <p><strong>Subtotal:</strong> @Model.Subtotal @Model.Currency</p> *@
+@*                             <p><strong>Tax:</strong> @Model.TaxAmount @Model.Currency</p> *@
+@*                             <p><strong>Shipping:</strong> @Model.ShippingAmount @Model.Currency</p> *@
+@*                             <p><strong>Discount:</strong> @Model.DiscountAmount @Model.Currency</p> *@
+@*                             <p><strong>Total:</strong> <span class="text-success">@Model.TotalAmount @Model.Currency</span></p> *@
+@*                         </div> *@
+@*                         <div class="col-md-6"> *@
+@*                             <h5 class="mb-3">Audit Information</h5> *@
+@*                             <p><strong>Created Date:</strong> @Model.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p> *@
+@*                             <p><strong>Modified Date:</strong> @(Model.ModifiedDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</p> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+
+@*                 <div class="card-footer"> *@
+@*                     <a asp-action="Edit" asp-controller="Orders" asp-route-id="@Model.Id" class="btn btn-primary"> *@
+@*                         <i class="fas fa-edit"></i> Edit *@
+@*                     </a> *@
+@*                     <a asp-action="Index" asp-controller="Orders" class="btn btn-secondary ml-2"> *@
+@*                         <i class="fas fa-arrow-left"></i> Back to List *@
+@*                     </a> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+@using Adidas.DTOs.Operation.OrderDTOs
 @using Adidas.Models.Operation
 @model OrderWithCreatorDto
 
@@ -36,13 +170,13 @@
                                 </div>
                             }
 
-                            @* ✅ Show who last updated the order (from TempData) *@
-                            @if (TempData["LastUpdatedBy"] != null)
+                            @* ✅ Show who last updated the order (from global cache via ViewBag) *@
+                            @if (ViewBag.LastUpdatedBy != null && ViewBag.LastUpdatedAt != null)
                             {
                                 <div class="alert alert-warning mt-2">
                                     <i class="fas fa-user-edit"></i>
-                                    Status last updated by <strong>@TempData["LastUpdatedBy"]</strong>
-                                    on @TempData["LastUpdatedAt"]
+                                    Status last updated by <strong>@ViewBag.LastUpdatedBy</strong>
+                                    on @ViewBag.LastUpdatedAt
                                 </div>
                             }
 
@@ -114,7 +248,7 @@
                         <div class="col-md-6">
                             <h5 class="mb-3">Audit Information</h5>
                             <p><strong>Created Date:</strong> @Model.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
-                            <p><strong>Modified Date:</strong> @(Model.ModifiedDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</p>
+                            @* <p><strong>Modified Date:</strong> @(Model.ModifiedDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</p> *@
                         </div>
                     </div>
                 </div>

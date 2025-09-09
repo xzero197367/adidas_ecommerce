@@ -145,6 +145,7 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IOrderEditService, OrderEditService>();
             builder.Services.AddScoped<IOrderFilterService, OrderFilterService>();
 
+            builder.Services.AddMemoryCache();
 
 
             // Register PayPal Services with HttpClient

@@ -43,6 +43,7 @@ builder.Services.AddDbContext<AdidasDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 #endregion
+builder.Services.AddMemoryCache();
 
 
 #region 2. Identity Configuration
