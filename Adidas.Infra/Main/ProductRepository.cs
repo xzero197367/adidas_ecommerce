@@ -246,6 +246,7 @@ namespace Adidas.Infra.Main
                 .Include(p => p.Variants)
                     .ThenInclude(v => v.Images)
                 .Include(p => p.Images)
+                .Include(p => p.Category)
                 .Include(p => p.Reviews.Where(r => r.IsApproved)) // Include only approved reviews
                 .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
             //return await _context.Products
