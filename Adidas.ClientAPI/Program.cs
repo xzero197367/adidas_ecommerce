@@ -170,6 +170,7 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IInventoryService, InventoryService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddScoped<IOrderCouponService, OrderCouponService>();
             // Register Repositories
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();

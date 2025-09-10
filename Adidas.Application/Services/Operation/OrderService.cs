@@ -192,9 +192,21 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
     private PaymentDto MapToPaymentDto(Payment payment)
     {
-        // Implementation depends on your Payment entity structure
-        // Return a basic mapping for now
-        return new PaymentDto();
+        if (payment == null) return null;
+
+        return new PaymentDto
+        {
+            Id = payment.Id,
+            PaymentMethod = payment.PaymentMethod,
+            PaymentStatus = payment.PaymentStatus,
+            Amount = payment.Amount,
+            TransactionId = payment.TransactionId,
+            GatewayResponse = payment.GatewayResponse,
+            ProcessedAt = payment.ProcessedAt,
+            OrderId = payment.OrderId,
+            IsActive = payment.IsActive,
+            UpdatedAt = payment.UpdatedAt,
+        };
     }
 
     private OrderCouponDto MapToOrderCouponDto(OrderCoupon orderCoupon)
