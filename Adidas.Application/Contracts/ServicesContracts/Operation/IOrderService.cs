@@ -15,6 +15,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         Task<OperationResult<OrderDto>> GetOrderByOrderNumberAsync(string orderNumber);
         Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByStatusAsync(OrderStatus status);
         Task<OperationResult<bool>> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus);
+        Task<OperationResult<bool>> UpdateOrderAmountAsync(Guid orderId, decimal newAmount);
         Task<OperationResult<OrderDto>> GetOrderWithItemsAsync(Guid orderId);
         Task<OperationResult<decimal>> CalculateOrderTotalAsync(string userId, string? discountCode = null);
         Task<OperationResult<bool>> CancelOrderAsync(Guid orderId, string reason);

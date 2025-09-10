@@ -1158,7 +1158,27 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return OperationResult<bool>.Fail(ex.Message);
         }
     }
-
+    public async Task<OperationResult<bool>> UpdateOrderAmountAsync(Guid orderId, decimal newAmount)
+    {
+        try
+        {
+            var order = await _orderRepository.GetByIdAsync(orderId);
+            if (order == null)
+            {
+                return OperationResult<bool>.Fail($"Order with id {orderId} was not found.");
+            }
+            order.TotalAmount = newAmount;
+            var result = await _orderRepository.UpdateAsync(order);
+            await _orderRepository.SaveChangesAsync();
+            result.State = EntityState.Detached;
+            return OperationResult<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating order amount");
+            return OperationResult<bool>.Fail(ex.Message);
+        }
+    }
     public async Task<OperationResult<OrderDto>> GetOrderWithItemsAsync(Guid orderId)
     {
         try
@@ -1337,7 +1357,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
     private static decimal CalculateTax(decimal subtotal)
     {
-        return subtotal * 0.08m; // 8% tax
+        return subtotal * 0.05m; // 8% tax
     }
 
     public override async Task BeforeCreateAsync(Order entity)
