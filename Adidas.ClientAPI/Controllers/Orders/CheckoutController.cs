@@ -512,7 +512,7 @@ namespace Adidas.ClientAPI.Controllers.Operation
                 }
 
                 // For COD, update order status to Shipped
-                var updateResult = await _orderService.UpdateOrderStatusAsync((Guid)order.Id, OrderStatus.Shipped);
+                var updateResult = await _orderService.UpdateOrderStatusAsync((Guid)order.Id, OrderStatus.Pending);
                 if (!updateResult.IsSuccess)
                 {
                     _logger.LogWarning("Failed to update order status for COD Order {OrderId}: {Message}"

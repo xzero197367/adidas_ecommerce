@@ -74,9 +74,11 @@ namespace Adidas.Application.Services.Main
 
                 Images = p.Variants?.Select(i => new ProductImageDto
                 {
+                    Id = i.Id,
                     ProductId = p.Id,
                     VariantId = i.Id,
                     ImageUrl = i.ImageUrl,
+                    IsActive = i.IsActive,
                     //AltText = i.AltText
 
                 }).ToList() ?? new List<ProductImageDto>(),
