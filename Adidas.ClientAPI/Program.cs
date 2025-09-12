@@ -188,6 +188,11 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IOrderEditService, OrderEditService>();
+            builder.Services.AddScoped<IOrderFilterService, OrderFilterService>();
+
+            builder.Services.AddMemoryCache();
+
             // Register PayPal Services with HttpClient
             builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
             {

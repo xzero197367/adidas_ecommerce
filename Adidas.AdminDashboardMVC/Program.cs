@@ -49,6 +49,9 @@ builder.Services.AddDbContext<AdidasDbContext>(options =>
 
 #endregion
 
+builder.Services.AddMemoryCache();
+
+
 #region CloudinaryDotNet
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
@@ -131,6 +134,11 @@ builder.Services.AddControllersWithViews();
 // builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
  builder.Services.AddScoped<IOrderRepository, OrderRepository>();
  builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+#region 7. Application Services & Repositories
+builder.Services.AddScoped<IOrderEditService, OrderEditService>();
+builder.Services.AddScoped<IOrderFilterService, OrderFilterService>();
+
+
 //
 // builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
