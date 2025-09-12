@@ -553,6 +553,8 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             _logger.LogError(ex, "Error generating formatted order summary");
             return OperationResult<object>.Fail(ex.Message);
         }
+
     }
+
 
 }
