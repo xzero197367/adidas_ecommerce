@@ -3,9 +3,9 @@ using Adidas.Models.Operation;
 
 namespace Adidas.DTOs.Operation.OrderDTOs;
 
-public class OrderUpdateDto: BaseUpdateDto
+public class OrderUpdateDto : BaseUpdateDto
 {
-    
+
     public string? OrderNumber { get; set; }
     public OrderStatus? OrderStatus { get; set; }
     public decimal? Subtotal { get; set; }
@@ -23,7 +23,7 @@ public class OrderUpdateDto: BaseUpdateDto
     public string? BillingAddress { get; set; } // JSON string?
 
     public string? Notes { get; set; }
-    
+
     // foreign keys
     public required String UserId { get; set; }
 }

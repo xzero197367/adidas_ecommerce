@@ -1,5 +1,4 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Adidas.DTOs.Operation.ReviewDTOs
 {
@@ -18,8 +17,8 @@ namespace Adidas.DTOs.Operation.ReviewDTOs
         //[Required]
         //public required Guid ProductId { get; set; }
 
-        [Required]
-        public required string UserId { get; set; }
+        //[Required]
+        //public required string UserId { get; set; }
 
         //public bool IsVerifiedPurchase { get; set; } = false;
         [Required]
@@ -39,7 +38,7 @@ namespace Adidas.DTOs.Operation.ReviewDTOs
         [Required]
         public Guid ProductId { get; set; }
 
-   
+        [Required]
+        public string UserId { get; set; } = string.Empty;
     }
 }
-
