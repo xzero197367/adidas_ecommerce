@@ -34,6 +34,8 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
 
         Task<OperationResult<object>> GetGuestCheckoutSummaryAsync(string guestUserId, List<GuestCartItemsDto> cartItems, string? couponCode = null);
         Task<BillingSummaryDto> GetGuestBillingSummaryAsync(string guestUserId, List<GuestCartItemsDto> cartItems, string? promoCode = null);
+      
+
 
 
     }
