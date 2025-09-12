@@ -556,5 +556,24 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
     }
 
+    public class OrderDetailDto : OrderDto
+    {
+        public List<OrderItemDto> OrderItems { get; set; } = new();
+    }
+    public class OrderItemDto
+    {
+        public Guid Id { get; set; }
+        public Guid VariantId { get; set; }
+        public string ProductName { get; set; }
+        public string Sku { get; set; }
+        public string Size { get; set; }
+        public string Color { get; set; }
+        public string ImageUrl { get; set; }
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string VariantDetails { get; set; }
 
+
+    }
 }
