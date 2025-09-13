@@ -69,12 +69,8 @@
                             <h5 class="mb-3">Shipping Address</h5>
                             @if (Model.ShippingAddress != null && Model.ShippingAddress.Any())
                             {
-                                <ul class="list-unstyled">
-                                    @foreach (var kvp in Model.ShippingAddress)
-                                    {
-                                        <li><strong>@kvp.Key:</strong> @kvp.Value</li>
-                                    }
-                                </ul>
+                                <li><li>@Model.ShippingAddress</li> </li>
+                               
                             }
                             else
                             {
@@ -85,12 +81,8 @@
                             <h5 class="mb-3">Billing Address</h5>
                             @if (Model.BillingAddress != null && Model.BillingAddress.Any())
                             {
-                                <ul class="list-unstyled">
-                                    @foreach (var kvp in Model.BillingAddress)
-                                    {
-                                        <li><strong>@kvp.Key:</strong> @kvp.Value</li>
-                                    }
-                                </ul>
+                                <li><li>@Model.BillingAddress</li> </li>
+                               
                             }
                             else
                             {
