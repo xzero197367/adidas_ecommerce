@@ -1,0 +1,201 @@
+﻿@model IEnumerable<Adidas.DTOs.Separator.Category_DTOs.CategoryDto>
+
+@{
+    ViewData["Title"] = "Manage Main Categories";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Main Categories</h1>
+                <p class="text-muted">Create, update, and organize main product categories</p>
+            </div>
+            <div class="col-sm-6 text-right">
+                <a asp-controller="MainCategories" asp-action="Create" class="btn btn-dark">
+                    <i class="fas fa-plus"></i> Add Main Category
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <!-- Filters -->
+            <div class="card-header">
+                <form method="get" asp-action="Index" asp-controller="MainCategories">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Search Main Categories</label>
+                                <input type="text" name="searchTerm" class="form-control"
+                                       placeholder="Search by name..."
+                                       value="@(ViewData["SearchTerm"] as string)" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select name="statusFilter" class="form-control">
+                                    <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentStatus"] as string))">All</option>
+                                    <option value="Active" selected="@(ViewData["CurrentStatus"] as string == "Active")">Active</option>
+                                    <option value="Inactive" selected="@(ViewData["CurrentStatus"] as string == "Inactive")">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-dark btn-block">
+                                <i class="fas fa-filter"></i> Apply
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Table -->
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Slug</th>
+                                <th>Subcategories</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var category in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(category.ImageUrl))
+                                            {
+                                                <img src="@category.ImageUrl" alt="@category.Name" class="img-thumbnail" style="width:50px; height:50px; object-fit:cover;" />
+                                            }
+                                            else
+                                            {
+                                                <img src="https://via.placeholder.com/50" alt="No Image" class="img-thumbnail" style="width:50px; height:50px; object-fit:cover;" />
+                                            }
+                                        </td>
+                                        <td>
+                                            <strong>@category.Name</strong><br />
+                                            <small class="text-primary">Main Category</small>
+                                        </td>
+                                        <td>@(string.IsNullOrEmpty(category.Description) ? "N/A" : (category.Description.Length > 50 ? category.Description.Substring(0, 50) + "..." : category.Description))</td>
+                                        <td>@category.Slug</td>
+                                        <td>
+                                            @if (category.HasSubCategories)
+                                            {
+                                                <span class="badge bg-info">@(category.SubCategories?.Count() ?? 0) subcategories</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">No subcategories</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (category.IsActive)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            }
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <a asp-action="Details" asp-controller="MainCategories" asp-route-id="@category.Id" class="btn btn-sm btn-outline-info me-1" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-controller="MainCategories" asp-route-id="@category.Id" class="btn btn-sm btn-outline-warning me-1" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="#" class="btn btn-sm btn-outline-danger me-1" data-bs-toggle="modal" data-bs-target="#deleteModal-@category.Id" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                            <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@category.Id" />
+                                                <button type="submit" class="btn btn-sm @(category.IsActive ? "btn-outline-secondary" : "btn-outline-success")" title="@(category.IsActive ? "Deactivate" : "Activate")">
+                                                    <i class="@(category.IsActive ? "bi bi-x-circle" : "bi bi-check-circle")"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Delete Modal -->
+                                    <div class="modal fade" id="deleteModal-@category.Id" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete <strong>@category.Name</strong>?</p>
+                                                    @if (category.SubCategories != null && category.SubCategories.Any())
+                                                    {
+                                                        <div class="alert alert-warning">
+                                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                                            This main category has @category.SubCategories.Count() subcategories that will also be deleted!
+                                                        </div>
+                                                    }
+                                                    @if (category.ProductsCount > 0)
+                                                    {
+                                                        <div class="alert alert-warning">
+                                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                                            This category contains @category.ProductsCount products!
+                                                        </div>
+                                                    }
+                                                    <p class="text-danger">This action cannot be undone.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form asp-action="Delete" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@category.Id" />
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-trash me-1"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="bi bi-folder2-open text-muted fs-1"></i>
+                                        <p class="text-muted mt-2">No main categories found.</p>
+                                        <a asp-controller="MainCategories" asp-action="Create" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i> Create First Main Category
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="card-footer text-muted">
+                Showing 1 to @(Model?.Count() ?? 0) of @(Model?.Count() ?? 0) main categories
+            </div>
+        </div>
+    </div>
+</section>

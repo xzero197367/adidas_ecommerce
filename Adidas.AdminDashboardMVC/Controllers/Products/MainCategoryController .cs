@@ -3,57 +3,54 @@ using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
     [Authorize(Policy = "EmployeeOrAdmin")]
-    public class CategoriesController : Controller
+    public class MainCategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-
-        public CategoriesController(ICategoryService categoryService, IWebHostEnvironment webHostEnvironment)
+        public MainCategoriesController(ICategoryService categoryService, IWebHostEnvironment webHostEnvironment)
         {
             _categoryService = categoryService;
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> Index(string categoryType, string statusFilter, string searchTerm)
+        public async Task<IActionResult> Index(string statusFilter, string searchTerm)
         {
-            categoryType ??= "Main";
+            var categories = await _categoryService.GetFilteredCategoriesAsync("Main", statusFilter, searchTerm);
 
-            var categories = await _categoryService.GetFilteredCategoriesAsync(categoryType, statusFilter, searchTerm);
-
-            ViewData["CurrentType"] = categoryType;
             ViewData["CurrentStatus"] = statusFilter;
             ViewData["SearchTerm"] = searchTerm;
 
             return View(categories);
         }
 
-
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
-            await PopulateParentCategoriesDropdown();
-            return View(new CategoryCreateDto());
+            var model = new CategoryCreateDto
+            {
+                ParentCategoryId = null // Ensure this is a main category
+            };
+            return View(model);
         }
 
-        // POST: /Category/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryCreateDto model, IFormFile ImageFile)
         {
+            // Force this to be a main category
+            model.ParentCategoryId = null;
+
             if (!ModelState.IsValid)
             {
-                await PopulateParentCategoriesDropdown();
                 if (ImageFile == null)
                 {
-                    ModelState.AddModelError("ImageUrl", "Image is Required ");
+                    ModelState.AddModelError("ImageUrl", "Image is Required");
                 }
-
                 return View(model);
             }
 
@@ -62,7 +59,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 if (ImageFile.Length > 5 * 1024 * 1024)
                 {
                     ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
-                    await PopulateParentCategoriesDropdown();
                     return View(model);
                 }
 
@@ -84,41 +80,44 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 model.ImageUrl = "/" + relativePath.Replace("\\", "/");
             }
 
-            // ✅ Get Result instead of just bool
             var result = await _categoryService.CreateAsync(model);
 
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.Error); // Show specific error (e.g., slug exists)
+                ModelState.AddModelError(string.Empty, result.Error);
                 TempData["Error"] = result.Error;
-
-                await PopulateParentCategoriesDropdown();
                 return View(model);
             }
 
-            TempData["Success"] = "Category created successfully!";
+            TempData["Success"] = "Main Category created successfully!";
             return RedirectToAction("Index");
         }
 
-
-        // GET: /Category/Edit/{id}
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
             var category = await _categoryService.GetCategoryToEditByIdAsync(id);
-            await PopulateParentCategoriesDropdown(id);
+            
+            // Ensure we're only editing main categories
+            if (category == null || category.ParentCategoryId != null)
+            {
+                TempData["Error"] = "Main Category not found.";
+                return RedirectToAction("Index");
+            }
+
             return View(category);
         }
 
-        // POST: /Category/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CategoryUpdateDto model, IFormFile? ImageFile)
         {
+            // Ensure this remains a main category
+            model.ParentCategoryId = null;
+
             if (!ModelState.IsValid)
             {
                 ViewBag.CategoryId = model.Id;
-                await PopulateParentCategoriesDropdown();
                 return View(model);
             }
 
@@ -128,7 +127,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 {
                     ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
                     ViewBag.CategoryId = model.Id;
-                    await PopulateParentCategoriesDropdown();
                     return View(model);
                 }
 
@@ -156,11 +154,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 ModelState.AddModelError(string.Empty, result.Error);
                 TempData["Error"] = result.Error;
                 ViewBag.CategoryId = model.Id;
-                await PopulateParentCategoriesDropdown();
                 return View(model);
             }
 
-            TempData["Success"] = "Category updated successfully!";
+            TempData["Success"] = "Main Category updated successfully!";
             return RedirectToAction("Index");
         }
 
@@ -175,7 +172,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
             else
             {
-                TempData["Success"] = "Category status updated successfully.";
+                TempData["Success"] = "Main Category status updated successfully.";
             }
 
             var referer = Request.Headers["Referer"].ToString();
@@ -184,23 +181,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return Redirect(referer);
             }
 
-
             return RedirectToAction(nameof(Index));
         }
-
-        private async Task PopulateParentCategoriesDropdown(Guid? currentCategoryId = null)
-        {
-            var parentCategories = await _categoryService.GetMainCategoriesAsync();
-            if (currentCategoryId.HasValue)
-            {
-                parentCategories = parentCategories
-                    .Where(c => c.Id != currentCategoryId.Value)
-                    .ToList();
-            }
-
-            ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
-        }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -214,16 +196,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
             else
             {
-                TempData["Success"] = "Category deleted successfully!";
+                TempData["Success"] = "Main Category deleted successfully!";
             }
 
             var referer = Request.Headers["Referer"].ToString();
-
             if (!string.IsNullOrEmpty(referer))
             {
                 return Redirect(referer);
             }
-
 
             return RedirectToAction("Index");
         }
@@ -233,7 +213,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             var referer = Request.Headers["Referer"].ToString();
             if (id == Guid.Empty)
             {
-                TempData["ErrorMessage"] = "Invalid category ID provided.";
+                TempData["ErrorMessage"] = "Invalid main category ID provided.";
 
                 if (!string.IsNullOrEmpty(referer))
                 {
@@ -247,9 +227,9 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 var categoryDto = await _categoryService.GetCategoryDetailsAsync(id);
 
-                if (categoryDto == null)
+                if (categoryDto == null || categoryDto.ParentCategoryId != null)
                 {
-                    TempData["ErrorMessage"] = $"Category with ID '{id}' not found.";
+                    TempData["ErrorMessage"] = $"Main Category with ID '{id}' not found.";
                     if (!string.IsNullOrEmpty(referer))
                     {
                         return Redirect(referer);
@@ -258,13 +238,12 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     return RedirectToAction($"{nameof(Index)}");
                 }
 
-
                 return View(categoryDto);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] =
-                    $"An unexpected error occurred while retrieving category details: {ex.Message}";
+                    $"An unexpected error occurred while retrieving main category details: {ex.Message}";
                 if (!string.IsNullOrEmpty(referer))
                 {
                     return Redirect(referer);
@@ -275,12 +254,12 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProductsByCategoryId(Guid id)
+        public async Task<IActionResult> GetProductsByMainCategoryId(Guid id)
         {
             try
             {
                 var categoryDto = await _categoryService.GetCategoryDetailsAsync(id);
-                if (categoryDto == null || categoryDto.Products == null)
+                if (categoryDto == null || categoryDto.Products == null || categoryDto.ParentCategoryId != null)
                     return PartialView("_CategoryProductsPartial", new List<ProductDto>());
 
                 return PartialView("_CategoryProductsPartial", categoryDto.Products);
@@ -291,19 +270,30 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
         }
 
-        // api call to get all categories
-
         [HttpGet]
-        public async Task<IActionResult> GetCategoriesAjax()
+        public async Task<IActionResult> GetSubcategoriesByMainCategory(Guid id)
         {
             try
             {
-                var result = await _categoryService.GetFilteredCategoriesAsync("", "", "");
-                // if (!result.IsSuccess)
-                // {
-                //     return BadRequest(new { message = result.ErrorMessage });
-                // }
+                var categoryDto = await _categoryService.GetSubCategoriesByCategoryId(id);
+                if (categoryDto == null || categoryDto.SubCategories == null)
+                    return PartialView("_SubcategoriesPartial", new List<CategoryDto>());
 
+                return PartialView("_SubcategoriesPartial", categoryDto.SubCategories);
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred while loading subcategories.");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMainCategoriesAjax()
+        {
+            try
+            {
+                var result = await _categoryService.GetFilteredCategoriesAsync("Main", "", "");
+                
                 var categories = result.Select(c => new
                 {
                     c.Id,
@@ -315,7 +305,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Error retrieving categories", error = ex.Message });
+                return BadRequest(new { message = "Error retrieving main categories", error = ex.Message });
             }
         }
     }

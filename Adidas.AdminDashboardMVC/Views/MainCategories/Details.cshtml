@@ -1,0 +1,197 @@
+﻿@model Adidas.DTOs.Separator.Category_DTOs.CategoryDto
+
+@{
+    ViewData["Title"] = "Main Category Details: " + Model.Name;
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-folder2-open text-primary me-2"></i>
+            Main Category Details: @Model.Name
+        </h2>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-controller="MainCategories" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+            <a asp-action="Index" asp-controller="MainCategories" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Main Category Info -->
+    <div class="card p-4 shadow-sm rounded-3 mb-4">
+        <div class="row">
+            <!-- Image -->
+             <div class="col-md-4 text-center">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="Main Category Image" class="img-fluid rounded border shadow-sm mb-3" style="max-width: 250px; object-fit: cover;" />
+                }
+                else
+                {
+                    <div class="bg-light text-muted d-flex align-items-center justify-content-center rounded border mb-3" style="max-width: 250px; height: 200px; margin: 0 auto;">
+                        <i class="bi bi-image text-secondary fs-1"></i>
+                    </div>
+                }
+                <p class="h5 mb-1 mt-2 fw-bold">@Model.Name</p>
+                <small class="text-muted">Slug: @Model.Slug</small>
+                <br />
+                <span class="badge bg-primary mt-2">Main Category</span>
+            </div>
+
+            <!-- Details -->
+            <div class="col-md-8">
+                <dl class="row mb-4">
+                    <dt class="col-sm-3">Description:</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Description) ? "N/A" : Model.Description)</dd>
+
+                    <dt class="col-sm-3">Status:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger") px-3 py-2">
+                            @(Model.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-3">Created:</dt>
+                    <dd class="col-sm-9">@Model.CreatedAt.ToString("MMM dd, yyyy 'at' hh:mm tt")</dd>
+                    <dt class="col-sm-3">Last Updated:</dt>
+                    <dd class="col-sm-9">@Model.UpdatedAt.ToString("MMM dd, yyyy 'at' hh:mm tt")</dd>
+
+
+                    <dt class="col-sm-3">Total Products:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-info">@Model.ProductsCount products</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subcategories Section -->
+    <div class="card shadow-sm rounded-3 p-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">
+                <i class="bi bi-list-nested text-primary me-2"></i>
+                Subcategories (@(Model.SubCategories?.Count() ?? 0))
+            </h4>
+            <a asp-controller="Subcategories" asp-action="Create" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus me-1"></i> Add Subcategory
+            </a>
+        </div>
+
+        @if (Model.SubCategories != null && Model.SubCategories.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>IMAGE</th>
+                            <th>NAME</th>
+                            <th>DESCRIPTION</th>
+                            <th>SLUG</th>
+                            <th>PRODUCTS</th>
+                            <th>STATUS</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var subCategory in Model.SubCategories)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@(!string.IsNullOrEmpty(subCategory.ImageUrl) ? subCategory.ImageUrl : "https://via.placeholder.com/50")"
+                                         alt="@subCategory.Name" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;" />
+                                </td>
+                                <td><strong>@subCategory.Name</strong><br /><small class="text-secondary">Subcategory</small></td>
+                                <td class="text-truncate" style="max-width: 250px;">
+                                    @(string.IsNullOrEmpty(subCategory.Description) ? "N/A" :
+                                                                (subCategory.Description.Length > 50 ? subCategory.Description.Substring(0, 50) + "..." : subCategory.Description))
+                        </td>
+                        <td>@subCategory.Slug</td>
+                        <td>
+                            <span class="badge bg-info">@subCategory.ProductsCount</span>
+                        </td>
+                        <td>
+                            <span class="badge @(subCategory.IsActive ? "bg-success" : "bg-danger")">
+                                @(subCategory.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td class="text-nowrap">
+                            <a asp-action="Details" asp-controller="Subcategories" asp-route-id="@subCategory.Id" class="btn btn-sm btn-outline-info me-1">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-controller="Subcategories" asp-route-id="@subCategory.Id" class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@subCategory.Id">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+
+                            <!-- Delete Modal for Subcategory -->
+                            <div class="modal fade" id="deleteModal-@subCategory.Id" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">Confirm Delete Subcategory</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete <strong>@subCategory.Name</strong>?
+                                    @if (subCategory.ProductsCount > 0)
+                                            {
+                                                <div class="alert alert-warning mt-2">
+                                                    <i class="bi bi-exclamation-triangle"></i> This will affect @subCategory.ProductsCount products.
+                                                </div>
+                                            }
+                                            <p class="text-danger mt-2">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form asp-action="Delete" asp-controller="Subcategories" method="post">
+                                                <input type="hidden" name="id" value="@subCategory.Id" />
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="bi bi-trash me-1"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-folder2-open text-muted fs-1"></i>
+                <p class="text-muted mt-2">No subcategories for this main category yet.</p>
+                <a asp-controller="Subcategories" asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus me-1"></i> Create First Subcategory
+                </a>
+            </div>
+        }
+    </div>
+</div>

@@ -38,6 +38,7 @@ namespace Adidas.Infra.Separator
         {
             // get all gategories including its all related entities 
             return await _dbSet
+ 
                 .Include(c => c.ParentCategory)
                 .Include(c => c.Products)
                 .Include(c => c.SubCategories)
@@ -57,6 +58,7 @@ namespace Adidas.Infra.Separator
                 .ThenInclude(sc => sc.Products)
                 .FirstOrDefaultAsync(c => c.Id == categoryId && !c.IsDeleted && c.IsActive);
 
+ 
         }
 
         public async Task<List<Category>> GetCategoryHierarchyAsync(Guid categoryId)
