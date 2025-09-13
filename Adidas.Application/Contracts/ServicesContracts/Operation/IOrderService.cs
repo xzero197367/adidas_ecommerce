@@ -9,8 +9,9 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
     public interface IOrderService : IGenericService<Order, OrderDto, OrderCreateDto, OrderUpdateDto>
     {
         // Existing methods
+        Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId);
         Task<OperationResult<PagedResultDto<OrderDetailDto>>> GetPagedOrdersAsync(int pageNumber, int pageSize, OrderFilterDto? filter = null);
-        Task<OperationResult<IEnumerable<OrderDetailDto>>> GetOrdersByUserIdAsync(string userId);
+        Task<OperationResult<IEnumerable<OrderDetailDto>>> GetAllOrdersByUserIdAsync(string userId);
         Task<OperationResult<OrderDto>> GetOrderByUserIdAsync(string userId);
         Task<OperationResult<OrderDto>> GetOrderByOrderNumberAsync(string orderNumber);
         Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByStatusAsync(OrderStatus status);

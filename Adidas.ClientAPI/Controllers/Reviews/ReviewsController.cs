@@ -89,7 +89,7 @@ namespace Adidas.ClientAPI.Controllers.Operation
 
    
 
-                var createdReview = await _reviewService.CreateReviewAsync(createReviewDto,currentUserId);
+                var createdReview = await _reviewService.CreateReviewAsync(createReviewDto);
                 return CreatedAtAction(nameof(GetReview), new { id = createdReview.Id }, createdReview);
             }
             catch (InvalidOperationException ex)
