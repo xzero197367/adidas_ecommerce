@@ -1,5 +1,4 @@
-﻿
-using Adidas.DTOs.Common_DTOs;
+﻿using Adidas.DTOs.Common_DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;

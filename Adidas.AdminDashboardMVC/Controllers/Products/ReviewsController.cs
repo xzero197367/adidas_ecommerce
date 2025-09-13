@@ -5,6 +5,7 @@ using Adidas.DTOs.Common_DTOs;
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.Operation.ReviewDTOs.Result;
 using Adidas.DTOs.Operation.ReviewDTOs;
+using Adidas.Application.Services.Operation;
 
 namespace Adidas.Web.Controllers
 {
@@ -22,14 +23,55 @@ namespace Adidas.Web.Controllers
         }
 
         [HttpGet]
+        //public async Task<IActionResult> Index(
+        //    int page = 1,
+        //    int pageSize = 10,
+        //    string? status = null,
+        //    string? searchTerm = null,
+        //    int? rating = null,
+        //    DateTime? startDate = null,
+        //    DateTime? endDate = null)
+        //{
+        //    try
+        //    {
+        //        var viewModel = new ReviewsIndexViewModel
+        //        {
+        //            CurrentPage = page,
+        //            PageSize = pageSize,
+        //            Status = status,
+        //            SearchTerm = searchTerm,
+        //            Rating = rating,
+        //            StartDate = startDate,
+        //            EndDate = endDate
+        //        };
+
+        //        // Get filtered and paged reviews
+        //        var pagedReviews = await GetFilteredReviewsAsync(viewModel);
+        //        viewModel.Reviews = pagedReviews;
+
+        //        // ✅ FIXED: Get review statistics using the service method
+        //        var stats = await _reviewService.GetReviewStatsAsync();
+        //        viewModel.Stats = stats;
+
+        //        return View(viewModel);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error loading reviews index page");
+        //        TempData["Error"] = "An error occurred while loading reviews.";
+        //        return View(new ReviewsIndexViewModel());
+        //    }
+        //}
+        [HttpGet]
         public async Task<IActionResult> Index(
-            int page = 1,
-            int pageSize = 10,
-            string? status = null,
-            string? searchTerm = null,
-            int? rating = null,
-            DateTime? startDate = null,
-            DateTime? endDate = null)
+    int page = 1,
+    int pageSize = 10,
+    string? status = null,
+    string? searchTerm = null,
+    int? rating = null,
+    DateTime? startDate = null,
+    DateTime? endDate = null,
+    string? productName = null)   // <-- NEW parameter
         {
             try
             {
@@ -41,16 +83,64 @@ namespace Adidas.Web.Controllers
                     SearchTerm = searchTerm,
                     Rating = rating,
                     StartDate = startDate,
-                    EndDate = endDate
+                    EndDate = endDate,
+                    ProductName = productName    // <-- keep product name in VM so view can show it
                 };
 
-                // Get filtered and paged reviews
-                var pagedReviews = await GetFilteredReviewsAsync(viewModel);
+                // Build a ReviewProductFilterDto (it inherits ReviewFilterDto)
+                var filter = new ReviewProductFilterDto
+                {
+                    // map rating -> Min/Max (existing pattern used elsewhere)
+                    MinRating = viewModel.Rating,
+                    MaxRating = viewModel.Rating,
+
+                    // map search term to SearchText (ReviewFilterDto uses SearchText)
+                    SearchText = viewModel.SearchTerm,
+
+                    StartDate = viewModel.StartDate,
+                    EndDate = viewModel.EndDate,
+
+                    // product name for product-name search
+                    ProductName = productName
+                };
+
+                // map status string into the boolean flags the filter expects
+                if (!string.IsNullOrWhiteSpace(viewModel.Status))
+                {
+                    var s = viewModel.Status.ToLowerInvariant();
+                    switch (s)
+                    {
+                        case "pending":
+                            filter.IsPending = true;
+                            break;
+                        case "approved":
+                            filter.IsApproved = true;
+                            break;
+                        case "rejected":
+                            filter.IsRejected = true;
+                            break;
+                    }
+                }
+
+                // Choose the proper service call
+                PagedResultDto<ReviewDto> pagedReviews;
+                if (!string.IsNullOrWhiteSpace(productName))
+                {
+                    // Use the product-name-specific service (search by product name)
+                    pagedReviews = await _reviewService.GetReviewsByProductNameAsync(filter, viewModel.CurrentPage, viewModel.PageSize);
+                }
+                else
+                {
+                    // Fallback: existing generic filtering
+                    pagedReviews = await _reviewService.GetFilteredReviewsAsync(filter, viewModel.CurrentPage, viewModel.PageSize);
+                }
+
                 viewModel.Reviews = pagedReviews;
 
-                // ✅ FIXED: Get review statistics using the service method
-                var stats = await _reviewService.GetReviewStatsAsync();
-                viewModel.Stats = stats;
+                // Stats (unchanged)
+                //viewModel.Stats = await _review_service.GetReviewStatsAsync();
+                viewModel.Stats = await _reviewService.GetReviewStatsAsync();
+
 
                 return View(viewModel);
             }
@@ -61,6 +151,7 @@ namespace Adidas.Web.Controllers
                 return View(new ReviewsIndexViewModel());
             }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> FilterReviews(
@@ -343,6 +434,24 @@ namespace Adidas.Web.Controllers
             return result;
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> FilterByProductName(
+    string productName, int page = 1, int pageSize = 10)
+        {
+            var filter = new ReviewProductFilterDto { ProductName = productName };
+
+            var result = await _reviewService
+                .GetReviewsByProductNameAsync(filter, page, pageSize);
+
+            return Json(new
+            {
+                success = true,
+                data = result.Items,
+                total = result.TotalCount
+            });
+        }
+
         // Request models for API endpoints
         public class RejectReviewRequest
         {
@@ -374,6 +483,10 @@ namespace Adidas.Web.Controllers
             public int? Rating { get; set; }
             public DateTime? StartDate { get; set; }
             public DateTime? EndDate { get; set; }
+            // NEW — so the view keeps the product name input value on render
+            public string? ProductName { get; set; }
+
+
         }
         // ✅ Test Data Creation Script
         // Add this method to your ReviewsController or create a separate test controller

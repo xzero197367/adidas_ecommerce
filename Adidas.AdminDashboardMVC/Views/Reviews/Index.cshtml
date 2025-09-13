@@ -136,6 +136,17 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
+                                <label><i class="fas fa-box mr-1"></i>Product Name</label>
+                                @* <input type="text" name="productName" class="form-control" *@
+                                @*        placeholder="Filter by product name" /> *@
+                                <input type="text" name="productName" class="form-control"
+                                       value="@Model.ProductName" placeholder="Filter by product name" />
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
                                 <label>&nbsp;</label>
                                 <div class="d-flex">
                                     <button type="submit" class="btn btn-primary mr-2">
@@ -310,12 +321,12 @@
                                                 <i class="@icon mr-1"></i> @statusText
                                             </span>
 
-                                            @if (!string.IsNullOrWhiteSpace(review.RejectionReason))
-                                            {
-                                                <div class="mt-1 small text-muted">
-                                                    <i class="fas fa-comment-alt"></i> @review.RejectionReason
-                                                </div>
-                                            }
+                                            @* @if (!string.IsNullOrWhiteSpace(review.RejectionReason)) *@
+                                            @* { *@
+                                            @*     <div class="mt-1 small text-muted"> *@
+                                            @*         <i class="fas fa-comment-alt"></i> @review.RejectionReason *@
+                                            @*     </div> *@
+                                            @* } *@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group" aria-label="Review actions">
