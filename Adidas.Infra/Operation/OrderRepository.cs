@@ -16,7 +16,15 @@ namespace Adidas.Infra.Operation
                         .Include(o => o.Payments)
                 .ToListAsync();
         }
-
+        public async Task<Order?> GetOrderByOrderIdAsync(Guid orderId)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Variant) // Include product details
+                        .ThenInclude(pv => pv.Product)
+                .Include(o => o.Payments)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+        }
         public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
             return await GetAll().Where(o => o.OrderStatus == status && !o.IsDeleted).ToListAsync();

@@ -80,8 +80,8 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             OrderDate = order.OrderDate,
             ShippedDate = order.ShippedDate,
             DeliveredDate = order.DeliveredDate,
-            ShippingAddress = DeserializeAddress(order.ShippingAddress),
-            BillingAddress = DeserializeAddress(order.BillingAddress),
+            ShippingAddress = FormatAddress(order.ShippingAddress),
+            BillingAddress = FormatAddress(order.BillingAddress),
             Notes = order.Notes,
             UserId = order.UserId,
             UserName = order.User?.UserName,
@@ -139,8 +139,8 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             OrderDate = order.OrderDate,
             ShippedDate = order.ShippedDate,
             DeliveredDate = order.DeliveredDate,
-            ShippingAddress = DeserializeAddress(order.ShippingAddress),
-            BillingAddress = DeserializeAddress(order.BillingAddress),
+            ShippingAddress = FormatAddress(order.ShippingAddress),
+            BillingAddress = FormatAddress(order.BillingAddress),
             Notes = order.Notes,
             UserId = order.UserId,
             UserName = order.User?.UserName,
@@ -290,7 +290,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
     {
         try
         {
-            var order = await _orderRepository.GetByIdAsync(id);
+            var order = await _orderRepository.GetOrderByOrderIdAsync(id);
             if (order == null)
             {
                 return OperationResult<OrderDetailDto>.Fail($"Order with id {id} was not found.");
@@ -1079,7 +1079,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return OperationResult<IEnumerable<OrderDetailDto>>.Fail(ex.Message);
         }
     }
-
+    
     public async Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByUserIdAsync(string userId)
     {
         try
@@ -1299,7 +1299,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return OperationResult<bool>.Fail(ex.Message);
         }
     }
-
+    
     public async Task<OperationResult<OrderSummaryDto>> GetOrderSummaryAsync(DateTime? startDate = null,
         DateTime? endDate = null)
     {

@@ -37,7 +37,7 @@ namespace Adidas.ClientAPI.Controllers.Operation
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized(new { success = false, message = "User not authenticated" });
 
-                var orders = await _orderService.GetOrdersByUserIdAsync(userId);
+                var orders = await _orderService.GetAllOrdersByUserIdAsync(userId);
 
                 if (orders.IsSuccess)
                 {

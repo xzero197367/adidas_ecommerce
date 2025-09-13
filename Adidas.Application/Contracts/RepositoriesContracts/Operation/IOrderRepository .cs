@@ -5,6 +5,7 @@ namespace Adidas.Application.Contracts.RepositoriesContracts.Operation
     public interface IOrderRepository : IGenericRepository<Order>
     {
         Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId);
+        Task<Order?> GetOrderByOrderIdAsync(Guid orderId);
         Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status);
         IEnumerable<Order> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task<Order?> GetOrderWithItemsAsync(Guid orderId);

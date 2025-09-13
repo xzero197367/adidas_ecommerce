@@ -9,9 +9,6 @@ namespace Adidas.DTOs.Operation.OrderDTOs
         public Guid Id { get; set; }
         public string OrderNumber { get; set; }
         public OrderStatus OrderStatus { get; set; }
-
-        public string CustomerName { get; set; }
-
         public decimal Subtotal { get; set; }
         public decimal TaxAmount { get; set; }
         public decimal ShippingAmount { get; set; }
@@ -21,8 +18,8 @@ namespace Adidas.DTOs.Operation.OrderDTOs
         public DateTime OrderDate { get; set; }
         public DateTime? ShippedDate { get; set; }
         public DateTime? DeliveredDate { get; set; }
-        public Dictionary<string, object> ShippingAddress { get; set; }
-        public Dictionary<string, object> BillingAddress { get; set; }
+        public string ShippingAddress { get; set; }
+        public string BillingAddress { get; set; }
         public string Notes { get; set; }
         public string UserId { get; set; }
         public string UserName { get; set; }
