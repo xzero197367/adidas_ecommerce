@@ -15,6 +15,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         Task<OperationResult<OrderDto>> GetOrderByOrderNumberAsync(string orderNumber);
         Task<OperationResult<IEnumerable<OrderDto>>> GetOrdersByStatusAsync(OrderStatus status);
         Task<OperationResult<bool>> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus);
+        Task<OperationResult<bool>> UpdateOrderAmountAsync(Guid orderId, decimal newAmount);
         Task<OperationResult<OrderDto>> GetOrderWithItemsAsync(Guid orderId);
         Task<OperationResult<decimal>> CalculateOrderTotalAsync(string userId, string? discountCode = null);
         Task<OperationResult<bool>> CancelOrderAsync(Guid orderId, string reason);
@@ -26,13 +27,16 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         Task<OperationResult<object>> PlaceOrder(CreateOrderDTO orderCreateDTO);
 
         // New required methods
-        Task<OperationResult<OrderDetailDto>> GetOrderByIdAsync(Guid id);  
+        Task<OperationResult<OrderDetailDto>> GetOrderByIdAsync(Guid id);
         Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(CreateOrderDTO createOrderDto);
         Task<OperationResult<PagedResultDto<OrderDetailDto>>> GetOrderHistoryAsync(string userId, int page = 1, int pageSize = 10, OrderStatus? status = null);
         Task<OperationResult<object>> GetOrderTrackingAsync(Guid id);
 
         Task<OperationResult<object>> GetGuestCheckoutSummaryAsync(string guestUserId, List<GuestCartItemsDto> cartItems, string? couponCode = null);
         Task<BillingSummaryDto> GetGuestBillingSummaryAsync(string guestUserId, List<GuestCartItemsDto> cartItems, string? promoCode = null);
+      
+
+
 
     }
 }

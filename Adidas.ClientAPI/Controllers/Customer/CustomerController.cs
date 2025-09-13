@@ -6,6 +6,7 @@ using System.Security.Claims;
 using Models.People;
 using Microsoft.EntityFrameworkCore;
 using Adidas.DTOs.People.Customer_DTOs;
+using System.ComponentModel.DataAnnotations;
 
 namespace Adidas.ClientAPI.Controllers.Customer
 {
@@ -170,7 +171,7 @@ namespace Adidas.ClientAPI.Controllers.Customer
         }
 
         /// <summary>
-        /// Get basic customer info (minimal data)
+        /// Get basic customer info (minimal data) for current authenticated user
         /// </summary>
         /// <returns></returns>
         [HttpGet("info")]
@@ -203,6 +204,89 @@ namespace Adidas.ClientAPI.Controllers.Customer
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving customer info for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        /// <summary>
+        /// Get customer info by user ID (for displaying in reviews, etc.)
+        /// This endpoint allows fetching any customer's basic info by their ID
+        /// Returns limited public information for privacy protection
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpGet("info/{userId}")]
+        [AllowAnonymous] // Public endpoint for showing reviewer names
+        public async Task<IActionResult> GetCustomerInfoById(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                    return BadRequest(new { message = "User ID is required" });
+
+                var user = await _userManager.Users
+                    .Where(u => u.Id == userId && !u.IsDeleted && u.IsActive)
+                    .Select(u => new PublicCustomerInfoDto
+                    {
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        FullName = $"{u.FirstName} {u.LastName}".Trim()
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (user == null)
+                    return NotFound(new { message = "Customer not found" });
+
+                return Ok(new { customer = user });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customer info for user: {UserId}", userId);
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        /// <summary>
+        /// Get multiple customers' info by user IDs (batch request)
+        /// This is more efficient than making multiple individual requests
+        /// Returns limited public information for privacy protection
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("info/batch")]
+        [AllowAnonymous] // Public endpoint for showing reviewer names
+        public async Task<IActionResult> GetCustomersInfoByIds([FromBody] BatchCustomerInfoRequest request)
+        {
+            try
+            {
+                if (request == null || request.UserIds == null || !request.UserIds.Any())
+                    return BadRequest(new { message = "User IDs are required" });
+
+                // Limit the number of IDs that can be requested at once to prevent abuse
+                if (request.UserIds.Count() > 100)
+                    return BadRequest(new { message = "Maximum 100 user IDs allowed per request" });
+
+                // Remove duplicates and invalid IDs
+                var uniqueUserIds = request.UserIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
+
+                var users = await _userManager.Users
+                    .Where(u => uniqueUserIds.Contains(u.Id) && !u.IsDeleted && u.IsActive)
+                    .Select(u => new PublicCustomerInfoDto
+                    {
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        FullName = $"{u.FirstName} {u.LastName}".Trim()
+                    })
+                    .ToListAsync();
+
+                return Ok(new { customers = users });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving batch customer info for user IDs: {UserIds}",
+                    string.Join(", ", request?.UserIds ?? new List<string>()));
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
@@ -442,5 +526,40 @@ namespace Adidas.ClientAPI.Controllers.Customer
             }
         }
     }
-}
 
+    /// <summary>
+    /// DTO for batch customer info requests
+    /// </summary>
+    public class BatchCustomerInfoRequest
+    {
+        [Required]
+        [MinLength(1, ErrorMessage = "At least one user ID is required")]
+        [MaxLength(100, ErrorMessage = "Maximum 100 user IDs allowed per request")]
+        public IEnumerable<string> UserIds { get; set; } = new List<string>();
+    }
+
+    /// <summary>
+    /// DTO for public customer information (used in reviews, etc.)
+    /// This contains limited information for privacy protection
+    /// </summary>
+    public class PublicCustomerInfoDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Get customer initials for avatar display
+        /// </summary>
+        public string InitialsOnly => GetInitials();
+
+        private string GetInitials()
+        {
+            var firstInitial = !string.IsNullOrEmpty(FirstName) ? FirstName[0].ToString().ToUpper() : "";
+            var lastInitial = !string.IsNullOrEmpty(LastName) ? LastName[0].ToString().ToUpper() : "";
+            var initials = $"{firstInitial}{lastInitial}";
+            return string.IsNullOrEmpty(initials) ? "A" : initials;
+        }
+    }
+}

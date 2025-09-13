@@ -41,130 +41,87 @@
         @Html.AntiForgeryToken()
 
         <div class="row">
-            <!-- Variant Information -->
-            <div class="col-lg-8">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-info-circle me-2"></i>Variant Information
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Product Selection -->
-                        @if (Model.ProductId == Guid.Empty)
-                        {
-                            <div class="mb-3">
-                                <label asp-for="ProductId" class="form-label">Product *</label>
-                                <select asp-for="ProductId" class="form-select" required id="productSelect">
-                                    <option value="">Select Product</option>
-                                    @foreach (var product in ViewBag.Products as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
-                                    {
-                                        <option value="@product.Id">@product.Name (@product.Sku)</option>
-                                    }
-                                </select>
-                                <span asp-validation-for="ProductId" class="text-danger"></span>
-                            </div>
-                        }
-                        else
-                        {
-                            <input asp-for="ProductId" type="hidden"/>
-                            <div class="mb-3">
-                                <label class="form-label">Product</label>
-                                <div class="form-control-plaintext">
-                                    <strong>@ViewBag.ProductName</strong>
-                                </div>
-                            </div>
-                        }
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Color" class="form-label">Color *</label>
-                                <input asp-for="Color" class="form-control" placeholder="e.g. Black, White, Red"
-                                       required>
-                                <span asp-validation-for="Color" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Size" class="form-label">Size *</label>
-                                <input asp-for="Size" class="form-control" placeholder="e.g. S, M, L, XL, 8, 9, 10"
-                                       required>
-                                <span asp-validation-for="Size" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="StockQuantity" class="form-label">Stock Quantity *</label>
-                                <input asp-for="StockQuantity" class="form-control" type="number" min="0" required>
-                                <span asp-validation-for="StockQuantity" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="PriceAdjustment" class="form-label">Price Adjustment</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input asp-for="PriceAdjustment" class="form-control" type="number" step="0.01"
-                                           placeholder="0.00">
-                                </div>
-                                <small class="text-muted">Additional cost (+) or discount (-) from base price</small>
-                                <span asp-validation-for="PriceAdjustment" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="ColorHex" class="form-label">Color Code (Hex)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">#</span>
-                                    <input asp-for="ColorHex" class="form-control" placeholder="000000" maxlength="6">
-                                    <input type="color" class="form-control form-control-color" id="colorPicker"
-                                           title="Choose color">
-                                </div>
-                                <small class="text-muted">Optional: Used for color display</small>
-                                <span asp-validation-for="ColorHex" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="SortOrder" class="form-label">Sort Order</label>
-                                <input asp-for="SortOrder" class="form-control" type="number" min="0" value="0">
-                                <small class="text-muted">Lower numbers appear first</small>
-                                <span asp-validation-for="SortOrder" class="text-danger"></span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Variant Information Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Variant Information
+                    </h5>
                 </div>
-
-                <!-- Variant Image -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-camera me-2"></i>Variant Image
-                        </h5>
-                    </div>
-                    <div class="card-body">
+                <div class="card-body">
+                    <!-- Product Selection -->
+                    @if (Model.ProductId == Guid.Empty)
+                    {
                         <div class="mb-3">
-                            <label asp-for="ImageFile" class="form-label">Upload Image</label>
-                            <input asp-for="ImageFile" class="form-control" type="file" accept="image/*">
-                            <small class="text-muted">Optional: Specific image for this variant. Accepted formats: JPG,
-                                PNG, GIF. Max size: 5MB</small>
-                            <span asp-validation-for="ImageFile" class="text-danger"></span>
+                            <label asp-for="ProductId" class="form-label">Product *</label>
+                            <select asp-for="ProductId" class="form-select" required id="productSelect">
+                                <option value="">Select Product</option>
+                                @foreach (var product in ViewBag.Products as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
+                                {
+                                    <option value="@product.Id">@product.Name (@product.Sku)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="ProductId" class="text-danger"></span>
                         </div>
-
+                    }
+                    else
+                    {
+                        <input asp-for="ProductId" type="hidden" />
                         <div class="mb-3">
-                            <label asp-for="ImageUrl" class="form-label">Or Image URL</label>
-                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
-                            <small class="text-muted">Alternative: Provide direct URL to image</small>
-                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
-                        </div>
-
-                        <div id="imagePreview" class="mt-3" style="display: none;">
-                            <label class="form-label">Preview</label>
-                            <div>
-                                <img id="previewImg" src="" alt="Preview" class="img-thumbnail"
-                                     style="max-height: 200px;">
+                            <label class="form-label">Product</label>
+                            <div class="form-control-plaintext">
+                                <strong>@ViewBag.ProductName</strong>
                             </div>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <!-- Color Picker -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ColorHex" class="form-label">Choose Color *</label>
+                            <input asp-for="ColorHex" type="color" class="form-control form-control-color" id="ColorHexPicker">
+                            <span asp-validation-for="ColorHex" class="text-danger"></span>
+                        </div>
+
+                        <!-- Size -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Size" class="form-label">Size *</label>
+                            <input asp-for="Size" class="form-control" placeholder="e.g. S, M, L, XL, 8, 9, 10" required>
+                            <span asp-validation-for="Size" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Stock Quantity -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="StockQuantity" class="form-label">Stock Quantity *</label>
+                            <input asp-for="StockQuantity" class="form-control" type="number" min="0" required>
+                            <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                        </div>
+
+                        <!-- Price Adjustment -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PriceAdjustment" class="form-label">Price Adjustment</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="PriceAdjustment" class="form-control" type="number" step="0.01" placeholder="0.00">
+                            </div>
+                            <small class="text-muted">Additional cost (+) or discount (-) from base price</small>
+                            <span asp-validation-for="PriceAdjustment" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Sort Order -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SortOrder" class="form-label">Sort Order</label>
+                            <input asp-for="SortOrder" class="form-control" type="number" min="0" value="0">
+                            <small class="text-muted">Lower numbers appear first</small>
+                            <span asp-validation-for="SortOrder" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
             </div>
-
             <!-- Sidebar -->
             <div class="col-lg-4">
                 <!-- Quick Info -->
@@ -182,7 +139,7 @@
                                 <li>Make sure Color + Size combination is unique</li>
                                 <li>Use consistent naming (e.g., always "Large" not "L")</li>
                                 <li>Price adjustment adds/subtracts from base product price</li>
-                                <li>Color hex code helps with visual filters</li>
+                                <li>Color picker helps with visual filters</li>
                             </ul>
                         </div>
                     </div>
@@ -238,7 +195,7 @@
             'use strict';
             window.addEventListener('load', function () {
                 var forms = document.getElementsByClassName('needs-validation');
-                var validation = Array.prototype.filter.call(forms, function (form) {
+                Array.prototype.forEach.call(forms, function (form) {
                     form.addEventListener('submit', function (event) {
                         if (form.checkValidity() === false) {
                             event.preventDefault();
@@ -249,21 +206,6 @@
                 });
             }, false);
         })();
-
-        // Color picker integration
-        const colorPicker = document.getElementById('colorPicker');
-        const colorHexInput = document.getElementById('@Html.IdFor(m => m.ColorHex)');
-
-        colorPicker.addEventListener('change', function () {
-            const hex = this.value.substring(1); // Remove # from color value
-            colorHexInput.value = hex;
-        });
-
-        colorHexInput.addEventListener('input', function () {
-            if (this.value.match(/^[0-9A-Fa-f]{6}$/)) {
-                colorPicker.value = '#' + this.value;
-            }
-        });
 
         // Image preview for file upload
         document.getElementById('@Html.IdFor(m => m.ImageFile)').addEventListener('change', function (e) {
@@ -307,7 +249,7 @@
 
                         data.forEach(variant => {
                             html += `<tr>
-                                <td>${variant.color}</td>
+                                <td><span style="display:inline-block;width:20px;height:20px;background-color:${variant.colorHex};border:1px solid #ccc;"></span> ${variant.color}</td>
                                 <td><span class="badge bg-secondary">${variant.size}</span></td>
                                 <td><span class="badge ${variant.stockQuantity > 0 ? 'bg-success' : 'bg-danger'}">${variant.stockQuantity}</span></td>
                             </tr>`;
@@ -338,7 +280,7 @@
         @if (Model.ProductId != Guid.Empty)
         {
             <text>
-                loadExistingVariants('@Model.ProductId');
+                    loadExistingVariants('@Model.ProductId');
             </text>
         }
 
@@ -348,7 +290,6 @@
             const size = document.getElementById('@Html.IdFor(m => m.Size)').value;
 
             if (color && size) {
-                // Could show a preview of what the variant will be called
                 console.log(`Variant will be: ${color} - ${size}`);
             }
         }

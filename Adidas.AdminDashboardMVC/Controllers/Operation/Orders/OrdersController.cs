@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Adidas.Application.Contracts.ServicesContracts.Operation;
 using Adidas.DTOs.Operation.OrderDTOs;
@@ -7,6 +8,9 @@ using Adidas.Models.Operation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models.People;
+using System.Text.Json;
+using Mapster;
+using Microsoft.Extensions.Caching.Memory;   // ✅ Added for caching
 
 namespace Adidas.Web.Controllers
 {
@@ -15,42 +19,55 @@ namespace Adidas.Web.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly UserManager<User> _userManager;
+        private readonly IOrderEditService _orderEditService;
+        private readonly IOrderFilterService _orderFilterService;
+        private readonly IMemoryCache _cache;   // ✅ Add cache
 
-        public OrdersController(IOrderService orderService, UserManager<User> userManager)
+        public OrdersController(
+            IOrderService orderService,
+        IOrderEditService orderEditService,
+            UserManager<User> userManager,
+        IOrderFilterService orderFilterService,
+            IMemoryCache cache)   // ✅ Inject cache
         {
             _orderService = orderService;
+            _orderEditService = orderEditService;
             _userManager = userManager;
+            _orderFilterService = orderFilterService;
+            _cache = cache;   // ✅ Assign cache
         }
 
-        // GET: Order
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10,
-            string? orderNumber = null, OrderStatus? status = null, DateTime? orderDate = null)
-
+        [Authorize]
+        public async Task<IActionResult> Index(
+            int pageNumber = 1, int pageSize = 10,
+            string? orderNumber = null,
+            OrderStatus? status = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            bool? isGuest = null)
         {
-            var filter = new OrderFilterDto()
+            var filter = new ExtendedOrderFilterDto
             {
-                OrderNumber = orderNumber,
+                OrderNumber = string.IsNullOrWhiteSpace(orderNumber) ? null : orderNumber.Trim(),
                 OrderStatus = status,
-                OrderDate = orderDate
+                StartDate = startDate,
+                EndDate = endDate,
+                IsGuest = isGuest
             };
-            var result = await _orderService.GetPagedOrdersAsync(pageNumber, pageSize, filter);
 
-            if (!result.IsSuccess)
-            {
-                TempData["Error"] = result.ErrorMessage;
-                return View();
-            }
+            var result = await _orderFilterService.GetFilteredOrdersAsync(pageNumber, pageSize, filter);
 
             ViewBag.PageNumber = pageNumber;
             ViewBag.PageSize = pageSize;
             ViewBag.OrderNumber = orderNumber;
             ViewBag.OrderStatus = status;
-            ViewBag.OrderDate = orderDate;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.IsGuest = isGuest;
 
-            return View(result.Data);
+            return View(result);
         }
 
-        // GET: Order/Details/5
         public async Task<IActionResult> Details(Guid id)
         {
             var result = await _orderService.GetOrderWithItemsAsync(id);
@@ -61,10 +78,18 @@ namespace Adidas.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(result.Data);
+            var dto = result.Data.Adapt<OrderWithCreatorDto>();
+
+            // ✅ Get cached last update info
+            if (_cache.TryGetValue($"LastUpdate_{id}", out OrderLastUpdateDto updateInfo))
+            {
+                ViewBag.LastUpdatedBy = updateInfo.UpdatedBy;
+                ViewBag.LastUpdatedAt = updateInfo.UpdatedAt.ToString("yyyy-MM-dd HH:mm");
+            }
+
+            return View(dto);
         }
 
-        // GET: Order/Create
         [Authorize(Roles = "Admin,Employee")]
         public IActionResult Create()
         {
@@ -77,16 +102,13 @@ namespace Adidas.Web.Controllers
             return View(model);
         }
 
-        // POST: Order/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Create(OrderCreateDto orderDto)
         {
             if (!ModelState.IsValid)
-            {
                 return View(orderDto);
-            }
 
             try
             {
@@ -101,14 +123,13 @@ namespace Adidas.Web.Controllers
                 TempData["Error"] = result.ErrorMessage;
                 return View(orderDto);
             }
-            catch (Exception ex)
+            catch
             {
                 TempData["Error"] = "An error occurred while creating the order.";
                 return View(orderDto);
             }
         }
 
-        // GET: Order/Edit/5
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -131,8 +152,12 @@ namespace Adidas.Web.Controllers
                 DiscountAmount = result.Data.DiscountAmount,
                 TotalAmount = result.Data.TotalAmount,
                 Currency = result.Data.Currency,
-                ShippingAddress = result.Data.ShippingAddress?.ToString(),
-                BillingAddress = result.Data.BillingAddress?.ToString(),
+                ShippingAddress = result.Data.ShippingAddress != null
+                    ? JsonSerializer.Serialize(result.Data.ShippingAddress, new JsonSerializerOptions { WriteIndented = true })
+                    : string.Empty,
+                BillingAddress = result.Data.BillingAddress != null
+                    ? JsonSerializer.Serialize(result.Data.BillingAddress, new JsonSerializerOptions { WriteIndented = true })
+                    : string.Empty,
                 Notes = result.Data.Notes,
                 UserId = result.Data.UserId
             };
@@ -140,7 +165,7 @@ namespace Adidas.Web.Controllers
             return View(updateDto);
         }
 
-        // POST: Order/Edit/5
+        // ✅ Updated Edit POST with caching
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Employee")]
@@ -153,31 +178,35 @@ namespace Adidas.Web.Controllers
             }
 
             if (!ModelState.IsValid)
-            {
                 return View(orderDto);
-            }
 
-            try
+            var user = await _userManager.GetUserAsync(User);
+            var displayName = user?.Email ?? user?.UserName ?? User.Identity?.Name ?? "Unknown";
+
+            var result = await _orderEditService.EditWithTrackingAsync(orderDto, displayName);
+
+            if (result.IsSuccess)
             {
-                var result = await _orderService.UpdateAsync(orderDto);
+                TempData["Success"] = "Order updated successfully!";
 
-                if (result.IsSuccess)
+                // ✅ Store globally in memory cache
+                var updateInfo = new OrderLastUpdateDto
                 {
-                    TempData["Success"] = "Order updated successfully!";
-                    return RedirectToAction(nameof(Details), new { id });
-                }
+                    OrderId = id,
+                    UpdatedBy = result.Data.UpdatedBy,
+                    UpdatedAt = result.Data.UpdatedAt
+                };
 
-                TempData["Error"] = result.ErrorMessage;
-                return View(orderDto);
+                _cache.Set($"LastUpdate_{id}", updateInfo, TimeSpan.FromHours(3));
+                // ⏳ expires after 3 hours
+
+                return RedirectToAction(nameof(Details), new { id });
             }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "An error occurred while updating the order.";
-                return View(orderDto);
-            }
+
+            TempData["Error"] = result.ErrorMessage;
+            return View(orderDto);
         }
 
-        // GET: Order/Delete/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -192,7 +221,6 @@ namespace Adidas.Web.Controllers
             return View(result.Data);
         }
 
-        // POST: Order/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -203,24 +231,19 @@ namespace Adidas.Web.Controllers
                 var result = await _orderService.DeleteAsync(id);
 
                 if (result.IsSuccess)
-                {
                     TempData["Success"] = "Order deleted successfully!";
-                }
                 else
-                {
                     TempData["Error"] = result.ErrorMessage;
-                }
 
                 return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
+            catch
             {
                 TempData["Error"] = "An error occurred while deleting the order.";
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        // POST: Order/UpdateStatus/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Employee")]
@@ -231,24 +254,19 @@ namespace Adidas.Web.Controllers
                 var result = await _orderService.UpdateOrderStatusAsync(id, status);
 
                 if (result.IsSuccess)
-                {
                     TempData["Success"] = $"Order status updated to {status}!";
-                }
                 else
-                {
                     TempData["Error"] = result.ErrorMessage;
-                }
 
                 return RedirectToAction(nameof(Details), new { id });
             }
-            catch (Exception ex)
+            catch
             {
                 TempData["Error"] = "An error occurred while updating the order status.";
                 return RedirectToAction(nameof(Details), new { id });
             }
         }
 
-        // POST: Order/Cancel/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Employee")]
@@ -259,31 +277,24 @@ namespace Adidas.Web.Controllers
                 var result = await _orderService.CancelOrderAsync(id, reason);
 
                 if (result.IsSuccess)
-                {
                     TempData["Success"] = "Order cancelled successfully!";
-                }
                 else
-                {
                     TempData["Error"] = result.ErrorMessage;
-                }
 
                 return RedirectToAction(nameof(Details), new { id });
             }
-            catch (Exception ex)
+            catch
             {
                 TempData["Error"] = "An error occurred while cancelling the order.";
                 return RedirectToAction(nameof(Details), new { id });
             }
         }
 
-        // GET: Order/MyOrders
         public async Task<IActionResult> MyOrders()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
 
             var result = await _orderService.GetOrdersByUserIdAsync(user.Id);
 
@@ -296,23 +307,6 @@ namespace Adidas.Web.Controllers
             return View(result.Data);
         }
 
-        // GET: Order/ByStatus
-        // [Authorize(Roles = "Admin,Employee")]
-        // public async Task<IActionResult> ByStatus(OrderStatus status)
-        // {
-        //     var result = await _orderService.GetOrdersByStatusAsync(status);
-        //
-        //     if (!result.IsSuccess)
-        //     {
-        //         TempData["Error"] = result.ErrorMessage;
-        //         return View(new List<OrderDto>());
-        //     }
-        //
-        //     ViewBag.Status = status;
-        //     return View(result.Data);
-        // }
-
-        // GET: Order/Summary
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Summary(DateTime? startDate = null, DateTime? endDate = null)
         {
@@ -329,8 +323,7 @@ namespace Adidas.Web.Controllers
 
             return View(result.Data);
         }
-        
-        // POST: Order/ExportToFile
+
         public async Task<FileResult> ExportToFile(string format, DateTime? startDate = null, DateTime? endDate = null)
         {
             if (format == "pdf")
@@ -338,17 +331,15 @@ namespace Adidas.Web.Controllers
                 var pdfBytes = await _orderService.ExportToPdfAsync(startDate, endDate);
                 return File(pdfBytes, "application/pdf", "orders.pdf");
             }
+
             var excelBytes = await _orderService.ExportToExcelAsync(startDate, endDate);
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx");
         }
-        
-        // GET: Order/Search
+
         public async Task<IActionResult> Search(string orderNumber)
         {
             if (string.IsNullOrEmpty(orderNumber))
-            {
                 return RedirectToAction(nameof(Index));
-            }
 
             var result = await _orderService.GetOrderByOrderNumberAsync(orderNumber);
 
@@ -361,9 +352,6 @@ namespace Adidas.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = result.Data.Id });
         }
 
-
-        //  get customers
-
         [HttpGet("get-customers")]
         public async Task<IActionResult> GetCustomers(
             [FromQuery] int page = 1,
@@ -375,7 +363,6 @@ namespace Adidas.Web.Controllers
             {
                 var query = _userManager.Users.Where(u => !u.IsDeleted && u.IsActive);
 
-                // Filter by search term
                 if (!string.IsNullOrEmpty(search))
                 {
                     query = query.Where(u =>
@@ -385,7 +372,6 @@ namespace Adidas.Web.Controllers
                         u.UserName.Contains(search));
                 }
 
-                // Filter by role
                 if (!string.IsNullOrEmpty(role) && Enum.TryParse<UserRole>(role, out var userRole))
                 {
                     query = query.Where(u => u.Role == userRole);

@@ -10,7 +10,7 @@ namespace Adidas.Infra.Main
     {
         public ProductRepository(AdidasDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(Guid categoryId)
+        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(Guid categoryId) 
         {
             return await _dbSet
                 .Include(p => p.Category)
@@ -130,43 +130,137 @@ namespace Adidas.Infra.Main
         public async Task<(IEnumerable<Product> products, int totalCount)> GetFilteredProductsAsync(ProductFilterDto filter)
         {
             var query = _dbSet
-            .Include(p => p.Category)
-            .Include(p => p.Brand)
-            .Include(p => p.Variants) 
-            .AsQueryable();
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Variants)
+                .AsQueryable();
 
-
+            // Category filter
             if (filter.CategoryId.HasValue)
-                query = query.Where(p => p.CategoryId == filter.CategoryId);
+                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
 
+            // Brand filter
             if (filter.BrandId.HasValue)
-                query = query.Where(p => p.BrandId == filter.BrandId);
+                query = query.Where(p => p.BrandId == filter.BrandId.Value);
 
+            // Gender filter
             if (filter.Gender.HasValue)
                 query = query.Where(p => p.GenderTarget == filter.Gender.Value);
 
+            // Price range
+            if (filter.MinPrice.HasValue)
+                query = query.Where(p => p.Price >= filter.MinPrice.Value);
+
+            if (filter.MaxPrice.HasValue)
+                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+
+            // On Sale
+            if (filter.IsOnSale.HasValue)
+            {
+                query = filter.IsOnSale.Value
+                    ? query.Where(p => p.SalePrice!=null)
+                    : query.Where(p => p.SalePrice == null);
+            }
+
+            // In Stock
+            if (filter.InStock.HasValue)
+            {
+                query = filter.InStock.Value
+                    ? query.Where(p => p.Variants.Any(v => v.StockQuantity > 0))
+                    : query.Where(p => p.Variants.All(v => v.StockQuantity == 0));
+            }
+            // Min stock
+            if (filter.MinStock.HasValue)
+                query = query.Where(p => p.Variants.Sum(v => v.StockQuantity) >= filter.MinStock.Value);
+
+            // Max stock
+            if (filter.MaxStock.HasValue)
+                query = query.Where(p => p.Variants.Sum(v => v.StockQuantity) <= filter.MaxStock.Value);
+
+            // Featured & Active
+            // if (filter.IsFeatured.HasValue)
+            //     query = query.Where(p => p.IsFeatured == filter.IsFeatured.Value);
+
+            if (filter.IsActive.HasValue)
+                query = query.Where(p => p.IsActive == filter.IsActive.Value);
+
+            // Date range
+            if (filter.CreatedAfter.HasValue)
+                query = query.Where(p => p.CreatedAt >= filter.CreatedAfter.Value);
+
+            if (filter.CreatedBefore.HasValue)
+                query = query.Where(p => p.CreatedAt <= filter.CreatedBefore.Value);
+
+            // Search term (case-insensitive, across multiple fields)
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var term = filter.SearchTerm.ToLower();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(term) ||
+                    p.Description.ToLower().Contains(term) ||
+                    p.Brand.Name.ToLower().Contains(term) ||
+                    p.Category.Name.ToLower().Contains(term));
+            }
+
+            // Total count before pagination
             var totalCount = await query.CountAsync();
 
+            // Sorting
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                query = filter.SortBy.ToLower() switch
+                {
+                    "price" => filter.SortDescending
+                        ? query.OrderByDescending(p => p.Price)
+                        : query.OrderBy(p => p.Price),
+
+                    "name" => filter.SortDescending
+                        ? query.OrderByDescending(p => p.Name)
+                        : query.OrderBy(p => p.Name),
+
+                    "createdat" => filter.SortDescending
+                        ? query.OrderByDescending(p => p.CreatedAt)
+                        : query.OrderBy(p => p.CreatedAt),
+
+                    _ => query.OrderBy(p => p.Name) // default sort
+                };
+            }
+            else
+            {
+                query = query.OrderBy(p => p.Name); // fallback default
+            }
+
+            // Paging
             var products = await query
-                .OrderBy(p => p.Name) 
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
             return (products, totalCount);
         }
+
         public async Task<Product?> GetProductWithVariantsAsync(Guid productId)
         {
+            // i want to return the reviews just approved
             return await _context.Products
                 .Include(p => p.Variants)
                     .ThenInclude(v => v.Images)
                 .Include(p => p.Images)
-                .Include(p => p.Reviews)
+                .Include(p => p.Category)
+                .Include(p => p.Reviews.Where(r => r.IsApproved)) // Include only approved reviews
                 .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
         }
 
         public async Task<List<Product>> GetByIdsAsync(List<Guid> productIds) =>
-       await _context.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+    await _context.Products
+        .Where(p => productIds.Contains(p.Id))
+        .Include(p => p.Category)
+        .Include(p => p.Brand)
+        .Include(p => p.Images)
+        .Include(p => p.Variants)
+        .Include(p => p.Reviews)
+        .ToListAsync();
+
 
 
     }

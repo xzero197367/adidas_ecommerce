@@ -6,10 +6,12 @@ using Adidas.Models.Main;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
 using System.Linq.Expressions;
 using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using iTextSharp.text.log;
 
 namespace Adidas.Application.Services.Main
 {
@@ -18,23 +20,25 @@ namespace Adidas.Application.Services.Main
         private readonly IProductVariantRepository _productVariantRepository;
         private readonly IProductImageRepository _productImageRepository;
         private readonly ILogger<ProductVariantService> _logger;
-        private readonly IWebHostEnvironment _env; // Fixed: Changed from IHostingEnvironment to IWebHostEnvironment
+        private readonly Cloudinary _cloudinary;
+
+        // Optional: set to a Cloudinary placeholder URL if you want a default
+        private const string DefaultImageUrl = null; // e.g., "https://res.cloudinary.com/<cloud>/image/upload/v.../placeholder.png";
 
         public ProductVariantService(
+            Cloudinary cloudinary,
             IProductVariantRepository productVariantRepository,
             IProductImageRepository productImageRepository,
-            ILogger<ProductVariantService> logger,
-            IWebHostEnvironment env) // Fixed: Changed from IHostingEnvironment to IWebHostEnvironment
+            ILogger<ProductVariantService> logger)
         {
             _productVariantRepository = productVariantRepository;
             _productImageRepository = productImageRepository;
             _logger = logger;
-            _env = env;
+            _cloudinary = cloudinary;
         }
 
         #region Manual Mapping Methods
 
-        // ProductVariantService - Fixed MapToProductVariantDto
         private ProductVariantDto MapToProductVariantDto(ProductVariant variant)
         {
             if (variant == null) return null;
@@ -42,18 +46,18 @@ namespace Adidas.Application.Services.Main
             return new ProductVariantDto
             {
                 Id = variant.Id,
-                ProductId = variant.ProductId, // Fix: This should map to the actual ProductId
-                Sku = variant.Sku ?? string.Empty, // Fix: This should map to the actual SKU
+                ProductId = variant.ProductId,
+                Sku = variant.Sku ?? string.Empty,
                 Color = variant.Color ?? string.Empty,
                 Size = variant.Size ?? string.Empty,
                 StockQuantity = variant.StockQuantity,
                 PriceAdjustment = variant.PriceAdjustment,
-                ColorHex = variant.Color, // Fix: This should be ColorHex, not Color
-                CreatedAt = variant.CreatedAt ?? DateTime.MinValue, // Fix: Better default value
-                IsActive = variant.IsActive, // Fix: This should map to the actual IsActive value
-                                             // Navigation properties will be mapped separately if needed
-                Product = null, // Will be set if Product is loaded
-                Images = new List<ProductImageDto>() // Will be populated if Images are loaded
+                ColorHex = variant.Color,            // ✅ fix
+                CreatedAt = variant.CreatedAt ?? DateTime.MinValue,
+                IsActive = variant.IsActive,
+                ImageUrl = variant.ImageUrl,
+                Product = null,
+                Images = new List<ProductImageDto>()
             };
         }
 
@@ -69,50 +73,46 @@ namespace Adidas.Application.Services.Main
                 Size = createDto.Size ?? string.Empty,
                 StockQuantity = createDto.StockQuantity,
                 PriceAdjustment = createDto.PriceAdjustment,
-                Sku = string.Empty, // Will be generated later
-                ImageUrl = createDto.ImageUrl ?? string.Empty,
+                Sku = string.Empty, // will be generated later
+                ImageUrl = createDto.ImageUrl ?? DefaultImageUrl,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsActive = true,
                 IsDeleted = false,
-                AddedById = null // Set this based on current user context if available
+                AddedById = null,
+                 
             };
         }
 
 
-        // ProductVariantService - Fixed the incomplete MapUpdateDtoToProductVariant method
         private void MapUpdateDtoToProductVariant(ProductVariantUpdateDto updateDto, ProductVariant variant)
         {
             if (updateDto == null || variant == null)
                 throw new ArgumentNullException(updateDto == null ? nameof(updateDto) : nameof(variant));
 
-            // Only update non-null values from DTO
             if (updateDto.ProductId != Guid.Empty)
                 variant.ProductId = updateDto.ProductId;
 
-            if (!string.IsNullOrWhiteSpace(updateDto.Color))
+            // Use ColorHex if provided, otherwise use Color
+            if (!string.IsNullOrWhiteSpace(updateDto.ColorHex))
+                variant.Color = updateDto.ColorHex; // Store hex in Color field
+            else if (!string.IsNullOrWhiteSpace(updateDto.Color))
                 variant.Color = updateDto.Color;
 
             if (!string.IsNullOrWhiteSpace(updateDto.Size))
                 variant.Size = updateDto.Size;
 
-            if (updateDto.StockQuantity >= 0) // Allow 0 but not negative unless explicitly needed
+            if (updateDto.StockQuantity >= 0)
                 variant.StockQuantity = updateDto.StockQuantity;
 
             variant.PriceAdjustment = updateDto.PriceAdjustment;
 
-            // Fix: Complete the ColorHex mapping that was incomplete
-            if (!string.IsNullOrWhiteSpace(updateDto.ColorHex))
-                variant.Color = updateDto.ColorHex;
-
             if (updateDto.IsActive.HasValue)
                 variant.IsActive = updateDto.IsActive.Value;
 
-            if (!string.IsNullOrWhiteSpace(updateDto.ImageUrl))
-                variant.ImageUrl = updateDto.ImageUrl;
-
             variant.UpdatedAt = DateTime.UtcNow;
         }
+
 
         #endregion
 
@@ -128,7 +128,7 @@ namespace Adidas.Application.Services.Main
                 IQueryable<ProductVariant> query = _productVariantRepository.GetAll()
                     .Include(v => v.Product)
                     .Include(v => v.Images)
-                    .Where(v => v.Id == id && !v.IsDeleted); // Fixed: Added IsDeleted check
+                    .Where(v => v.Id == id && !v.IsDeleted);
 
                 foreach (var include in includes)
                 {
@@ -156,7 +156,7 @@ namespace Adidas.Application.Services.Main
                 IQueryable<ProductVariant> query = _productVariantRepository.GetAll()
                     .Include(v => v.Product)
                     .Include(v => v.Images)
-                    .Where(v => !v.IsDeleted); // Fixed: Added IsDeleted check
+                    .Where(v => !v.IsDeleted);
 
                 if (queryFunc != null)
                 {
@@ -184,7 +184,7 @@ namespace Adidas.Application.Services.Main
                 IQueryable<ProductVariant> query = _productVariantRepository.GetAll()
                     .Include(v => v.Product)
                     .Include(v => v.Images)
-                    .Where(v => !v.IsDeleted); // Fixed: Added IsDeleted check
+                    .Where(v => !v.IsDeleted);
 
                 query = queryFunc(query);
                 var entities = await query.ToListAsync();
@@ -205,7 +205,6 @@ namespace Adidas.Application.Services.Main
                 if (pageNumber < 1) pageNumber = 1;
                 if (pageSize < 1) pageSize = 10;
 
-                // Apply IsDeleted filter in queryFunc
                 Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>> combinedQueryFunc = (query) =>
                 {
                     query = query.Where(v => !v.IsDeleted);
@@ -240,7 +239,6 @@ namespace Adidas.Application.Services.Main
         {
             try
             {
-                // Combine predicate with IsDeleted check
                 Expression<Func<ProductVariant, bool>> combinedPredicate;
                 if (predicate == null)
                 {
@@ -248,14 +246,13 @@ namespace Adidas.Application.Services.Main
                 }
                 else
                 {
-                    // Combine predicates: !v.IsDeleted && predicate
-                    var parameter = Expression.Parameter(typeof(ProductVariant), "v");
-                    var isDeletedProperty = Expression.Property(parameter, nameof(ProductVariant.IsDeleted));
-                    var notDeleted = Expression.Not(isDeletedProperty);
+                    var parameter = System.Linq.Expressions.Expression.Parameter(typeof(ProductVariant), "v");
+                    var isDeletedProperty = System.Linq.Expressions.Expression.Property(parameter, nameof(ProductVariant.IsDeleted));
+                    var notDeleted = System.Linq.Expressions.Expression.Not(isDeletedProperty);
 
-                    var predicateBody = Expression.Invoke(predicate, parameter);
-                    var combinedBody = Expression.AndAlso(notDeleted, predicateBody);
-                    combinedPredicate = Expression.Lambda<Func<ProductVariant, bool>>(combinedBody, parameter);
+                    var predicateBody = System.Linq.Expressions.Expression.Invoke(predicate, parameter);
+                    var combinedBody = System.Linq.Expressions.Expression.AndAlso(notDeleted, predicateBody);
+                    combinedPredicate = System.Linq.Expressions.Expression.Lambda<Func<ProductVariant, bool>>(combinedBody, parameter);
                 }
 
                 var count = await _productVariantRepository.CountAsync(combinedPredicate);
@@ -275,14 +272,13 @@ namespace Adidas.Application.Services.Main
                 if (predicate == null)
                     throw new ArgumentNullException(nameof(predicate));
 
-                // Combine predicate with IsDeleted check
-                var parameter = Expression.Parameter(typeof(ProductVariant), "v");
-                var isDeletedProperty = Expression.Property(parameter, nameof(ProductVariant.IsDeleted));
-                var notDeleted = Expression.Not(isDeletedProperty);
+                var parameter = System.Linq.Expressions.Expression.Parameter(typeof(ProductVariant), "v");
+                var isDeletedProperty = System.Linq.Expressions.Expression.Property(parameter, nameof(ProductVariant.IsDeleted));
+                var notDeleted = System.Linq.Expressions.Expression.Not(isDeletedProperty);
 
-                var predicateBody = Expression.Invoke(predicate, parameter);
-                var combinedBody = Expression.AndAlso(notDeleted, predicateBody);
-                var combinedPredicate = Expression.Lambda<Func<ProductVariant, bool>>(combinedBody, parameter);
+                var predicateBody = System.Linq.Expressions.Expression.Invoke(predicate, parameter);
+                var combinedBody = System.Linq.Expressions.Expression.AndAlso(notDeleted, predicateBody);
+                var combinedPredicate = System.Linq.Expressions.Expression.Lambda<Func<ProductVariant, bool>>(combinedBody, parameter);
 
                 var exists = await _productVariantRepository.ExistsAsync(combinedPredicate);
                 return OperationResult<bool>.Success(exists);
@@ -303,29 +299,21 @@ namespace Adidas.Application.Services.Main
 
                 await ValidateCreateAsync(createDto);
 
-                // Check for existing variant with same product, size, and color
                 var existingVariants = await _productVariantRepository.GetAll()
                     .Where(v => v.ProductId == createDto.ProductId &&
-                               v.Size.ToLower() == createDto.Size.ToLower() &&
-                               v.Color.ToLower() == createDto.Color.ToLower() &&
-                               !v.IsDeleted) // Fixed: Added IsDeleted check
+                                v.Size.ToLower() == createDto.Size.ToLower() &&
+                                v.Color.ToLower() == createDto.Color.ToLower() &&
+                                !v.IsDeleted)
                     .ToListAsync();
 
                 if (existingVariants.Any())
-                {
-                    return OperationResult<ProductVariantDto>.Fail(
-                        "A variant with the same size and color already exists for this product.");
-                }
+                    return OperationResult<ProductVariantDto>.Fail("A variant with the same size and color already exists for this product.");
 
                 var entity = MapToProductVariant(createDto);
 
-                // Generate SKU if not provided
                 if (string.IsNullOrWhiteSpace(entity.Sku))
-                {
-                    entity.Sku = $"SKU-{Guid.NewGuid().ToString("N")[..8].ToUpper()}"; // Fixed: More concise string manipulation
-                }
+                    entity.Sku = $"SKU-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
 
-                // Handle image upload
                 if (createDto.ImageFile != null && createDto.ImageFile.Length > 0)
                 {
                     var imageUploadResult = await HandleImageUploadAsync(createDto.ImageFile);
@@ -336,13 +324,12 @@ namespace Adidas.Application.Services.Main
                     else
                     {
                         _logger.LogWarning("Failed to upload image for product variant: {Error}", imageUploadResult.ErrorMessage);
-                        // Continue with default image
-                        entity.ImageUrl = "/images/variants/default-variant.jpg";
+                        entity.ImageUrl = DefaultImageUrl;
                     }
                 }
                 else
                 {
-                    entity.ImageUrl = "/images/variants/default-variant.jpg"; // Fixed: Better default image name
+                    entity.ImageUrl = entity.ImageUrl ?? DefaultImageUrl; // leave null or use placeholder
                 }
 
                 await BeforeCreateAsync(entity);
@@ -374,25 +361,21 @@ namespace Adidas.Application.Services.Main
                     return OperationResult<IEnumerable<ProductVariantDto>>.Success(new List<ProductVariantDto>());
 
                 foreach (var createDto in createDtoList)
-                {
                     await ValidateCreateAsync(createDto);
-                }
 
                 var entities = new List<ProductVariant>();
                 foreach (var createDto in createDtoList)
                 {
                     var entity = MapToProductVariant(createDto);
                     if (string.IsNullOrWhiteSpace(entity.Sku))
-                    {
                         entity.Sku = $"SKU-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
-                    }
+
+                    // Note: bulk create with images typically uploads per item; you can add that here if needed
                     entities.Add(entity);
                 }
 
                 foreach (var entity in entities)
-                {
                     await BeforeCreateAsync(entity);
-                }
 
                 var createdEntityEntries = await _productVariantRepository.AddRangeAsync(entities);
                 await _productVariantRepository.SaveChangesAsync();
@@ -400,9 +383,7 @@ namespace Adidas.Application.Services.Main
                 var createdEntities = createdEntityEntries.Select(entry => entry.Entity).ToList();
 
                 foreach (var createdEntity in createdEntities)
-                {
                     await AfterCreateAsync(createdEntity);
-                }
 
                 var mappedEntities = createdEntities.Select(MapToProductVariantDto).Where(dto => dto != null);
                 return OperationResult<IEnumerable<ProductVariantDto>>.Success(mappedEntities);
@@ -413,6 +394,7 @@ namespace Adidas.Application.Services.Main
                 return OperationResult<IEnumerable<ProductVariantDto>>.Fail($"Error creating product variants: {ex.Message}");
             }
         }
+
 
         public virtual async Task<OperationResult<ProductVariantDto>> UpdateAsync(ProductVariantUpdateDto updateDto)
         {
@@ -430,38 +412,51 @@ namespace Adidas.Application.Services.Main
 
                 await ValidateUpdateAsync(updateDto.Id, updateDto);
 
-                // Check for duplicates (exclude current entity)
                 var duplicates = await _productVariantRepository.GetAll()
                     .Where(v => v.ProductId == updateDto.ProductId &&
-                               v.Size.ToLower() == updateDto.Size.ToLower() &&
-                               v.Color.ToLower() == updateDto.Color.ToLower() &&
-                               v.Id != updateDto.Id &&
-                               !v.IsDeleted) // Fixed: Added IsDeleted check
+                                v.Size.ToLower() == updateDto.Size.ToLower() &&
+                                v.Color.ToLower() == updateDto.Color.ToLower() &&
+                                v.Id != updateDto.Id &&
+                                !v.IsDeleted)
                     .ToListAsync();
 
                 if (duplicates.Any())
-                {
-                    return OperationResult<ProductVariantDto>.Fail(
-                        "A product variant with the same Product, Size, and Color already exists.");
-                }
+                    return OperationResult<ProductVariantDto>.Fail("A product variant with the same Product, Size, and Color already exists.");
 
-                // Handle image upload
+                // Handle image upload first (following CreateAsync pattern)
+                string imageUrlToUse = existingEntity.ImageUrl; // Keep existing URL as default
+
                 if (updateDto.ImageFile != null && updateDto.ImageFile.Length > 0)
                 {
                     var imageUploadResult = await HandleImageUploadAsync(updateDto.ImageFile);
                     if (imageUploadResult.IsSuccess)
                     {
-                        // Delete old image if exists and it's not the default image
-                        await DeleteOldImageAsync(existingEntity.ImageUrl);
-                        existingEntity.ImageUrl = imageUploadResult.Data;
+                        imageUrlToUse = imageUploadResult.Data;
+                        _logger.LogInformation("Successfully updated image for product variant {Id}", updateDto.Id);
+
+                        // Store old image URL for cleanup after successful update
+                        string oldImageUrl = existingEntity.ImageUrl;
+
+                        // Clean up old image immediately after successful upload (like in CreateAsync)
+                        if (!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl != DefaultImageUrl)
+                        {
+                            await DeleteOldImageAsync(oldImageUrl);
+                        }
                     }
                     else
                     {
+                        // Following CreateAsync pattern - log warning but continue with existing image
                         _logger.LogWarning("Failed to upload image for product variant {Id}: {Error}", updateDto.Id, imageUploadResult.ErrorMessage);
+                        // Keep existing imageUrlToUse (don't change it)
                     }
                 }
 
+                // Map other properties (following CreateAsync pattern)
                 MapUpdateDtoToProductVariant(updateDto, existingEntity);
+
+                // Set the image URL (either new or existing)
+                existingEntity.ImageUrl = imageUrlToUse;
+
                 await BeforeUpdateAsync(existingEntity);
 
                 var updatedEntityEntry = await _productVariantRepository.UpdateAsync(existingEntity);
@@ -478,7 +473,6 @@ namespace Adidas.Application.Services.Main
                 return OperationResult<ProductVariantDto>.Fail($"Error updating product variant: {ex.Message}");
             }
         }
-
         public virtual async Task<OperationResult<IEnumerable<ProductVariantDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductVariantUpdateDto>> updates)
         {
             try
@@ -502,6 +496,9 @@ namespace Adidas.Application.Services.Main
                         throw new KeyNotFoundException($"Product variant with id {update.Key} not found");
 
                     await ValidateUpdateAsync(update.Key, update.Value);
+
+                    // If you support per-item image update in range, handle here
+
                     MapUpdateDtoToProductVariant(update.Value, existingEntity);
                     await BeforeUpdateAsync(existingEntity);
                     entities.Add(existingEntity);
@@ -513,9 +510,7 @@ namespace Adidas.Application.Services.Main
                 var updatedEntities = updatedEntityEntries.Select(entry => entry.Entity).ToList();
 
                 foreach (var updatedEntity in updatedEntities)
-                {
                     await AfterUpdateAsync(updatedEntity);
-                }
 
                 var mappedEntities = updatedEntities.Select(MapToProductVariantDto).Where(dto => dto != null);
                 return OperationResult<IEnumerable<ProductVariantDto>>.Success(mappedEntities);
@@ -534,16 +529,30 @@ namespace Adidas.Application.Services.Main
                 if (id == Guid.Empty)
                     return OperationResult<ProductVariant>.Fail("Invalid product variant ID");
 
-                var entity = await _productVariantRepository.GetByIdAsync(id);
+                // Load entity with children
+                var entity = await _productVariantRepository.GetByIdAsync(
+                    id,
+                    c => c.OrderItems,
+                    c => c.CartItems
+                );
+
                 if (entity == null || entity.IsDeleted)
-                    return OperationResult<ProductVariant>.Fail("Product variant not found");
+                    return OperationResult<ProductVariant>.Fail("Product variant not found or already deleted");
+
+                // 🔎 Check if it has children
+                if ((entity.OrderItems?.Any() ?? false) || (entity.CartItems?.Any() ?? false))
+                {
+                    return OperationResult<ProductVariant>.Fail("Cannot delete product variant because it has related order items or cart items.");
+                }
 
                 await BeforeDeleteAsync(entity);
-                var result = await _productVariantRepository.SoftDeleteAsync(id);
+
+                await _productVariantRepository.HardDeleteAsync(id);
                 await _productVariantRepository.SaveChangesAsync();
+
                 await AfterDeleteAsync(entity);
 
-                return OperationResult<ProductVariant>.Success(result.Entity);
+                return OperationResult<ProductVariant>.Success(entity);
             }
             catch (Exception ex)
             {
@@ -605,9 +614,7 @@ namespace Adidas.Application.Services.Main
                 await _productVariantRepository.SaveChangesAsync();
 
                 foreach (var entity in entities)
-                {
                     await AfterDeleteAsync(entity);
-                }
 
                 return OperationResult<IEnumerable<ProductVariant>>.Success(result.Select(x => x.Entity).ToList());
             }
@@ -687,13 +694,14 @@ namespace Adidas.Application.Services.Main
             if (productVariantUpdateDto == null)
                 return OperationResult<ProductVariantDto>.Fail("Update data cannot be null");
 
-            productVariantUpdateDto.Id = id; // Ensure the ID is set
+            productVariantUpdateDto.Id = id;
             return await UpdateAsync(productVariantUpdateDto);
         }
 
         #endregion
 
         #region Private Helper Methods
+
 
         private async Task<OperationResult<string>> HandleImageUploadAsync(IFormFile imageFile)
         {
@@ -702,35 +710,47 @@ namespace Adidas.Application.Services.Main
                 if (imageFile == null || imageFile.Length == 0)
                     return OperationResult<string>.Fail("Invalid image file");
 
-                // Validate file type
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
                 var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
                 if (!allowedExtensions.Contains(fileExtension))
                     return OperationResult<string>.Fail("Invalid file type. Only image files are allowed.");
 
-                // Validate file size (e.g., max 5MB)
-                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                const long maxFileSize = 5 * 1024 * 1024;
                 if (imageFile.Length > maxFileSize)
                     return OperationResult<string>.Fail("File size too large. Maximum size is 5MB.");
 
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "variants");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+                await using var stream = imageFile.OpenReadStream();
 
-                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imageFile.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                var uploadParams = new ImageUploadParams
                 {
-                    await imageFile.CopyToAsync(stream);
+                    File = new FileDescription(imageFile.FileName, stream),
+                    Folder = "product_variants",
+                    // Add these for better control
+                    Overwrite = false,
+                    UniqueFilename = true,
+                    UseFilename = false
+                };
+
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                if (uploadResult.Error != null)
+                {
+                    _logger.LogError("Cloudinary upload error: {Error}", uploadResult.Error.Message);
+                    return OperationResult<string>.Fail($"Image upload failed: {uploadResult.Error.Message}");
                 }
 
-                var relativePath = $"/images/variants/{uniqueFileName}";
-                return OperationResult<string>.Success(relativePath);
+                if (string.IsNullOrEmpty(uploadResult.SecureUrl?.AbsoluteUri))
+                {
+                    _logger.LogError("Cloudinary upload returned null or empty URL");
+                    return OperationResult<string>.Fail("Image upload failed: No URL returned");
+                }
+
+                _logger.LogInformation("Successfully uploaded image to Cloudinary: {PublicId}", uploadResult.PublicId);
+                return OperationResult<string>.Success(uploadResult.SecureUrl.AbsoluteUri);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error uploading image file");
+                _logger.LogError(ex, "Error uploading image to Cloudinary");
                 return OperationResult<string>.Fail($"Error uploading image: {ex.Message}");
             }
         }
@@ -739,23 +759,47 @@ namespace Adidas.Application.Services.Main
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(imageUrl) ||
-                    imageUrl.Contains("default") ||
-                    !imageUrl.StartsWith("/images/variants/"))
+                if (string.IsNullOrWhiteSpace(imageUrl))
                     return;
 
-                var imagePath = Path.Combine(_env.WebRootPath,
-                    imageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
+                    return;
 
-                if (File.Exists(imagePath))
+                if (!uri.Host.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                var path = uri.AbsolutePath;
+                var uploadIndex = path.IndexOf("/upload/", StringComparison.OrdinalIgnoreCase);
+                if (uploadIndex < 0) return;
+
+                var afterUpload = path.Substring(uploadIndex + "/upload/".Length);
+
+                var segments = afterUpload.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
+                if (segments.Count > 0 && segments[0].StartsWith("v") && int.TryParse(segments[0].Substring(1), out _))
                 {
-                    await Task.Run(() => File.Delete(imagePath));
+                    segments.RemoveAt(0);
+                }
+                if (!segments.Any()) return;
+
+                var publicIdWithExt = string.Join("/", segments);
+                var publicId = Path.ChangeExtension(publicIdWithExt, null);
+
+                var deletionParams = new DeletionParams(publicId);
+                var result = await _cloudinary.DestroyAsync(deletionParams);
+
+                if (!string.Equals(result.Result, "ok", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(result.Result, "not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Cloudinary deletion returned: {Result} for {PublicId}", result.Result, publicId);
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully deleted Cloudinary image: {PublicId}", publicId);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to delete old image file: {ImageUrl}", imageUrl);
-                // Don't throw - this is not a critical failure
+                _logger.LogWarning(ex, "Error deleting Cloudinary image: {ImageUrl}", imageUrl);
             }
         }
 
@@ -780,7 +824,6 @@ namespace Adidas.Application.Services.Main
             if (createDto.StockQuantity < 0)
                 throw new ArgumentException("Stock quantity cannot be negative", nameof(createDto.StockQuantity));
 
-            // Additional validation can be added here
             if (createDto.Color.Length > 50)
                 throw new ArgumentException("Color name cannot exceed 50 characters", nameof(createDto.Color));
 
@@ -810,7 +853,6 @@ namespace Adidas.Application.Services.Main
             if (updateDto.StockQuantity < 0)
                 throw new ArgumentException("Stock quantity cannot be negative", nameof(updateDto.StockQuantity));
 
-            // Additional validation can be added here
             if (updateDto.Color.Length > 50)
                 throw new ArgumentException("Color name cannot exceed 50 characters", nameof(updateDto.Color));
 
@@ -820,48 +862,15 @@ namespace Adidas.Application.Services.Main
             return Task.CompletedTask;
         }
 
-        public virtual Task BeforeCreateAsync(ProductVariant entity)
-        {
-            // Custom logic before creating entity
-            // e.g., set additional properties, validate business rules, etc.
-            return Task.CompletedTask;
-        }
-
-        public virtual Task AfterCreateAsync(ProductVariant entity)
-        {
-            // Custom logic after creating entity
-            // e.g., send notifications, update related entities, etc.
-            return Task.CompletedTask;
-        }
-
-        public virtual Task BeforeUpdateAsync(ProductVariant entity)
-        {
-            // Custom logic before updating entity
-            // e.g., validate business rules, backup old values, etc.
-            return Task.CompletedTask;
-        }
-
-        public virtual Task AfterUpdateAsync(ProductVariant entity)
-        {
-            // Custom logic after updating entity
-            // e.g., send notifications, update related entities, etc.
-            return Task.CompletedTask;
-        }
-
-        public virtual Task BeforeDeleteAsync(ProductVariant entity)
-        {
-            // Custom logic before deleting entity
-            // e.g., validate business rules, check dependencies, etc.
-            return Task.CompletedTask;
-        }
-
-        public virtual Task AfterDeleteAsync(ProductVariant entity)
-        {
-            // Custom logic after deleting entity
-            // e.g., send notifications, cleanup related data, etc.
-            return Task.CompletedTask;
-        }
+        public virtual Task BeforeCreateAsync(ProductVariant entity) => Task.CompletedTask;
+        public virtual Task AfterCreateAsync(ProductVariant entity) => Task.CompletedTask;
+        public virtual Task BeforeUpdateAsync(ProductVariant entity) => Task.CompletedTask;
+        public virtual Task AfterUpdateAsync(ProductVariant entity) => Task.CompletedTask;
+        public virtual Task BeforeDeleteAsync(ProductVariant entity) => Task.CompletedTask;
+        public virtual Task AfterDeleteAsync(ProductVariant entity) => Task.CompletedTask;
 
         #endregion
     }
 }
+
+ 

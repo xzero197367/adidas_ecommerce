@@ -1,5 +1,6 @@
-﻿using DocumentFormat.OpenXml.InkML;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using System.Linq;
 
 namespace Adidas.Infra.Operation
 {
@@ -15,15 +16,7 @@ namespace Adidas.Infra.Operation
                         .Include(o => o.Payments)
                 .ToListAsync();
         }
-        public async Task<Order?> GetOrderByOrderIdAsync(Guid orderId)
-        {
-            return await _context.Orders
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Variant) // Include product details
-                        .ThenInclude(pv => pv.Product)
-                .Include(o => o.Payments)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
-        }
+
         public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
             return await GetAll().Where(o => o.OrderStatus == status && !o.IsDeleted).ToListAsync();
@@ -31,7 +24,7 @@ namespace Adidas.Infra.Operation
 
         public IEnumerable<Order> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            return  GetAll().Where(o => o.OrderDate >= startDate &&
+            return GetAll().Where(o => o.OrderDate >= startDate &&
                                                   o.OrderDate <= endDate &&
                                                   !o.IsDeleted).ToList();
         }
@@ -55,13 +48,9 @@ namespace Adidas.Infra.Operation
 
         public async Task<Order?> GetOrderByNumberAsync(string orderNumber)
         {
-            return await FindAsync(q=>q.Where(o => o.OrderNumber == orderNumber && !o.IsDeleted));
+            return await FindAsync(q => q.Where(o => o.OrderNumber == orderNumber && !o.IsDeleted));
         }
-        public async Task<Order?> GetByOrderNumberAsync(string orderNumber)
-        {
-            return await _context.Orders
-                .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
-        }
+
         public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
         {
             return await GetAll().Where(o => o.OrderStatus == OrderStatus.Pending && !o.IsDeleted).ToListAsync();
@@ -78,8 +67,32 @@ namespace Adidas.Infra.Operation
             if (endDate.HasValue)
                 query = query.Where(o => o.OrderDate <= endDate.Value);
 
-            return  query.Sum(o => o.TotalAmount);
+            return query.Sum(o => o.TotalAmount);
         }
+
+        public async Task<(IEnumerable<Order> orders, int totalCount)> GetPagedOrdersAsync(
+        int pageNumber, int pageSize,
+        Expression<Func<Order, bool>>? filter = null)
+        {
+            var query = _context.Orders
+                .Include(o => o.User)  // ✅ ensures User is loaded
+                .Where(o => !o.IsDeleted);
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (orders, totalCount);
+        }
+
+
 
 
         public async Task<(IEnumerable<Order> orders, int totalCount)> GetUserOrderHistoryPagedAsync(string userId,

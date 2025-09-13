@@ -1,6 +1,8 @@
 ﻿using Adidas.Application.Contracts.RepositoriesContracts.Main;
 using Adidas.Application.Contracts.RepositoriesContracts.Separator;
 using Adidas.Application.Contracts.ServicesContracts.Main;
+using Adidas.Application.Contracts.ServicesContracts.Separator;
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -16,13 +18,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
-        private readonly ICategoryRepository _categoryService;
+        private readonly ICategoryService _categoryService;
         private readonly IBrandRepository _brandService;
         private readonly IProductVariantService _productVariantService;
 
         public ProductsController(
             IProductService productService,
-            ICategoryRepository categoryService,
+            ICategoryService categoryService,
             IBrandRepository brandService,
             IProductVariantService productVariantService)
         {
@@ -34,15 +36,45 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         public async Task<IActionResult> Index(ProductFilterDto filter)
         {
-            var categories = await _categoryService.GetAll().ToListAsync();
-            ViewBag.Categories = categories
+            // Validate the filter
+            if (!ModelState.IsValid)
+            {
+                // Repopulate ViewBags for dropdowns even if validation fails
+                var categories = await _categoryService.GetFilteredCategoriesAsync("Sub", "", "");
+                ViewBag.Categories = categories
+                    .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
+                    .ToList();
+
+                var brands = await _brandService.GetAll().ToListAsync();
+                // ViewBag.Brands = brands
+                //     .Select(b => new SelectListItem { Value = b.Id.ToString(), Text = b.Name })
+                //     .ToList();
+
+                ViewBag.Genders = Enum.GetValues(typeof(Gender))
+                    .Cast<Gender>()
+                    .Select(g => new SelectListItem
+                    {
+                        Value = ((int)g).ToString(),
+                        Text = g.ToString()
+                    }).ToList();
+
+                // Keep the invalid filter so user input is preserved
+                ViewBag.Filter = filter;
+
+                // Return the view with empty results or previous page
+                return View("Index", new PagedResultDto<ProductDto>());
+            }
+
+            // Populate dropdowns
+            var categories2 = await _categoryService.GetFilteredCategoriesAsync("Sub", "", "");
+            ViewBag.Categories = categories2
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
                 .ToList();
 
-            var brands = await _brandService.GetAll().ToListAsync();
-            ViewBag.Brands = brands
-                .Select(b => new SelectListItem { Value = b.Id.ToString(), Text = b.Name })
-                .ToList();
+            var brands2 = await _brandService.GetAll().ToListAsync();
+            // ViewBag.Brands = brands2
+            //     .Select(b => new SelectListItem { Value = b.Id.ToString(), Text = b.Name })
+            //     .ToList();
 
             ViewBag.Genders = Enum.GetValues(typeof(Gender))
                 .Cast<Gender>()
@@ -52,10 +84,10 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     Text = g.ToString()
                 }).ToList();
 
+            // Fetch filtered products
             var pagedResult = await _productService.GetProductsFilteredByCategoryBrandGenderAsync(filter);
-            var itemsList = pagedResult.Items.ToList(); 
 
-            ViewBag.Filter = filter; 
+            ViewBag.Filter = filter; // keep user input
 
             return View("Index", pagedResult);
         }
@@ -72,13 +104,28 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductCreateDto model)
         {
+            if (model.SalePrice >= model.Price)
+            {
+                ModelState.AddModelError("SalePrice", "SalePrice must be Less than the price");
+            }
+
             if (!ModelState.IsValid)
             {
                 await PopulateDropdownsAsync();
                 return View(model);
             }
 
-            await _productService.CreateAsync(model);
+            var result = await _productService.CreateAsync(model);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage); // Show specific error (e.g., slug exists)
+                TempData["Error"] = result.ErrorMessage;
+
+                await PopulateDropdownsAsync();
+                return View(model);
+            }
+
+            TempData["Success"] = "Product created successfully!";
             return RedirectToAction(nameof(Index));
         }
 
@@ -112,13 +159,28 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ProductUpdateDto model)
         {
+            if (model.SalePrice >= model.Price)
+            {
+                ModelState.AddModelError("SalePrice", "SalePrice must be Less than the price");
+            }
             if (!ModelState.IsValid)
             {
                 await PopulateDropdownsAsync();
                 return View(model);
             }
 
-            await _productService.UpdateAsync(model);
+           var result =  await _productService.UpdateAsync(model);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage); // Show specific error (e.g., slug exists)
+                TempData["Error"] = result.ErrorMessage;
+
+                await PopulateDropdownsAsync();
+                return View(model);
+            }
+
+            TempData["Success"] = "Product created successfully!";
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -126,7 +188,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         private async Task PopulateDropdownsAsync()
         {
-            var categories = await _categoryService.GetAll().ToListAsync();
+            var categories = await _categoryService.GetFilteredCategoriesAsync("Sub", "", "");
             ViewBag.Categories = categories.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),

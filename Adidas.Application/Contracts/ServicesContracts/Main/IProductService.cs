@@ -22,7 +22,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Main
         Task<OperationResult<PagedResultDto<ProductDto>>> GetProductsWithFiltersAsync(ProductFilterDto filters);
         Task<OperationResult<bool>> UpdateInventoryAsync(Guid productId, Dictionary<Guid, int> variantStockUpdates);
         Task<OperationResult<decimal>> CalculateDiscountedPriceAsync(Guid productId, string? discountCode = null);
-        
+        Task<OperationResult<IEnumerable<ProductDto>>> GetPreviouslyPurchasedProductsForAllUsersAsync();
         Task<PagedResultDto<ProductDto>> GetProductsFilteredByCategoryBrandGenderAsync(ProductFilterDto filters);
         Task<ProductDto?> GetProductWithVariantsAsync(Guid productId);
         Task DeleteVariantAsync(Guid id);

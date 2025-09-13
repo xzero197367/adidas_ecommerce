@@ -489,11 +489,21 @@ namespace Adidas.ClientAPI.Controllers.Operation
                     throw new Exception($"Invalid payment method: {request.PaymentMethod}. Only 'Cash on Delivery' is supported for regular payments.");
                 }
 
+                // Add 10 to the order total amount
+                decimal updatedAmount = (decimal)order.TotalAmount + 10;
+
+                // Persist the updated amount in the database
+                var updateAmountResult = await _orderService.UpdateOrderAmountAsync((Guid)order.Id, updatedAmount);
+                if (!updateAmountResult.IsSuccess)
+                {
+                    throw new Exception($"Failed to update order amount for order");
+                }
+
                 // Create payment DTO for Cash on Delivery
                 var paymentDto = new PaymentCreateDto
                 {
                     OrderId = (Guid)order.Id,
-                    Amount = (decimal)order.TotalAmount,
+                    Amount = updatedAmount,
                     PaymentMethod = "Cash on Delivery"
                 };
 
@@ -511,12 +521,11 @@ namespace Adidas.ClientAPI.Controllers.Operation
                     throw new Exception("Payment service returned success but with null payment data");
                 }
 
-                // For COD, update order status to Shipped
-                var updateResult = await _orderService.UpdateOrderStatusAsync((Guid)order.Id, OrderStatus.Shipped);
-                if (!updateResult.IsSuccess)
+                // Update order status to Pending
+                var updateStatusResult = await _orderService.UpdateOrderStatusAsync((Guid)order.Id, OrderStatus.Pending);
+                if (!updateStatusResult.IsSuccess)
                 {
-                    _logger.LogWarning("Failed to update order status for COD Order {OrderId}: {Message}"
-                        );
+                    _logger.LogWarning("Failed to update order status for COD Order {OrderId}: {Message}");
                 }
 
                 // Clear authenticated user's cart
@@ -546,6 +555,7 @@ namespace Adidas.ClientAPI.Controllers.Operation
                 throw;
             }
         }
+
 
         /// <summary>
         /// Fixed ProcessPayPalPayment method with enhanced error handling and logging

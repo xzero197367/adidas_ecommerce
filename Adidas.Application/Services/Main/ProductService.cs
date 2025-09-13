@@ -7,10 +7,9 @@ using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.Product_Variant_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
-using Adidas.DTOs.Operation.ReviewDTOs.Query;
-using Adidas.DTOs.Separator.Brand_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Main;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.Main;
@@ -66,18 +65,22 @@ namespace Adidas.Application.Services.Main
                 IsActive = p.IsActive,
                 CategoryName = p.Category?.Name,
                 BrandName = p.Brand?.Name,
-
+                
                 Category = p.Category != null ? new CategoryDto
                 {
                     Id = p.Category.Id,
                     Name = p.Category.Name
                 } : null,
 
-                Images = p.Images?.Select(i => new ProductImageDto
+                Images = p.Variants?.Select(i => new ProductImageDto
                 {
                     Id = i.Id,
+                    ProductId = p.Id,
+                    VariantId = i.Id,
                     ImageUrl = i.ImageUrl,
-                    AltText = i.AltText
+                    IsActive = i.IsActive,
+                    //AltText = i.AltText
+
                 }).ToList() ?? new List<ProductImageDto>(),
 
                 // FIX: This was the main issue - the variant mapping was incomplete and missing many properties
@@ -88,11 +91,13 @@ namespace Adidas.Application.Services.Main
                     Sku = v.Sku, // This was missing
                     Color = v.Color,
                     Size = v.Size,
+                    ImageUrl = v.ImageUrl,
                     StockQuantity = v.StockQuantity,
                     PriceAdjustment = v.PriceAdjustment,
                     ColorHex = v.Color, // This was missing
                     CreatedAt = v.CreatedAt ?? DateTime.MinValue, // This was missing
                     IsActive = v.IsActive, // This was missing
+                    
                     Images = v.Images?.Select(img => new ProductImageDto
                     {
                         Id = img.Id,
@@ -101,12 +106,20 @@ namespace Adidas.Application.Services.Main
                     }).ToList() ?? new List<ProductImageDto>()
                 }).ToList() ?? new List<ProductVariantDto>(),
 
-                Reviews = p.Reviews?.Select(r => new ReviewDto
+                Reviews = p.Reviews?.Select(r => new Review
                 {
                     Id = r.Id,
                     Rating = r.Rating,
+                    UserId = r.UserId,
+                    ProductId = r.ProductId,
+                    CreatedAt = r.CreatedAt ?? new DateTime(),
+                    UpdatedAt = r.UpdatedAt,
+                    IsApproved = r.IsApproved,
+                    IsActive = r.IsActive,
+                    Title = r.Title,
+                    IsVerifiedPurchase = r.IsVerifiedPurchase,
                     ReviewText = r.ReviewText
-                }).ToList() ?? new List<ReviewDto>(),
+                }).ToList() ?? new List<Review>(),
 
                 InStock = p.Variants?.Any(v => v.StockQuantity > 0) ?? false
             };
@@ -309,18 +322,33 @@ namespace Adidas.Application.Services.Main
         {
             try
             {
+                // Check if product name already exists
+                bool nameExists = await _productRepository.ExistsAsync(p => p.Name == createDto.Name);
+                if (nameExists)
+                    return OperationResult<ProductDto>.Fail("Error creating product: Proudct with this name already exists");
+
+                // Domain-specific validation
                 await ValidateCreateAsync(createDto);
 
+                // Map DTO to entity
                 var entity = MapToProduct(createDto);
+
+                // Pre-create hook
                 await BeforeCreateAsync(entity);
 
+                // Add entity
                 var createdEntityEntry = await _productRepository.AddAsync(entity);
                 await _productRepository.SaveChangesAsync();
 
                 var createdEntity = createdEntityEntry.Entity;
+
+                // Post-create hook
                 await AfterCreateAsync(createdEntity);
 
-                return OperationResult<ProductDto>.Success(MapToProductDto(createdEntity));
+                // Map to DTO
+                var productDto = MapToProductDto(createdEntity);
+
+                return OperationResult<ProductDto>.Success(productDto);
             }
             catch (Exception ex)
             {
@@ -372,6 +400,10 @@ namespace Adidas.Application.Services.Main
                 var existingEntity = await _productRepository.GetByIdAsync(updateDto.Id);
                 if (existingEntity == null)
                     return OperationResult<ProductDto>.Fail($"Product with id {updateDto.Id} not found");
+                var countName = await _productRepository.CountAsync(p => p.Name == updateDto.Name);
+                     
+                if (countName==1 && existingEntity.Name != updateDto.Name)
+                    return OperationResult<ProductDto>.Fail("Error Updating product: Proudct with this name already exists");
 
                 await ValidateUpdateAsync(updateDto.Id, updateDto);
 
@@ -558,6 +590,7 @@ namespace Adidas.Application.Services.Main
             return MapToProductDto(product);
         }
 
+        // get others bught this product service 
 
         public async Task<ProductDto?> GetProductWithVariantsAsync(Guid productId)
         {
@@ -866,6 +899,47 @@ namespace Adidas.Application.Services.Main
         public virtual Task AfterUpdateAsync(Product entity) => Task.CompletedTask;
         public virtual Task BeforeDeleteAsync(Product entity) => Task.CompletedTask;
         public virtual Task AfterDeleteAsync(Product entity) => Task.CompletedTask;
+        public async Task<OperationResult<IEnumerable<ProductDto>>> GetPreviouslyPurchasedProductsForAllUsersAsync()
+        {
+            try
+            {
+                // First, get the product IDs that have been purchased
+                var purchasedProductIds = await _productRepository.GetAll()
+                    .Where(p => p.Variants.Any(v => v.OrderItems.Any()))
+                    .SelectMany(p => p.Variants
+                        .SelectMany(v => v.OrderItems
+                            .Select(oi => new { ProductId = p.Id, OrderDate = oi.Order.CreatedAt })))
+                    .OrderByDescending(x => x.OrderDate)
+                    .Take(10)
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!purchasedProductIds.Any())
+                    return OperationResult<IEnumerable<ProductDto>>.Fail("No purchased products found.");
+
+                // Then fetch the complete product data with all includes
+                var purchasedProducts = await _productRepository.GetAll()
+                    .Include(p => p.Category)
+                    .Include(p => p.Brand)
+                    .Include(p => p.Images)
+                    .Include(p => p.Variants)
+                        .ThenInclude(v => v.Images) // Include variant images too
+                    .Include(p => p.Reviews)
+                    .Where(p => purchasedProductIds.Contains(p.Id))
+                    .ToListAsync();
+
+                var productDtos = purchasedProducts.Select(MapToProductDto);
+                return OperationResult<IEnumerable<ProductDto>>.Success(productDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting previously purchased products");
+                return OperationResult<IEnumerable<ProductDto>>.Fail($"Error fetching purchased products: {ex.Message}");
+            }
+        }
+
+
 
         #endregion
     }

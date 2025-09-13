@@ -29,7 +29,7 @@
                                 <div class="time-label">
                                     <span class="bg-info">@order.OrderDate.ToString("MMM dd, yyyy")</span>
                                 </div>
-                                
+
                                 <div>
                                     @{
                                         string timelineIcon = order.OrderStatus switch
@@ -43,12 +43,12 @@
                                         };
                                     }
                                     <i class="@timelineIcon"></i>
-                                    
+
                                     <div class="timeline-item">
                                         <span class="time">
                                             <i class="fas fa-clock"></i> @order.OrderDate.ToString("HH:mm")
                                         </span>
-                                        
+
                                         <h3 class="timeline-header">
                                             <strong>Order #@order.OrderNumber</strong>
                                             @{
@@ -64,7 +64,7 @@
                                             }
                                             <span class="badge @badgeClass ml-2">@order.OrderStatus</span>
                                         </h3>
-                                        
+
                                         <div class="timeline-body">
                                             <div class="row">
                                                 <div class="col-md-8">
@@ -83,7 +83,7 @@
                                                             }
                                                         </div>
                                                     </div>
-                                                    
+
                                                     @if (!string.IsNullOrEmpty(order.Notes))
                                                     {
                                                         <div class="mt-2">
@@ -105,7 +105,7 @@
                                                                 OrderStatus.Cancelled => 0,
                                                                 _ => 0
                                                             };
-                                                            
+
                                                             string progressColor = order.OrderStatus switch
                                                             {
                                                                 OrderStatus.Cancelled => "bg-danger",
@@ -113,7 +113,7 @@
                                                                 _ => "bg-info"
                                                             };
                                                         }
-                                                        
+
                                                         <div class="progress" style="height: 8px;">
                                                             <div class="progress-bar @progressColor" role="progressbar" style="width: @progressPercentage%" aria-valuenow="@progressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
                                                         </div>
@@ -163,7 +163,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <small class="text-muted">
-                                    <i class="fas fa-info-circle"></i> 
+                                    <i class="fas fa-info-circle"></i>
                                     Orders are automatically updated. Refresh the page for the latest status.
                                 </small>
                             </div>
@@ -270,33 +270,33 @@
         // Handle cancellation form submission
         document.getElementById('cancellationForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const orderId = document.getElementById('cancelOrderId').value;
             const reason = document.getElementById('cancellationReason').value;
-            
+
             // Create a form to submit the cancellation request
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '@Url.Action("Cancel", "Order")';
-            
+
             const idField = document.createElement('input');
             idField.type = 'hidden';
             idField.name = 'id';
             idField.value = orderId;
             form.appendChild(idField);
-            
+
             const reasonField = document.createElement('input');
             reasonField.type = 'hidden';
             reasonField.name = 'reason';
             reasonField.value = reason || 'Customer requested cancellation';
             form.appendChild(reasonField);
-            
+
             const tokenField = document.createElement('input');
             tokenField.type = 'hidden';
             tokenField.name = '__RequestVerificationToken';
             tokenField.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
             form.appendChild(tokenField);
-            
+
             document.body.appendChild(form);
             form.submit();
         });
@@ -315,81 +315,81 @@
             margin: 0 0 30px 0;
         }
 
-        .timeline::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 25px;
-            height: 100%;
-            width: 2px;
-            background: #dee2e6;
-        }
+            .timeline::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 25px;
+                height: 100%;
+                width: 2px;
+                background: #dee2e6;
+            }
 
-        .timeline > div {
-            margin-bottom: 20px;
-            position: relative;
-        }
+            .timeline > div {
+                margin-bottom: 20px;
+                position: relative;
+            }
 
-        .timeline .time-label {
-            margin-bottom: 15px;
-        }
+            .timeline .time-label {
+                margin-bottom: 15px;
+            }
 
-        .timeline .time-label > span {
-            font-weight: 600;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: inline-block;
-        }
+                .timeline .time-label > span {
+                    font-weight: 600;
+                    color: #fff;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
 
-        .timeline .timeline-item {
-            background: #fff;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-            margin-left: 55px;
-            margin-right: 15px;
-            padding: 0;
-            position: relative;
-        }
+            .timeline .timeline-item {
+                background: #fff;
+                border-radius: 5px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+                margin-left: 55px;
+                margin-right: 15px;
+                padding: 0;
+                position: relative;
+            }
 
-        .timeline .timeline-item::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: -15px;
-            width: 0;
-            height: 0;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-right: 15px solid #fff;
-        }
+                .timeline .timeline-item::before {
+                    content: '';
+                    position: absolute;
+                    top: 20px;
+                    left: -15px;
+                    width: 0;
+                    height: 0;
+                    border-top: 10px solid transparent;
+                    border-bottom: 10px solid transparent;
+                    border-right: 15px solid #fff;
+                }
 
-        .timeline > div > i {
-            position: absolute;
-            left: 18px;
-            padding: 8px;
-            color: #fff;
-            border-radius: 50%;
-            z-index: 2;
-        }
+            .timeline > div > i {
+                position: absolute;
+                left: 18px;
+                padding: 8px;
+                color: #fff;
+                border-radius: 50%;
+                z-index: 2;
+            }
 
-        .timeline .timeline-header {
-            margin: 0;
-            padding: 10px 15px;
-            font-size: 16px;
-            line-height: 1.1;
-            border-bottom: 1px solid #f4f4f4;
-        }
+            .timeline .timeline-header {
+                margin: 0;
+                padding: 10px 15px;
+                font-size: 16px;
+                line-height: 1.1;
+                border-bottom: 1px solid #f4f4f4;
+            }
 
-        .timeline .timeline-body {
-            padding: 15px;
-        }
+            .timeline .timeline-body {
+                padding: 15px;
+            }
 
-        .timeline .time {
-            font-size: 12px;
-            color: #999;
-            margin-left: 60px;
-        }
+            .timeline .time {
+                font-size: 12px;
+                color: #999;
+                margin-left: 60px;
+            }
 
         .info-box {
             display: block;
@@ -460,12 +460,12 @@
                 margin-left: 45px;
                 margin-right: 10px;
             }
-            
+
             .timeline > div > i {
                 left: 10px;
                 padding: 6px;
             }
-            
+
             .timeline::before {
                 left: 18px;
             }

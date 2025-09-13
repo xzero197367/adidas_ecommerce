@@ -29,12 +29,15 @@ using Adidas.Infra.Operation;
 using Adidas.Infra.People;
 using Adidas.Infra.Repositories.Feature;
 using Adidas.Infra.Separator;
+using Adidas.Infra.Settings;
 using Adidas.Infra.Tracker;
 using Adidas.Infrastructure.Repositories;
+using CloudinaryDotNet;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Models.People;
@@ -133,6 +136,17 @@ namespace Adidas.ClientAPI
             });
 
             #endregion
+            #region CloudinaryDotNet
+            builder.Services.Configure<CloudinarySettings>(
+                builder.Configuration.GetSection("CloudinarySettings"));
+
+            builder.Services.AddSingleton<Cloudinary>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+                var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
+                return new Cloudinary(account);
+            });
+            #endregion
 
             #region Application Services & Repositories
 
@@ -140,6 +154,7 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<IUserProductViewRepository, UserProductViewRepository>();
+
 
 
             builder.Services.AddScoped<IAddressService, AddressService>();
@@ -155,6 +170,7 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IInventoryService, InventoryService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddScoped<IOrderCouponService, OrderCouponService>();
             // Register Repositories
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -172,6 +188,11 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IOrderEditService, OrderEditService>();
+            builder.Services.AddScoped<IOrderFilterService, OrderFilterService>();
+
+            builder.Services.AddMemoryCache();
+
             // Register PayPal Services with HttpClient
             builder.Services.AddHttpClient<IPayPalService, PayPalRestService>(client =>
             {
