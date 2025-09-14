@@ -19,7 +19,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         public int SortOrder { get; set; }
         public string? MetaTitle { get; set; }
         public string? MetaDescription { get; set; }
-
+        public string ParentName { get; set; }
         public CategoryDto? ParentCategory { get; set; }
         public ICollection<CategoryDto> SubCategories { get; set; } = new List<CategoryDto>();
         public ICollection<ProductDto> Products { get; set; } = new List<ProductDto>();

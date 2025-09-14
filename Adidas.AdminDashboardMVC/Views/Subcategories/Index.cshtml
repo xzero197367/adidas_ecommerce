@@ -67,7 +67,7 @@
                             <tr>
                                 <th>Image</th>
                                 <th>Name</th>
-                                <th>Parent Category</th>
+                                <th>Category</th>
                                 <th>Description</th>
                                 <th>Slug</th>
                                 <th>Products</th>
@@ -96,9 +96,9 @@
                                             <small class="text-secondary">Subcategory</small>
                                         </td>
                                         <td>
-                                            @if (category.ParentCategory!= null)
+                                            @if (category.ParentName!= null)
                                             {
-                                                <span class="badge bg-primary">@category.ParentCategory.Name</span>
+                                                <span class="badge bg-primary">@category.ParentName</span>
                                             }
                                             else
                                             {
