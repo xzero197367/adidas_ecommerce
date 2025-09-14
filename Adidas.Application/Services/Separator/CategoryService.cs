@@ -65,7 +65,7 @@ namespace Adidas.Application.Services.Separator
         public async Task<IEnumerable<CategoryDto>> GetFilteredCategoriesAsync(string categoryType, string statusFilter,
             string searchTerm)
         {
-            var categories = await _categoryRepository.GetAllAsync(c => c.SubCategories, c => c.Products);
+            var categories = await _categoryRepository.GetAllAsync(c => c.ParentCategory, c => c.Products);
 
             if (!string.IsNullOrEmpty(categoryType))
             {
@@ -307,6 +307,9 @@ namespace Adidas.Application.Services.Separator
                 ImageUrl = category.ImageUrl,
                 SortOrder = category.SortOrder,
                 ParentCategoryId = category.ParentCategoryId,
+                ParentName = category.ParentCategory != null
+                        ? category.ParentCategory.Name
+                        : string.Empty,
                 CreatedAt = category.CreatedAt ?? DateTime.MinValue,
                 UpdatedAt = category.UpdatedAt,
                 IsActive = category.IsActive,
