@@ -655,7 +655,7 @@ namespace Adidas.ClientAPI.Controllers.Operation
                 {
                     "development" => "http://localhost:4200",
                     "staging" => "https://staging.yourdomain.com",
-                    "production" => "https://yourdomain.com",
+                    "production" => "https://adidas-client.netlify.app",
                     _ => "http://localhost:4200"
                 };
 

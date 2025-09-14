@@ -254,7 +254,7 @@ namespace Adidas.ClientAPI
             {
                 options.AddPolicy("AllowAngular", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200") // Angular default port
+                    policy.WithOrigins("http://localhost:4200", "https://adidas-client.netlify.app") // Angular default port
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
@@ -273,11 +273,11 @@ namespace Adidas.ClientAPI
 
             #region Middleware
 
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwagger();
                 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Adidas Client API v1"); });
-            }
+            //}
 
             app.UseCors("AllowAngular");
             app.UseHttpsRedirection();
