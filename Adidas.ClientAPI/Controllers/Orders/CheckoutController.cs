@@ -653,10 +653,10 @@ namespace Adidas.ClientAPI.Controllers.Operation
 
                 frontendUrl = environment.ToLower() switch
                 {
-                    "development" => "http://localhost:4200",
+                    "development" => "https://adidas-client.netlify.app",
                     "staging" => "https://staging.yourdomain.com",
                     "production" => "https://adidas-client.netlify.app",
-                    _ => "http://localhost:4200"
+                    _ => "https://adidas-client.netlify.app"
                 };
 
                 _logger.LogWarning("FRONTEND_URL environment variable not set, using default: {FrontendUrl}", frontendUrl);
