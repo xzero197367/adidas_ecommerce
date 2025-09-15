@@ -219,16 +219,29 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
     private Dictionary<string, object> DeserializeAddress(string addressJson)
     {
-        try
-        {
-            return string.IsNullOrEmpty(addressJson)
-                ? new Dictionary<string, object>()
-                : JsonSerializer.Deserialize<Dictionary<string, object>>(addressJson);
-        }
-        catch
-        {
+        if (string.IsNullOrWhiteSpace(addressJson))
             return new Dictionary<string, object>();
+
+        if (addressJson.TrimStart().StartsWith("{") || addressJson.TrimStart().StartsWith("["))
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<string, object>>(addressJson)
+                       ?? new Dictionary<string, object>();
+            }
+            catch
+            {
+                return new Dictionary<string, object>
+            {
+                { "RawAddress", addressJson }
+            };
+            }
         }
+
+        return new Dictionary<string, object>
+    {
+        { "RawAddress", addressJson }
+    };
     }
     private string FormatAddress(string addressJson)
     {
@@ -237,24 +250,29 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             if (string.IsNullOrEmpty(addressJson))
                 return "Address not available";
 
-            var addressDict = JsonSerializer.Deserialize<Dictionary<string, object>>(addressJson);
+            if (addressJson.TrimStart().StartsWith("{") || addressJson.TrimStart().StartsWith("["))
+            {
+                var addressDict = JsonSerializer.Deserialize<Dictionary<string, object>>(addressJson);
+                var parts = new List<string>();
 
-            var parts = new List<string>();
+                if (addressDict.TryGetValue("name", out var name)) parts.Add(name?.ToString());
+                if (addressDict.TryGetValue("street", out var street)) parts.Add(street?.ToString());
+                if (addressDict.TryGetValue("city", out var city)) parts.Add(city?.ToString());
+                if (addressDict.TryGetValue("country", out var country)) parts.Add(country?.ToString());
+                if (addressDict.TryGetValue("phone", out var phone)) parts.Add($"Phone: {phone}");
+                if (addressDict.TryGetValue("email", out var email)) parts.Add($"Email: {email}");
 
-            // Extract common address fields
-            if (addressDict.ContainsKey("name")) parts.Add(addressDict["name"]?.ToString());
-            if (addressDict.ContainsKey("street")) parts.Add(addressDict["street"]?.ToString());
-            if (addressDict.ContainsKey("city")) parts.Add(addressDict["city"]?.ToString());
-            if (addressDict.ContainsKey("country")) parts.Add(addressDict["country"]?.ToString());
-            if (addressDict.ContainsKey("phone")) parts.Add($"Phone: {addressDict["phone"]}");
+                return string.Join("\n", parts.Where(p => !string.IsNullOrEmpty(p)));
+            }
 
-            return string.Join("\n", parts.Where(p => !string.IsNullOrEmpty(p)));
+            return addressJson;
         }
         catch
         {
-            return addressJson; // Return raw JSON if parsing fails
+            return addressJson;
         }
     }
+
     private OrderSummaryDto MapToOrderSummaryDto(Order order, int itemCount = 0)
     {
         if (order == null) return null;

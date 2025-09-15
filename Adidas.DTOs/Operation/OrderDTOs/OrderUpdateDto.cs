@@ -19,8 +19,8 @@ public class OrderUpdateDto : BaseUpdateDto
     public DateTime? ShippedDate { get; set; }
 
     public DateTime? DeliveredDate { get; set; }
-    public string? ShippingAddress { get; set; } // JSON string?
-    public string? BillingAddress { get; set; } // JSON string?
+    public string? ShippingAddress { get; set; } 
+    public string? BillingAddress { get; set; } 
 
     public string? Notes { get; set; }
 
