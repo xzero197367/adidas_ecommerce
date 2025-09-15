@@ -62,15 +62,12 @@ namespace Adidas.Application.Services.Operation
                 // Validate and store JSON addresses
                 if (!string.IsNullOrWhiteSpace(dto.ShippingAddress))
                 {
-                    try { JsonDocument.Parse(dto.ShippingAddress); }
-                    catch { return OperationResult<OrderDto>.Fail("Invalid Shipping Address JSON."); }
+                   
                     order.ShippingAddress = dto.ShippingAddress;
                 }
 
                 if (!string.IsNullOrWhiteSpace(dto.BillingAddress))
                 {
-                    try { JsonDocument.Parse(dto.BillingAddress); }
-                    catch { return OperationResult<OrderDto>.Fail("Invalid Billing Address JSON."); }
                     order.BillingAddress = dto.BillingAddress;
                 }
 

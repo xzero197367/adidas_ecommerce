@@ -152,12 +152,8 @@ namespace Adidas.Web.Controllers
                 DiscountAmount = result.Data.DiscountAmount,
                 TotalAmount = result.Data.TotalAmount,
                 Currency = result.Data.Currency,
-                ShippingAddress = result.Data.ShippingAddress != null
-                    ? JsonSerializer.Serialize(result.Data.ShippingAddress, new JsonSerializerOptions { WriteIndented = true })
-                    : string.Empty,
-                BillingAddress = result.Data.BillingAddress != null
-                    ? JsonSerializer.Serialize(result.Data.BillingAddress, new JsonSerializerOptions { WriteIndented = true })
-                    : string.Empty,
+                ShippingAddress = result.Data.ShippingAddress ?? string.Empty,
+                BillingAddress = result.Data.BillingAddress ?? string.Empty,
                 Notes = result.Data.Notes,
                 UserId = result.Data.UserId
             };
