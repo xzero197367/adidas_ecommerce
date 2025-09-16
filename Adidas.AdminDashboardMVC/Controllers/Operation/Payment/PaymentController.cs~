@@ -33,7 +33,7 @@ public class PaymentController : Controller
             ViewBag.PaymentMethods = await GetPaymentMethodsAsync();
             ViewBag.PaymentStatuses = new List<string> { "Pending", "Completed", "Failed", "Refunded" };
 
-            var payments = await _paymentService.GetPaymentsByFilterAsync(filter);
+            var payments = await _paymentService.(filter);
             return View(payments);
         }
         catch (Exception ex)

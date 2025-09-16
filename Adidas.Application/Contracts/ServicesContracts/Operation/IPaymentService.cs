@@ -1,5 +1,6 @@
 ﻿
 
+using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.CommonDTOs;
 using Adidas.DTOs.Operation.PaymentDTOs;
 
@@ -26,6 +27,7 @@ namespace Adidas.Application.Contracts.ServicesContracts.Operation
         // Task<OperationResult<IEnumerable<PaymentDto>>> GetPaymentsByDateRangeAsync(DateTime startDate, DateTime endDate);
         //
         // // Business Logic
+        Task<PagedResultDto<PaymentDto>> GetPaymentsByFilterAsync(PaymentFilterDto filter);
         Task<OperationResult<PaymentDto>> CreatePaymentAsync(PaymentCreateDto paymentCreateDto);
         Task<OperationResult<IEnumerable<PaymentDto>>> GetPendingPaymentsAsync();
         Task<OperationResult<PaymentDto>> GetPaymentByIdAsync(Guid id);
