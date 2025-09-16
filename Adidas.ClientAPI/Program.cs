@@ -154,7 +154,7 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<IUserProductViewRepository, UserProductViewRepository>();
-
+            builder.Services.AddTransient<IEmailService, EmailService>();
 
 
             builder.Services.AddScoped<IAddressService, AddressService>();
