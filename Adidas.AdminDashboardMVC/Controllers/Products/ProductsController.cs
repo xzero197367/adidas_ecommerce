@@ -136,7 +136,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             var result = await _productService.GetByIdAsync(id);
             if (result.IsSuccess == false) return NotFound();
             var product = result.Data;
-
             await PopulateDropdownsAsync();
             var updateDto = new ProductUpdateDto
             {
@@ -145,15 +144,14 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 Price = product.Price,
                 SalePrice = product.SalePrice,
                 CategoryId = product.CategoryId,
-                BrandId = product.BrandId,
+                // Removed BrandId
                 GenderTarget = product.GenderTarget,
                 Description = product.Description,
-                InStock = product.InStock
+                InStock = product.InStock,
+                CurrentImagePath = product.ImageUrl // Use ImageUrl from your ProductDto
             };
-
             return View(updateDto);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -163,29 +161,25 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             {
                 ModelState.AddModelError("SalePrice", "SalePrice must be Less than the price");
             }
+
             if (!ModelState.IsValid)
             {
                 await PopulateDropdownsAsync();
                 return View(model);
             }
 
-           var result =  await _productService.UpdateAsync(model);
+            var result = await _productService.UpdateAsync(model);
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage); // Show specific error (e.g., slug exists)
+                ModelState.AddModelError(string.Empty, result.ErrorMessage);
                 TempData["Error"] = result.ErrorMessage;
-
                 await PopulateDropdownsAsync();
                 return View(model);
             }
 
-            TempData["Success"] = "Product created successfully!";
-
+            TempData["Success"] = "Product updated successfully!";
             return RedirectToAction(nameof(Index));
         }
-
-
-
         private async Task PopulateDropdownsAsync()
         {
             var categories = await _categoryService.GetFilteredCategoriesAsync("Sub", "", "");

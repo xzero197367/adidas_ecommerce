@@ -36,6 +36,7 @@ namespace Adidas.DTOs.Main.Product_DTOs
         public bool ComputedInStock => Variants != null && Variants.Any(v => v.StockQuantity > 0);
         public Guid CategoryId { get; set; }
         public Guid BrandId { get; set; }
+        public string ImageUrl { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (SalePrice.HasValue && SalePrice > Price)

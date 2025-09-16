@@ -10,6 +10,8 @@ public class Product : BaseAuditableEntity
 {
     // fields ad123
     public required string Name { get; set; }
+    public  string? ImageUrl { get; set; }
+
     public required string Description { get; set; }
     public required string ShortDescription { get; set; }
     public required decimal Price { get; set; }
@@ -34,7 +36,7 @@ public class Product : BaseAuditableEntity
 
     // foreign keys
     public required Guid CategoryId { get; set; }
-    public required Guid BrandId { get; set; }
+    public Guid? BrandId { get; set; }
 
     #region navigation properties single
     public virtual Category? Category { get; set; }

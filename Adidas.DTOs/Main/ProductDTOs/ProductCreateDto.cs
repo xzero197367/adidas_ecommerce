@@ -1,5 +1,6 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 using Models.People;
 
 namespace Adidas.DTOs.Main.ProductDTOs
@@ -11,6 +12,7 @@ namespace Adidas.DTOs.Main.ProductDTOs
 
         [Required, MaxLength(2000)]
         public string Description { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; } = string.Empty;
 
 
         [MaxLength(500)]
@@ -30,7 +32,8 @@ namespace Adidas.DTOs.Main.ProductDTOs
 
         [Required]
         public Gender GenderTarget { get; set; }
-        
+        public IFormFile? Image { get; set; }
+
         public int SortOrder { get; set; }
         public string? MetaTitle { get; set; }
         public string? MetaDescription { get; set; }

@@ -140,9 +140,7 @@ namespace Adidas.Infra.Main
                 query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
 
             // Brand filter
-            if (filter.BrandId.HasValue)
-                query = query.Where(p => p.BrandId == filter.BrandId.Value);
-
+         
             // Gender filter
             if (filter.Gender.HasValue)
                 query = query.Where(p => p.GenderTarget == filter.Gender.Value);
@@ -198,7 +196,7 @@ namespace Adidas.Infra.Main
                 query = query.Where(p =>
                     p.Name.ToLower().Contains(term) ||
                     p.Description.ToLower().Contains(term) ||
-                    p.Brand.Name.ToLower().Contains(term) ||
+                    //p.Brand.Name.ToLower().Contains(term) ||
                     p.Category.Name.ToLower().Contains(term));
             }
 

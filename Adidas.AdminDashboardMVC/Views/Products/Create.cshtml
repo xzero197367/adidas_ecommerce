@@ -114,6 +114,80 @@
         font-family: inherit;
     }
 
+    /* Image upload styles */
+    .image-upload-section {
+        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #4caf50;
+    }
+
+        .image-upload-section h4 {
+            margin: 0 0 1rem 0;
+            color: #2e7d32;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+    .file-input-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .file-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .file-input-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        border: 2px dashed #4caf50;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: #2e7d32;
+    }
+
+        .file-input-label:hover {
+            background: #f1f8f1;
+            border-color: #2e7d32;
+        }
+
+        .file-input-label.has-file {
+            border-style: solid;
+            background: #e8f5e8;
+        }
+
+    .image-preview {
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 2px solid #4caf50;
+        }
+
+        .image-preview .file-name {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
     .checkbox-group {
         background: #f8f9fa;
         padding: 1rem;
@@ -357,86 +431,76 @@
             animation: spin 1s linear infinite;
         }
 
-     spin {
-        0%
-
-    {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-
+    spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     /* Responsive design */
-     (max-width: 768px) {
-        .product-form-container
-
-    {
-        padding: 1rem;
-    }
-
-    .form-card {
-        padding: 1.5rem;
-    }
-
-    .form-row {
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .button-group {
-        flex-direction: column;
-    }
-
-    .btn {
-        width: 100%;
-    }
-
-    .progress-step {
-        padding: 1rem 0.25rem;
-    }
-
-        .progress-step span {
-            font-size: 0.8rem;
+   (max-width: 768px) {
+        .product-form-container {
+            padding: 1rem;
         }
 
-    .page-header h2 {
-        font-size: 1.6rem;
-    }
+        .form-card {
+            padding: 1.5rem;
+        }
 
-    }
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
 
-     (max-width: 480px) {
-        .product-form-container
+        .button-group {
+            flex-direction: column;
+        }
 
-    {
-        padding: 0.5rem;
-    }
+        .btn {
+            width: 100%;
+        }
 
-    .form-card {
-        padding: 1rem;
-        border-radius: 8px;
-    }
+        .progress-step {
+            padding: 1rem 0.25rem;
+        }
 
-    .form-step, .price-section, .description-section {
-        padding: 1rem;
-    }
-
-    .page-header {
-        padding: 1rem;
-    }
+            .progress-step span {
+                font-size: 0.8rem;
+            }
 
         .page-header h2 {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
+        }
+    }
+
+  (max-width: 480px) {
+        .product-form-container {
+            padding: 0.5rem;
         }
 
-        .page-header p {
-            font-size: 1rem;
+        .form-card {
+            padding: 1rem;
+            border-radius: 8px;
         }
 
+        .form-step, .price-section, .description-section, .image-upload-section {
+            padding: 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+        }
+
+            .page-header h2 {
+                font-size: 1.4rem;
+            }
+
+            .page-header p {
+                font-size: 1rem;
+            }
     }
 </style>
 
@@ -454,7 +518,7 @@
 </div>
 
 <div class="form-card">
-    <form asp-action="Create" method="post" id="createProductForm">
+    <form asp-action="Create" method="post" enctype="multipart/form-data" id="createProductForm">
 
         <!-- Step 1: Basic Information -->
         <div class="form-step" id="step1">
@@ -474,27 +538,37 @@
                     </select>
                     <span asp-validation-for="CategoryId" class="text-danger"></span>
                 </div>
-                 <div class="form-group required-field">  
-                    <label asp-for="BrandId">🏷️ Brand</label>  
-                    <select asp-for="BrandId" class="form-control" asp-items="ViewBag.Brands"> 
-                         <option value="">Select a brand</option> 
-                     </select>  
-                     <span asp-validation-for="BrandId" class="text-danger"></span> 
-                </div>  
-            </div>
-
-            <div class="form-group required-field">
-                <label asp-for="GenderTarget">👥 Target Gender</label>
-                <select asp-for="GenderTarget" class="form-control" asp-items="ViewBag.Genders">
-                    <option value="">Select target gender</option>
-                </select>
-                <span asp-validation-for="GenderTarget" class="text-danger"></span>
+                <div class="form-group required-field">
+                    <label asp-for="GenderTarget">👥 Target Gender</label>
+                    <select asp-for="GenderTarget" class="form-control" asp-items="ViewBag.Genders">
+                        <option value="">Select target gender</option>
+                    </select>
+                    <span asp-validation-for="GenderTarget" class="text-danger"></span>
+                </div>
             </div>
         </div>
 
-        <!-- Step 2: Pricing -->
-        <div class="price-section" id="step2">
-            <h4>💰 Step 2: Pricing Information</h4>
+        <!-- Step 2: Image Upload -->
+        <div class="image-upload-section" id="step2">
+            <h4>🖼️ Step 2: Product Image</h4>
+            
+            <div class="form-group">
+                <label asp-for="Image">Upload Product Image</label>
+                <div class="file-input-wrapper">
+                    <input asp-for="Image" type="file" class="file-input" id="imageInput" accept="image/*" />
+                    <label for="imageInput" class="file-input-label" id="fileLabel">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Choose image or drag & drop here</span>
+                    </label>
+                </div>
+                <div class="image-preview" id="imagePreview" style="display: none;"></div>
+                <span asp-validation-for="Image" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Step 3: Pricing -->
+        <div class="price-section" id="step3">
+            <h4>💰 Step 3: Pricing Information</h4>
 
             <div class="form-row">
                 <div class="form-group required-field">
@@ -510,23 +584,14 @@
                 </div>
             </div>
 
-            @* <div class="checkbox-group"> *@
-            @*     <div class="form-check"> *@
-            @*         <input asp-for="Sale" class="form-check-input" type="checkbox" id="saleCheckbox" /> *@
-            @*         <label asp-for="Sale" class="form-check-label"> *@
-            @*             🔥 Product is on sale *@
-            @*         </label> *@
-            @*     </div> *@
-            @* </div> *@
-
             <div class="sale-price-info" id="salePriceInfo" style="display: none;">
-                <strong>💡 Sale Information:</strong> When a sale price is set and the product is marked as on sale, customers will see the discounted price with the original price crossed out.
+                <strong>💡 Sale Information:</strong> When a sale price is set, customers will see the discounted price with the original price crossed out.
             </div>
         </div>
 
-        <!-- Step 3: Descriptions -->
-        <div class="description-section" id="step3">
-            <h4>📝 Step 3: Product Details</h4>
+        <!-- Step 4: Descriptions -->
+        <div class="description-section" id="step4">
+            <h4>📝 Step 4: Product Details</h4>
 
             <div class="form-group">
                 <label asp-for="Description">Full Description</label>
@@ -559,25 +624,84 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('createProductForm');
             const submitBtn = document.getElementById('submitBtn');
-            const saleCheckbox = document.getElementById('saleCheckbox');
             const salePriceInput = document.getElementById('salePriceInput');
             const salePriceInfo = document.getElementById('salePriceInfo');
             const priceInput = document.querySelector('input[asp-for="Price"]');
+            const imageInput = document.getElementById('imageInput');
+            const fileLabel = document.getElementById('fileLabel');
+            const imagePreview = document.getElementById('imagePreview');
+
+            // Image upload functionality
+            function handleImageUpload() {
+                const file = imageInput.files[0];
+                
+                if (file) {
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size must be less than 5MB');
+                        imageInput.value = '';
+                        return;
+                    }
+
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select a valid image file');
+                        imageInput.value = '';
+                        return;
+                    }
+
+                    // Update label
+                    fileLabel.classList.add('has-file');
+                    fileLabel.innerHTML = '<i class="fas fa-check-circle"></i><span>Image selected: ' + file.name + '</span>';
+
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.innerHTML = '<img src="' + e.target.result + '" alt="Preview"><div class="file-name">' + file.name + '</div>';
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // Reset to default state
+                    fileLabel.classList.remove('has-file');
+                    fileLabel.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Choose image or drag & drop here</span>';
+                    imagePreview.style.display = 'none';
+                }
+            }
+
+            // Image input event listeners
+            imageInput.addEventListener('change', handleImageUpload);
+
+            // Drag and drop functionality
+            fileLabel.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.background = '#e3f2fd';
+            });
+
+            fileLabel.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.background = '#fff';
+            });
+
+            fileLabel.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.background = '#fff';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    imageInput.files = files;
+                    handleImageUpload();
+                }
+            });
 
             // Sale price functionality
             function toggleSalePrice() {
-                const isOnSale = saleCheckbox.checked;
                 const hasSalePrice = salePriceInput.value && parseFloat(salePriceInput.value) > 0;
 
-                if (isOnSale || hasSalePrice) {
+                if (hasSalePrice) {
                     salePriceInfo.style.display = 'block';
                 } else {
                     salePriceInfo.style.display = 'none';
-                }
-
-                // Auto-check sale checkbox when sale price is entered
-                if (hasSalePrice && !isOnSale) {
-                    saleCheckbox.checked = true;
                 }
             }
 
@@ -605,7 +729,6 @@
             }
 
             // Event listeners for sale functionality
-            saleCheckbox.addEventListener('change', toggleSalePrice);
             salePriceInput.addEventListener('input', function() {
                 toggleSalePrice();
                 validateSalePrice();
@@ -616,9 +739,10 @@
             function updateProgress() {
                 const steps = document.querySelectorAll('.progress-step');
                 const requiredFields = {
-                    step1: ['input[asp-for="Name"]', 'select[asp-for="CategoryId"]', 'select[asp-for="BrandId"]', 'select[asp-for="GenderTarget"]'],
-                    step2: ['input[asp-for="Price"]'],
-                    step3: [], // Optional fields
+                    step1: ['input[asp-for="Name"]', 'select[asp-for="CategoryId"]', 'select[asp-for="GenderTarget"]'],
+                    step2: [], // Image is optional
+                    step3: ['input[asp-for="Price"]'],
+                    step4: [], // Description is optional
                 };
 
                 let completedSteps = 0;
@@ -710,7 +834,7 @@
 
                         const label = formGroup.querySelector('label');
                         if (label) {
-                            errorMessages.push(label.textContent.replace(' *', '').replace(/[📋📂🏷️👥💰]/g, '').trim());
+                            errorMessages.push(label.textContent.replace(' *', '').replace(/[📋📂🏷️👥💰🖼️]/g, '').trim());
                         }
                     } else {
                         formGroup.classList.add('has-success');
@@ -780,64 +904,6 @@
 
             // Initial progress update
             updateProgress();
-
-            // Auto-save functionality (commented out since localStorage is not supported in artifacts)
-            /*
-            function saveFormData() {
-                const formData = new FormData(form);
-                const data = {};
-                for (let [key, value] of formData.entries()) {
-                    data[key] = value;
-                }
-                try {
-                    localStorage.setItem('createProductForm', JSON.stringify(data));
-                } catch (e) {
-                    // localStorage not available, ignore
-                }
-            }
-
-            function loadFormData() {
-                try {
-                    const saved = localStorage.getItem('createProductForm');
-                    if (saved) {
-                        const data = JSON.parse(saved);
-                        Object.keys(data).forEach(key => {
-                            const field = form.querySelector(`[name="${key}"]`);
-                            if (field) {
-                                if (field.type === 'checkbox') {
-                                    field.checked = data[key] === 'true';
-                                } else {
-                                    field.value = data[key];
-                                }
-                            }
-                        });
-                        updateProgress();
-                        toggleSalePrice();
-                    }
-                } catch (e) {
-                    // Error loading data, ignore
-                }
-            }
-
-            // Load saved data on page load
-            loadFormData();
-
-            // Save data on input change
-            inputs.forEach(input => {
-                input.addEventListener('input', saveFormData);
-            });
-
-            // Clear saved data on successful submit
-            form.addEventListener('submit', function () {
-                if (!form.querySelector('.has-error')) {
-                    try {
-                        localStorage.removeItem('createProductForm');
-                    } catch (e) {
-                        // localStorage not available, ignore
-                    }
-                }
-            });
-            */
         });
     </script>
 }

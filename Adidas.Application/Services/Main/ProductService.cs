@@ -9,11 +9,15 @@ using Adidas.DTOs.Main.ProductDTOs;
 using Adidas.DTOs.Main.ProductImageDTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
 using Adidas.Models.Main;
+using CloudinaryDotNet.Actions;
+using CloudinaryDotNet;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models.Main;
 using Models.People;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -26,19 +30,24 @@ namespace Adidas.Application.Services.Main
         private readonly ICouponService _couponService;
         private readonly ILogger<ProductService> _logger;
         private readonly IUserProductViewRepository _userProductViewRepository;
-         
+        private readonly Cloudinary _cloudinary;
+
+        private const string DefaultImageUrl = null; // e.g., "https://res.cloudinary.com/<cloud>/image/upload/v.../placeholder.png";
+
         public ProductService(
             IProductRepository productRepository,
             IProductVariantRepository variantRepository,
             ICouponService couponService,
             ILogger<ProductService> logger,
-            IUserProductViewRepository userProductViewRepository)
+            IUserProductViewRepository userProductViewRepository,
+            Cloudinary cloudinary)
         {
             _productRepository = productRepository;
             _variantRepository = variantRepository;
             _couponService = couponService;
             _logger = logger;
             _userProductViewRepository = userProductViewRepository;
+            _cloudinary = cloudinary;
         }
 
         #region Mapping Methods
@@ -56,16 +65,16 @@ namespace Adidas.Application.Services.Main
                 SalePrice = p.SalePrice,
                 Sku = p.Sku,
                 CategoryId = p.CategoryId,
-                BrandId = p.BrandId,
                 GenderTarget = p.GenderTarget,
                 MetaTitle = p.MetaDescription,
                 MetaDescription = p.MetaDescription,
                 UpdatedAt = p.UpdatedAt,
                 CreatedAt = p.CreatedAt ?? new DateTime(),
                 IsActive = p.IsActive,
-                CategoryName = p.Category?.Name,
-                BrandName = p.Brand?.Name,
-                
+                ImageUrl = p.ImageUrl,
+                CategoryName = p.Category != null ? p.Category.Name : null,
+                //BrandName = p.Brand?.Name,
+
                 Category = p.Category != null ? new CategoryDto
                 {
                     Id = p.Category.Id,
@@ -140,7 +149,8 @@ namespace Adidas.Application.Services.Main
                 MetaTitle = dto.MetaTitle,
                 MetaDescription = dto.MetaDescription,
                 CategoryId = dto.CategoryId,
-                BrandId = dto.BrandId,
+                //ImageUrl = dto.ImageUrl ?? DefaultImageUrl,
+                BrandId = new Guid("7f3fe2b9-1d1e-4ccd-8880-011f6f2526ca"),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsActive = true // Add this line
@@ -170,8 +180,7 @@ namespace Adidas.Application.Services.Main
             if (updateDto.CategoryId.HasValue)
                 product.CategoryId = updateDto.CategoryId.Value;
 
-            if (updateDto.BrandId.HasValue)
-                product.BrandId = updateDto.BrandId.Value;
+          
 
             if (updateDto.MetaTitle != null)
                 product.MetaTitle = updateDto.MetaTitle;
@@ -224,7 +233,7 @@ namespace Adidas.Application.Services.Main
             {
                 IQueryable<Product> query = _productRepository.GetAll()
                     .Include(p => p.Category)
-                    .Include(p => p.Brand)
+                    //.Include(p => p.Brand)
                     .Include(p => p.Variants)
                     .Include(p => p.Images)
                     .Include(p => p.Reviews);
@@ -250,7 +259,7 @@ namespace Adidas.Application.Services.Main
             {
                 IQueryable<Product> query = _productRepository.GetAll()
                     .Include(p => p.Category)
-                    .Include(p => p.Brand)
+                    //.Include(p => p.Brand)
                     .Include(p => p.Variants)
                     .Include(p => p.Images)
                     .Include(p => p.Reviews);
@@ -332,9 +341,27 @@ namespace Adidas.Application.Services.Main
 
                 // Map DTO to entity
                 var entity = MapToProduct(createDto);
+                if (createDto.Image != null && createDto.Image.Length > 0)
+                {
+                    var imageUploadResult = await HandleImageUploadAsync(createDto.Image);
+                    if (imageUploadResult.IsSuccess)
+                    {
+                        entity.ImageUrl = imageUploadResult.Data;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to upload image for product variant: {Error}", imageUploadResult.ErrorMessage);
+                        entity.ImageUrl = DefaultImageUrl;
+                    }
+                }
+                else
+                {
+                    entity.ImageUrl = entity.ImageUrl ?? DefaultImageUrl; // leave null or use placeholder
+                }
 
                 // Pre-create hook
                 await BeforeCreateAsync(entity);
+
 
                 // Add entity
                 var createdEntityEntry = await _productRepository.AddAsync(entity);
@@ -393,6 +420,62 @@ namespace Adidas.Application.Services.Main
             }
         }
 
+        // Update the MapUpdateDtoToProduct method to handle image updates
+        private async Task MapUpdateDtoToProductAsync(ProductUpdateDto updateDto, Product product)
+        {
+            if (updateDto.Name != null)
+                product.Name = updateDto.Name;
+
+            if (updateDto.Description != null)
+                product.Description = updateDto.Description;
+
+            if (updateDto.ShortDescription != null)
+                product.ShortDescription = updateDto.ShortDescription;
+
+            if (updateDto.Price.HasValue)
+                product.Price = updateDto.Price.Value;
+
+            if (updateDto.SalePrice.HasValue)
+                product.SalePrice = updateDto.SalePrice.Value;
+
+            if (updateDto.GenderTarget.HasValue)
+                product.GenderTarget = updateDto.GenderTarget.Value;
+
+            if (updateDto.CategoryId.HasValue)
+                product.CategoryId = updateDto.CategoryId.Value;
+
+            if (updateDto.MetaTitle != null)
+                product.MetaTitle = updateDto.MetaTitle;
+
+            if (updateDto.MetaDescription != null)
+                product.MetaDescription = updateDto.MetaDescription;
+
+            // Handle image update
+            if (updateDto.ImageFile != null)
+            {
+                // Delete old image if it exists
+                if (!string.IsNullOrEmpty(product.ImageUrl))
+                {
+                    await DeleteOldImageAsync(product.ImageUrl);
+                }
+
+                // Upload new image
+                var imageUploadResult = await HandleImageUploadAsync(updateDto.ImageFile);
+                if (imageUploadResult.IsSuccess)
+                {
+                    product.ImageUrl = imageUploadResult.Data;
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to upload image for product update: {Error}", imageUploadResult.ErrorMessage);
+                    // Keep the old image URL if new upload fails
+                }
+            }
+
+            product.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Updated UpdateAsync method
         public virtual async Task<OperationResult<ProductDto>> UpdateAsync(ProductUpdateDto updateDto)
         {
             try
@@ -400,10 +483,11 @@ namespace Adidas.Application.Services.Main
                 var existingEntity = await _productRepository.GetByIdAsync(updateDto.Id);
                 if (existingEntity == null)
                     return OperationResult<ProductDto>.Fail($"Product with id {updateDto.Id} not found");
+
                 var countName = await _productRepository.CountAsync(p => p.Name == updateDto.Name);
-                     
-                if (countName==1 && existingEntity.Name != updateDto.Name)
-                    return OperationResult<ProductDto>.Fail("Error Updating product: Proudct with this name already exists");
+
+                if (countName == 1 && existingEntity.Name != updateDto.Name)
+                    return OperationResult<ProductDto>.Fail("Error Updating product: Product with this name already exists");
 
                 await ValidateUpdateAsync(updateDto.Id, updateDto);
 
@@ -417,7 +501,25 @@ namespace Adidas.Application.Services.Main
                     return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
                 }
 
-                MapUpdateDtoToProduct(updateDto, existingEntity);
+                // Validate image file if provided
+                if (updateDto.ImageFile != null)
+                {
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                    var fileExtension = Path.GetExtension(updateDto.ImageFile.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return OperationResult<ProductDto>.Fail("Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.");
+                    }
+
+                    if (updateDto.ImageFile.Length > 5 * 1024 * 1024) // 5MB limit
+                    {
+                        return OperationResult<ProductDto>.Fail("Image file size cannot exceed 5MB.");
+                    }
+                }
+
+                // Use the async version of the mapping method
+                await MapUpdateDtoToProductAsync(updateDto, existingEntity);
                 await BeforeUpdateAsync(existingEntity);
 
                 var updatedEntityEntry = await _productRepository.UpdateAsync(existingEntity);
@@ -435,6 +537,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
+        // Updated UpdateRangeAsync method to handle images
         public virtual async Task<OperationResult<IEnumerable<ProductDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductUpdateDto>> updates)
         {
             try
@@ -449,7 +552,7 @@ namespace Adidas.Application.Services.Main
                         throw new KeyNotFoundException($"Product with id {update.Key} not found");
 
                     await ValidateUpdateAsync(update.Key, update.Value);
-                    MapUpdateDtoToProduct(update.Value, existingEntity);
+                    await MapUpdateDtoToProductAsync(update.Value, existingEntity);
                     await BeforeUpdateAsync(existingEntity);
                     entities.Add(existingEntity);
                 }
@@ -472,7 +575,6 @@ namespace Adidas.Application.Services.Main
                 return OperationResult<IEnumerable<ProductDto>>.Fail("Error updating products: " + ex.Message);
             }
         }
-
         public virtual async Task<OperationResult<Product>> DeleteAsync(Guid id)
         {
             try
@@ -853,6 +955,105 @@ namespace Adidas.Application.Services.Main
         #endregion
 
         #region Private Helper Methods
+        private async Task<OperationResult<string>> HandleImageUploadAsync(IFormFile imageFile)
+        {
+            try
+            {
+                if (imageFile == null || imageFile.Length == 0)
+                    return OperationResult<string>.Fail("Invalid image file");
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                    return OperationResult<string>.Fail("Invalid file type. Only image files are allowed.");
+
+                const long maxFileSize = 5 * 1024 * 1024;
+                if (imageFile.Length > maxFileSize)
+                    return OperationResult<string>.Fail("File size too large. Maximum size is 5MB.");
+
+                await using var stream = imageFile.OpenReadStream();
+
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(imageFile.FileName, stream),
+                    Folder = "products",
+                    // Add these for better control
+                    Overwrite = false,
+                    UniqueFilename = true,
+                    UseFilename = false
+                };
+
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                if (uploadResult.Error != null)
+                {
+                    _logger.LogError("Cloudinary upload error: {Error}", uploadResult.Error.Message);
+                    return OperationResult<string>.Fail($"Image upload failed: {uploadResult.Error.Message}");
+                }
+
+                if (string.IsNullOrEmpty(uploadResult.SecureUrl?.AbsoluteUri))
+                {
+                    _logger.LogError("Cloudinary upload returned null or empty URL");
+                    return OperationResult<string>.Fail("Image upload failed: No URL returned");
+                }
+
+                _logger.LogInformation("Successfully uploaded image to Cloudinary: {PublicId}", uploadResult.PublicId);
+                return OperationResult<string>.Success(uploadResult.SecureUrl.AbsoluteUri);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading image to Cloudinary");
+                return OperationResult<string>.Fail($"Error uploading image: {ex.Message}");
+            }
+        }
+        private async Task DeleteOldImageAsync(string imageUrl)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    return;
+
+                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
+                    return;
+
+                if (!uri.Host.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                var path = uri.AbsolutePath;
+                var uploadIndex = path.IndexOf("/upload/", StringComparison.OrdinalIgnoreCase);
+                if (uploadIndex < 0) return;
+
+                var afterUpload = path.Substring(uploadIndex + "/upload/".Length);
+
+                var segments = afterUpload.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
+                if (segments.Count > 0 && segments[0].StartsWith("v") && int.TryParse(segments[0].Substring(1), out _))
+                {
+                    segments.RemoveAt(0);
+                }
+                if (!segments.Any()) return;
+
+                var publicIdWithExt = string.Join("/", segments);
+                var publicId = Path.ChangeExtension(publicIdWithExt, null);
+
+                var deletionParams = new DeletionParams(publicId);
+                var result = await _cloudinary.DestroyAsync(deletionParams);
+
+                if (!string.Equals(result.Result, "ok", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(result.Result, "not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Cloudinary deletion returned: {Result} for {PublicId}", result.Result, publicId);
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully deleted Cloudinary image: {PublicId}", publicId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error deleting Cloudinary image: {ImageUrl}", imageUrl);
+            }
+        }
+
 
         private async Task<string> GenerateSkuAsync(string productName)
         {
@@ -921,7 +1122,7 @@ namespace Adidas.Application.Services.Main
                 // Then fetch the complete product data with all includes
                 var purchasedProducts = await _productRepository.GetAll()
                     .Include(p => p.Category)
-                    .Include(p => p.Brand)
+                    //.Include(p => p.Brand)
                     .Include(p => p.Images)
                     .Include(p => p.Variants)
                         .ThenInclude(v => v.Images) // Include variant images too

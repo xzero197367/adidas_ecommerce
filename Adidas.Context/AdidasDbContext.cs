@@ -100,7 +100,7 @@ namespace Adidas.Context
 
             // Product Images Configuration
             modelBuilder.ApplyConfiguration(new ProductImageConfig());
-         
+    
             #endregion
 
             #region User & Authentication Configuration
