@@ -1,11 +1,9 @@
-﻿
-@model Adidas.DTOs.Main.ProductDTOs.ProductUpdateDto
+﻿@model Adidas.DTOs.Main.ProductDTOs.ProductUpdateDto
 @{
     ViewData["Title"] = "Edit Product";
 }
-<link href="~/css/Product.css" rel="stylesheet"/>
+<link href="~/css/Product.css" rel="stylesheet" />
 <style>
-
     .product-form-container {
         max-width: 800px;
         margin: 0 auto;
@@ -19,18 +17,18 @@
         border-bottom: 2px solid #f8f9fa;
     }
 
-    .page-header h2 {
-        color: #2c3e50;
-        font-weight: 600;
-        margin: 0;
-        font-size: 2rem;
-    }
+        .page-header h2 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin: 0;
+            font-size: 2rem;
+        }
 
-    .page-header p {
-        color: #6c757d;
-        margin: 0.5rem 0 0 0;
-        font-size: 1.1rem;
-    }
+        .page-header p {
+            color: #6c757d;
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+        }
 
     .form-card {
         background: #ffffff;
@@ -51,13 +49,13 @@
         margin-bottom: 1.5rem;
     }
 
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.95rem;
-    }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.95rem;
+        }
 
     .form-control {
         width: 100%;
@@ -69,16 +67,16 @@
         background-color: #ffffff;
     }
 
-    .form-control:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
-        transform: translateY(-1px);
-    }
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
+            transform: translateY(-1px);
+        }
 
-    .form-control:hover {
-        border-color: #ced4da;
-    }
+        .form-control:hover {
+            border-color: #ced4da;
+        }
 
     select.form-control {
         cursor: pointer;
@@ -126,11 +124,88 @@
         border: 1px solid #dee2e6;
     }
 
-    .price-section h4 {
-        margin: 0 0 1rem 0;
+        .price-section h4 {
+            margin: 0 0 1rem 0;
+            color: #495057;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+    .image-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #dee2e6;
+    }
+
+        .image-section h4 {
+            margin: 0 0 1rem 0;
+            color: #495057;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .current-image {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+        .current-image img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e9ecef;
+        }
+
+        .current-image p {
+            margin: 0.5rem 0 0 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+    .image-upload-area {
+        border: 2px dashed #ced4da;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background-color: #ffffff;
+    }
+
+        .image-upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+
+        .image-upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+
+    .image-upload-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    .image-upload-text {
         color: #495057;
-        font-size: 1.1rem;
-        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .image-upload-subtext {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .file-input {
+        display: none;
     }
 
     .button-group {
@@ -164,22 +239,22 @@
         box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
     }
 
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
-    }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+        }
 
     .btn-secondary {
         background: #6c757d;
         color: white;
     }
 
-    .btn-secondary:hover {
-        background: #545b62;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
-    }
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+        }
 
     .text-danger {
         color: #dc3545;
@@ -195,15 +270,10 @@
         font-weight: bold;
     }
 
-    (
-    max-width:
+    (max-width: 768px) {
+        .product-form-container
 
-    768
-    px
-
-    )
     {
-    .product-form-container {
         padding: 1rem;
     }
 
@@ -224,12 +294,15 @@
         width: 100%;
     }
 
+    .current-image img {
+        max-width: 150px;
+        max-height: 150px;
+    }
+
     }
 </style>
 
-
-
-<div class="main-headerr my-5 ">
+<div class="main-headerr my-5">
     <div class="container">
         <div class="header-content text-center">
             <h1 class="mb-0">
@@ -241,16 +314,39 @@
     </div>
 </div>
 
-
 <div class="form-card">
-    <form asp-controller="Products" asp-action="Edit" method="post">
-        <input type="hidden" asp-for="Id"/>
+    <form asp-controller="Products" asp-action="Edit" method="post" enctype="multipart/form-data">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CurrentImagePath" />
 
         <!-- Basic Information -->
         <div class="form-group required-field">
             <label asp-for="Name">Product Name</label>
-            <input asp-for="Name" class="form-control" placeholder="Enter product name"/>
+            <input asp-for="Name" class="form-control" placeholder="Enter product name" />
             <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <!-- Image Section -->
+        <div class="image-section">
+            <h4>🖼️ Product Image</h4>
+
+            <!-- Show current image if exists -->
+            @if (!string.IsNullOrEmpty(Model.CurrentImagePath))
+            {
+                <div class="current-image">
+                    <img src="@Model.CurrentImagePath" alt="Current Product Image" id="currentImage" />
+                    <p>Current Image</p>
+                </div>
+            }
+
+            <!-- Image upload area -->
+            <div class="image-upload-area" id="imageUploadArea">
+                <div class="image-upload-icon">📸</div>
+                <div class="image-upload-text">Click to select a new image or drag and drop</div>
+                <div class="image-upload-subtext">JPG, PNG, GIF, WEBP up to 5MB</div>
+                <input type="file" asp-for="ImageFile" class="file-input" id="imageInput" accept=".jpg,.jpeg,.png,.gif,.webp" />
+            </div>
+            <span asp-validation-for="ImageFile" class="text-danger"></span>
         </div>
 
         <!-- Price Section -->
@@ -259,7 +355,7 @@
             <div class="form-row">
                 <div class="form-group required-field">
                     <label asp-for="Price">Regular Price</label>
-                    <input asp-for="Price" class="form-control" type="number" step="0.01" placeholder="0.00"/>
+                    <input asp-for="Price" class="form-control" type="number" step="0.01" placeholder="0.00" />
                     <span asp-validation-for="Price" class="text-danger"></span>
                 </div>
                 <div class="form-group required-field">
@@ -269,34 +365,23 @@
                     </select>
                     <span asp-validation-for="GenderTarget" class="text-danger"></span>
                 </div>
-
                 <div class="form-group">
                     <label asp-for="SalePrice">Sale Price</label>
                     <input asp-for="SalePrice" class="form-control" type="number" step="0.01"
-                           placeholder="0.00 (Optional)"/>
+                           placeholder="0.00 (Optional)" />
                     <span asp-validation-for="SalePrice" class="text-danger"></span>
                 </div>
             </div>
         </div>
 
-        <!-- Categories and Classification -->
-        <div class="form-row">
-            <div class="form-group required-field">
-                <label asp-for="CategoryId">📂 Category</label>
-                <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control">
-                    <option value="">Select a category</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group required-field">
-                <label asp-for="BrandId">🏷️ Brand</label>
-                <select asp-for="BrandId" asp-items="ViewBag.Brands" class="form-control">
-                    <option value="">Select a brand</option>
-                </select>
-                <span asp-validation-for="BrandId" class="text-danger"></span>
-            </div>
+        <!-- Category -->
+        <div class="form-group required-field">
+            <label asp-for="CategoryId">📂 Category</label>
+            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control">
+                <option value="">Select a category</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
         </div>
-
 
         <!-- Description -->
         <div class="form-group">
@@ -306,10 +391,9 @@
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
 
-
         <!-- Action Buttons -->
         <div class="button-group">
-            <button type="submit" class="btn btn-search">
+            <button type="submit" class="btn btn-primary">
                 💾 Save Changes
             </button>
             <a asp-action="Index" class="btn btn-secondary">
@@ -319,16 +403,80 @@
     </form>
 </div>
 
-
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
     <script>
-        // Add some interactive enhancements
         document.addEventListener('DOMContentLoaded', function () {
-            // Add focus animations
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            const imageInput = document.getElementById('imageInput');
+            const currentImage = document.getElementById('currentImage');
+
+            // Click to upload
+            imageUploadArea.addEventListener('click', function () {
+                imageInput.click();
+            });
+
+            // Drag and drop functionality
+            imageUploadArea.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                imageUploadArea.classList.add('dragover');
+            });
+
+            imageUploadArea.addEventListener('dragleave', function () {
+                imageUploadArea.classList.remove('dragover');
+            });
+
+            imageUploadArea.addEventListener('drop', function (e) {
+                e.preventDefault();
+                imageUploadArea.classList.remove('dragover');
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        imageInput.files = files;
+                        previewImage(file);
+                    }
+                }
+            });
+
+            // File input change
+            imageInput.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    previewImage(this.files[0]);
+                }
+            });
+
+            // Preview selected image
+            function previewImage(file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    if (currentImage) {
+                        currentImage.src = e.target.result;
+                    } else {
+                        // Create new image element if no current image exists
+                        const imgContainer = document.querySelector('.current-image');
+                        if (!imgContainer) {
+                            const newImgContainer = document.createElement('div');
+                            newImgContainer.className = 'current-image';
+                            newImgContainer.innerHTML = `
+                                <img src="${e.target.result}" alt="Preview Image" id="currentImage"/>
+                                <p>Preview - New Image</p>
+                            `;
+                            imageUploadArea.parentNode.insertBefore(newImgContainer, imageUploadArea);
+                        }
+                    }
+
+                    // Update upload area text
+                    imageUploadArea.querySelector('.image-upload-text').textContent = 'New image selected - Click to change';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Add focus animations for other inputs
             const inputs = document.querySelectorAll('.form-control');
             inputs.forEach(input => {
                 input.addEventListener('focus', function () {
@@ -338,27 +486,6 @@
                     this.parentElement.classList.remove('focused');
                 });
             });
-
-            // Form validation feedback
-            const form = document.querySelector('form');
-            // form.addEventListener('submit', function (e) {
-            //     const requiredFields = document.querySelectorAll('.required-field input, .required-field select');
-            //     let hasErrors = false;
-
-            //     requiredFields.forEach(field => {
-            //         if (!field.value.trim()) {
-            //             field.style.borderColor = '#dc3545';
-            //             hasErrors = true;
-            //         } else {
-            //             field.style.borderColor = '#28a745';
-            //         }
-            //     });
-
-            //     if (hasErrors) {
-            //         e.preventDefault();
-            //         alert('Please fill in all required fields marked with *');
-            //     }
-            // });
         });
     </script>
 }

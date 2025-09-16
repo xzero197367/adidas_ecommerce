@@ -242,6 +242,7 @@ namespace Adidas.Context.Seeds
                     GenderTarget = Gender.Unisex,
                     IsActive = true,
                     Sku = "UB-001",
+
                     CreatedAt = DateTime.UtcNow
                 },
                 new Product

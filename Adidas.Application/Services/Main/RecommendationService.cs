@@ -67,7 +67,7 @@ namespace Adidas.Application.Services.Main
                 SalePrice = p.SalePrice,
                 Sku = p.Sku,
                 CategoryId = p.CategoryId,
-                BrandId = p.BrandId,
+                //BrandId = p.BrandId.Value,
                 GenderTarget = p.GenderTarget,
                 MetaTitle = p.MetaDescription,
                 MetaDescription = p.MetaDescription,
@@ -75,7 +75,7 @@ namespace Adidas.Application.Services.Main
                 CreatedAt = p.CreatedAt ?? DateTime.MinValue,
                 IsActive = p.IsActive,
                 CategoryName = p.Category?.Name,
-                BrandName = p.Brand?.Name,
+                //BrandName = p.Brand?.Name,
 
                 Category = p.Category != null ? new CategoryDto
                 {
