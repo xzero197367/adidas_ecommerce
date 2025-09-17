@@ -14,6 +14,8 @@ using System.Text.Json;
 using System.Net.Http;
 using Adidas.DTOs.People.Auth;
 
+using Adidas.Application.Contracts.ServicesContracts;
+
 namespace Adidas.ClientAPI.Controllers.Auth
 {
     [Route("api/[controller]")]
@@ -22,17 +24,20 @@ namespace Adidas.ClientAPI.Controllers.Auth
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
+            IEmailService emailService,
             IConfiguration configuration,
             ILogger<AuthController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailService = emailService;
             _configuration = configuration;
             _logger = logger;
         }
@@ -471,6 +476,316 @@ namespace Adidas.ClientAPI.Controllers.Auth
                 _logger.LogError(ex, "Error verifying Google token");
                 return null;
             }
+        }
+
+        // Add this method to your AuthController class
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
+
+                // Always return success to prevent email enumeration attacks
+                // Don't reveal whether the user exists or not
+                if (user == null)
+                {
+                    return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
+                }
+
+                // Check if user is active
+                if (!user.IsActive || user.IsDeleted)
+                {
+                    return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
+                }
+
+                // Generate password reset token
+                var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                // Create reset URL (you'll need to configure your frontend URL)
+                var frontendUrl = _configuration["FrontendSettings:BaseUrl"] ?? "https://localhost:3000";
+                var resetUrl = $"{frontendUrl}/auth/reset-password?token={Uri.EscapeDataString(resetToken)}&email={Uri.EscapeDataString(user.Email)}";
+
+                // TODO: Send email with reset link
+                // You'll need to implement email service
+                await SendPasswordResetEmail(user.Email, user.FirstName, resetUrl);
+
+                _logger.LogInformation("Password reset requested for user: {Email}", forgotPasswordDto.Email);
+
+                return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during forgot password request");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+                if (user == null)
+                    return BadRequest(new { message = "Invalid reset token" });
+
+                // Check if user is active
+                if (!user.IsActive || user.IsDeleted)
+                    return BadRequest(new { message = "Account is suspended or deactivated" });
+
+                // Reset password using the token
+                var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Failed to reset password",
+                        errors = result.Errors.Select(e => e.Description)
+                    });
+                }
+
+                // Update last modified timestamp
+                user.UpdatedAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+
+                _logger.LogInformation("Password reset successful for user: {Email}", resetPasswordDto.Email);
+
+                return Ok(new { message = "Password has been reset successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during password reset");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        // Email service method - you'll need to implement this based on your email provider
+        private async Task SendPasswordResetEmail(string email, string firstName, string resetUrl)
+        {
+            try
+            {
+                var subject = "Password Reset Request - Adidas Clone";
+                var htmlBody = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <title>Password Reset</title>
+                </head>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                    <div style='background: linear-gradient(135deg, #000000 0%, #434343 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                        <h1 style='color: white; margin: 0; font-size: 28px;'>Password Reset Request</h1>
+                    </div>
+                    
+                    <div style='background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #ddd;'>
+                        <h2 style='color: #333; margin-top: 0;'>Hi {firstName},</h2>
+                        
+                        <p style='font-size: 16px; margin-bottom: 20px;'>
+                            You requested to reset your password for your Adidas Clone account. 
+                            Click the button below to reset your password:
+                        </p>
+                        
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{resetUrl}' 
+                               style='background-color: #000000; color: white; padding: 15px 30px; 
+                                      text-decoration: none; border-radius: 5px; font-weight: bold; 
+                                      font-size: 16px; display: inline-block;
+                                      transition: background-color 0.3s ease;'>
+                                Reset My Password
+                            </a>
+                        </div>
+                        
+                        <p style='font-size: 14px; color: #666; margin-top: 30px;'>
+                            <strong>Important:</strong>
+                        </p>
+                        <ul style='font-size: 14px; color: #666; line-height: 1.8;'>
+                            <li>This link will expire in 24 hours</li>
+                            <li>If you didn't request this reset, please ignore this email</li>
+                            <li>Your password won't change until you create a new one</li>
+                        </ul>
+                        
+                        <hr style='border: none; border-top: 1px solid #ddd; margin: 30px 0;'>
+                        
+                        <p style='font-size: 12px; color: #999; text-align: center; margin: 0;'>
+                            This email was sent by Adidas Clone Website<br>
+                            If the button doesn't work, copy and paste this link into your browser:<br>
+                            <a href='{resetUrl}' style='color: #666; word-break: break-all;'>{resetUrl}</a>
+                        </p>
+                    </div>
+                </body>
+                </html>";
+
+                await _emailService.SendEmailAsync(email, subject, htmlBody);
+                _logger.LogInformation("Password reset email sent successfully to: {Email}", email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send password reset email to: {Email}", email);
+                throw;
+            }
+        }
+
+
+        // Add these methods to your AuthController class
+
+        [HttpPost("test-email")]
+        public async Task<IActionResult> TestEmail([FromBody] TestEmailDto testEmailDto)
+        {
+            try
+            {
+                _logger.LogInformation("Testing email service for: {Email}", testEmailDto.Email);
+
+                // First, validate email configuration
+                var emailConfigValid = ValidateEmailConfiguration();
+                if (!emailConfigValid.IsValid)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Email configuration is invalid",
+                        errors = emailConfigValid.Errors
+                    });
+                }
+
+                // Send a simple test email
+                var subject = "Test Email - Adidas Clone System";
+                var htmlBody = CreateTestEmailBody();
+
+                await _emailService.SendEmailAsync(testEmailDto.Email, subject, htmlBody);
+
+                return Ok(new
+                {
+                    message = "Test email sent successfully",
+                    sentTo = testEmailDto.Email,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Email test failed for: {Email}", testEmailDto.Email);
+                return StatusCode(500, new
+                {
+                    message = "Email test failed",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
+            }
+        }
+
+        [HttpGet("email-config-test")]
+        public IActionResult TestEmailConfiguration()
+        {
+            try
+            {
+                var configResult = ValidateEmailConfiguration();
+
+                if (configResult.IsValid)
+                {
+                    return Ok(new
+                    {
+                        message = "Email configuration is valid",
+                        configuration = new
+                        {
+                            SmtpServer = _configuration["EmailSettings:SmtpServer"],
+                            SmtpPort = _configuration["EmailSettings:SmtpPort"],
+                            FromEmail = _configuration["EmailSettings:FromEmail"],
+                            FromName = _configuration["EmailSettings:FromName"],
+                            HasUsername = !string.IsNullOrEmpty(_configuration["EmailSettings:SmtpUsername"]),
+                            HasPassword = !string.IsNullOrEmpty(_configuration["EmailSettings:SmtpPassword"])
+                        }
+                    });
+                }
+
+                return BadRequest(new
+                {
+                    message = "Email configuration is invalid",
+                    errors = configResult.Errors
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking email configuration");
+                return StatusCode(500, new { message = "Error checking email configuration", error = ex.Message });
+            }
+        }
+
+        // Helper methods
+        private (bool IsValid, List<string> Errors) ValidateEmailConfiguration()
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrEmpty(_configuration["EmailSettings:SmtpServer"]))
+                errors.Add("SMTP Server is not configured");
+
+            if (string.IsNullOrEmpty(_configuration["EmailSettings:SmtpUsername"]))
+                errors.Add("SMTP Username is not configured");
+
+            if (string.IsNullOrEmpty(_configuration["EmailSettings:SmtpPassword"]))
+                errors.Add("SMTP Password is not configured");
+
+            if (string.IsNullOrEmpty(_configuration["EmailSettings:FromEmail"]))
+                errors.Add("From Email is not configured");
+
+            var portStr = _configuration["EmailSettings:SmtpPort"];
+            if (!string.IsNullOrEmpty(portStr) && !int.TryParse(portStr, out _))
+                errors.Add("SMTP Port is not a valid number");
+
+            return (errors.Count == 0, errors);
+        }
+
+        private string CreateTestEmailBody()
+        {
+            return $@"
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>Email Test</title>
+    </head>
+    <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+        <div style='background: linear-gradient(135deg, #000000 0%, #434343 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+            <h1 style='color: white; margin: 0; font-size: 28px;'>✅ Email Test Successful!</h1>
+        </div>
+        
+        <div style='background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #ddd;'>
+            <h2 style='color: #333; margin-top: 0;'>Hello!</h2>
+            
+            <p style='font-size: 16px; margin-bottom: 20px;'>
+                This is a test email from your Adidas Clone application. 
+                If you're reading this, your email service is working correctly! 🎉
+            </p>
+            
+            <div style='background: #e8f5e8; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;'>
+                <p style='margin: 0; font-weight: bold; color: #155724;'>
+                    ✓ SMTP Configuration: Working
+                </p>
+            </div>
+            
+            <p style='font-size: 14px; color: #666;'>
+                <strong>Test Details:</strong><br>
+                • Sent at: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC<br>
+                • From: Adidas Clone System<br>
+                • Status: Successfully delivered
+            </p>
+            
+            <hr style='border: none; border-top: 1px solid #ddd; margin: 30px 0;'>
+            
+            <p style='font-size: 12px; color: #999; text-align: center; margin: 0;'>
+                This is an automated test email from Adidas Clone Website
+            </p>
+        </div>
+    </body>
+    </html>";
         }
     }
 }
