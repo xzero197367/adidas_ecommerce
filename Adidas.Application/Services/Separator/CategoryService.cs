@@ -8,6 +8,10 @@ using Adidas.DTOs.Common_DTOs;
 using Microsoft.Data.SqlClient;
 using Adidas.DTOs.CommonDTOs;
 using Adidas.Application.Contracts.ServicesContracts.Main;
+using CloudinaryDotNet.Actions;
+using CloudinaryDotNet;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Adidas.Application.Services.Separator
 {
@@ -15,15 +19,21 @@ namespace Adidas.Application.Services.Separator
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IProductService _productService;
+        private readonly Cloudinary _cloudinary;
+        private readonly ILogger<CategoryService> _logger;
+
+        private const string DefaultImageUrl = null; // e.g., "https://res.cloudinary.com/<cloud>/image/upload/v.../placeholder.png";
 
         public CategoryService(
-            ICategoryRepository categoryRepository
-            ,
-            IProductService productService
-        )
+            ICategoryRepository categoryRepository,
+            IProductService productService,
+            Cloudinary cloudinary,
+            ILogger<CategoryService> logger)
         {
             _categoryRepository = categoryRepository;
             _productService = productService;
+            _cloudinary = cloudinary;
+            _logger = logger;
         }
 
         public async Task<OperationResult<IEnumerable<CategoryDto>>> GetAllAsync()
@@ -98,7 +108,13 @@ namespace Adidas.Application.Services.Separator
         public async Task<Result> CreateAsync(CategoryCreateDto createCategoryDto)
         {
             try
-            {
+            { 
+                var nameExists = await _categoryRepository.GetCategoryByNameAsync(createCategoryDto.Name);
+                if (nameExists != null)
+                    return Result.Failure("Name already exists.");
+
+                 
+                 
                 var category = new Models.Separator.Category
                 {
                     ParentCategoryId = createCategoryDto.ParentCategoryId,
@@ -106,9 +122,27 @@ namespace Adidas.Application.Services.Separator
                     Slug = createCategoryDto.Slug,
                     SortOrder = createCategoryDto.SortOrder,
                     Description = createCategoryDto.Description,
-                    ImageUrl = createCategoryDto.ImageUrl,
                 };
                 category.Slug = GenerateSlug(createCategoryDto.Name);
+
+                // Handle image upload if provided
+                if (createCategoryDto.ImageFile != null && createCategoryDto.ImageFile.Length > 0)
+                {
+                    var imageUploadResult = await HandleImageUploadAsync(createCategoryDto.ImageFile);
+                    if (imageUploadResult.IsSuccess)
+                    {
+                        category.ImageUrl = imageUploadResult.Data;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to upload image for category: {Error}", imageUploadResult.ErrorMessage);
+                        category.ImageUrl = DefaultImageUrl;
+                    }
+                }
+                else
+                {
+                    category.ImageUrl = createCategoryDto.ImageUrl ?? DefaultImageUrl;
+                }
 
                 await _categoryRepository.AddAsync(category);
                 var result = await _categoryRepository.SaveChangesAsync();
@@ -127,8 +161,9 @@ namespace Adidas.Application.Services.Separator
 
                 return Result.Failure("A database error occurred.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error creating category");
                 return Result.Failure("An unexpected error occurred.");
             }
         }
@@ -147,6 +182,12 @@ namespace Adidas.Application.Services.Separator
             if (category.Products.Count() != 0)
                 return Result.Failure("Cannot delete a category that has products.");
 
+            // Delete the image from Cloudinary before deleting the category
+            if (!string.IsNullOrEmpty(category.ImageUrl))
+            {
+                await DeleteOldImageAsync(category.ImageUrl);
+            }
+
             await _categoryRepository.HardDeleteAsync(id);
             var result = await _categoryRepository.SaveChangesAsync();
 
@@ -158,33 +199,57 @@ namespace Adidas.Application.Services.Separator
             if (dto.Id == dto.ParentCategoryId)
                 return Result.Failure("You cannot assign a category as its own parent.");
 
-            var category = await _categoryRepository.GetByIdAsync(dto.Id);
+            var category = await _categoryRepository.GetCategoryByIdAsync(dto.Id);
             if (category == null)
                 return Result.Failure("Category not found.");
 
             var nameExists = await _categoryRepository.GetCategoryByNameAsync(dto.Name);
             if (nameExists != null && nameExists.Id != category.Id)
-                return Result.Failure("name is already exists.");
+                return Result.Failure("Name already exists.");
 
             var slugExists = await _categoryRepository.GetCategoryBySlugAsync(dto.Slug);
             if (slugExists != null && slugExists.Id != category.Id)
                 return Result.Failure("Slug already exists.");
 
+             if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+             {
+                if (!string.IsNullOrEmpty(category.ImageUrl))
+                    await DeleteOldImageAsync(category.ImageUrl);
+
+                var imageUploadResult = await HandleImageUploadAsync(dto.ImageFile);
+                if (imageUploadResult.IsSuccess)
+                {
+                    category.ImageUrl = imageUploadResult.Data;
+                }
+                else
+                {
+                    return Result.Failure($"Failed to upload image: {imageUploadResult.ErrorMessage}");
+                }
+            }
+            else if (!string.IsNullOrEmpty(dto.ImageUrl) && dto.ImageUrl != category.ImageUrl)
+            {
+                category.ImageUrl = dto.ImageUrl;
+            }
+
+            // 🔹 Update other fields
             category.Name = dto.Name;
             category.Slug = dto.Slug;
             category.Description = dto.Description;
-            category.ImageUrl = dto.ImageUrl ?? category.ImageUrl;
             category.ParentCategoryId = dto.ParentCategoryId;
+            //category.IsActive = dto.IsActive;
+            //category.SortOrder = dto.SortOrder;
 
-            await _categoryRepository.UpdateAsync(category);
-            var result = await _categoryRepository.SaveChangesAsync();
+            // 🔹 Save changes
+            var rowsAffected = await _categoryRepository.SaveChangesAsync();
 
-            return result == null ? Result.Failure("Failed to update category.") : Result.Success();
+            return rowsAffected > 0
+                ? Result.Success()
+                : Result.Failure("No changes were saved. Entity might be unchanged.");
         }
 
         public async Task<CategoryUpdateDto> GetCategoryToEditByIdAsync(Guid id)
         {
-            var category = await _categoryRepository.GetByIdAsync(id);
+            var category = await _categoryRepository.GetCategoryByIdAsync(id);
 
             if (category == null)
                 return null;
@@ -220,7 +285,6 @@ namespace Adidas.Application.Services.Separator
                 category.Products = allProducts;
             }
             return MapToCategoryDto(category, includeRelations: true);
-       
         }
 
         public async Task<CategoryDto> GetSubCategoriesByCategorySlug(string slug)
@@ -288,7 +352,110 @@ namespace Adidas.Application.Services.Separator
             return categories.Select(c => MapToCategoryDto(c, includeSubCategories: true)).ToList();
         }
 
-        // Manual mapping methods
+        #region Image Handling Methods
+
+        private async Task<OperationResult<string>> HandleImageUploadAsync(IFormFile imageFile)
+        {
+            try
+            {
+                if (imageFile == null || imageFile.Length == 0)
+                    return OperationResult<string>.Fail("Invalid image file");
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                    return OperationResult<string>.Fail("Invalid file type. Only image files are allowed.");
+
+                const long maxFileSize = 5 * 1024 * 1024;
+                if (imageFile.Length > maxFileSize)
+                    return OperationResult<string>.Fail("File size too large. Maximum size is 5MB.");
+
+                await using var stream = imageFile.OpenReadStream();
+
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(imageFile.FileName, stream),
+                    Folder = "categories",
+                    Overwrite = true,   // 🔹 ensures replacement
+                    Invalidate = true,  // 🔹 clears CDN cache
+                    UniqueFilename = true,
+                    UseFilename = false
+                };
+
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                if (uploadResult.Error != null)
+                {
+                    _logger.LogError("Cloudinary upload error: {Error}", uploadResult.Error.Message);
+                    return OperationResult<string>.Fail($"Image upload failed: {uploadResult.Error.Message}");
+                }
+
+                if (string.IsNullOrEmpty(uploadResult.SecureUrl?.AbsoluteUri))
+                {
+                    _logger.LogError("Cloudinary upload returned null or empty URL");
+                    return OperationResult<string>.Fail("Image upload failed: No URL returned");
+                }
+
+                _logger.LogInformation("Successfully uploaded category image to Cloudinary: {PublicId}", uploadResult.PublicId);
+                return OperationResult<string>.Success(uploadResult.SecureUrl.AbsoluteUri);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading category image to Cloudinary");
+                return OperationResult<string>.Fail($"Error uploading image: {ex.Message}");
+            }
+        }
+        private async Task DeleteOldImageAsync(string imageUrl)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    return;
+
+                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
+                    return;
+
+                if (!uri.Host.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                var path = uri.AbsolutePath;
+                var uploadIndex = path.IndexOf("/upload/", StringComparison.OrdinalIgnoreCase);
+                if (uploadIndex < 0) return;
+
+                var afterUpload = path.Substring(uploadIndex + "/upload/".Length);
+
+                var segments = afterUpload.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
+                if (segments.Count > 0 && segments[0].StartsWith("v") && int.TryParse(segments[0].Substring(1), out _))
+                {
+                    segments.RemoveAt(0);
+                }
+                if (!segments.Any()) return;
+
+                var publicIdWithExt = string.Join("/", segments);
+                var publicId = Path.ChangeExtension(publicIdWithExt, null);
+
+                var deletionParams = new DeletionParams(publicId) { Invalidate = true };
+                var result = await _cloudinary.DestroyAsync(deletionParams);
+
+                if (!string.Equals(result.Result, "ok", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(result.Result, "not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Cloudinary deletion returned: {Result} for {PublicId}", result.Result, publicId);
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully deleted Cloudinary category image: {PublicId}", publicId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error deleting Cloudinary category image: {ImageUrl}", imageUrl);
+            }
+        }
+
+        #endregion
+
+        #region Manual mapping methods
         private IEnumerable<CategoryDto> MapToCategoryDtos(IEnumerable<Category> categories)
         {
             return categories.Select(c => MapToCategoryDto(c)).ToList();
@@ -362,33 +529,6 @@ namespace Adidas.Application.Services.Separator
             };
         }
 
-        //private ProductDto MapToProductDto(Product product)
-        //{
-        //    if (product == null) return null;
-
-        //    return new ProductDto
-        //    {
-        //        Id = product.Id,
-        //        Name = product.Name ?? string.Empty,
-        //        Description = product.Description,
-        //        Price = product.Price,
-        //        IsActive = product.IsActive,
-        //        CategoryId = product.CategoryId,
-        //        BrandId = product.BrandId,
-        //        CreatedAt = product.CreatedAt ?? DateTime.MinValue,
-        //        UpdatedAt = product.UpdatedAt,
-        //        InStock = product.Variants != null && product.Variants.Any(v => v.StockQuantity > 0),
-        //        SalePrice = product.SalePrice,
-        //        GenderTarget = product.GenderTarget,
-        //        ShortDescription = product.ShortDescription ?? string.Empty,
-        //        Sku = product.Sku ?? string.Empty,
-        //        MetaTitle = product.MetaTitle,
-        //        MetaDescription = product.MetaDescription,
-        //        CategoryName = product.Category?.Name ?? "No Category",
-        //        BrandName = product.Brand?.Name ?? "No Brand"
-             
-
-        //    };
-        //}
+        #endregion
     }
 }
