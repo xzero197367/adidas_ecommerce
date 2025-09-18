@@ -1,6 +1,7 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
+using Adidas.Models.Separator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,38 +48,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             if (!ModelState.IsValid)
             {
-                //if (model.ImageFile == null)
-                //{
-                //    ModelState.AddModelError("ImageUrl", "Image is Required");
-                //}
+                
                 return View(model);
              }
 
-            //if (model.ImageFile != null && model.ImageFile.Length > 0)
-            //{
-            //    if (model.ImageFile.Length > 5 * 1024 * 1024)
-            //    {
-            //        ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
-            //        return View(model);
-            //    }
-
-            //    var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
-            //    var relativePath = Path.Combine("uploads", "categories", fileName);
-            //    var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
-
-            //    if (!Directory.Exists(absolutePath))
-            //    {
-            //        Directory.CreateDirectory(absolutePath);
-            //    }
-
-            //    var filePath = Path.Combine(absolutePath, fileName);
-            //    using (var stream = new FileStream(filePath, FileMode.Create))
-            //    {
-            //        await ImageFile.CopyToAsync(stream);
-            //    }
-
-            //    model.ImageUrl = "/" + relativePath.Replace("\\", "/");
-            //}
+         
 
             var result = await _categoryService.CreateAsync(model);
 
@@ -97,7 +71,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         public async Task<IActionResult> Edit(Guid id)
         {
             var category = await _categoryService.GetCategoryToEditByIdAsync(id);
-            
+            Console.WriteLine($"Category Type from service: {category.Type}");
+
             // Ensure we're only editing main categories
             if (category == null || category.ParentCategoryId != null)
             {
@@ -105,7 +80,6 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return RedirectToAction("Index");
             }
             if (category.ImageUrl == null) category.ImageUrl = "";
-
 
             return View(category);
         }
@@ -295,12 +269,13 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             try
             {
                 var result = await _categoryService.GetFilteredCategoriesAsync("Main", "", "");
-                
+
                 var categories = result.Select(c => new
                 {
                     c.Id,
                     c.Name,
-                    c.Slug
+                    c.Slug,
+                    c.Type // Include the Type property
                 }).OrderBy(c => c.Name);
 
                 return Ok(categories);

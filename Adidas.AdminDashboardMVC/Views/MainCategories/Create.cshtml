@@ -1,4 +1,5 @@
 ﻿@model Adidas.DTOs.Separator.Category_DTOs.CategoryCreateDto
+@using Adidas.Models.Separator
 
 @{
     ViewData["Title"] = "Add New Main Category";
@@ -26,6 +27,22 @@
                         <label asp-for="Description" class="form-label"></label>
                         <textarea asp-for="Description" class="form-control" rows="4"></textarea>
                         <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Type" class="form-label">Category Type</label>
+                        <select asp-for="Type" class="form-select">
+                            <option value="">Select Category Type</option>
+                            @{
+                                var categoryTypes = Html.GetEnumSelectList<CategoryType>();
+                            }
+                            @foreach (var item in categoryTypes)
+                            {
+                                <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Type" class="text-danger"></span>
+                        <small class="form-text text-muted">Choose the type of category (Men, Women, Kids, Sports)</small>
                     </div>
 
                     <input type="hidden" asp-for="Slug" />
@@ -63,56 +80,55 @@
     </div>
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const nameInput = document.getElementById('Name');
-            const slugInput = document.getElementById('Slug');
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validation.unobtrusive.min.js"></script>
 
-            if (nameInput && slugInput) {
-                if (nameInput.value.trim() !== '') {
-                    slugInput.value = generateSlug(nameInput.value);
-                }
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const nameInput = document.getElementById('Name');
+        const slugInput = document.getElementById('Slug');
 
-                nameInput.addEventListener('input', function () {
-                    if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
-                        slugInput.value = generateSlug(this.value);
-                    }
-                });
-
-                slugInput.addEventListener('change', function () {
-                    this.setAttribute('data-manual-edit', 'true');
-                });
-
-                function generateSlug(text) {
-                    let slug = text.toLowerCase();
-                    slug = slug.replace(/[^a-z0-9\s-]/g, '');
-                    slug = slug.replace(/\s+/g, '-').trim();
-                    slug = slug.replace(/-+/g, '-');
-                    return slug;
-                }
+        if (nameInput && slugInput) {
+            if (nameInput.value.trim() !== '') {
+                slugInput.value = generateSlug(nameInput.value);
             }
 
-            const imageInput = document.getElementById('ImageFile');
-            const imagePreview = document.getElementById('imagePreview');
-
-            imageInput.addEventListener('change', function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.style.display = 'block';
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    imagePreview.src = '#';
-                    imagePreview.style.display = 'none';
+            nameInput.addEventListener('input', function () {
+                if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
+                    slugInput.value = generateSlug(this.value);
                 }
             });
+
+            slugInput.addEventListener('change', function () {
+                this.setAttribute('data-manual-edit', 'true');
+            });
+
+            function generateSlug(text) {
+                let slug = text.toLowerCase();
+                slug = slug.replace(/[^a-z0-9\s-]/g, '');
+                slug = slug.replace(/\s+/g, '-').trim();
+                slug = slug.replace(/-+/g, '-');
+                return slug;
+            }
+        }
+
+        const imageInput = document.getElementById('ImageFile');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imageInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '#';
+                imagePreview.style.display = 'none';
+            }
         });
-    </script>
-}
+    });
+</script>

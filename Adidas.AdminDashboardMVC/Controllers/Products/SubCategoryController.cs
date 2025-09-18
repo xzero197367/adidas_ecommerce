@@ -1,6 +1,7 @@
 ﻿using Adidas.Application.Contracts.ServicesContracts.Separator;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Separator.Category_DTOs;
+using Adidas.Models.Separator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -58,32 +59,22 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return View(model);
             }
 
-            //if (ImageFile != null && ImageFile.Length > 0)
-            //{
-            //    if (ImageFile.Length > 5 * 1024 * 1024)
-            //    {
-            //        ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
-            //        await PopulateMainCategoriesDropdown();
-            //        return View(model);
-            //    }
-
-            //    var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
-            //    var relativePath = Path.Combine("uploads", "categories", fileName);
-            //    var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
-
-            //    if (!Directory.Exists(absolutePath))
-            //    {
-            //        Directory.CreateDirectory(absolutePath);
-            //    }
-
-            //    var filePath = Path.Combine(absolutePath, fileName);
-            //    using (var stream = new FileStream(filePath, FileMode.Create))
-            //    {
-            //        await ImageFile.CopyToAsync(stream);
-            //    }
-
-            //    model.ImageUrl = "/" + relativePath.Replace("\\", "/");
-            //}
+            // Get the parent category to inherit its type
+            var parentCategory = await _categoryService.GetCategoryDetailsAsync(model.ParentCategoryId.Value);
+            if (parentCategory != null && !string.IsNullOrEmpty(parentCategory.Type))
+            {
+                // Convert string type to enum
+                // Try parsing as integer first (most likely scenario: "0", "1", "2", "3")
+                if (int.TryParse(parentCategory.Type, out int typeInt) && Enum.IsDefined(typeof(CategoryType), typeInt))
+                {
+                    model.Type = (CategoryType)typeInt;
+                }
+                // Try parsing as enum name second ("Men", "Women", "Kids", "Sports")
+                else if (Enum.TryParse<CategoryType>(parentCategory.Type, true, out CategoryType parsedType))
+                {
+                    model.Type = parsedType;
+                }
+            }
 
             var result = await _categoryService.CreateAsync(model);
 
@@ -135,33 +126,20 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return View(model);
             }
 
-            //if (ImageFile != null && ImageFile.Length > 0)
-            //{
-            //    if (ImageFile.Length > 5 * 1024 * 1024)
-            //    {
-            //        ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
-            //        ViewBag.CategoryId = model.Id;
-            //        await PopulateMainCategoriesDropdown();
-            //        return View(model);
-            //    }
-
-            //    var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
-            //    var relativePath = Path.Combine("uploads", "categories", fileName);
-            //    var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
-
-            //    if (!Directory.Exists(absolutePath))
-            //    {
-            //        Directory.CreateDirectory(absolutePath);
-            //    }
-
-            //    var filePath = Path.Combine(absolutePath, fileName);
-            //    using (var stream = new FileStream(filePath, FileMode.Create))
-            //    {
-            //        await ImageFile.CopyToAsync(stream);
-            //    }
-
-            //    model.ImageUrl = "/" + relativePath.Replace("\\", "/");
-            //}
+            // Get the parent category to inherit its type
+            var parentCategory = await _categoryService.GetCategoryDetailsAsync(model.ParentCategoryId.Value);
+            if (parentCategory != null && !string.IsNullOrEmpty(parentCategory.Type))
+            {
+                // Convert string type to enum
+                if (Enum.TryParse<CategoryType>(parentCategory.Type, true, out CategoryType parsedType))
+                {
+                    model.Type = parsedType;
+                }
+                else if (int.TryParse(parentCategory.Type, out int typeInt) && Enum.IsDefined(typeof(CategoryType), typeInt))
+                {
+                    model.Type = (CategoryType)typeInt;
+                }
+            }
 
             var result = await _categoryService.UpdateAsync(model);
             if (!result.IsSuccess)
@@ -334,6 +312,47 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Error retrieving subcategories", error = ex.Message });
+            }
+        }
+
+        // Add this new endpoint to get parent category type
+        [HttpGet]
+        public async Task<IActionResult> GetParentCategoryType(Guid parentCategoryId)
+        {
+            try
+            {
+                var parentCategory = await _categoryService.GetCategoryDetailsAsync(parentCategoryId);
+                if (parentCategory != null && !string.IsNullOrEmpty(parentCategory.Type))
+                {
+                    // Debug: Log the actual type value
+                    Console.WriteLine($"Parent category type value: '{parentCategory.Type}'");
+
+                    // Convert string type to integer for frontend
+                    // Try parsing as integer first (most likely scenario: "0", "1", "2", "3")
+                    if (int.TryParse(parentCategory.Type, out int typeInt) && Enum.IsDefined(typeof(CategoryType), typeInt))
+                    {
+                        Console.WriteLine($"Successfully parsed as integer: {typeInt}");
+                        return Ok(new { Type = typeInt });
+                    }
+                    // Try parsing as enum name second ("Men", "Women", "Kids", "Sports")
+                    else if (Enum.TryParse<CategoryType>(parentCategory.Type, true, out CategoryType parsedType))
+                    {
+                        Console.WriteLine($"Successfully parsed as enum: {parsedType} = {(int)parsedType}");
+                        return Ok(new { Type = (int)parsedType });
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to parse type: '{parentCategory.Type}'");
+                        return BadRequest(new { message = $"Invalid category type format: '{parentCategory.Type}'" });
+                    }
+                }
+                Console.WriteLine("Parent category is null or has empty type");
+                return NotFound(new { message = "Parent category not found or has no type" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in GetParentCategoryType: {ex.Message}");
+                return BadRequest(new { message = "Error retrieving parent category type", error = ex.Message });
             }
         }
     }

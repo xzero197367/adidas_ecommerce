@@ -69,7 +69,6 @@
                                 <th>Name</th>
                                 <th>Description</th>
                                 <th>Slug</th>
-                                <th>Subcategories</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -96,16 +95,7 @@
                                         </td>
                                         <td>@(string.IsNullOrEmpty(category.Description) ? "N/A" : (category.Description.Length > 50 ? category.Description.Substring(0, 50) + "..." : category.Description))</td>
                                         <td>@category.Slug</td>
-                                        <td>
-                                            @if (category.HasSubCategories)
-                                            {
-                                                <span class="badge bg-info">@(category.SubCategories?.Count() ?? 0) subcategories</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">No subcategories</span>
-                                            }
-                                        </td>
+                                      
                                         <td>
                                             @if (category.IsActive)
                                             {

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Adidas.Models.Separator;
 
 namespace Adidas.DTOs.Separator.Category_DTOs
 {
@@ -17,6 +18,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         [Required]
         [StringLength(100, ErrorMessage = "Slug cannot exceed 100 characters")]
         public string Slug { get; set; }
+
         [Required]
         public string? Description { get; set; }
 
@@ -26,7 +28,10 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         public Guid? ParentCategoryId { get; set; }
 
         public int SortOrder { get; set; } = 0;
+
         public IFormFile? ImageFile { get; set; }
 
+        [Required(ErrorMessage = "Category type is required")]
+        public CategoryType Type { get; set; }
     }
 }

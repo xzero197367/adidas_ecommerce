@@ -175,6 +175,8 @@ namespace Adidas.ClientAPI
             builder.Services.AddScoped<IAddressRepository, AddressRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+
             builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
             builder.Services.AddScoped<ICouponRepository, CouponRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();

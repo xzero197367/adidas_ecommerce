@@ -1,4 +1,5 @@
 ﻿@model Adidas.DTOs.Separator.Category_DTOs.CategoryUpdateDto
+@using Adidas.Models.Separator
 
 @{
     ViewData["Title"] = "Edit Subcategory";
@@ -20,11 +21,20 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label asp-for="ParentCategoryId" class="form-label">Parent Category <span class="text-danger">*</span></label>
-                        <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories" required>
+                        <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories" required id="parentCategorySelect">
                             <option value="">-- Select Parent Category --</option>
                         </select>
                         <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
                         <small class="form-text text-muted">Select the main category this subcategory belongs to.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category Type</label>
+                        <div class="form-control bg-light" id="categoryTypeDisplay" style="color: #212529;">
+                            @Model.Type.ToString()
+                        </div>
+                        <input type="hidden" asp-for="Type" id="categoryTypeHidden" />
+                        <small class="form-text text-muted">The subcategory inherits the type from its parent category.</small>
                     </div>
 
                     <div class="mb-3">
@@ -74,54 +84,95 @@
     </div>
 </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validation.unobtrusive.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const nameInput = document.getElementById('Name');
-            const slugInput = document.getElementById('Slug');
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const nameInput = document.getElementById('Name');
+        const slugInput = document.getElementById('Slug');
+        const parentCategorySelect = document.getElementById('parentCategorySelect');
+        const categoryTypeDisplay = document.getElementById('categoryTypeDisplay');
+        const categoryTypeHidden = document.getElementById('categoryTypeHidden');
 
-            if (nameInput && slugInput) {
-                let isSlugManuallyEdited = slugInput.value.trim() !== '' && slugInput.value.trim() !== generateSlug(nameInput.value);
-                slugInput.setAttribute('data-manual-edit', isSlugManuallyEdited ? 'true' : 'false');
+        // Category type mapping
+        const categoryTypes = {
+            0: 'Men',
+            1: 'Women',
+            2: 'Kids',
+            3: 'Sports'
+        };
 
-                nameInput.addEventListener('input', function () {
-                    if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
-                        slugInput.value = generateSlug(this.value);
+        // Handle parent category selection change
+        parentCategorySelect.addEventListener('change', async function() {
+            const selectedParentId = this.value;
+
+            if (selectedParentId) {
+                try {
+                    const response = await fetch(`/MainCategories/GetMainCategoriesAjax`);
+                    const categories = await response.json();
+
+                    const selectedCategory = categories.find(cat => cat.Id === selectedParentId);
+                    if (selectedCategory && selectedCategory.Type !== undefined) {
+                        const typeText = categoryTypes[selectedCategory.Type] || 'Unknown';
+                        categoryTypeDisplay.textContent = typeText;
+                        categoryTypeDisplay.style.color = '#212529';
+                        categoryTypeHidden.value = selectedCategory.Type;
                     }
-                });
-
-                slugInput.addEventListener('change', function () {
-                    this.setAttribute('data-manual-edit', 'true');
-                });
-
-                function generateSlug(text) {
-                    let slug = text.toLowerCase();
-                    slug = slug.replace(/[^a-z0-9\s-]/g, '');
-                    slug = slug.replace(/\s+/g, '-').trim();
-                    slug = slug.replace(/-+/g, '-');
-                    return slug;
+                } catch (error) {
+                    console.error('Error fetching category type:', error);
+                    categoryTypeDisplay.textContent = 'Error loading type';
+                    categoryTypeDisplay.style.color = '#dc3545';
                 }
+            } else {
+                categoryTypeDisplay.textContent = 'Select a parent category to see the type';
+                categoryTypeDisplay.style.color = '#6c757d';
+                categoryTypeHidden.value = '';
             }
+        });
 
-            const imageInput = document.getElementById('ImageFile');
-            const imagePreview = document.getElementById('imagePreview');
+        // Slug generation
+        if (nameInput && slugInput) {
+            let isSlugManuallyEdited = slugInput.value.trim() !== '' && slugInput.value.trim() !== generateSlug(nameInput.value);
+            slugInput.setAttribute('data-manual-edit', isSlugManuallyEdited ? 'true' : 'false');
 
-            imageInput.addEventListener('change', function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    imagePreview.src = '#';
-                    imagePreview.style.display = 'none';
+            nameInput.addEventListener('input', function () {
+                if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
+                    slugInput.value = generateSlug(this.value);
                 }
             });
+
+            slugInput.addEventListener('change', function () {
+                this.setAttribute('data-manual-edit', 'true');
+            });
+
+            function generateSlug(text) {
+                let slug = text.toLowerCase();
+                slug = slug.replace(/[^a-z0-9\s-]/g, '');
+                slug = slug.replace(/\s+/g, '-').trim();
+                slug = slug.replace(/-+/g, '-');
+                return slug;
+            }
+        }
+
+        // Image preview
+        const imageInput = document.getElementById('ImageFile');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imageInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '#';
+                imagePreview.style.display = 'none';
+            }
         });
-    </script>
-}
+    });
+</script>

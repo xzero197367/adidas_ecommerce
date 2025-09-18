@@ -1,4 +1,5 @@
 ﻿@model Adidas.DTOs.Separator.Category_DTOs.CategoryCreateDto
+@using Adidas.Models.Separator
 
 @{
     ViewData["Title"] = "Add New Subcategory";
@@ -18,11 +19,20 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label asp-for="ParentCategoryId" class="form-label">Parent Category <span class="text-danger">*</span></label>
-                        <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories" required>
+                        <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories" required id="parentCategorySelect">
                             <option value="">-- Select Parent Category --</option>
                         </select>
                         <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
                         <small class="form-text text-muted">Select the main category this subcategory belongs to.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category Type</label>
+                        <div class="form-control bg-light" id="categoryTypeDisplay" style="color: #6c757d;">
+                            Select a parent category to see the type
+                        </div>
+                        <input type="hidden" asp-for="Type" id="categoryTypeHidden" />
+                        <small class="form-text text-muted">The subcategory will inherit the type from its parent category.</small>
                     </div>
 
                     <div class="mb-3">
@@ -69,56 +79,112 @@
     </div>
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const nameInput = document.getElementById('Name');
-            const slugInput = document.getElementById('Slug');
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validation.unobtrusive.min.js"></script>
 
-            if (nameInput && slugInput) {
-                if (nameInput.value.trim() !== '') {
-                    slugInput.value = generateSlug(nameInput.value);
-                }
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const nameInput = document.getElementById('Name');
+        const slugInput = document.getElementById('Slug');
+        const parentCategorySelect = document.getElementById('parentCategorySelect');
+        const categoryTypeDisplay = document.getElementById('categoryTypeDisplay');
+        const categoryTypeHidden = document.getElementById('categoryTypeHidden');
 
-                nameInput.addEventListener('input', function () {
-                    if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
-                        slugInput.value = generateSlug(this.value);
+        // Category type mapping
+        const categoryTypes = {
+            0: 'Men',
+            1: 'Women',
+            2: 'Kids',
+            3: 'Sports'
+        };
+
+        // Handle parent category selection change
+        parentCategorySelect.addEventListener('change', async function() {
+            const selectedParentId = this.value;
+
+            if (selectedParentId) {
+                try {
+                    console.log('Selected parent ID:', selectedParentId); // Debug
+
+                    // Use the new endpoint to get parent category type
+                    const response = await fetch(`/Subcategories/GetParentCategoryType?parentCategoryId=${selectedParentId}`);
+
+                    console.log('Response status:', response.status); // Debug
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Received data:', data); // Debug
+
+                        // Try both uppercase and lowercase 'type' property (ASP.NET Core might convert to camelCase)
+                        const typeValue = data.Type ?? data.type;
+                        console.log('Type value:', typeValue); // Debug
+
+                        const typeText = categoryTypes[typeValue] || 'Unknown';
+                        console.log('Mapped type text:', typeText); // Debug
+
+                        categoryTypeDisplay.textContent = typeText;
+                        categoryTypeDisplay.style.color = '#212529';
+                        categoryTypeHidden.value = typeValue;
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Error response:', errorData); // Debug
+                        throw new Error('Failed to fetch parent category type');
                     }
-                });
-
-                slugInput.addEventListener('change', function () {
-                    this.setAttribute('data-manual-edit', 'true');
-                });
-
-                function generateSlug(text) {
-                    let slug = text.toLowerCase();
-                    slug = slug.replace(/[^a-z0-9\s-]/g, '');
-                    slug = slug.replace(/\s+/g, '-').trim();
-                    slug = slug.replace(/-+/g, '-');
-                    return slug;
+                } catch (error) {
+                    console.error('Error fetching category type:', error);
+                    categoryTypeDisplay.textContent = 'Error loading type';
+                    categoryTypeDisplay.style.color = '#dc3545';
                 }
+            } else {
+                categoryTypeDisplay.textContent = 'Select a parent category to see the type';
+                categoryTypeDisplay.style.color = '#6c757d';
+                categoryTypeHidden.value = '';
+            }
+        });
+
+        // Slug generation
+        if (nameInput && slugInput) {
+            if (nameInput.value.trim() !== '') {
+                slugInput.value = generateSlug(nameInput.value);
             }
 
-            const imageInput = document.getElementById('ImageFile');
-            const imagePreview = document.getElementById('imagePreview');
-
-            imageInput.addEventListener('change', function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.style.display = 'block';
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    imagePreview.src = '#';
-                    imagePreview.style.display = 'none';
+            nameInput.addEventListener('input', function () {
+                if (slugInput.value.trim() === '' || slugInput.getAttribute('data-manual-edit') !== 'true') {
+                    slugInput.value = generateSlug(this.value);
                 }
             });
+
+            slugInput.addEventListener('change', function () {
+                this.setAttribute('data-manual-edit', 'true');
+            });
+
+            function generateSlug(text) {
+                let slug = text.toLowerCase();
+                slug = slug.replace(/[^a-z0-9\s-]/g, '');
+                slug = slug.replace(/\s+/g, '-').trim();
+                slug = slug.replace(/-+/g, '-');
+                return slug;
+            }
+        }
+
+        // Image preview
+        const imageInput = document.getElementById('ImageFile');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imageInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '#';
+                imagePreview.style.display = 'none';
+            }
         });
-    </script>
-}
+    });
+</script>

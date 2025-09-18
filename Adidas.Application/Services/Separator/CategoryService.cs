@@ -122,6 +122,7 @@ namespace Adidas.Application.Services.Separator
                     Slug = createCategoryDto.Slug,
                     SortOrder = createCategoryDto.SortOrder,
                     Description = createCategoryDto.Description,
+                    Type = createCategoryDto.Type,
                 };
                 category.Slug = GenerateSlug(createCategoryDto.Name);
 
@@ -236,6 +237,7 @@ namespace Adidas.Application.Services.Separator
             category.Slug = dto.Slug;
             category.Description = dto.Description;
             category.ParentCategoryId = dto.ParentCategoryId;
+            category.Type = dto.Type;
             //category.IsActive = dto.IsActive;
             //category.SortOrder = dto.SortOrder;
 
@@ -525,6 +527,7 @@ namespace Adidas.Application.Services.Separator
                 ImageUrl = category.ImageUrl,
                 ParentCategoryId = category.ParentCategoryId,
                 SortOrder = category.SortOrder,
+                Type = category.Type,
                 IsActive = category.IsActive,
             };
         }
