@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Adidas.DTOs.Main.ProductDTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Adidas.Models.Main;
 
 namespace Adidas.AdminDashboardMVC.Controllers.Products
 {
@@ -68,15 +69,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
             await PopulateDropdownsAsync(productId);
             return View();
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([FromForm] ProductVariantCreateDto createDto)
         {
-            if (createDto.ImageFile == null)
+            if (!createDto.Images.Any())
             {
-                ModelState.AddModelError("ImageFile", "Image is Required");
+                ModelState.AddModelError("Images", "You should add at least one image");
             }
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
@@ -87,18 +88,29 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
             try
             {
-                var createdVariant = await _productVariantService.CreateAsync(createDto);
-                TempData["Success"] = "Product variant created successfully!";
-                return RedirectToAction("Details", "Products", new { id = createDto.ProductId });
+                var result = await _productVariantService.CreateAsync(createDto);
+
+                // Check if the operation actually succeeded
+                if (result.IsSuccess)
+                {
+                    TempData["Success"] = "Product variant created successfully!";
+                    return RedirectToAction("Details", "Products", new { id = createDto.ProductId });
+                }
+                else
+                {
+                    // Operation failed
+                    TempData["Error"] = result.ErrorMessage;
+                    await PopulateDropdownsAsync(createDto.ProductId);
+                    return View(createDto);
+                }
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                TempData["Error"] = "An unexpected error occurred: " + ex.Message;
                 await PopulateDropdownsAsync(createDto.ProductId);
                 return View(createDto);
             }
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
@@ -173,7 +185,8 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 PriceAdjustment = variant.PriceAdjustment,
                 ColorHex = variant.ColorHex,
                 SortOrder = variant.SortOrder,
-                ImageUrl = variant.ImageUrl
+                ExistingImages = variant.Images.ToList(),
+                //ImageUrl = variant.ImageUrl
             };
 
             var productsResult = await _productService.GetAllAsync();
@@ -194,69 +207,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit([FromForm] ProductVariantUpdateDto model)
         {
-            // Remove the required image validation for edit - it should be optional
-            // Only validate image if a new one is being uploaded
-            if (model.ImageFile != null && model.ImageFile.Length == 0)
-            {
-                ModelState.Remove("ImageFile");
-            }
-
-            // DEBUG: Log what we received
-            var logger = HttpContext.RequestServices.GetService<ILogger<ProductVariantsController>>();
-            logger?.LogInformation("=== EDIT POST DEBUG ===");
-            logger?.LogInformation("Route ID: {Id}", model.Id);
-            logger?.LogInformation("Model ID: {ModelId}", model.Id);
-            logger?.LogInformation("ProductId: {ProductId}", model.ProductId);
-            logger?.LogInformation("Color: {Color}", model.Color);
-            logger?.LogInformation("ColorHex: {ColorHex}", model.ColorHex);
-            logger?.LogInformation("Size: {Size}", model.Size);
-            logger?.LogInformation("StockQuantity: {StockQuantity}", model.StockQuantity);
-            logger?.LogInformation("PriceAdjustment: {PriceAdjustment}", model.PriceAdjustment);
-            logger?.LogInformation("ImageUrl: {ImageUrl}", model.ImageUrl);
-
-            // DEBUG: Check the ImageFile
-            if (model.ImageFile != null && model.ImageFile.Length > 0)
-            {
-                logger?.LogInformation("✓ ImageFile received:");
-                logger?.LogInformation("  - Name: {FileName}", model.ImageFile.FileName);
-                logger?.LogInformation("  - Size: {FileSize} bytes", model.ImageFile.Length);
-                logger?.LogInformation("  - ContentType: {ContentType}", model.ImageFile.ContentType);
-            }
-            else
-            {
-                logger?.LogInformation("ℹ No new ImageFile received - will keep existing image");
-            }
-
-            // DEBUG: Check form data directly
-            logger?.LogInformation("Form data received:");
-            foreach (var key in Request.Form.Keys)
-            {
-                var value = Request.Form[key];
-                logger?.LogInformation("  {Key}: {Value}", key, value);
-            }
-
-            // DEBUG: Check files specifically
-            logger?.LogInformation("Files received: {FileCount}", Request.Form.Files.Count);
-            foreach (var file in Request.Form.Files)
-            {
-                logger?.LogInformation("  File: {Name} = {FileName} ({Length} bytes)",
-                    file.Name, file.FileName, file.Length);
-            }
-
-            //if (id != model.Id)
-            //    return BadRequest();
+             
 
             if (!ModelState.IsValid)
-            {
-                // DEBUG: Log validation errors
-                logger?.LogWarning("ModelState is invalid:");
-                foreach (var error in ModelState)
-                {
-                    foreach (var subError in error.Value.Errors)
-                    {
-                        logger?.LogWarning("  {Key}: {Error}", error.Key, subError.ErrorMessage);
-                    }
-                }
+            { 
+              
 
                 var errors = ModelState.Values
                     .SelectMany(v => v.Errors)
@@ -272,6 +227,11 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                     Value = p.Id.ToString(),
                     Text = p.Name
                 }).ToList();
+                var existingVariant = await _productVariantService.GetByIdAsync(model.Id);
+                if (existingVariant.IsSuccess)
+                {
+                    model.ExistingImages = existingVariant.Data.Images.ToList();
+                }
 
                 return View(model);
             }
@@ -282,8 +242,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
                 if (!result.IsSuccess)
                 {
-                    logger?.LogError("Service update failed: {Error}", result.ErrorMessage);
-                    ModelState.AddModelError("", result.ErrorMessage);
+                     ModelState.AddModelError("", result.ErrorMessage);
 
                     var productResult = await _productService.GetAllAsync();
                     var products = productResult.Data;
@@ -292,18 +251,20 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                         Value = p.Id.ToString(),
                         Text = p.Name
                     }).ToList();
-
+                    var existingVariant = await _productVariantService.GetByIdAsync(model.Id);
+                    if (existingVariant.IsSuccess)
+                    {
+                        model.ExistingImages = existingVariant.Data.Images.ToList();
+                    }
                     return View(model);
                 }
 
-                logger?.LogInformation("✓ Product variant updated successfully");
-                TempData["Success"] = "Product variant updated successfully!";
+                 TempData["Success"] = "Product variant updated successfully!";
                 return RedirectToAction("Details", "Products", new { id = model.ProductId });
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "Exception during update");
-                ModelState.AddModelError("", $"Error updating product variant: {ex.Message}");
+                 ModelState.AddModelError("", $"Error updating product variant: {ex.Message}");
 
                 var productResult = await _productService.GetAllAsync();
                 var products = productResult.Data;

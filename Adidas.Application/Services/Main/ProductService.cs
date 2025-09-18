@@ -32,6 +32,7 @@ namespace Adidas.Application.Services.Main
         private readonly IProductVariantRepository _variantRepository;
         private readonly ICouponService _couponService;
         private readonly ILogger<ProductService> _logger;
+        private readonly IProductImageRepository _productImageRepository;
         private readonly IUserProductViewRepository _userProductViewRepository;
         private readonly Cloudinary _cloudinary;
 
@@ -39,6 +40,7 @@ namespace Adidas.Application.Services.Main
 
         public ProductService(
             IProductRepository productRepository,
+            IProductImageRepository productImageRepository,
             IBrandRepository brandRepository,
             IProductVariantRepository variantRepository,
             ICouponService couponService,
@@ -48,6 +50,7 @@ namespace Adidas.Application.Services.Main
         {
             _productRepository = productRepository;
             _variantRepository = variantRepository;
+            _productImageRepository = productImageRepository;
             _brandRepository = brandRepository;
             _couponService = couponService;
             _logger = logger;
@@ -87,16 +90,17 @@ namespace Adidas.Application.Services.Main
                     Name = p.Category.Name
                 } : null,
 
-                Images = p.Variants?.Select(i => new ProductImageDto
+                Images = p.Images?.Select(img => new ProductImageDto
                 {
-                    Id = i.Id,
-                    ProductId = p.Id,
-                    VariantId = i.Id,
-                    ImageUrl = i.ImageUrl,
-                    IsActive = i.IsActive,
-                    //AltText = i.AltText
-
-                }).ToList() ?? new List<ProductImageDto>(),
+                    Id = img.Id,
+                    ProductId = img.ProductId,
+                    VariantId = img.VariantId,
+                    ImageUrl = img.ImageUrl,
+                    AltText = img.AltText,
+                    SortOrder = img.SortOrder,
+                    IsPrimary = img.IsPrimary,
+                    IsActive = img.IsActive
+                }).OrderBy(img => img.SortOrder).ToList() ?? new List<ProductImageDto>(),
 
                 // FIX: This was the main issue - the variant mapping was incomplete and missing many properties
                 Variants = p.Variants?.Select(v => new ProductVariantDto
@@ -240,13 +244,13 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<IEnumerable<ProductDto>>> GetAllAsync(Func<IQueryable<Product>, IQueryable<Product>>? queryFunc = null)
+        public async Task<OperationResult<IEnumerable<ProductDto>>> GetAllAsync(Func<IQueryable<Product>, IQueryable<Product>>? queryFunc = null)
         {
             try
             {
                 IQueryable<Product> query = _productRepository.GetAll()
                     .Include(p => p.Category)
-                    //.Include(p => p.Brand)
+                    .Include(p => p.Brand)
                     .Include(p => p.Variants)
                     .Include(p => p.Images)
                     .Include(p => p.Reviews);
@@ -354,23 +358,43 @@ namespace Adidas.Application.Services.Main
 
                 // Map DTO to entity
                 var entity = MapToProduct(createDto);
-                if (createDto.Image != null && createDto.Image.Length > 0)
+                var productImages = new List<ProductImage>();
+                if (createDto.Images != null && createDto.Images.Any())
                 {
-                    var imageUploadResult = await HandleImageUploadAsync(createDto.Image);
-                    if (imageUploadResult.IsSuccess)
+                    for (int i = 0; i < createDto.Images.Count; i++)
                     {
-                        entity.ImageUrl = imageUploadResult.Data;
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Failed to upload image for product variant: {Error}", imageUploadResult.ErrorMessage);
-                        entity.ImageUrl = DefaultImageUrl;
+                        var image = createDto.Images[i];
+                        var imageUploadResult = await HandleImageUploadAsync(image);
+
+                        if (imageUploadResult.IsSuccess)
+                        {
+                            var productImage = new ProductImage
+                            {
+                                Id = Guid.NewGuid(),
+                                ProductId = entity.Id,
+                                ImageUrl = imageUploadResult.Data,
+                                AltText = $"{entity.Name} - Image {i + 1}",
+                                SortOrder = i,
+                                IsPrimary = i == 0,  
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow,
+                                IsActive = true
+                            };
+                            productImages.Add(productImage);
+
+                         
+                            if (i == 0)
+                            {
+                                entity.ImageUrl = imageUploadResult.Data;
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to upload image {Index} for product: {Error}", i + 1, imageUploadResult.ErrorMessage);
+                        }
                     }
                 }
-                else
-                {
-                    entity.ImageUrl = entity.ImageUrl ?? DefaultImageUrl; // leave null or use placeholder
-                }
+
 
                 // Pre-create hook
                 await BeforeCreateAsync(entity);
@@ -379,6 +403,18 @@ namespace Adidas.Application.Services.Main
                 // Add entity
                 var createdEntityEntry = await _productRepository.AddAsync(entity);
                 await _productRepository.SaveChangesAsync();
+                if (productImages.Any())
+                {
+                    // Update ProductId for all images
+                    foreach (var img in productImages)
+                    {
+                        img.ProductId = createdEntityEntry.Entity.Id;
+                    }
+
+                    // Add images to repository (you'll need to add this method to your repository)
+                    await _productImageRepository.AddRangeAsync(productImages);
+                    await _productImageRepository.SaveChangesAsync();
+                }
 
                 var createdEntity = createdEntityEntry.Entity;
 
@@ -464,27 +500,7 @@ namespace Adidas.Application.Services.Main
                 product.MetaDescription = updateDto.MetaDescription;
 
             // Handle image update
-            if (updateDto.ImageFile != null)
-            {
-                // Delete old image if it exists
-                if (!string.IsNullOrEmpty(product.ImageUrl))
-                {
-                    await DeleteOldImageAsync(product.ImageUrl);
-                }
-
-                // Upload new image
-                var imageUploadResult = await HandleImageUploadAsync(updateDto.ImageFile);
-                if (imageUploadResult.IsSuccess)
-                {
-                    product.ImageUrl = imageUploadResult.Data;
-                }
-                else
-                {
-                    _logger.LogWarning("Failed to upload image for product update: {Error}", imageUploadResult.ErrorMessage);
-                    // Keep the old image URL if new upload fails
-                }
-            }
-
+          
             product.UpdatedAt = DateTime.UtcNow;
         }
 
@@ -497,48 +513,138 @@ namespace Adidas.Application.Services.Main
                 if (existingEntity == null)
                     return OperationResult<ProductDto>.Fail($"Product with id {updateDto.Id} not found");
 
+                // Ensure unique product name
                 var countName = await _productRepository.CountAsync(p => p.Name == updateDto.Name);
-
                 if (countName == 1 && existingEntity.Name != updateDto.Name)
                     return OperationResult<ProductDto>.Fail("Error Updating product: Product with this name already exists");
 
+                // Domain-specific validation
                 await ValidateUpdateAsync(updateDto.Id, updateDto);
 
-                // Validate sale price logic
+                // Sale price check
                 if (updateDto.SalePrice.HasValue && updateDto.Price.HasValue && updateDto.SalePrice > updateDto.Price)
-                {
                     return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
-                }
-                else if (updateDto.SalePrice.HasValue && !updateDto.Price.HasValue && existingEntity.Price < updateDto.SalePrice)
-                {
+                if (updateDto.SalePrice.HasValue && !updateDto.Price.HasValue && existingEntity.Price < updateDto.SalePrice)
                     return OperationResult<ProductDto>.Fail("Sale Price cannot be greater than the original Price.");
+
+                // Get existing images for this product (only product images, not variant images)
+                var existingImages = await _productImageRepository.GetAll()
+                    .Where(img => img.ProductId == updateDto.Id && img.VariantId == null && !img.IsDeleted)
+                    .ToListAsync();
+                var remainingAfterDeletion = existingImages.Count - (updateDto.DeleteImages?.Count ?? 0);
+                var newImagesCount = updateDto.Images?.Count ?? 0;
+
+                if (remainingAfterDeletion + newImagesCount == 0)
+                {
+                    return OperationResult<ProductDto>.Fail("Cannot delete all images. At least one image is required.");
                 }
 
-                // Validate image file if provided
-                if (updateDto.ImageFile != null)
+                // Handle selective image deletion
+                if (updateDto.DeleteImages != null && updateDto.DeleteImages.Any())
                 {
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                    var fileExtension = Path.GetExtension(updateDto.ImageFile.FileName).ToLowerInvariant();
+                    var imagesToDelete = existingImages.Where(img => updateDto.DeleteImages.Contains(img.Id)).ToList();
 
-                    if (!allowedExtensions.Contains(fileExtension))
+                    foreach (var imgToDelete in imagesToDelete)
                     {
-                        return OperationResult<ProductDto>.Fail("Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.");
+                        // Delete from cloud storage
+                        if (!string.IsNullOrEmpty(imgToDelete.ImageUrl))
+                        {
+                            await DeleteOldImageAsync(imgToDelete.ImageUrl);
+                        }
+
+                        // Mark as deleted in database
+                        await _productImageRepository.HardDeleteAsync(imgToDelete.Id);
                     }
 
-                    if (updateDto.ImageFile.Length > 5 * 1024 * 1024) // 5MB limit
+                    // Update the existing images list
+                    existingImages = existingImages.Where(img => !updateDto.DeleteImages.Contains(img.Id)).ToList();
+                }
+
+                // Handle new image uploads
+                var newImages = new List<ProductImage>();
+
+                if (updateDto.Images != null && updateDto.Images.Any())
+                {
+                    for (int i = 0; i < updateDto.Images.Count; i++)
                     {
-                        return OperationResult<ProductDto>.Fail("Image file size cannot exceed 5MB.");
+                        var image = updateDto.Images[i];
+                        var imageUploadResult = await HandleImageUploadAsync(image);
+
+                        if (imageUploadResult.IsSuccess)
+                        {
+                            var productImage = new ProductImage
+                            {
+                                Id = Guid.NewGuid(),
+                                ProductId = existingEntity.Id,
+                                ImageUrl = imageUploadResult.Data,
+                                AltText = $"{existingEntity.Name} - Image {existingImages.Count + newImages.Count + 1}",
+                                SortOrder = existingImages.Count + newImages.Count,
+                                IsPrimary = !existingImages.Any() && newImages.Count == 0, // Primary if no existing images
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow,
+                                IsActive = true
+                            };
+
+                            newImages.Add(productImage);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to upload image {Index} for product {ProductId}: {Error}",
+                                i + 1, updateDto.Id, imageUploadResult.ErrorMessage);
+                        }
+                    }
+
+                    if (newImages.Any())
+                    {
+                        await _productImageRepository.AddRangeAsync(newImages);
                     }
                 }
 
-                // Use the async version of the mapping method
+                // Determine the main ImageUrl for the product
+                var allRemainingImages = existingImages.Concat(newImages).OrderBy(img => img.SortOrder).ToList();
+
+                if (allRemainingImages.Any())
+                {
+                    // Use the first image (by sort order) as the main image
+                    existingEntity.ImageUrl = allRemainingImages.First().ImageUrl;
+
+                    // Ensure at least one image is marked as primary
+                    if (!allRemainingImages.Any(img => img.IsPrimary))
+                    {
+                        allRemainingImages.First().IsPrimary = true;
+                        if (newImages.Contains(allRemainingImages.First()))
+                        {
+                            // Will be saved with the new images
+                        }
+                        else
+                        {
+                            // Update existing image
+                            await _productImageRepository.UpdateAsync(allRemainingImages.First());
+                        }
+                    }
+                }
+                else
+                {
+                    // No images remaining - set to null or default
+                    existingEntity.ImageUrl = null;
+                }
+
+                // Map other product fields
                 await MapUpdateDtoToProductAsync(updateDto, existingEntity);
+
                 await BeforeUpdateAsync(existingEntity);
 
                 var updatedEntityEntry = await _productRepository.UpdateAsync(existingEntity);
                 await _productRepository.SaveChangesAsync();
 
+                // Save new images after product is saved
+                if (newImages.Any())
+                {
+                    await _productImageRepository.SaveChangesAsync();
+                }
+
                 var updatedEntity = updatedEntityEntry.Entity;
+
                 await AfterUpdateAsync(updatedEntity);
 
                 return OperationResult<ProductDto>.Success(MapToProductDto(updatedEntity));
@@ -549,7 +655,6 @@ namespace Adidas.Application.Services.Main
                 return OperationResult<ProductDto>.Fail("Error updating product: " + ex.Message);
             }
         }
-
         // Updated UpdateRangeAsync method to handle images
         public virtual async Task<OperationResult<IEnumerable<ProductDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductUpdateDto>> updates)
         {
@@ -1094,12 +1199,55 @@ namespace Adidas.Application.Services.Main
 
             if (createDto.Price <= 0)
                 throw new ArgumentException("Product price must be greater than 0");
+            if (createDto.Images != null)
+            {
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                for (int i = 0; i < createDto.Images.Count; i++)
+                {
+                    var image = createDto.Images[i];
+
+                    if (image.Length > maxFileSize)
+                        throw new ArgumentException($"Image {i + 1} exceeds maximum file size of 5MB");
+
+                    var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                        throw new ArgumentException($"Image {i + 1} has invalid file type. Only JPG, PNG, GIF, and WEBP files are allowed");
+
+                    if (!image.ContentType.StartsWith("image/"))
+                        throw new ArgumentException($"Image {i + 1} is not a valid image file");
+                }
+            }
 
             return Task.CompletedTask;
         }
 
-        public virtual Task ValidateUpdateAsync(Guid id, ProductUpdateDto updateDto) => Task.CompletedTask;
+        public virtual Task ValidateUpdateAsync(Guid id, ProductUpdateDto updateDto)
+        {
+            if (updateDto.Images != null)
+            {
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
+                for (int i = 0; i < updateDto.Images.Count; i++)
+                {
+                    var image = updateDto.Images[i];
+
+                    if (image.Length > maxFileSize)
+                        throw new ArgumentException($"Image {i + 1} exceeds maximum file size of 5MB");
+
+                    var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                        throw new ArgumentException($"Image {i + 1} has invalid file type. Only JPG, PNG, GIF, and WEBP files are allowed");
+
+                    if (!image.ContentType.StartsWith("image/"))
+                        throw new ArgumentException($"Image {i + 1} is not a valid image file");
+                }
+            }
+
+            return Task.CompletedTask;
+        }
         public virtual async Task BeforeCreateAsync(Product entity)
         {
             if (string.IsNullOrEmpty(entity.Sku))

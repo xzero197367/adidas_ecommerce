@@ -6,6 +6,7 @@ using Adidas.DTOs.Common_DTOs;
 using Adidas.DTOs.Main.Product_DTOs;
 using Adidas.DTOs.Main.ProductDTOs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -104,21 +105,30 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductCreateDto model)
         {
+            // ✅ Check images required
+            if (model.Images == null || !model.Images.Any())
+            {
+                ModelState.AddModelError("Images", "You should add at least one image");
+            }
+    
+            // ✅ Sale price validation
             if (model.SalePrice >= model.Price)
             {
-                ModelState.AddModelError("SalePrice", "SalePrice must be Less than the price");
+                ModelState.AddModelError(nameof(model.SalePrice), "Sale price must be less than the price");
             }
 
+            // ✅ Return to view if invalid
             if (!ModelState.IsValid)
             {
                 await PopulateDropdownsAsync();
                 return View(model);
             }
 
+            // ✅ Call service
             var result = await _productService.CreateAsync(model);
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage); // Show specific error (e.g., slug exists)
+                ModelState.AddModelError(string.Empty, result.ErrorMessage);
                 TempData["Error"] = result.ErrorMessage;
 
                 await PopulateDropdownsAsync();
@@ -148,6 +158,7 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 GenderTarget = product.GenderTarget,
                 Description = product.Description,
                 InStock = product.InStock,
+                ExistingImages = product.Images.Where(p=>p.VariantId==null).ToList(),
                 CurrentImagePath = product.ImageUrl // Use ImageUrl from your ProductDto
             };
             return View(updateDto);

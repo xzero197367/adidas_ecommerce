@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.CommonDTOs;
+using Adidas.DTOs.Main.ProductImageDTOs;
 
 namespace Adidas.DTOs.Main.Product_Variant_DTOs
 {
@@ -23,8 +24,12 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
         public string? ColorHex { get; set; }
         public int SortOrder { get; set; }
         public bool? IsActive { get; set; }
+         [Display(Name = "Product Images")]
+        public List<IFormFile>? Images { get; set; } = new List<IFormFile>();
+        public List<ProductImageDto>? ExistingImages { get; set; } = new List<ProductImageDto>();
+        public List<Guid>? DeleteImages { get; set; } = new List<Guid>();
 
-        public IFormFile? ImageFile { get; set; }  
+
 
         public string? ImageUrl { get; set; }
     }

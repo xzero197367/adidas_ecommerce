@@ -33,53 +33,6 @@
         overflow: hidden;
     }
 
-    .wizard-steps {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 1.5rem;
-    }
-
-    .step-indicators {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-bottom: 0;
-    }
-
-    .step {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        background: white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-    }
-
-        .step.active {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            transform: scale(1.05);
-        }
-
-    .step-number {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #e9ecef;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.8rem;
-    }
-
-    .step.active .step-number {
-        background: rgba(255,255,255,0.3);
-        color: white;
-    }
-
     .form-section {
         background: #f8f9fa;
         border-radius: 12px;
@@ -158,6 +111,19 @@
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         transition: width 0.3s ease;
     }
+
+    .image-preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+        .image-preview-container img {
+            max-width: 150px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
 </style>
 
 <div class="progress-bar-container">
@@ -178,28 +144,6 @@
     <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
             <div class="card wizard-card">
-                <!-- Wizard Steps -->
-                @* <div class="wizard-steps"> *@
-                @*     <div class="step-indicators"> *@
-                @*         <div class="step active" data-step="1"> *@
-                @*             <div class="step-number">1</div> *@
-                @*             <span>Product Selection</span> *@
-                @*         </div> *@
-                @*         <div class="step" data-step="2"> *@
-                @*             <div class="step-number">2</div> *@
-                @*             <span>Variant Details</span> *@
-                @*         </div> *@
-                @*         <div class="step" data-step="3"> *@
-                @*             <div class="step-number">3</div> *@
-                @*             <span>Inventory</span> *@
-                @*         </div> *@
-                @*         <div class="step" data-step="4"> *@
-                @*             <div class="step-number">4</div> *@
-                @*             <span>Image Upload</span> *@
-                @*         </div> *@
-                @*     </div> *@
-                @* </div> *@
-
                 <div class="card-body p-4">
                     <form asp-action="Create" method="post" enctype="multipart/form-data" id="variantForm">
                         <!-- Product Selection Section -->
@@ -216,7 +160,7 @@
                                     <i class="fas fa-box me-1"></i>
                                     Choose Product <span class="text-danger">*</span>
                                 </label>
-                                <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-select form-control-enhanced" id="productSelect">
+                                <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-select form-control-enhanced">
                                     <option value="">-- Select a Product --</option>
                                 </select>
                                 <span asp-validation-for="ProductId" class="text-danger"></span>
@@ -277,7 +221,7 @@
                                             <i class="fas fa-boxes me-1"></i>
                                             Stock Quantity <span class="text-danger">*</span>
                                         </label>
-                                        <input asp-for="StockQuantity" type="number" min="0" class="form-control form-control-enhanced" id="stockInput" />
+                                        <input asp-for="StockQuantity" type="number" min="0" class="form-control form-control-enhanced" />
                                         <span asp-validation-for="StockQuantity" class="text-danger"></span>
                                     </div>
                                 </div>
@@ -292,16 +236,6 @@
                                         <span asp-validation-for="PriceAdjustment" class="text-danger"></span>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3" style="display:none">
-                                        <label asp-for="SortOrder" class="form-label fw-bold">
-                                            <i class="fas fa-sort me-1"></i>
-                                            Sort Order
-                                        </label>
-                                        <input asp-for="SortOrder" type="number" class="form-control form-control-enhanced" value="1" />
-                                        <span asp-validation-for="SortOrder" class="text-danger"></span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
@@ -311,29 +245,27 @@
                                 <div class="section-icon">
                                     <i class="fas fa-camera"></i>
                                 </div>
-                                Product Image
+                                Product Images
                             </h4>
 
                             <div class="mb-3">
-                                <label asp-for="ImageFile" class="form-label fw-bold">
+                                <label asp-for="Images" class="form-label fw-bold">
                                     <i class="fas fa-image me-1"></i>
-                                    Upload Variant Image
+                                    Upload Variant Images
                                 </label>
-                                <input asp-for="ImageFile" type="file" class="form-control form-control-enhanced" accept="image/*" id="imageInput" />
-                                <small class="form-text text-muted">Supports: JPG, PNG, GIF • Max size: 5MB</small>
-                                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                                <input asp-for="Images" type="file" multiple class="form-control form-control-enhanced" accept="image/*" id="imageInput" />
+                                <small class="form-text text-muted">Supports: JPG, PNG, GIF • Max size: 5MB each</small>
+                                <span asp-validation-for="Images" class="text-danger"></span>
 
-                                <!-- Image preview -->
-                                <div class="mt-3">
-                                    <img id="imagePreview" src="#" alt="Preview" style="max-width: 200px; display: none; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2);" />
-                                </div>
+                                <!-- Multiple image previews -->
+                                <div class="image-preview-container" id="imagePreviewContainer"></div>
                             </div>
                         </div>
                     </form>
                 </div>
 
                 <div class="card-footer bg-light text-center py-3">
-                    <button type="submit" form="variantForm" class="btn-create me-2" id="createBtn">
+                    <button type="submit" form="variantForm" class="btn-create me-2">
                         <i class="fas fa-plus me-2"></i> Create Product Variant
                     </button>
                     <a asp-action="Index" class="btn btn-outline-secondary">
@@ -343,16 +275,14 @@
             </div>
         </div>
     </div>
-
 </div>
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('variantForm');
             const progressBar = document.getElementById('progressBar');
-            const steps = document.querySelectorAll('.step');
-            const requiredFields = ['ProductId', 'ColorHex', 'Size', 'StockQuantity', 'ImageFile'];
+            const requiredFields = ['ProductId', 'ColorHex', 'Size', 'StockQuantity', 'Images'];
 
             function updateProgress() {
                 let filledFields = 0;
@@ -369,11 +299,6 @@
 
                 const percentage = (filledFields / requiredFields.length) * 100;
                 progressBar.style.width = percentage + '%';
-
-                const activeSteps = Math.ceil(filledFields / requiredFields.length * 4);
-                steps.forEach((step, index) => {
-                    step.classList.toggle('active', index < activeSteps);
-                });
             }
 
             requiredFields.forEach(fieldName => {
@@ -384,8 +309,7 @@
                 }
             });
 
-            // Form submit: only validate, no spinner
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', function (e) {
                 if (!form.checkValidity()) {
                     e.preventDefault();
                     return;
@@ -395,29 +319,32 @@
 
             updateProgress();
 
-            // Image preview
+            // Multiple image preview
             const imageInput = document.getElementById('imageInput');
-            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 
             imageInput.addEventListener('change', function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.style.display = "block";
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    imagePreview.style.display = "none";
+                imagePreviewContainer.innerHTML = "";
+                const files = this.files;
+                if (files) {
+                    [...files].forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const img = document.createElement("img");
+                            img.src = e.target.result;
+                            imagePreviewContainer.appendChild(img);
+                        };
+                        reader.readAsDataURL(file);
+                    });
                 }
             });
-        });
-             const colorPicker = document.getElementById("ColorHexPicker");
-        const colorInput = document.getElementById("ColorInput");
 
-        colorPicker.addEventListener("input", function () {
-            colorInput.value = colorPicker.value;
+            // Sync color hex -> color text
+            const colorPicker = document.getElementById("ColorHexPicker");
+            const colorInput = document.getElementById("ColorInput");
+            colorPicker.addEventListener("input", function () {
+                colorInput.value = colorPicker.value;
+            });
         });
     </script>
 
