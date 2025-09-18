@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.CommonDTOs;
+using Adidas.DTOs.Main.ProductImageDTOs;
 using Microsoft.AspNetCore.Http;
 using Models.People;
 
@@ -20,7 +21,11 @@ public class ProductUpdateDto : BaseUpdateDto
     public string? MetaDescription { get; set; }
     public string? Keywords { get; set; }
     public bool? InStock { get; set; }
-    public IFormFile? ImageFile { get; set; }
+    [Display(Name = "Product Images")]
+    public List<IFormFile>? Images { get; set; } = new List<IFormFile>();
+    public List<ProductImageDto>? ExistingImages { get; set; } = new List<ProductImageDto>();
+    public List<Guid>? DeleteImages { get; set; } = new List<Guid>();
+
     public string? CurrentImagePath { get; set; } 
     public bool? IsActive { get; set; }
 }

@@ -57,7 +57,18 @@ namespace Adidas.Application.Services.Main
                 IsActive = variant.IsActive,
                 ImageUrl = variant.ImageUrl,
                 Product = null,
-                Images = new List<ProductImageDto>()
+                Images = variant.Images?.Select(img => new ProductImageDto
+                {
+                    Id = img.Id,
+                    ProductId = img.ProductId,
+                    VariantId = img.VariantId,
+                    ImageUrl = img.ImageUrl,
+                    AltText = img.AltText,
+                    SortOrder = img.SortOrder,
+                    IsPrimary = img.IsPrimary,
+                    IsActive = img.IsActive
+                }).OrderBy(img => img.SortOrder).ToList() ?? new List<ProductImageDto>(),
+
             };
         }
 
@@ -109,7 +120,7 @@ namespace Adidas.Application.Services.Main
 
             if (updateDto.IsActive.HasValue)
                 variant.IsActive = updateDto.IsActive.Value;
-
+            
             variant.UpdatedAt = DateTime.UtcNow;
         }
 
@@ -118,7 +129,7 @@ namespace Adidas.Application.Services.Main
 
         #region Generic CRUD Operations
 
-        public virtual async Task<OperationResult<ProductVariantDto>> GetByIdAsync(Guid id, params Expression<Func<ProductVariant, object>>[] includes)
+        public  async Task<OperationResult<ProductVariantDto>> GetByIdAsync(Guid id, params Expression<Func<ProductVariant, object>>[] includes)
         {
             try
             {
@@ -149,7 +160,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<IEnumerable<ProductVariantDto>>> GetAllAsync(Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>>? queryFunc = null)
+        public  async Task<OperationResult<IEnumerable<ProductVariantDto>>> GetAllAsync(Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>>? queryFunc = null)
         {
             try
             {
@@ -174,7 +185,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<IEnumerable<ProductVariantDto>>> FindAsync(Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>> queryFunc)
+        public  async Task<OperationResult<IEnumerable<ProductVariantDto>>> FindAsync(Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>> queryFunc)
         {
             try
             {
@@ -198,7 +209,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<PagedResultDto<ProductVariantDto>>> GetPagedAsync(int pageNumber, int pageSize, Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>>? queryFunc = null)
+        public  async Task<OperationResult<PagedResultDto<ProductVariantDto>>> GetPagedAsync(int pageNumber, int pageSize, Func<IQueryable<ProductVariant>, IQueryable<ProductVariant>>? queryFunc = null)
         {
             try
             {
@@ -235,7 +246,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<int>> CountAsync(Expression<Func<ProductVariant, bool>>? predicate = null)
+        public  async Task<OperationResult<int>> CountAsync(Expression<Func<ProductVariant, bool>>? predicate = null)
         {
             try
             {
@@ -265,7 +276,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<bool>> ExistsAsync(Expression<Func<ProductVariant, bool>> predicate)
+        public  async Task<OperationResult<bool>> ExistsAsync(Expression<Func<ProductVariant, bool>> predicate)
         {
             try
             {
@@ -290,14 +301,17 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<ProductVariantDto>> CreateAsync(ProductVariantCreateDto createDto)
+        public  async Task<OperationResult<ProductVariantDto>> CreateAsync(ProductVariantCreateDto createDto)
         {
             try
             {
                 if (createDto == null)
                     return OperationResult<ProductVariantDto>.Fail("Create data cannot be null");
 
+              
                 await ValidateCreateAsync(createDto);
+
+
 
                 var existingVariants = await _productVariantRepository.GetAll()
                     .Where(v => v.ProductId == createDto.ProductId &&
@@ -314,28 +328,57 @@ namespace Adidas.Application.Services.Main
                 if (string.IsNullOrWhiteSpace(entity.Sku))
                     entity.Sku = $"SKU-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
 
-                if (createDto.ImageFile != null && createDto.ImageFile.Length > 0)
+                var productImages = new List<ProductImage>();
+                if (createDto.Images != null && createDto.Images.Any())
                 {
-                    var imageUploadResult = await HandleImageUploadAsync(createDto.ImageFile);
-                    if (imageUploadResult.IsSuccess)
+                    for (int i = 0; i < createDto.Images.Count; i++)
                     {
-                        entity.ImageUrl = imageUploadResult.Data;
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Failed to upload image for product variant: {Error}", imageUploadResult.ErrorMessage);
-                        entity.ImageUrl = DefaultImageUrl;
+                        var image = createDto.Images[i];
+                        var imageUploadResult = await HandleImageUploadAsync(image);
+
+                        if (imageUploadResult.IsSuccess)
+                        {
+                            var productImage = new ProductImage
+                            {
+                                Id = Guid.NewGuid(),
+                                ProductId = createDto.ProductId,
+                                VariantId = entity.Id,
+                                ImageUrl = imageUploadResult.Data,
+                                AltText = $"Image {i + 1}",
+                                SortOrder = i,
+                                IsPrimary = i == 0,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow,
+                                IsActive = true
+                            };
+                            productImages.Add(productImage);
+
+
+                            if (i == 0)
+                            {
+                                entity.ImageUrl = imageUploadResult.Data;
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to upload image {Index} for product: {Error}", i + 1, imageUploadResult.ErrorMessage);
+                        }
                     }
                 }
-                else
-                {
-                    entity.ImageUrl = entity.ImageUrl ?? DefaultImageUrl; // leave null or use placeholder
-                }
+
 
                 await BeforeCreateAsync(entity);
 
                 var createdEntityEntry = await _productVariantRepository.AddAsync(entity);
                 await _productVariantRepository.SaveChangesAsync();
+                if (productImages.Any())
+                {
+                  
+
+                    // Add images to repository (you'll need to add this method to your repository)
+                    await _productImageRepository.AddRangeAsync(productImages);
+                    await _productImageRepository.SaveChangesAsync();
+                }
 
                 var createdEntity = createdEntityEntry.Entity;
                 await AfterCreateAsync(createdEntity);
@@ -349,7 +392,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<IEnumerable<ProductVariantDto>>> CreateRangeAsync(IEnumerable<ProductVariantCreateDto> createDtos)
+        public  async Task<OperationResult<IEnumerable<ProductVariantDto>>> CreateRangeAsync(IEnumerable<ProductVariantCreateDto> createDtos)
         {
             try
             {
@@ -396,7 +439,7 @@ namespace Adidas.Application.Services.Main
         }
 
 
-        public virtual async Task<OperationResult<ProductVariantDto>> UpdateAsync(ProductVariantUpdateDto updateDto)
+        public async Task<OperationResult<ProductVariantDto>> UpdateAsync(ProductVariantUpdateDto updateDto)
         {
             try
             {
@@ -423,44 +466,127 @@ namespace Adidas.Application.Services.Main
                 if (duplicates.Any())
                     return OperationResult<ProductVariantDto>.Fail("A product variant with the same Product, Size, and Color already exists.");
 
-                // Handle image upload first (following CreateAsync pattern)
-                string imageUrlToUse = existingEntity.ImageUrl; // Keep existing URL as default
+                // Get existing images for this variant
+                var existingImages = await _productImageRepository.GetAll()
+                    .Where(img => img.VariantId == updateDto.Id && !img.IsDeleted)
+                    .ToListAsync();
 
-                if (updateDto.ImageFile != null && updateDto.ImageFile.Length > 0)
+                
+                var remainingAfterDeletion = existingImages.Count - (updateDto.DeleteImages?.Count ?? 0);
+                var newImagesCount = updateDto.Images?.Count ?? 0;
+
+                if (remainingAfterDeletion + newImagesCount == 0)
                 {
-                    var imageUploadResult = await HandleImageUploadAsync(updateDto.ImageFile);
-                    if (imageUploadResult.IsSuccess)
+                    return OperationResult<ProductVariantDto>.Fail("Cannot delete all images. At least one image is required.");
+                }
+                // Handle selective image deletion
+                if (updateDto.DeleteImages != null && updateDto.DeleteImages.Any())
+                {
+                    var imagesToDelete = existingImages.Where(img => updateDto.DeleteImages.Contains(img.Id)).ToList();
+
+                    foreach (var imgToDelete in imagesToDelete)
                     {
-                        imageUrlToUse = imageUploadResult.Data;
-                        _logger.LogInformation("Successfully updated image for product variant {Id}", updateDto.Id);
-
-                        // Store old image URL for cleanup after successful update
-                        string oldImageUrl = existingEntity.ImageUrl;
-
-                        // Clean up old image immediately after successful upload (like in CreateAsync)
-                        if (!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl != DefaultImageUrl)
+                        // Delete from cloud storage
+                        if (!string.IsNullOrEmpty(imgToDelete.ImageUrl))
                         {
-                            await DeleteOldImageAsync(oldImageUrl);
+                            await DeleteOldImageAsync(imgToDelete.ImageUrl);
+                        }
+
+                        // Mark as deleted in database
+                        await _productImageRepository.HardDeleteAsync(imgToDelete.Id);
+                    }
+
+                    // Update the existing images list
+                    existingImages = existingImages.Where(img => !updateDto.DeleteImages.Contains(img.Id)).ToList();
+                }
+
+                // Handle new image uploads
+                var newImages = new List<ProductImage>();
+                var successfulNewUploads = new List<string>();
+
+                if (updateDto.Images != null && updateDto.Images.Any())
+                {
+                    for (int i = 0; i < updateDto.Images.Count; i++)
+                    {
+                        var image = updateDto.Images[i];
+                        var imageUploadResult = await HandleImageUploadAsync(image);
+
+                        if (imageUploadResult.IsSuccess)
+                        {
+                            successfulNewUploads.Add(imageUploadResult.Data);
+
+                            var productImage = new ProductImage
+                            {
+                                Id = Guid.NewGuid(),
+                                ProductId = updateDto.ProductId,
+                                VariantId = existingEntity.Id,
+                                ImageUrl = imageUploadResult.Data,
+                                AltText = $"Image {existingImages.Count + newImages.Count + 1}",
+                                SortOrder = existingImages.Count + newImages.Count,
+                                IsPrimary = !existingImages.Any() && newImages.Count == 0, // Primary if no existing images
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow,
+                                IsActive = true
+                            };
+
+                            newImages.Add(productImage);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to upload image {Index} for product variant {VariantId}: {Error}",
+                                i + 1, updateDto.Id, imageUploadResult.ErrorMessage);
                         }
                     }
-                    else
+
+                    if (newImages.Any())
                     {
-                        // Following CreateAsync pattern - log warning but continue with existing image
-                        _logger.LogWarning("Failed to upload image for product variant {Id}: {Error}", updateDto.Id, imageUploadResult.ErrorMessage);
-                        // Keep existing imageUrlToUse (don't change it)
+                        await _productImageRepository.AddRangeAsync(newImages);
                     }
                 }
 
-                // Map other properties (following CreateAsync pattern)
-                MapUpdateDtoToProductVariant(updateDto, existingEntity);
+                // Determine the main ImageUrl for the variant
+                var allRemainingImages = existingImages.Concat(newImages).OrderBy(img => img.SortOrder).ToList();
 
-                // Set the image URL (either new or existing)
-                existingEntity.ImageUrl = imageUrlToUse;
+                if (allRemainingImages.Any())
+                {
+                    // Use the first image (by sort order) as the main image
+                    existingEntity.ImageUrl = allRemainingImages.First().ImageUrl;
+
+                    // Ensure at least one image is marked as primary
+                    if (!allRemainingImages.Any(img => img.IsPrimary))
+                    {
+                        allRemainingImages.First().IsPrimary = true;
+                        if (newImages.Contains(allRemainingImages.First()))
+                        {
+                            // Will be saved with the new images
+                        }
+                        else
+                        {
+                            // Update existing image
+                            await _productImageRepository.UpdateAsync(allRemainingImages.First());
+                        }
+                    }
+                }
+                else
+                {
+                    // No images remaining - this might be an issue depending on your business rules
+                    _logger.LogWarning("Product variant {VariantId} will have no images after update", updateDto.Id);
+                    existingEntity.ImageUrl = null; // or set to a default image
+                }
+
+                // Map other properties
+                MapUpdateDtoToProductVariant(updateDto, existingEntity);
 
                 await BeforeUpdateAsync(existingEntity);
 
                 var updatedEntityEntry = await _productVariantRepository.UpdateAsync(existingEntity);
                 await _productVariantRepository.SaveChangesAsync();
+
+                // Save new images after variant is saved
+                if (newImages.Any())
+                {
+                    await _productImageRepository.SaveChangesAsync();
+                }
 
                 var updatedEntity = updatedEntityEntry.Entity;
                 await AfterUpdateAsync(updatedEntity);
@@ -473,7 +599,7 @@ namespace Adidas.Application.Services.Main
                 return OperationResult<ProductVariantDto>.Fail($"Error updating product variant: {ex.Message}");
             }
         }
-        public virtual async Task<OperationResult<IEnumerable<ProductVariantDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductVariantUpdateDto>> updates)
+        public  async Task<OperationResult<IEnumerable<ProductVariantDto>>> UpdateRangeAsync(IEnumerable<KeyValuePair<Guid, ProductVariantUpdateDto>> updates)
         {
             try
             {
@@ -522,7 +648,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<ProductVariant>> DeleteAsync(Guid id)
+        public  async Task<OperationResult<ProductVariant>> DeleteAsync(Guid id)
         {
             try
             {
@@ -561,7 +687,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<ProductVariant>> DeleteAsync(ProductVariant entity)
+        public  async Task<OperationResult<ProductVariant>> DeleteAsync(ProductVariant entity)
         {
             try
             {
@@ -585,7 +711,7 @@ namespace Adidas.Application.Services.Main
             }
         }
 
-        public virtual async Task<OperationResult<IEnumerable<ProductVariant>>> DeleteRangeAsync(IEnumerable<Guid> ids)
+        public  async Task<OperationResult<IEnumerable<ProductVariant>>> DeleteRangeAsync(IEnumerable<Guid> ids)
         {
             try
             {
@@ -805,9 +931,9 @@ namespace Adidas.Application.Services.Main
 
         #endregion
 
-        #region Virtual Methods for Customization
+        #region  Methods for Customization
 
-        public virtual Task ValidateCreateAsync(ProductVariantCreateDto createDto)
+        public  Task ValidateCreateAsync(ProductVariantCreateDto createDto)
         {
             if (createDto == null)
                 throw new ArgumentNullException(nameof(createDto));
@@ -829,11 +955,33 @@ namespace Adidas.Application.Services.Main
 
             if (createDto.Size.Length > 20)
                 throw new ArgumentException("Size cannot exceed 20 characters", nameof(createDto.Size));
+            if (createDto.Images != null)
+            {
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                for (int i = 0; i < createDto.Images.Count; i++)
+                {
+                    var image = createDto.Images[i];
+
+                    if (image.Length > maxFileSize)
+                        throw new ArgumentException($"Image {i + 1} exceeds maximum file size of 5MB");
+
+                    var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                        throw new ArgumentException($"Image {i + 1} has invalid file type. Only JPG, PNG, GIF, and WEBP files are allowed");
+
+                    if (!image.ContentType.StartsWith("image/"))
+                        throw new ArgumentException($"Image {i + 1} is not a valid image file");
+                }
+            }
+
 
             return Task.CompletedTask;
         }
 
-        public virtual Task ValidateUpdateAsync(Guid id, ProductVariantUpdateDto updateDto)
+
+        public Task ValidateUpdateAsync(Guid id, ProductVariantUpdateDto updateDto)
         {
             if (updateDto == null)
                 throw new ArgumentNullException(nameof(updateDto));
@@ -858,16 +1006,37 @@ namespace Adidas.Application.Services.Main
 
             if (updateDto.Size.Length > 20)
                 throw new ArgumentException("Size cannot exceed 20 characters", nameof(updateDto.Size));
+            if (updateDto.Images != null)
+            {
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                for (int i = 0; i < updateDto.Images.Count; i++)
+                {
+                    var image = updateDto.Images[i];
+
+                    if (image.Length > maxFileSize)
+                        throw new ArgumentException($"Image {i + 1} exceeds maximum file size of 5MB");
+
+                    var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                        throw new ArgumentException($"Image {i + 1} has invalid file type. Only JPG, PNG, GIF, and WEBP files are allowed");
+
+                    if (!image.ContentType.StartsWith("image/"))
+                        throw new ArgumentException($"Image {i + 1} is not a valid image file");
+                }
+            }
+
 
             return Task.CompletedTask;
         }
 
-        public virtual Task BeforeCreateAsync(ProductVariant entity) => Task.CompletedTask;
-        public virtual Task AfterCreateAsync(ProductVariant entity) => Task.CompletedTask;
-        public virtual Task BeforeUpdateAsync(ProductVariant entity) => Task.CompletedTask;
-        public virtual Task AfterUpdateAsync(ProductVariant entity) => Task.CompletedTask;
-        public virtual Task BeforeDeleteAsync(ProductVariant entity) => Task.CompletedTask;
-        public virtual Task AfterDeleteAsync(ProductVariant entity) => Task.CompletedTask;
+        public  Task BeforeCreateAsync(ProductVariant entity) => Task.CompletedTask;
+        public  Task AfterCreateAsync(ProductVariant entity) => Task.CompletedTask;
+        public  Task BeforeUpdateAsync(ProductVariant entity) => Task.CompletedTask;
+        public Task AfterUpdateAsync(ProductVariant entity) => Task.CompletedTask;
+        public Task BeforeDeleteAsync(ProductVariant entity) => Task.CompletedTask;
+        public  Task AfterDeleteAsync(ProductVariant entity) => Task.CompletedTask;
 
         #endregion
     }

@@ -114,7 +114,7 @@
         font-family: inherit;
     }
 
-    /* Image upload styles */
+    /* Multiple image upload styles */
     .image-upload-section {
         background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
         padding: 1.5rem;
@@ -134,6 +134,7 @@
         position: relative;
         display: inline-block;
         width: 100%;
+        margin-bottom: 1rem;
     }
 
     .file-input {
@@ -164,58 +165,81 @@
             border-color: #2e7d32;
         }
 
-        .file-input-label.has-file {
-            border-style: solid;
-            background: #e8f5e8;
-        }
+    .image-counter {
+        font-size: 0.9rem;
+        color: #2e7d32;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
 
-    .image-preview {
+    .images-preview-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
         margin-top: 1rem;
-        text-align: center;
     }
 
-        .image-preview img {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 8px;
-            border: 2px solid #4caf50;
-        }
-
-        .image-preview .file-name {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: #2e7d32;
-            font-weight: 500;
-        }
-
-    .checkbox-group {
-        background: #f8f9fa;
-        padding: 1rem;
+    .image-preview-item {
+        position: relative;
         border-radius: 8px;
-        border: 2px solid #e9ecef;
-        margin-bottom: 1.5rem;
+        overflow: hidden;
+        border: 2px solid #4caf50;
+        background: #fff;
     }
 
-    .form-check {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin: 0;
+        .image-preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .image-preview-item .image-info {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            color: #2e7d32;
+            background: #f8fff8;
+        }
+
+        .image-preview-item .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: background-color 0.2s;
+        }
+
+            .image-preview-item .remove-image:hover {
+                background: #c82333;
+            }
+
+    .upload-guidelines {
+        background: #e8f4f8;
+        border: 1px solid #17a2b8;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: #0c5460;
     }
 
-    .form-check-input {
-        width: 20px;
-        height: 20px;
-        margin: 0;
-        cursor: pointer;
-    }
+        .upload-guidelines ul {
+            margin: 0.5rem 0 0 0;
+            padding-left: 1.5rem;
+        }
 
-    .form-check-label {
-        margin: 0;
-        cursor: pointer;
-        font-weight: 600;
-        color: #495057;
-    }
+        .upload-guidelines li {
+            margin-bottom: 0.25rem;
+        }
 
     .price-section {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -337,64 +361,6 @@
             font-weight: 600;
         }
 
-    /* Progress indicator */
-    .form-progress {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-        position: relative;
-    }
-
-    .progress-step {
-        flex: 1;
-        text-align: center;
-        position: relative;
-        padding: 1rem 0.5rem;
-    }
-
-        .progress-step::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 30px;
-            height: 30px;
-            background: #e9ecef;
-            border-radius: 50%;
-            transform: translateX(-50%);
-            border: 2px solid #dee2e6;
-        }
-
-        .progress-step.active::before {
-            background: #007bff;
-            border-color: #007bff;
-        }
-
-        .progress-step span {
-            display: block;
-            margin-top: 40px;
-            font-size: 0.9rem;
-            color: #6c757d;
-            font-weight: 500;
-        }
-
-        .progress-step.active span {
-            color: #007bff;
-            font-weight: 600;
-        }
-
-    /* Enhanced form validation styles */
-    .form-group.has-error .form-control {
-        border-color: #dc3545;
-        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-    }
-
-    .form-group.has-success .form-control {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
-    }
-
-    /* Character counter styles */
     .character-counter {
         font-size: 0.8rem;
         color: #6c757d;
@@ -410,7 +376,6 @@
             color: #dc3545;
         }
 
-    /* Loading state for submit button */
     .btn-loading {
         position: relative;
         color: transparent;
@@ -432,75 +397,86 @@
         }
 
     spin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
+        0%
+
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
     }
 
     /* Responsive design */
-   (max-width: 768px) {
-        .product-form-container {
-            padding: 1rem;
-        }
+    (max-width: 768px) {
+        .product-form-container
 
-        .form-card {
-            padding: 1.5rem;
-        }
-
-        .form-row {
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .button-group {
-            flex-direction: column;
-        }
-
-        .btn {
-            width: 100%;
-        }
-
-        .progress-step {
-            padding: 1rem 0.25rem;
-        }
-
-            .progress-step span {
-                font-size: 0.8rem;
-            }
-
-        .page-header h2 {
-            font-size: 1.6rem;
-        }
+    {
+        padding: 1rem;
     }
 
-  (max-width: 480px) {
-        .product-form-container {
-            padding: 0.5rem;
+    .form-card {
+        padding: 1.5rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .page-header h2 {
+        font-size: 1.6rem;
+    }
+
+    .images-preview-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+
+    }
+
+    (max-width: 480px) {
+        .product-form-container
+
+    {
+        padding: 0.5rem;
+    }
+
+    .form-card {
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .form-step, .price-section, .description-section, .image-upload-section {
+        padding: 1rem;
+    }
+
+    .page-header {
+        padding: 1rem;
+    }
+
+        .page-header h2 {
+            font-size: 1.4rem;
         }
 
-        .form-card {
-            padding: 1rem;
-            border-radius: 8px;
+        .page-header p {
+            font-size: 1rem;
         }
 
-        .form-step, .price-section, .description-section, .image-upload-section {
-            padding: 1rem;
-        }
+    .images-preview-container {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
 
-        .page-header {
-            padding: 1rem;
-        }
-
-            .page-header h2 {
-                font-size: 1.4rem;
-            }
-
-            .page-header p {
-                font-size: 1rem;
-            }
     }
 </style>
 
@@ -548,21 +524,35 @@
             </div>
         </div>
 
-        <!-- Step 2: Image Upload -->
+        <!-- Step 2: Multiple Images Upload -->
         <div class="image-upload-section" id="step2">
-            <h4>🖼️ Step 2: Product Image</h4>
-            
+            <h4>🖼️ Step 2: Product Images</h4>
+
             <div class="form-group">
-                <label asp-for="Image">Upload Product Image</label>
+                <label asp-for="Images">Upload Product Images</label>
+                <div class="image-counter" id="imageCounter">0 / 10 images selected</div>
+
                 <div class="file-input-wrapper">
-                    <input asp-for="Image" type="file" class="file-input" id="imageInput" accept="image/*" />
-                    <label for="imageInput" class="file-input-label" id="fileLabel">
+                    <input asp-for="Images" type="file" class="file-input" id="imagesInput"
+                           accept="image/*" multiple />
+                    <label for="imagesInput" class="file-input-label" id="fileLabel">
                         <i class="fas fa-cloud-upload-alt"></i>
-                        <span>Choose image or drag & drop here</span>
+                        <span>Choose multiple images or drag & drop here</span>
                     </label>
                 </div>
-                <div class="image-preview" id="imagePreview" style="display: none;"></div>
-                <span asp-validation-for="Image" class="text-danger"></span>
+
+                <div class="upload-guidelines">
+                    <strong>📸 Image Guidelines:</strong>
+                    <ul>
+                        <li>Maximum 10 images per product</li>
+                        <li>Maximum file size: 5MB per image</li>
+                        <li>Accepted formats: JPG, JPEG, PNG, GIF, WEBP</li>
+                        <li>First image will be used as the main product image</li>
+                    </ul>
+                </div>
+
+                <div class="images-preview-container" id="imagesPreview"></div>
+                <span asp-validation-for="Images" class="text-danger"></span>
             </div>
         </div>
 
@@ -621,76 +611,180 @@
     }
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('createProductForm');
             const submitBtn = document.getElementById('submitBtn');
             const salePriceInput = document.getElementById('salePriceInput');
             const salePriceInfo = document.getElementById('salePriceInfo');
             const priceInput = document.querySelector('input[asp-for="Price"]');
-            const imageInput = document.getElementById('imageInput');
+            const imagesInput = document.getElementById('imagesInput');
             const fileLabel = document.getElementById('fileLabel');
-            const imagePreview = document.getElementById('imagePreview');
+            const imagesPreview = document.getElementById('imagesPreview');
+            const imageCounter = document.getElementById('imageCounter');
 
-            // Image upload functionality
-            function handleImageUpload() {
-                const file = imageInput.files[0];
-                
-                if (file) {
-                    // Validate file size (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('File size must be less than 5MB');
-                        imageInput.value = '';
-                        return;
-                    }
+            let selectedFiles = [];
+            const maxFiles = 10;
+            const maxFileSize = 5 * 1024 * 1024; // 5MB
 
-                    // Validate file type
-                    if (!file.type.startsWith('image/')) {
-                        alert('Please select a valid image file');
-                        imageInput.value = '';
-                        return;
-                    }
+            // Multiple images upload functionality
+            function updateImageCounter() {
+                const count = selectedFiles.length;
+                imageCounter.textContent = `${count} / ${maxFiles} images selected`;
 
-                    // Update label
-                    fileLabel.classList.add('has-file');
-                    fileLabel.innerHTML = '<i class="fas fa-check-circle"></i><span>Image selected: ' + file.name + '</span>';
-
-                    // Show preview
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imagePreview.innerHTML = '<img src="' + e.target.result + '" alt="Preview"><div class="file-name">' + file.name + '</div>';
-                        imagePreview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
+                if (count > 0) {
+                    fileLabel.innerHTML = `<i class="fas fa-images"></i><span>${count} image(s) selected - Click to add more</span>`;
                 } else {
-                    // Reset to default state
-                    fileLabel.classList.remove('has-file');
-                    fileLabel.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Choose image or drag & drop here</span>';
-                    imagePreview.style.display = 'none';
+                    fileLabel.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Choose multiple images or drag & drop here</span>';
                 }
             }
 
-            // Image input event listeners
-            imageInput.addEventListener('change', handleImageUpload);
+            function validateImageFile(file) {
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+
+                if (!allowedTypes.includes(file.type)) {
+                    return 'Invalid file type. Please select JPG, PNG, GIF, or WEBP files only.';
+                }
+
+                if (file.size > maxFileSize) {
+                    return 'File size must be less than 5MB.';
+                }
+
+                return null;
+            }
+
+            function handleFileSelection(newFiles) {
+                const filesToAdd = Array.from(newFiles);
+
+                // Check if adding these files would exceed the limit
+                if (selectedFiles.length + filesToAdd.length > maxFiles) {
+                    alert(`You can only upload maximum ${maxFiles} images. Currently you have ${selectedFiles.length} image(s).`);
+                    return;
+                }
+
+                let validFiles = [];
+
+                filesToAdd.forEach(file => {
+                    const error = validateImageFile(file);
+                    if (error) {
+                        alert(`${file.name}: ${error}`);
+                        return;
+                    }
+
+                    // Check for duplicates
+                    if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                        alert(`${file.name} is already selected.`);
+                        return;
+                    }
+
+                    validFiles.push(file);
+                });
+
+                // Add valid files to selected files
+                validFiles.forEach(file => {
+                    selectedFiles.push(file);
+                    addImagePreview(file, selectedFiles.length - 1);
+                });
+
+                updateImageCounter();
+                updateFileInput();
+            }
+
+            function addImagePreview(file, index) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'image-preview-item';
+                    previewItem.dataset.index = index;
+
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview ${index + 1}">
+                        <div class="image-info">
+                            <div>${file.name}</div>
+                            <div>${(file.size / 1024 / 1024).toFixed(1)}MB</div>
+                        </div>
+                        <button type="button" class="remove-image" onclick="removeImage(${index})">×</button>
+                    `;
+
+                    imagesPreview.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function updateFileInput() {
+                // Create a new DataTransfer object to properly set files
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => {
+                    dt.items.add(file);
+                });
+
+                // Set the files to the input
+                imagesInput.files = dt.files;
+
+                // Debug log
+                console.log('Updated file input with', selectedFiles.length, 'files');
+                console.log('Input files count:', imagesInput.files.length);
+            }
+
+            // Global function to remove images (called from HTML)
+            window.removeImage = function(index) {
+                selectedFiles.splice(index, 1);
+
+                // Remove the preview item
+                const previewItem = document.querySelector(`[data-index="${index}"]`);
+                if (previewItem) {
+                    previewItem.remove();
+                }
+
+                // Update indices for remaining items
+                document.querySelectorAll('.image-preview-item').forEach((item, newIndex) => {
+                    item.dataset.index = newIndex;
+                    const removeBtn = item.querySelector('.remove-image');
+                    removeBtn.setAttribute('onclick', `removeImage(${newIndex})`);
+                });
+
+                updateImageCounter();
+                updateFileInput();
+            };
+
+            // Image input event listener - simplified approach
+            imagesInput.addEventListener('change', function(e) {
+                console.log('File input changed, files count:', e.target.files.length);
+
+                if (e.target.files.length > 0) {
+                    // Clear previous selections and start fresh
+                    selectedFiles = [];
+                    imagesPreview.innerHTML = '';
+
+                    // Handle the new selection
+                    handleFileSelection(e.target.files);
+                }
+            });
 
             // Drag and drop functionality
             fileLabel.addEventListener('dragover', function(e) {
                 e.preventDefault();
                 this.style.background = '#e3f2fd';
+                this.style.borderColor = '#2196f3';
             });
 
             fileLabel.addEventListener('dragleave', function(e) {
                 e.preventDefault();
                 this.style.background = '#fff';
+                this.style.borderColor = '#4caf50';
             });
 
             fileLabel.addEventListener('drop', function(e) {
                 e.preventDefault();
                 this.style.background = '#fff';
-                
+                this.style.borderColor = '#4caf50';
+
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
-                    imageInput.files = files;
-                    handleImageUpload();
+                    // Clear the file input and handle drop
+                    imagesInput.value = '';
+                    selectedFiles = [];
+                    imagesPreview.innerHTML = '';
+                    handleFileSelection(files);
                 }
             });
 
@@ -735,43 +829,6 @@
             });
             priceInput.addEventListener('input', validateSalePrice);
 
-            // Progress tracking
-            function updateProgress() {
-                const steps = document.querySelectorAll('.progress-step');
-                const requiredFields = {
-                    step1: ['input[asp-for="Name"]', 'select[asp-for="CategoryId"]', 'select[asp-for="GenderTarget"]'],
-                    step2: [], // Image is optional
-                    step3: ['input[asp-for="Price"]'],
-                    step4: [], // Description is optional
-                };
-
-                let completedSteps = 0;
-
-                Object.keys(requiredFields).forEach((stepId, index) => {
-                    const stepFields = requiredFields[stepId];
-                    const allFilled = stepFields.every(selector => {
-                        const field = document.querySelector(selector);
-                        return field && field.value.trim() !== '';
-                    });
-
-                    if (allFilled || stepFields.length === 0) {
-                        if (steps[index]) {
-                            steps[index].classList.add('active');
-                            completedSteps++;
-                        }
-                    } else {
-                        if (steps[index]) {
-                            steps[index].classList.remove('active');
-                        }
-                    }
-                });
-
-                // Always show at least step 1 as active
-                if (completedSteps === 0 && steps[0]) {
-                    steps[0].classList.add('active');
-                }
-            }
-
             // Form field enhancements
             const inputs = document.querySelectorAll('.form-control');
             inputs.forEach(input => {
@@ -781,10 +838,7 @@
 
                 input.addEventListener('blur', function () {
                     this.parentElement.classList.remove('focused');
-                    updateProgress();
                 });
-
-                input.addEventListener('input', updateProgress);
             });
 
             // Character counters
@@ -815,9 +869,12 @@
 
             // Form validation with enhanced feedback
             form.addEventListener('submit', function (e) {
+                console.log('Form submitting...');
+                console.log('Selected files count:', selectedFiles.length);
+                console.log('Input files count:', imagesInput.files.length);
+
                 const requiredFields = document.querySelectorAll('.required-field input, .required-field select');
                 let hasErrors = false;
-                let errorMessages = [];
 
                 // Clear previous validation states
                 document.querySelectorAll('.form-group').forEach(group => {
@@ -831,11 +888,6 @@
                     if (!field.value.trim()) {
                         formGroup.classList.add('has-error');
                         hasErrors = true;
-
-                        const label = formGroup.querySelector('label');
-                        if (label) {
-                            errorMessages.push(label.textContent.replace(' *', '').replace(/[📋📂🏷️👥💰🖼️]/g, '').trim());
-                        }
                     } else {
                         formGroup.classList.add('has-success');
                     }
@@ -847,14 +899,38 @@
                     hasErrors = true;
                 }
 
+                // Validate images - check both selectedFiles and input files
+                const hasImages = imagesInput.files.length > 0 || selectedFiles.length > 0;
+
+                if (!hasImages) {
+                    const imageSection = document.querySelector('.image-upload-section');
+                    const existingError = imageSection.querySelector('.images-error');
+
+                    if (!existingError) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'text-danger images-error';
+                        errorDiv.style.marginTop = '0.5rem';
+                        errorDiv.textContent = 'At least one product image is required';
+                        imageSection.appendChild(errorDiv);
+                    }
+                    hasErrors = true;
+                } else {
+                    const existingError = document.querySelector('.images-error');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+                }
+
                 if (hasErrors) {
                     e.preventDefault();
 
                     // Scroll to first error and focus
-                    const firstError = document.querySelector('.has-error .form-control');
+                    const firstError = document.querySelector('.has-error .form-control, .images-error');
                     if (firstError) {
                         firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        setTimeout(() => firstError.focus(), 300);
+                        if (firstError.focus) {
+                            setTimeout(() => firstError.focus(), 300);
+                        }
                     }
                 } else {
                     // Show loading state
@@ -902,8 +978,8 @@
             setupPriceInput(priceInput);
             setupPriceInput(salePriceInput);
 
-            // Initial progress update
-            updateProgress();
+            // Initialize counters
+            updateImageCounter();
         });
     </script>
 }
