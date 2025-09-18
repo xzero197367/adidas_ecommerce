@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -25,5 +26,7 @@ namespace Adidas.DTOs.Separator.Category_DTOs
         public Guid? ParentCategoryId { get; set; }
 
         public int SortOrder { get; set; } = 0;
+        public IFormFile? ImageFile { get; set; }
+
     }
 }

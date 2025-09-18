@@ -1,6 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 using Adidas.DTOs.CommonDTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace Adidas.DTOs.Separator.Category_DTOs
 {
@@ -16,10 +17,11 @@ namespace Adidas.DTOs.Separator.Category_DTOs
 
         [Required]
         public string? Description { get; set; }
-        [Required]
-        [StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters")]
+        
+        //[StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters")]
         public string? ImageUrl { get; set; }
 
+        public IFormFile? ImageFile { get; set; }
         public Guid? ParentCategoryId { get; set; }
 
         public int SortOrder { get; set; }

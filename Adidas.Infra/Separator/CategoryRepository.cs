@@ -56,7 +56,7 @@ namespace Adidas.Infra.Separator
                 .Include(c => c.Products)
                 .Include(c => c.SubCategories)
                 .ThenInclude(sc => sc.Products)
-                .FirstOrDefaultAsync(c => c.Id == categoryId && !c.IsDeleted && c.IsActive);
+                .FirstOrDefaultAsync(c => c.Id == categoryId );
 
  
         }

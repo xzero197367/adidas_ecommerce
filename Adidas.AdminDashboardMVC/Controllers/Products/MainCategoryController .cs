@@ -40,45 +40,45 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CategoryCreateDto model, IFormFile ImageFile)
+        public async Task<IActionResult> Create(CategoryCreateDto model)
         {
             // Force this to be a main category
             model.ParentCategoryId = null;
 
             if (!ModelState.IsValid)
             {
-                if (ImageFile == null)
-                {
-                    ModelState.AddModelError("ImageUrl", "Image is Required");
-                }
+                //if (model.ImageFile == null)
+                //{
+                //    ModelState.AddModelError("ImageUrl", "Image is Required");
+                //}
                 return View(model);
-            }
+             }
 
-            if (ImageFile != null && ImageFile.Length > 0)
-            {
-                if (ImageFile.Length > 5 * 1024 * 1024)
-                {
-                    ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
-                    return View(model);
-                }
+            //if (model.ImageFile != null && model.ImageFile.Length > 0)
+            //{
+            //    if (model.ImageFile.Length > 5 * 1024 * 1024)
+            //    {
+            //        ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
+            //        return View(model);
+            //    }
 
-                var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
-                var relativePath = Path.Combine("uploads", "categories", fileName);
-                var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
+            //    var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+            //    var relativePath = Path.Combine("uploads", "categories", fileName);
+            //    var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
 
-                if (!Directory.Exists(absolutePath))
-                {
-                    Directory.CreateDirectory(absolutePath);
-                }
+            //    if (!Directory.Exists(absolutePath))
+            //    {
+            //        Directory.CreateDirectory(absolutePath);
+            //    }
 
-                var filePath = Path.Combine(absolutePath, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await ImageFile.CopyToAsync(stream);
-                }
+            //    var filePath = Path.Combine(absolutePath, fileName);
+            //    using (var stream = new FileStream(filePath, FileMode.Create))
+            //    {
+            //        await ImageFile.CopyToAsync(stream);
+            //    }
 
-                model.ImageUrl = "/" + relativePath.Replace("\\", "/");
-            }
+            //    model.ImageUrl = "/" + relativePath.Replace("\\", "/");
+            //}
 
             var result = await _categoryService.CreateAsync(model);
 
@@ -104,13 +104,15 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 TempData["Error"] = "Main Category not found.";
                 return RedirectToAction("Index");
             }
+            if (category.ImageUrl == null) category.ImageUrl = "";
+
 
             return View(category);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(CategoryUpdateDto model, IFormFile? ImageFile)
+        public async Task<IActionResult> Edit(CategoryUpdateDto model)
         {
             // Ensure this remains a main category
             model.ParentCategoryId = null;
@@ -121,32 +123,32 @@ namespace Adidas.AdminDashboardMVC.Controllers.Products
                 return View(model);
             }
 
-            if (ImageFile != null && ImageFile.Length > 0)
-            {
-                if (ImageFile.Length > 5 * 1024 * 1024)
-                {
-                    ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
-                    ViewBag.CategoryId = model.Id;
-                    return View(model);
-                }
+            //if (ImageFile != null && ImageFile.Length > 0)
+            //{
+            //    if (ImageFile.Length > 5 * 1024 * 1024)
+            //    {
+            //        ModelState.AddModelError("ImageUrl", "Image size should not exceed 5MB.");
+            //        ViewBag.CategoryId = model.Id;
+            //        return View(model);
+            //    }
 
-                var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
-                var relativePath = Path.Combine("uploads", "categories", fileName);
-                var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
+            //    var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+            //    var relativePath = Path.Combine("uploads", "categories", fileName);
+            //    var absolutePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "categories");
 
-                if (!Directory.Exists(absolutePath))
-                {
-                    Directory.CreateDirectory(absolutePath);
-                }
+            //    if (!Directory.Exists(absolutePath))
+            //    {
+            //        Directory.CreateDirectory(absolutePath);
+            //    }
 
-                var filePath = Path.Combine(absolutePath, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await ImageFile.CopyToAsync(stream);
-                }
+            //    var filePath = Path.Combine(absolutePath, fileName);
+            //    using (var stream = new FileStream(filePath, FileMode.Create))
+            //    {
+            //        await ImageFile.CopyToAsync(stream);
+            //    }
 
-                model.ImageUrl = "/" + relativePath.Replace("\\", "/");
-            }
+            //    model.ImageUrl = "/" + relativePath.Replace("\\", "/");
+            //}
 
             var result = await _categoryService.UpdateAsync(model);
             if (!result.IsSuccess)
