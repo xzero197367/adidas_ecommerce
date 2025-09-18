@@ -20,12 +20,15 @@ using Models.People;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using Adidas.Application.Contracts.RepositoriesContracts.Separator;
+using System.Threading.Tasks;
 
 namespace Adidas.Application.Services.Main
 {
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
+        private readonly IBrandRepository _brandRepository;
         private readonly IProductVariantRepository _variantRepository;
         private readonly ICouponService _couponService;
         private readonly ILogger<ProductService> _logger;
@@ -36,6 +39,7 @@ namespace Adidas.Application.Services.Main
 
         public ProductService(
             IProductRepository productRepository,
+            IBrandRepository brandRepository,
             IProductVariantRepository variantRepository,
             ICouponService couponService,
             ILogger<ProductService> logger,
@@ -44,6 +48,7 @@ namespace Adidas.Application.Services.Main
         {
             _productRepository = productRepository;
             _variantRepository = variantRepository;
+            _brandRepository = brandRepository;
             _couponService = couponService;
             _logger = logger;
             _userProductViewRepository = userProductViewRepository;
@@ -55,6 +60,7 @@ namespace Adidas.Application.Services.Main
         // ProductService - ISSUE FOUND: The variant mapping in MapToProductDto is creating new DTOs instead of using proper mapping
         public ProductDto MapToProductDto(Product p)
         {
+            
             return new ProductDto
             {
                 Id = p.Id,
@@ -136,6 +142,14 @@ namespace Adidas.Application.Services.Main
 
         private Product MapToProduct(ProductCreateDto dto)
         {
+            var brands = _brandRepository.GetAllAsync().GetAwaiter().GetResult();
+            var brand = brands.FirstOrDefault();
+
+            if (brand == null)
+            {
+                throw new Exception("No brand found in the database.");
+            }
+
             return new Product
             {
                 Id = Guid.NewGuid(),
@@ -149,11 +163,10 @@ namespace Adidas.Application.Services.Main
                 MetaTitle = dto.MetaTitle,
                 MetaDescription = dto.MetaDescription,
                 CategoryId = dto.CategoryId,
-                //ImageUrl = dto.ImageUrl ?? DefaultImageUrl,
-                BrandId = new Guid("7f3fe2b9-1d1e-4ccd-8880-011f6f2526ca"),
+                BrandId = brand.Id,  
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                IsActive = true // Add this line
+                IsActive = true
             };
         }
 
