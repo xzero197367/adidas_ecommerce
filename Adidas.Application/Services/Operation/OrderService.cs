@@ -601,7 +601,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
             // Properties from your User model
             CreatedAt = DateTime.UtcNow,
-            IsActive = false, // Inactive for login purposes but can place orders
+            IsActive = true, // Inactive for login purposes but can place orders
             IsDeleted = false,
             Role = UserRole.Customer, // Guest users are customers
             PreferredLanguage = "english", // Default language

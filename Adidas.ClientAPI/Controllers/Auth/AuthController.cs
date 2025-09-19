@@ -52,10 +52,66 @@ namespace Adidas.ClientAPI.Controllers.Auth
 
                 // Check if user already exists
                 var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
-                if (existingUser != null)
-                    return BadRequest(new { message = "User with this email already exists" });
 
-                // Create new user with Customer role by default
+                if (existingUser != null)
+                {
+                    if (!existingUser.EmailConfirmed) // guest user
+                    {
+                        // Update guest user with new details
+                        existingUser.FirstName = registerDto.FirstName;
+                        existingUser.LastName = registerDto.LastName;
+                        existingUser.Phone = registerDto.Phone;
+                        existingUser.UserName = registerDto.Email;
+                        existingUser.Email = registerDto.Email;
+                        existingUser.IsActive = true;
+                        existingUser.EmailConfirmed = true; // now becomes a real customer
+                        existingUser.Role = UserRole.Customer;
+                        existingUser.UpdatedAt = DateTime.UtcNow;
+
+                        var updateResult = await _userManager.UpdateAsync(existingUser);
+                        if (!updateResult.Succeeded)
+                        {
+                            return BadRequest(new { message = "Failed to update guest user", errors = updateResult.Errors });
+                        }
+
+                        // Set password
+                        var passwordHash = _userManager.PasswordHasher.HashPassword(existingUser, registerDto.Password);
+                        existingUser.PasswordHash = passwordHash;
+                        await _userManager.UpdateAsync(existingUser);
+
+                        // Ensure role is assigned
+                        if (!await _userManager.IsInRoleAsync(existingUser, "Customer"))
+                        {
+                            await _userManager.AddToRoleAsync(existingUser, "Customer");
+                        }
+
+                        // Generate JWT token
+                        var tokenGuest = await GenerateJwtToken(existingUser);
+                        var refreshTokenGuest = GenerateRefreshToken();
+
+                        return Ok(new AuthResponseDto
+                        {
+                            Token = tokenGuest,
+                            RefreshToken = refreshTokenGuest,
+                            User = new UserInfoDto
+                            {
+                                Id = existingUser.Id,
+                                Email = existingUser.Email,
+                                FirstName = existingUser.FirstName,
+                                LastName = existingUser.LastName,
+                                Phone = existingUser.Phone,
+                                Role = "Customer"
+                            }
+                        });
+                    }
+
+                    // If EmailConfirmed == true => already registered normally
+                    return BadRequest(new { message = "User with this email already exists" });
+                }
+
+                // --------------------
+                // Normal Registration
+                // --------------------
                 var user = new User
                 {
                     UserName = registerDto.Email,
@@ -63,24 +119,20 @@ namespace Adidas.ClientAPI.Controllers.Auth
                     FirstName = registerDto.FirstName,
                     LastName = registerDto.LastName,
                     Phone = registerDto.Phone,
-                    Role = UserRole.Customer, // Keep enum for backward compatibility
+                    Role = UserRole.Customer,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
-                    EmailConfirmed = true // For demo purposes, set to true
+                    EmailConfirmed = true // confirmed on registration
                 };
 
                 var result = await _userManager.CreateAsync(user, registerDto.Password);
-
                 if (!result.Succeeded)
-                {
                     return BadRequest(new { message = "Registration failed", errors = result.Errors });
-                }
 
-                // Assign Customer role using Identity roles
+                // Assign role
                 var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
                 if (!roleResult.Succeeded)
                 {
-                    // If role assignment fails, still log the error but don't fail the registration
                     _logger.LogError("Failed to assign Customer role to user {UserId}: {Errors}",
                         user.Id, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
                 }
@@ -110,6 +162,7 @@ namespace Adidas.ClientAPI.Controllers.Auth
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
