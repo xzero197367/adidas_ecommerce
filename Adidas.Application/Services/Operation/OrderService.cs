@@ -22,6 +22,7 @@ using iTextSharp.text.pdf;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Models.Feature;
 using Models.People;
 using System.Text.Json;
 
@@ -36,10 +37,12 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
     private readonly IInventoryService _inventoryService;
     private readonly INotificationService _notificationService;
     private readonly ICouponService _couponService;
+    private readonly ICouponRepository _couponRepository;
     private readonly ILogger<OrderService> _logger;
     private readonly AdidasDbContext _context;
 
     public OrderService(
+        ICouponRepository couponRepository,
         IOrderRepository orderRepository,
         IOrderItemRepository orderItemRepository,
         IShoppingCartRepository cartRepository,
@@ -50,6 +53,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         ILogger<OrderService> logger, AdidasDbContext context) : base(orderRepository, logger)
     {
         _orderRepository = orderRepository;
+        _cartRepository = cartRepository;
         _orderItemRepository = orderItemRepository;
         _cartRepository = cartRepository;
         _variantRepository = variantRepository;
@@ -337,21 +341,17 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
             IEnumerable<ShoppingCart> cartItems;
 
-            // Handle different cart sources
+            // Handle cart items (guest vs registered user)
             if (createOrderDto.IsGuestUser)
             {
-                // For guest users, use cart items passed in the DTO
                 if (createOrderDto.CartItems == null || !createOrderDto.CartItems.Any())
-                {
                     return OperationResult<OrderDto>.Fail("Guest cart is empty, cannot create order.");
-                }
 
-                // Convert ShoppingCartDto to ShoppingCart objects for processing
                 cartItems = createOrderDto.CartItems.Select(cartItemDto => new ShoppingCart
                 {
                     VariantId = cartItemDto.VariantId,
                     Quantity = cartItemDto.Quantity,
-                    UserId = createOrderDto.UserId
+                    UserId = createOrderDto.UserId,
                 }).ToList();
 
                 _logger.LogInformation("Processing guest cart with {Count} items for guest user {GuestUserId}",
@@ -359,30 +359,24 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             }
             else
             {
-                // For registered users, we can either:
-                // 1. Fetch from database (existing behavior)
-                // 2. Use CartItems from DTO (new unified approach)
-
                 if (createOrderDto.CartItems != null && createOrderDto.CartItems.Any())
                 {
-                    // Use cart items from DTO (unified approach)
                     cartItems = createOrderDto.CartItems.Select(cartItemDto => new ShoppingCart
                     {
                         VariantId = cartItemDto.VariantId,
                         Quantity = cartItemDto.Quantity,
                         UserId = createOrderDto.UserId
                     }).ToList();
+
                     _logger.LogInformation("Processing registered user cart from DTO with {Count} items for user {UserId}",
                         cartItems.Count(), createOrderDto.UserId);
                 }
                 else
                 {
-                    // Fallback to database fetch (legacy behavior)
                     cartItems = await _cartRepository.GetCartItemsByUserIdAsync(createOrderDto.UserId);
                     if (cartItems == null || !cartItems.Any())
-                    {
                         return OperationResult<OrderDto>.Fail("Cart is empty, cannot create order.");
-                    }
+
                     _logger.LogInformation("Processing registered user cart from database with {Count} items for user {UserId}",
                         cartItems.Count(), createOrderDto.UserId);
                 }
@@ -392,22 +386,15 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             var orderId = Guid.NewGuid();
             var orderNumberResult = await GenerateOrderNumberAsync();
             if (!orderNumberResult.IsSuccess)
-            {
                 return OperationResult<OrderDto>.Fail("Failed to generate order number");
-            }
 
             // Calculate amounts and reserve stock
             decimal subtotal = 0;
             var orderItems = new List<OrderItem>();
             var stockReservations = new List<(Guid variantId, int quantity)>();
 
-            // Process cart items uniformly
             foreach (var cartItem in cartItems)
             {
-                _logger.LogInformation("Processing cart item - VariantId: {VariantId}, Quantity: {Quantity}",
-                    cartItem.VariantId, cartItem.Quantity);
-
-                // Get variant with product included
                 var variant = await _context.ProductVariants
                     .Include(v => v.Product)
                     .FirstOrDefaultAsync(v => v.Id == cartItem.VariantId);
@@ -418,41 +405,31 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                     continue;
                 }
 
-                _logger.LogInformation("Product found - Name: {ProductName}, Price: {Price}, SalePrice: {SalePrice}, PriceAdjustment: {PriceAdjustment}",
-                    variant.Product.Name, variant.Product.Price, variant.Product.SalePrice, variant.PriceAdjustment);
-
-                // Check and reserve stock FIRST
                 if (variant.StockQuantity < cartItem.Quantity)
                 {
                     await transaction.RollbackAsync();
-                    return OperationResult<OrderDto>.Fail($"Insufficient stock for product variant {cartItem.VariantId}. Available: {variant.StockQuantity}, Requested: {cartItem.Quantity}");
+                    return OperationResult<OrderDto>.Fail(
+                        $"Insufficient stock for product variant {cartItem.VariantId}. Available: {variant.StockQuantity}, Requested: {cartItem.Quantity}");
                 }
 
-                // Reserve stock by directly updating the variant
                 var oldQuantity = variant.StockQuantity;
                 variant.StockQuantity -= cartItem.Quantity;
                 _context.ProductVariants.Update(variant);
 
-                // Track reservation for potential rollback
                 stockReservations.Add((cartItem.VariantId, cartItem.Quantity));
 
-                // Log inventory change with appropriate user identifier
                 var userIdentifier = createOrderDto.IsGuestUser ? "GUEST" : createOrderDto.UserId;
                 await LogInventoryChangeAsync(cartItem.VariantId, oldQuantity, variant.StockQuantity,
                     "RESERVE", userIdentifier,
                     $"Reserved {cartItem.Quantity} units for order {orderNumberResult.Data}");
 
-                // Calculate pricing
                 var basePrice = variant.Product.SalePrice ?? variant.Product.Price;
                 var unitPrice = basePrice + variant.PriceAdjustment;
                 var totalPrice = unitPrice * cartItem.Quantity;
 
-                _logger.LogInformation("Price calculation - BasePrice: {BasePrice}, PriceAdjustment: {PriceAdjustment}, UnitPrice: {UnitPrice}, Quantity: {Quantity}, TotalPrice: {TotalPrice}",
-                    basePrice, variant.PriceAdjustment, unitPrice, cartItem.Quantity, totalPrice);
-
                 subtotal += totalPrice;
 
-                var orderItem = new OrderItem
+                orderItems.Add(new OrderItem
                 {
                     Id = Guid.NewGuid(),
                     OrderId = orderId,
@@ -464,12 +441,8 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                     VariantDetails = $"Size: {variant.Size}, Color: {variant.Color}",
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
-                };
-
-                orderItems.Add(orderItem);
+                });
             }
-
-            _logger.LogInformation("Order calculation - Subtotal: {Subtotal}, Items count: {ItemsCount}", subtotal, orderItems.Count);
 
             if (orderItems.Count == 0)
             {
@@ -492,10 +465,30 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             {
                 try
                 {
-                    var discountedTotal = await _couponService.CalculateCouponAmountAsync(createOrderDto.CouponCode, subtotal);
-                    discountAmount = subtotal - discountedTotal;
-                    _logger.LogInformation("Discount applied - Original: {Original}, Discounted: {Discounted}, Discount: {Discount}",
-                        subtotal, discountedTotal, discountAmount);
+                    var coupon = await _couponRepository.GetByCodeAsync(createOrderDto.CouponCode);
+                    if (coupon != null && !coupon.IsDeleted)
+                    {
+                        if (coupon.UsageLimit == 0 || coupon.UsedCount < coupon.UsageLimit)
+                        {
+                            if (subtotal >= coupon.MinimumAmount)
+                            {
+                                discountAmount = await CalculateDiscountAmountAsync(coupon, subtotal);
+                                coupon.UsedCount++;
+                                _context.Coupons.Update(coupon);
+
+                                _logger.LogInformation("Coupon applied: {Code}, Discount: {Discount}", coupon.Code, discountAmount);
+                            }
+                            else
+                            {
+                                _logger.LogInformation("Coupon {Code} not applied - order subtotal {Subtotal} below minimum {MinAmount}",
+                                    coupon.Code, subtotal, coupon.MinimumAmount);
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Coupon {Code} not applied - usage limit reached", coupon.Code);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -504,9 +497,6 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             }
 
             var totalAmount = subtotal - discountAmount + taxAmount + shippingAmount;
-
-            _logger.LogInformation("Final order totals - Subtotal: {Subtotal}, Tax: {Tax}, Shipping: {Shipping}, Discount: {Discount}, Total: {Total}",
-                subtotal, taxAmount, shippingAmount, discountAmount, totalAmount);
 
             var order = new Order
             {
@@ -522,24 +512,18 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 OrderDate = DateTime.UtcNow,
                 ShippingAddress = createOrderDto.ShippingAddress,
                 BillingAddress = createOrderDto.BillingAddress,
-                UserId = createOrderDto.UserId, // This will be guest ID if guest user
+                UserId = createOrderDto.UserId,
                 OrderItems = orderItems,
                 Notes = createOrderDto.Notes ?? string.Empty,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
 
-            // Save the order
             var result = await _orderRepository.AddAsync(order);
 
-            // Save all changes in a single transaction
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            _logger.LogInformation("Order created successfully - OrderId: {OrderId}, OrderNumber: {OrderNumber}, Total: {Total}, Guest: {IsGuest}",
-                order.Id, order.OrderNumber, order.TotalAmount, createOrderDto.IsGuestUser);
-
-            // Clear cart after successful order creation (only for registered users)
             if (!createOrderDto.IsGuestUser)
             {
                 try
@@ -549,11 +533,9 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
                 catch (Exception clearCartEx)
                 {
                     _logger.LogWarning(clearCartEx, "Failed to clear cart for user {UserId} after order creation", createOrderDto.UserId);
-                    // Don't fail the order creation if cart clearing fails
                 }
             }
 
-            // Send notification (use guest email if provided)
             await SendOrderConfirmationNotification(order, createOrderDto);
 
             result.State = EntityState.Detached;
@@ -570,6 +552,16 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         }
     }
 
+    private async Task<decimal> CalculateDiscountAmountAsync(Coupon coupon, decimal orderAmount)
+    {
+        return coupon.DiscountType switch
+        {
+            DiscountType.Percentage => orderAmount * (coupon.DiscountValue / 100m),
+            DiscountType.FixedAmount => coupon.DiscountValue, // Deduct fixed amount directly
+            DiscountType.Amount => Math.Min(coupon.DiscountValue, orderAmount),
+            _ => 0
+        };
+    }
 
     // Helper method for inventory logging
     private async Task<string> EnsureGuestUserExistsAsync(string guestUserId, string? guestEmail)
