@@ -552,16 +552,24 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
         }
     }
 
-    private async Task<decimal> CalculateDiscountAmountAsync(Coupon coupon, decimal orderAmount)
+   private Task<decimal> CalculateDiscountAmountAsync(Coupon coupon, decimal orderAmount)
+{
+    if (orderAmount < coupon.MinimumAmount)
+        return Task.FromResult(0m);
+
+    decimal discount = coupon.DiscountType switch
     {
-        return coupon.DiscountType switch
-        {
-            DiscountType.Percentage => orderAmount * (coupon.DiscountValue / 100m),
-            DiscountType.FixedAmount => coupon.DiscountValue, // Deduct fixed amount directly
-            DiscountType.Amount => Math.Min(coupon.DiscountValue, orderAmount),
-            _ => 0
-        };
-    }
+        DiscountType.Percentage => orderAmount * (coupon.DiscountValue / 100m),
+        DiscountType.FixedAmount => coupon.DiscountValue,
+        DiscountType.Amount => Math.Min(coupon.DiscountValue, orderAmount),
+        _ => 0
+    };
+
+    if (discount > orderAmount)
+        discount = orderAmount;
+
+    return Task.FromResult(discount);
+}
 
     // Helper method for inventory logging
     private async Task<string> EnsureGuestUserExistsAsync(string guestUserId, string? guestEmail)
