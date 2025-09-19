@@ -177,8 +177,12 @@ namespace Adidas.ClientAPI.Controllers.Auth
                     return Unauthorized(new { message = "Invalid credentials" });
 
                 // Check if user is active and not suspended
-                if (!user.IsActive || user.IsDeleted)
+                if (!user.IsActive || user.IsDeleted )
                     return StatusCode(403, new { message = "Account is suspended or deactivated" });
+
+                //check if user has email confirmed
+                if(!user.EmailConfirmed)
+                    return StatusCode(403, new { message = "Account is not registered" });
 
                 // Check if user has Customer role using Identity roles
                 var userRoles = await _userManager.GetRolesAsync(user);
