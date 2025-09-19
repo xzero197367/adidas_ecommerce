@@ -329,6 +329,47 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
 
     public async Task<OperationResult<OrderDto>> CreateOrderFromCartAsync(CreateOrderDTO createOrderDto)
     {
+        decimal discountAmount = 0;
+        Coupon? coupon = null;
+
+        if (!string.IsNullOrEmpty(createOrderDto.CouponCode))
+        {
+            try
+            {
+                var couponCode = createOrderDto.CouponCode.Trim();
+                _logger.LogInformation("Pre-transaction coupon lookup for code: '{Code}'", couponCode);
+
+                coupon = await _context.Coupons
+                    .AsNoTracking() 
+                    .Where(c => c.Code == couponCode && !c.IsDeleted && c.IsActive)
+                    .FirstOrDefaultAsync();
+
+                _logger.LogInformation("Coupon lookup result - Code: {Code}, Found: {Found}, CouponId: {CouponId}",
+                    couponCode, coupon != null, coupon?.Id ?? Guid.Empty);
+
+                if (coupon != null)
+                {
+                    if (coupon.UsageLimit > 0 && coupon.UsedCount >= coupon.UsageLimit)
+                    {
+                        return OperationResult<OrderDto>.Fail($"Coupon '{couponCode}' has reached its usage limit.");
+                    }
+
+                    _logger.LogInformation("Coupon pre-validation passed - Code: {Code}, UsageLimit: {UsageLimit}, UsedCount: {UsedCount}",
+                        coupon.Code, coupon.UsageLimit, coupon.UsedCount);
+                }
+                else
+                {
+                    _logger.LogWarning("Coupon not found or inactive for code: '{Code}'", couponCode);
+                    return OperationResult<OrderDto>.Fail($"Coupon '{couponCode}' not found or is no longer active.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during pre-transaction coupon lookup for {CouponCode}", createOrderDto.CouponCode);
+                return OperationResult<OrderDto>.Fail("Error validating coupon code. Please try again.");
+            }
+        }
+
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
@@ -459,40 +500,35 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             var taxAmount = CalculateTax(subtotal);
             var shippingAmount = CalculateShippingCost(subtotal);
 
-            // Apply discount if coupon code is provided
-            decimal discountAmount = 0;
-            if (!string.IsNullOrEmpty(createOrderDto.CouponCode))
+            if (coupon != null)
             {
                 try
                 {
-                    var coupon = await _couponRepository.GetByCodeAsync(createOrderDto.CouponCode);
-                    if (coupon != null && !coupon.IsDeleted)
+                    if (subtotal >= coupon.MinimumAmount)
                     {
-                        if (coupon.UsageLimit == 0 || coupon.UsedCount < coupon.UsageLimit)
-                        {
-                            if (subtotal >= coupon.MinimumAmount)
-                            {
-                                discountAmount = await CalculateDiscountAmountAsync(coupon, subtotal);
-                                coupon.UsedCount++;
-                                _context.Coupons.Update(coupon);
+                        discountAmount = await CalculateDiscountAmountAsync(coupon, subtotal);
 
-                                _logger.LogInformation("Coupon applied: {Code}, Discount: {Discount}", coupon.Code, discountAmount);
-                            }
-                            else
-                            {
-                                _logger.LogInformation("Coupon {Code} not applied - order subtotal {Subtotal} below minimum {MinAmount}",
-                                    coupon.Code, subtotal, coupon.MinimumAmount);
-                            }
-                        }
-                        else
+                        var couponToUpdate = await _context.Coupons
+                            .FirstOrDefaultAsync(c => c.Id == coupon.Id);
+
+                        if (couponToUpdate != null)
                         {
-                            _logger.LogInformation("Coupon {Code} not applied - usage limit reached", coupon.Code);
+                            couponToUpdate.UsedCount++;
+                            _context.Coupons.Update(couponToUpdate);
+
+                            _logger.LogInformation("Coupon applied successfully - Code: {Code}, Discount: {Discount}, NewUsedCount: {UsedCount}",
+                                coupon.Code, discountAmount, couponToUpdate.UsedCount);
                         }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Coupon {Code} minimum amount not met - Subtotal: {Subtotal}, Required: {MinAmount}",
+                            coupon.Code, subtotal, coupon.MinimumAmount);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to apply coupon {CouponCode}", createOrderDto.CouponCode);
+                    _logger.LogError(ex, "Error applying coupon {CouponCode} within transaction", coupon.Code);
                 }
             }
 
@@ -551,8 +587,7 @@ public class OrderService : GenericService<Order, OrderDto, OrderCreateDto, Orde
             return OperationResult<OrderDto>.Fail(ex.Message);
         }
     }
-
-   private Task<decimal> CalculateDiscountAmountAsync(Coupon coupon, decimal orderAmount)
+    private Task<decimal> CalculateDiscountAmountAsync(Coupon coupon, decimal orderAmount)
 {
     if (orderAmount < coupon.MinimumAmount)
         return Task.FromResult(0m);

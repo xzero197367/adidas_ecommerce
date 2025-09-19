@@ -14,8 +14,11 @@ namespace Adidas.Infra.Operation
 
         public async Task<Coupon?> GetByCodeAsync(string code)
         {
-            return await FindAsync((q) => { return q.Where(c => c.Code == code && !c.IsDeleted); });
+            var normalizedCode = code.Trim().ToLower();
+            return await FindAsync(q =>
+                q.Where(c => c.Code.ToLower() == normalizedCode && !c.IsDeleted));
         }
+
 
         public async Task<IEnumerable<Coupon>> GetActiveCouponsAsync()
         {
