@@ -18,7 +18,7 @@ namespace Adidas.DTOs.Main.Product_Variant_DTOs
         [Required, Range(0, int.MaxValue)]
         public int StockQuantity { get; set; }
 
-        public decimal PriceAdjustment { get; set; } = 0;
+        public decimal? PriceAdjustment { get; set; } = 0;
 
         public string? ColorHex { get; set; }
 

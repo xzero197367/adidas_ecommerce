@@ -198,6 +198,10 @@
                                             <option value="L">L</option>
                                             <option value="XL">XL</option>
                                             <option value="XXL">XXL</option>
+                                            @for (int i = 20; i <= 60; i++)
+                                            {
+                                                <option value="@i">@i</option>
+                                            }
                                         </select>
                                         <span asp-validation-for="Size" class="text-danger"></span>
                                     </div>

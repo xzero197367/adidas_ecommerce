@@ -673,7 +673,7 @@ namespace Adidas.Application.Services.Main
 
                 await BeforeDeleteAsync(entity);
 
-                await _productVariantRepository.HardDeleteAsync(id);
+                await _productVariantRepository.SoftDeleteAsync(id);
                 await _productVariantRepository.SaveChangesAsync();
 
                 await AfterDeleteAsync(entity);
