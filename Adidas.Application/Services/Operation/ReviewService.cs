@@ -125,8 +125,8 @@ namespace Adidas.Application.Services.Operation
 
         public async Task<ReviewDto> CreateReviewAsync(ReviewCreateDto createReviewDto)
         {
-            if (!await CanUserReviewProductAsync(createReviewDto.UserId, createReviewDto.ProductId))
-                throw new InvalidOperationException("User cannot review this product");
+            //if (!await CanUserReviewProductAsync(createReviewDto.UserId, createReviewDto.ProductId))
+            //    throw new InvalidOperationException("User cannot review this product");
 
             await ValidateCreateAsync(createReviewDto);
 

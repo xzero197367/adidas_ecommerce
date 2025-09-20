@@ -85,7 +85,7 @@ namespace Adidas.ClientAPI.Controllers.Operation
                 if (string.IsNullOrEmpty(currentUserId))
                     return Unauthorized("User not authenticated");
 
-                //createReviewDto.UserId = currentUserId;
+                createReviewDto.UserId = currentUserId;
 
    
 
